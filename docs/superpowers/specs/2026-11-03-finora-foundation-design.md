@@ -160,7 +160,7 @@ A test-side **invariant checker** runs SQL over the whole database for each row 
 - A full-chain test migrates from v1 to the latest version.
 - Foundation ships the v1 schema and the migration test infrastructure. Foundation also includes a **test-only** scratch v1→v2 migration to prove the infrastructure works. Room exports schema JSON only for the production database version, so the scratch test uses its own artifacts, all in the `androidTest` source set:
 - `ScratchDatabase` (version 2), a copy of the production entities plus one extra column, processed by `kspAndroidTest` with its own schema directory `app/schemas-test`, also added as `androidTest` assets.
-- `ScratchMigration_1_2`, applied only by the scratch test through `MigrationTestHelper`. It starts from the real production v1 schema JSON in `app/schemas`.
+- `ScratchMigration_1_2`, applied only by the scratch test through `MigrationTestHelper`. Room looks up schema JSON in a folder named after the database class, so `ScratchDatabase` cannot read the production folder directly. A Gradle copy task in the `androidTest` setup copies production `1.json` into the `ScratchDatabase` folder of `app/schemas-test`, and a test asserts the copy is byte-identical to the production file, so the scratch migration always starts from the real v1 schema.
 
 None of these is referenced from `main`, `Migrations.kt`, `app/schemas`, or the production migration chain. A test asserts that the production chain contains no migration whose target version exceeds the production database version, and the production `FinoraDatabase` stays at version 1.
 
