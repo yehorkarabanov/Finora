@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "875452923223694927c596afc1731602",
+    "identityHash": "50630fade69b8b7937c0fedc3efa1e37",
     "entities": [
       {
         "tableName": "currency",
@@ -343,6 +343,16 @@
             ],
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_operation_opening_account_id` ON `${TABLE_NAME}` (`opening_account_id`)"
+          },
+          {
+            "name": "index_operation_occurred_at_id",
+            "unique": false,
+            "columnNames": [
+              "occurred_at",
+              "id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_operation_occurred_at_id` ON `${TABLE_NAME}` (`occurred_at`, `id`)"
           }
         ],
         "foreignKeys": [
@@ -565,7 +575,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '875452923223694927c596afc1731602')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '50630fade69b8b7937c0fedc3efa1e37')"
     ]
   }
 }
