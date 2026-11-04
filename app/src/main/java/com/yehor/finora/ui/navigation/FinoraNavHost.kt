@@ -40,6 +40,7 @@ import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
+import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
 @Composable
@@ -136,7 +137,15 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             CategoryEditScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.TAGS) {
-            PlaceholderScreen(R.string.more_tags, onBack = { navController.popBackStack() })
+            TagsScreen(
+                onBack = { navController.popBackStack() },
+                onShowTransactions = { tagId ->
+                    navController.navigate(Routes.transactionsForTag(tagId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
+            )
         }
         composable(Routes.RECURRING) {
             PlaceholderScreen(R.string.more_recurring, onBack = { navController.popBackStack() })

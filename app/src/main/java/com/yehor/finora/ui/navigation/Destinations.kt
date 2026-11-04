@@ -32,6 +32,7 @@ object Routes {
     fun categoryNew(type: String, parentId: Long? = null) =
         "more/categories/new?type=$type" + (parentId?.let { "&parentId=$it" } ?: "")
     fun categoryEdit(id: Long) = "more/categories/$id/edit"
+    fun transactionsForTag(tagId: Long) = "transactions?tagId=$tagId"
 }
 
 enum class TopLevelDestination(
