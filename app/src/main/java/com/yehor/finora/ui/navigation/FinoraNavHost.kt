@@ -40,6 +40,7 @@ import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
+import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
@@ -109,6 +110,32 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
         ) {
             AccountEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.TRANSACTION_NEW,
+            arguments = listOf(
+                navArgument("kind") { type = NavType.StringType; defaultValue = "EXPENSE" },
+                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            TransactionEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
+        }
+        composable(
+            Routes.TRANSACTION_EDIT,
+            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
+        ) {
+            TransactionEditScreen(
+                onBack = { navController.popBackStack() },
+                onDuplicate = { id ->
+                    navController.navigate(Routes.transactionNew(duplicateOf = id)) {
+                        popUpTo(Routes.TRANSACTION_EDIT) { inclusive = true }
+                    }
+                },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
         }
         composable(Routes.STATISTICS) { PlaceholderScreen(R.string.nav_statistics) }
         composable(Routes.MORE) {

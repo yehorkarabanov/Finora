@@ -197,6 +197,7 @@
     <string name="transaction_form_error_category_missing">Select a category</string>
     <string name="transaction_form_error_description_long">Description is too long (500 characters at most)</string>
     <string name="transaction_form_error_future_date">Date and time cannot be in the future</string>
+    <string name="transaction_form_opening_order_body">This transaction is dated before the account\'s initial balance. Move the initial balance back so it is not later than this transaction?</string>
     <string name="transaction_form_duplicate">Duplicate</string>
     <string name="transaction_form_delete_title">Delete transaction?</string>
     <string name="transaction_form_delete_body">The transaction will be deleted and the account balance will change by %1$s.</string>
