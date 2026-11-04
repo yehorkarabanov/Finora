@@ -116,6 +116,13 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             AccountDetailScreen(
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
+                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) },
+                onShowAllTransactions = { accountId ->
+                    navController.navigate(Routes.transactionsForAccount(accountId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
             )
         }
         composable(
@@ -159,6 +166,12 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onBack = { navController.popBackStack() },
                 onAdd = { type, parentId -> navController.navigate(Routes.categoryNew(type.name, parentId)) },
                 onEdit = { navController.navigate(Routes.categoryEdit(it)) },
+                onReviewTransactions = { categoryId ->
+                    navController.navigate(Routes.transactionsForCategory(categoryId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
             )
         }
         composable(

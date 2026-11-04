@@ -43,6 +43,7 @@ import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
+import com.yehor.finora.ui.common.TransactionRow
 import java.text.DateFormat
 import java.util.Date
 
@@ -54,6 +55,8 @@ internal fun formatDate(millis: Long): String =
 fun AccountDetailScreen(
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
+    onOpenTransaction: (Long) -> Unit,
+    onShowAllTransactions: (Long) -> Unit,
     viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -130,12 +133,22 @@ fun AccountDetailScreen(
             account.description?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
 
             HorizontalDivider()
-            // Reserved for the transaction history that sub-project 3 adds.
-            Text(
-                stringResource(R.string.account_detail_history_placeholder),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (loaded.recentTransactions.isEmpty()) {
+                Text(
+                    stringResource(R.string.account_detail_history_placeholder),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Column {
+                    loaded.recentTransactions.forEach { item ->
+                        TransactionRow(item = item, onClick = { onOpenTransaction(item.id) })
+                    }
+                    TextButton(onClick = { onShowAllTransactions(account.id) }) {
+                        Text(stringResource(R.string.action_show_transactions))
+                    }
+                }
+            }
             HorizontalDivider()
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {

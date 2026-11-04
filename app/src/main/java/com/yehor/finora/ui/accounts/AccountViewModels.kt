@@ -6,18 +6,22 @@ import androidx.lifecycle.viewModelScope
 import com.yehor.finora.data.repo.AccountRepository
 import com.yehor.finora.data.repo.OpeningBalanceOrderException
 import com.yehor.finora.data.repo.SettingsRepository
+import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.AccountDetail
 import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.account.AccountWithBalance
 import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.money.Currency
+import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -50,7 +54,11 @@ class AccountsViewModel @Inject constructor(repository: AccountRepository) : Vie
 sealed interface AccountDetailUiState {
     data object Loading : AccountDetailUiState
     data object Missing : AccountDetailUiState
-    data class Loaded(val detail: AccountDetail, val transactionCount: Int) : AccountDetailUiState {
+    data class Loaded(
+        val detail: AccountDetail,
+        val transactionCount: Int,
+        val recentTransactions: List<TransactionItem> = emptyList(),
+    ) : AccountDetailUiState {
         /** Rule A5. */
         val canDelete: Boolean get() = transactionCount == 0
     }
@@ -61,18 +69,25 @@ sealed interface AccountDetailUiState {
 class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: AccountRepository,
+    transactionRepository: TransactionRepository,
 ) : ViewModel() {
     private val accountId: Long = checkNotNull(savedStateHandle["accountId"])
 
-    val state: StateFlow<AccountDetailUiState> = repository.observe(accountId)
-        .map { detail ->
-            if (detail == null) {
-                AccountDetailUiState.Missing
-            } else {
-                AccountDetailUiState.Loaded(detail, repository.nonOpeningEntryCount(accountId))
-            }
+    val state: StateFlow<AccountDetailUiState> = combine(
+        repository.observe(accountId),
+        transactionRepository.observeRecent(TransactionFilter(accountIds = setOf(accountId)), RECENT_LIMIT),
+    ) { detail, recent ->
+        if (detail == null) {
+            AccountDetailUiState.Missing
+        } else {
+            AccountDetailUiState.Loaded(detail, repository.nonOpeningEntryCount(accountId), recent)
         }
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountDetailUiState.Loading)
+
+    private companion object {
+        const val RECENT_LIMIT = 10
+    }
 
     fun setArchived(archived: Boolean) {
         viewModelScope.launch { repository.setArchived(accountId, archived) }
