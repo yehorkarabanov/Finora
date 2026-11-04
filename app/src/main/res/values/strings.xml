@@ -230,6 +230,19 @@
     <string name="sort_amount_desc">Amount (high to low)</string>
     <string name="sort_amount_asc">Amount (low to high)</string>
 
+    <string name="filter_clear_all">Clear all</string>
+    <string name="filter_clear_date">Clear</string>
+    <string name="filter_amount_dropped">Amount range removed: the selected accounts use different currencies.</string>
+    <string name="filter_chip_amount">%1$s – %2$s</string>
+    <string name="filter_chip_amount_min">From %1$s</string>
+    <string name="filter_chip_amount_max">Up to %1$s</string>
+    <string name="filter_chip_date_range">%1$s – %2$s</string>
+    <string name="filter_chip_date_from">From %1$s</string>
+    <string name="filter_chip_date_to">Until %1$s</string>
+    <string name="filter_chip_search">“%1$s”</string>
+    <string name="filter_categories_count">Categories (%1$d)</string>
+    <string name="filter_categories_choose">Choose categories</string>
+
     <!-- Category Delete Review -->
     <string name="category_delete_review_transactions">Review transactions</string>
     <string name="category_delete_direct_only_note">Direct transactions only. Subcategory transactions are not included.</string>

@@ -41,6 +41,7 @@ import com.yehor.finora.ui.accounts.AccountsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
 import com.yehor.finora.ui.operations.TransactionEditScreen
+import com.yehor.finora.ui.operations.TransactionsScreen
 import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
@@ -86,7 +87,19 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         modifier = Modifier.padding(padding).consumeWindowInsets(padding),
     ) {
         composable(Routes.DASHBOARD) { PlaceholderScreen(R.string.nav_dashboard) }
-        composable(Routes.TRANSACTIONS) { PlaceholderScreen(R.string.nav_transactions) }
+        composable(
+            Routes.TRANSACTIONS_PRESET,
+            arguments = listOf(
+                navArgument("accountId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("categoryId") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            TransactionsScreen(
+                onAdd = { navController.navigate(Routes.transactionNew()) },
+                onOpenTransaction = { id -> navController.navigate(Routes.transactionEdit(id)) },
+            )
+        }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onOpen = { navController.navigate(Routes.accountDetail(it)) },

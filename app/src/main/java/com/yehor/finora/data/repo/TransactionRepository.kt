@@ -107,6 +107,13 @@ class TransactionRepository @Inject constructor(
         }
     }
 
+    /** [summarize] again whenever operations, ledger entries, tags or categories change. */
+    fun observeSummary(filter: TransactionFilter): Flow<List<CurrencySummary>> =
+        combine(
+            db.invalidationTracker.createFlow("operation", "ledger_entry", "operation_tag"),
+            categoryRepository.observeAll(),
+        ) { _, _ -> summarize(filter) }
+
     suspend fun recentCategoryIds(kind: TransactionKind, limit: Int = 5): List<Long> {
         val type = if (kind == TransactionKind.INCOME) OperationType.INCOME else OperationType.EXPENSE
         return db.operationDao().recentCategoryIds(type, limit)

@@ -43,6 +43,58 @@ class FilterScopeTest {
     }
 
     @Test
+    fun presetSetsOnlyGivenIds() {
+        assertEquals(TransactionFilter(), FilterScope.preset(null, null, null))
+        assertEquals(setOf(5L), FilterScope.preset(5, null, null).accountIds)
+        assertEquals(setOf(6L), FilterScope.preset(null, 6, null).tagIds)
+        assertEquals(setOf(7L), FilterScope.preset(null, null, 7).categoryIds)
+    }
+
+    @Test
+    fun normalizeKeepsAmountRangeWhileSingleCurrency() {
+        val accounts = listOf(acc(1, usd), acc(2, usd))
+        val filter = TransactionFilter(amount = AmountRange(usd, 100, null))
+        val n = FilterScope.normalize(filter, TransactionSort.AMOUNT_DESC, accounts, emptySet(), emptySet())
+        assertEquals(filter, n.filter)
+        assertEquals(TransactionSort.AMOUNT_DESC, n.sort)
+        assertEquals(usd, n.scopeCurrency)
+        assertEquals(false, n.amountRangeDropped)
+    }
+
+    @Test
+    fun normalizeDropsAmountRangeAndAmountSortWhenScopeBecomesMultiCurrency() {
+        val accounts = listOf(acc(1, usd), acc(2, eur))
+        val filter = TransactionFilter(amount = AmountRange(usd, 100, null))
+        val n = FilterScope.normalize(filter, TransactionSort.AMOUNT_ASC, accounts, emptySet(), emptySet())
+        assertNull(n.filter.amount)
+        assertEquals(TransactionSort.DATE_DESC, n.sort)
+        assertNull(n.scopeCurrency)
+        assertEquals(true, n.amountRangeDropped)
+    }
+
+    @Test
+    fun normalizeDropsAmountRangeInOtherCurrencyThanScope() {
+        val accounts = listOf(acc(1, usd), acc(2, eur))
+        val filter = TransactionFilter(accountIds = setOf(2), amount = AmountRange(usd, 100, null))
+        val n = FilterScope.normalize(filter, TransactionSort.DATE_ASC, accounts, emptySet(), emptySet())
+        assertNull(n.filter.amount)
+        assertEquals(TransactionSort.DATE_ASC, n.sort)
+        assertEquals(eur, n.scopeCurrency)
+    }
+
+    @Test
+    fun normalizeIsIdempotentAndPrunesStaleIds() {
+        val accounts = listOf(acc(1, usd))
+        val filter = TransactionFilter(accountIds = setOf(1, 9), categoryIds = setOf(3, 4), tagIds = setOf(8))
+        val once = FilterScope.normalize(filter, TransactionSort.DATE_DESC, accounts, setOf(3), emptySet())
+        assertEquals(setOf(1L), once.filter.accountIds)
+        assertEquals(setOf(3L), once.filter.categoryIds)
+        assertEquals(emptySet<Long>(), once.filter.tagIds)
+        val twice = FilterScope.normalize(once.filter, once.sort, accounts, setOf(3), emptySet())
+        assertEquals(once, twice)
+    }
+
+    @Test
     fun pruneMissingRemovesDeletedIds() {
         val filter = TransactionFilter(
             accountIds = setOf(1, 99),

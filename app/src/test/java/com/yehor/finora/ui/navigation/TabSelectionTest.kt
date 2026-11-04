@@ -32,6 +32,14 @@ class TabSelectionTest {
     }
 
     @Test
+    fun transactionRoutesBelongToTransactionsTab() {
+        assertTrue(isRouteUnder(Routes.TRANSACTIONS_PRESET, Routes.TRANSACTIONS))
+        assertTrue(isRouteUnder(Routes.TRANSACTION_NEW, Routes.TRANSACTIONS))
+        assertTrue(isRouteUnder(Routes.TRANSACTION_EDIT, Routes.TRANSACTIONS))
+        assertFalse(isRouteUnder("transactionsarchive", Routes.TRANSACTIONS))
+    }
+
+    @Test
     fun routeBuildersMatchThePatterns() {
         assertTrue(Routes.accountDetail(5) == "accounts/5")
         assertTrue(Routes.accountEdit(5) == "accounts/5/edit")

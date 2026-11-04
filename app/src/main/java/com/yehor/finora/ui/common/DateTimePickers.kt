@@ -33,7 +33,7 @@ import java.time.format.FormatStyle
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DateField(
-    date: LocalDate,
+    date: LocalDate?,
     onDateChange: (LocalDate) -> Unit,
     maxDate: LocalDate,
     modifier: Modifier = Modifier,
@@ -43,7 +43,7 @@ fun DateField(
 
     Box(modifier = modifier) {
         OutlinedTextField(
-            value = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)),
+            value = date?.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)).orEmpty(),
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
@@ -59,7 +59,7 @@ fun DateField(
     if (showDialog) {
         val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date),
+            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date ?: maxDate),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= maxUtcMidnight
             },
