@@ -182,10 +182,9 @@
     <string name="transaction_form_amount">Amount</string>
     <string name="transaction_form_account">Account</string>
     <string name="transaction_form_category">Category</string>
-    <string name="transaction_form_all_categories">All categories</string>
     <string name="transaction_form_create_category">Create category</string>
     <string name="transaction_form_date">Date</string>
-    <string name="transaction_form_time">Time</string>
+    <string name="transaction_form_date_time">Date &amp; time</string>
     <string name="transaction_form_description">Description</string>
     <string name="transaction_form_tags">Tags</string>
     <string name="transaction_form_error_amount_empty">Enter an amount</string>

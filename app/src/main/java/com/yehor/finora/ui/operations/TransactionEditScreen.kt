@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -54,10 +53,9 @@ import com.yehor.finora.domain.operation.TransactionDraftError
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.AccountPickerContent
 import com.yehor.finora.ui.common.CategoryTreePickerContent
-import com.yehor.finora.ui.common.DateField
+import com.yehor.finora.ui.common.DateTimeField
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.TagPicker
-import com.yehor.finora.ui.common.TimeField
 import java.time.LocalDate
 
 private val AMOUNT_ERRORS = setOf(
@@ -160,10 +158,18 @@ fun TransactionEditScreen(
             }
 
             val amountError = state.isOverflow || state.errors.any { it in AMOUNT_ERRORS }
+            val amountLabel = stringResource(R.string.transaction_form_amount)
             OutlinedTextField(
                 value = state.amountText,
                 onValueChange = viewModel::onAmountChange,
-                label = { Text("${stringResource(R.string.transaction_form_amount)} (${state.currency.symbol} ${state.currency.code})") },
+                label = {
+                    // The currency is only known once an account is selected.
+                    Text(
+                        state.selectedAccount?.currency
+                            ?.let { "$amountLabel (${it.symbol} ${it.code})" }
+                            ?: amountLabel,
+                    )
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 isError = amountError,
@@ -225,12 +231,7 @@ fun TransactionEditScreen(
                                 label = { Text(category.name) },
                             )
                         }
-                    if (hasCategoriesOfKind) {
-                        SuggestionChip(
-                            onClick = { pickCategory = true },
-                            label = { Text(stringResource(R.string.transaction_form_all_categories)) },
-                        )
-                    } else if (onNavigateCreateCategory != null) {
+                    if (!hasCategoriesOfKind && onNavigateCreateCategory != null) {
                         SuggestionChip(
                             onClick = { onNavigateCreateCategory(categoryType.name) },
                             label = { Text(stringResource(R.string.transaction_form_create_category)) },
@@ -239,19 +240,14 @@ fun TransactionEditScreen(
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DateField(
-                    date = state.date,
-                    onDateChange = viewModel::onDateChange,
-                    maxDate = LocalDate.now(),
-                    modifier = Modifier.weight(1f),
-                )
-                TimeField(
-                    time = state.time,
-                    onTimeChange = viewModel::onTimeChange,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            DateTimeField(
+                date = state.date,
+                time = state.time,
+                onDateChange = viewModel::onDateChange,
+                onTimeChange = viewModel::onTimeChange,
+                maxDate = LocalDate.now(),
+                modifier = Modifier.fillMaxWidth(),
+            )
             if (TransactionDraftError.DATE_IN_FUTURE in state.errors) {
                 Text(
                     stringResource(R.string.transaction_form_error_future_date),

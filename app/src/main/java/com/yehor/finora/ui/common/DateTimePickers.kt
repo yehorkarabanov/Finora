@@ -16,6 +16,7 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -89,50 +90,96 @@ fun DateField(
     }
 }
 
+/** One field showing date and time together; tapping it picks the date, then the time. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimeField(
+fun DateTimeField(
+    date: LocalDate,
     time: LocalTime,
+    onDateChange: (LocalDate) -> Unit,
     onTimeChange: (LocalTime) -> Unit,
+    maxDate: LocalDate,
     modifier: Modifier = Modifier,
 ) {
-    var showDialog by remember { mutableStateOf(false) }
+    // 0 = closed, 1 = picking the date, 2 = picking the time.
+    var step by remember { mutableIntStateOf(0) }
+    var pendingDate by remember { mutableStateOf(date) }
 
     Box(modifier = modifier) {
         OutlinedTextField(
-            value = time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+            value = "${date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))}, " +
+                time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
             onValueChange = {},
             readOnly = true,
-            label = { Text(stringResource(R.string.transaction_form_time)) },
+            label = { Text(stringResource(R.string.transaction_form_date_time)) },
             modifier = Modifier.fillMaxWidth(),
         )
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .clickable { showDialog = true },
+                .clickable {
+                    pendingDate = date
+                    step = 1
+                },
         )
     }
 
-    if (showDialog) {
-        val timePickerState = rememberTimePickerState(
-            initialHour = time.hour,
-            initialMinute = time.minute,
-            is24Hour = true,
+    if (step == 1) {
+        val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= maxUtcMidnight
+            },
         )
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
+        DatePickerDialog(
+            onDismissRequest = { step = 0 },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onTimeChange(LocalTime.of(timePickerState.hour, timePickerState.minute))
-                        showDialog = false
+                        val picked = datePickerState.selectedDateMillis
+                        if (picked != null) {
+                            pendingDate = Instant.ofEpochMilli(picked).atZone(ZoneId.of("UTC")).toLocalDate()
+                            step = 2
+                        } else {
+                            step = 0
+                        }
                     },
                 ) {
                     Text(stringResource(R.string.action_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
+                TextButton(onClick = { step = 0 }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    if (step == 2) {
+        val timePickerState = rememberTimePickerState(
+            initialHour = time.hour,
+            initialMinute = time.minute,
+            is24Hour = true,
+        )
+        AlertDialog(
+            onDismissRequest = { step = 0 },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDateChange(pendingDate)
+                        onTimeChange(LocalTime.of(timePickerState.hour, timePickerState.minute))
+                        step = 0
+                    },
+                ) {
+                    Text(stringResource(R.string.action_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { step = 0 }) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
