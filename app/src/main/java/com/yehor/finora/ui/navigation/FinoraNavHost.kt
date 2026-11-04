@@ -32,7 +32,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.yehor.finora.R
+import com.yehor.finora.ui.accounts.AccountDetailScreen
+import com.yehor.finora.ui.accounts.AccountEditScreen
+import com.yehor.finora.ui.accounts.AccountsScreen
+import com.yehor.finora.ui.categories.CategoriesScreen
+import com.yehor.finora.ui.categories.CategoryEditScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
 @Composable
@@ -48,9 +55,7 @@ fun FinoraShell() {
             NavigationBar {
                 TopLevelDestination.entries.forEach { dest ->
                     NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any { it.route == dest.route } == true ||
-                            (dest == TopLevelDestination.MORE &&
-                                currentDestination?.route?.startsWith("more/") == true),
+                        selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true,
                         onClick = {
                             navController.navigate(dest.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -80,13 +85,55 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
     ) {
         composable(Routes.DASHBOARD) { PlaceholderScreen(R.string.nav_dashboard) }
         composable(Routes.TRANSACTIONS) { PlaceholderScreen(R.string.nav_transactions) }
-        composable(Routes.ACCOUNTS) { PlaceholderScreen(R.string.nav_accounts) }
+        composable(Routes.ACCOUNTS) {
+            AccountsScreen(
+                onOpen = { navController.navigate(Routes.accountDetail(it)) },
+                onAdd = { navController.navigate(Routes.ACCOUNT_NEW) },
+            )
+        }
+        composable(Routes.ACCOUNT_NEW) {
+            AccountEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.ACCOUNT_DETAIL,
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+        ) {
+            AccountDetailScreen(
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(Routes.accountEdit(it)) },
+            )
+        }
+        composable(
+            Routes.ACCOUNT_EDIT,
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+        ) {
+            AccountEditScreen(onBack = { navController.popBackStack() })
+        }
         composable(Routes.STATISTICS) { PlaceholderScreen(R.string.nav_statistics) }
         composable(Routes.MORE) {
             MoreScreen(onNavigate = { navController.navigate(it) })
         }
         composable(Routes.CATEGORIES) {
-            PlaceholderScreen(R.string.more_categories, onBack = { navController.popBackStack() })
+            CategoriesScreen(
+                onBack = { navController.popBackStack() },
+                onAdd = { type, parentId -> navController.navigate(Routes.categoryNew(type.name, parentId)) },
+                onEdit = { navController.navigate(Routes.categoryEdit(it)) },
+            )
+        }
+        composable(
+            Routes.CATEGORY_NEW,
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType; defaultValue = "EXPENSE" },
+                navArgument("parentId") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            CategoryEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.CATEGORY_EDIT,
+            arguments = listOf(navArgument("categoryId") { type = NavType.LongType }),
+        ) {
+            CategoryEditScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.TAGS) {
             PlaceholderScreen(R.string.more_tags, onBack = { navController.popBackStack() })

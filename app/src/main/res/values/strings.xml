@@ -25,4 +25,110 @@
     <string name="settings_display_currency_automatic">%1$s (automatic)</string>
     <string name="settings_display_currency_choose">Choose display currency</string>
     <string name="settings_close">Close</string>
+
+    <!-- Common -->
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Unarchive</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_search">Search</string>
+    <string name="action_more_options">More options</string>
+    <string name="action_expand">Expand</string>
+    <string name="action_collapse">Collapse</string>
+    <string name="picker_icon">Icon</string>
+    <string name="picker_color">Color</string>
+    <string name="picker_icon_item">Icon %1$s</string>
+    <string name="picker_color_item">Color %1$d</string>
+    <string name="picker_no_parent">No parent (top level)</string>
+    <string name="picker_no_results">Nothing found</string>
+    <string name="picker_archived_badge">Archived</string>
+    <string name="picker_uncategorized">Uncategorized</string>
+
+    <!-- Accounts -->
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_add">Add account</string>
+    <string name="accounts_empty_title">No accounts yet</string>
+    <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
+    <string name="accounts_archived_section">Archived (%1$d)</string>
+    <string name="accounts_balance_overflow">Balance is out of range</string>
+    <string name="account_type_bank">Bank</string>
+    <string name="account_type_cash">Cash</string>
+    <string name="account_type_savings">Savings</string>
+    <string name="account_type_investment">Investment</string>
+    <string name="account_type_other">Other</string>
+
+    <string name="account_detail_title">Account</string>
+    <string name="account_detail_balance">Current balance</string>
+    <string name="account_detail_initial_balance">Initial balance as of %1$s: %2$s</string>
+    <string name="account_detail_no_initial_balance">No initial balance</string>
+    <string name="account_detail_archived_banner">Archived. Existing transactions can be edited, new ones cannot be added.</string>
+    <string name="account_detail_history_placeholder">Transactions will appear here.</string>
+    <plurals name="account_detail_delete_blocked">
+        <item quantity="one">This account has %1$d transaction. Archive it instead.</item>
+        <item quantity="other">This account has %1$d transactions. Archive it instead.</item>
+    </plurals>
+    <string name="account_delete_title">Delete account?</string>
+    <string name="account_delete_body">The account and its initial balance will be deleted.</string>
+    <string name="account_archive_title">Archive account?</string>
+    <string name="account_archive_body">The account has a balance of %1$s. Archived accounts are excluded from totals.</string>
+
+    <string name="account_form_new_title">New account</string>
+    <string name="account_form_edit_title">Edit account</string>
+    <string name="account_form_name">Name</string>
+    <string name="account_form_type">Type</string>
+    <string name="account_form_currency">Currency</string>
+    <string name="account_form_currency_locked">Currency cannot be changed after creation.</string>
+    <string name="account_form_currency_search">Search currency</string>
+    <string name="account_form_description">Description</string>
+    <string name="account_form_initial_balance">Initial balance</string>
+    <string name="account_form_initial_date">Initial balance date</string>
+    <string name="account_form_earliest_helper">Earliest transaction: %1$s. The initial balance must be dated on or before it.</string>
+    <string name="account_form_delta_warning">Changing the initial balance changes the current balance by %1$s.</string>
+    <string name="account_form_unarchive_to_add">Unarchive the account to add an initial balance.</string>
+    <string name="account_form_pick_date">Choose date</string>
+    <string name="account_form_error_name_empty">Enter a name</string>
+    <string name="account_form_error_name_long">Name is too long (50 characters at most)</string>
+    <string name="account_form_error_description_long">Description is too long (500 characters at most)</string>
+    <string name="account_form_error_amount_invalid">Enter a valid amount</string>
+    <string name="account_form_error_amount_precise">Too many decimal places for this currency</string>
+    <string name="account_form_error_amount_range">Amount is out of range</string>
+    <string name="account_form_error_date_order">The initial balance must be dated on or before the earliest transaction.</string>
+    <string name="account_form_error_generic">Could not save. Try again.</string>
+
+    <!-- Categories -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_tab_expense">Expense</string>
+    <string name="categories_tab_income">Income</string>
+    <string name="categories_tab_transfer">Transfer</string>
+    <string name="categories_add">Add category</string>
+    <string name="categories_empty">No categories of this type yet.</string>
+    <string name="category_add_subcategory">Add subcategory</string>
+    <string name="category_form_new_title">New category</string>
+    <string name="category_form_edit_title">Edit category</string>
+    <string name="category_form_name">Name</string>
+    <string name="category_form_type">Type: %1$s</string>
+    <string name="category_form_parent">Parent</string>
+    <string name="category_form_error_name_empty">Enter a name</string>
+    <string name="category_form_error_name_long">Name is too long (50 characters at most)</string>
+    <string name="category_form_error_self">A category cannot be its own parent.</string>
+    <string name="category_form_error_cycle">A category cannot be moved under its own subcategory.</string>
+    <string name="category_form_error_type">The parent must have the same type.</string>
+    <string name="category_form_error_deep">Categories can be nested up to 3 levels.</string>
+    <string name="category_form_error_generic">Could not save. Try again.</string>
+    <string name="category_delete_title">Delete category?</string>
+    <plurals name="category_delete_operations">
+        <item quantity="one">%1$d transaction will be reassigned.</item>
+        <item quantity="other">%1$d transactions will be reassigned.</item>
+    </plurals>
+    <plurals name="category_delete_children">
+        <item quantity="one">%1$d subcategory will move up one level. Its own subcategories and transactions are kept.</item>
+        <item quantity="other">%1$d subcategories will move up one level. Their own subcategories and transactions are kept.</item>
+    </plurals>
+    <string name="category_delete_nothing">This category has no transactions or subcategories.</string>
+    <string name="category_delete_target">Move transactions to</string>
+    <string name="category_delete_choose_other">Choose another category…</string>
+    <string name="category_delete_target_chosen">Category: %1$s</string>
 </resources>

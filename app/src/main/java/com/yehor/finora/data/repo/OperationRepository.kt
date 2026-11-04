@@ -5,10 +5,13 @@ import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.db.LedgerEntryEntity
 import com.yehor.finora.data.db.OperationEntity
 import com.yehor.finora.data.db.OperationTagEntity
+import com.yehor.finora.domain.account.OpeningDatePolicy
+import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.MoneyOverflowException
 import android.database.sqlite.SQLiteException
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +19,7 @@ import javax.inject.Singleton
 data class EntryDraft(val accountId: Long, val amountMinor: Long)
 
 /** Raised when a write would violate an invariant that the schema cannot express. */
-class InvariantViolationException(message: String) : IllegalArgumentException(message)
+open class InvariantViolationException(message: String) : IllegalArgumentException(message)
 
 /**
  * The single write path for operations and their ledger entries. Invariants that Room cannot
@@ -33,8 +36,37 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         categoryId: Long? = null,
         description: String? = null,
         openingAccountId: Long? = null,
+        moveOpeningBalanceBack: Boolean = false,
         now: Long = System.currentTimeMillis(),
     ): Long = db.withTransaction {
+        // Reject if any of the entry accounts are archived (S4.7)
+        entries.forEach { e ->
+            val account = db.accountDao().getById(e.accountId)
+                ?: throw InvariantViolationException("Unknown account ${e.accountId}")
+            if (account.status == AccountStatus.ARCHIVED) {
+                throw InvariantViolationException("Account ${e.accountId} is archived")
+            }
+        }
+
+        // Reject a non-opening entry dated before its account's opening date (S4.6)
+        if (type != OperationType.OPENING_BALANCE) {
+            entries.forEach { e ->
+                val openingDate = db.ledgerEntryDao().openingDateOf(e.accountId)
+                if (openingDate != null && occurredAt < openingDate) {
+                    if (moveOpeningBalanceBack) {
+                        val startOfLocalDay = OpeningDatePolicy(ZoneId.systemDefault()).startOfDay(occurredAt)
+                        val openingOp = db.operationDao().openingBalanceOf(e.accountId)
+                        if (openingOp != null) {
+                            db.operationDao().updateOccurredAt(openingOp.id, startOfLocalDay, now)
+                            db.ledgerEntryDao().updateOccurredAt(openingOp.id, startOfLocalDay)
+                        }
+                    } else {
+                        throw OpeningBalanceOrderException(e.accountId, openingDate, occurredAt)
+                    }
+                }
+            }
+        }
+
         validate(type, entries, categoryId, openingAccountId)
         val operationId = db.operationDao().insert(
             OperationEntity(
@@ -69,10 +101,61 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         occurredAt: Long,
         now: Long = System.currentTimeMillis(),
     ) = db.withTransaction {
-        db.operationDao().getById(operationId)
+        val op = db.operationDao().getById(operationId)
             ?: throw InvariantViolationException("Unknown operation $operationId")
+
+        if (op.type == OperationType.OPENING_BALANCE) {
+            val accountId = op.openingAccountId
+                ?: throw InvariantViolationException("Opening balance operation has no openingAccountId")
+            val earliestOther = db.ledgerEntryDao().earliestNonOpeningEntryAt(accountId)
+            if (earliestOther != null && occurredAt > earliestOther) {
+                throw OpeningBalanceOrderException(accountId, occurredAt, earliestOther)
+            }
+        } else {
+            val entries = db.ledgerEntryDao().entriesOf(operationId)
+            entries.forEach { e ->
+                val openingDate = db.ledgerEntryDao().openingDateOf(e.accountId)
+                if (openingDate != null && occurredAt < openingDate) {
+                    throw OpeningBalanceOrderException(e.accountId, openingDate, occurredAt)
+                }
+            }
+        }
+
         db.operationDao().updateOccurredAt(operationId, occurredAt, now)
         db.ledgerEntryDao().updateOccurredAt(operationId, occurredAt)
+    }
+
+    suspend fun setOpeningBalance(
+        accountId: Long,
+        amountMinor: Long?,
+        occurredAt: Long,
+        now: Long = System.currentTimeMillis(),
+    ): Unit = db.withTransaction {
+        val openingOp = db.operationDao().openingBalanceOf(accountId)
+        if (amountMinor == null || amountMinor == 0L) {
+            if (openingOp != null) {
+                db.operationDao().deleteById(openingOp.id)
+            }
+            return@withTransaction
+        }
+
+        val earliestOther = db.ledgerEntryDao().earliestNonOpeningEntryAt(accountId)
+        if (earliestOther != null && occurredAt > earliestOther) {
+            throw OpeningBalanceOrderException(accountId, occurredAt, earliestOther)
+        }
+
+        if (openingOp == null) {
+            insertOperation(
+                type = OperationType.OPENING_BALANCE,
+                occurredAt = occurredAt,
+                entries = listOf(EntryDraft(accountId, amountMinor)),
+                openingAccountId = accountId,
+                now = now,
+            )
+        } else {
+            db.ledgerEntryDao().updateAmount(openingOp.id, amountMinor)
+            changeOccurredAt(openingOp.id, occurredAt, now)
+        }
     }
 
     suspend fun addTag(operationId: Long, tagId: Long) = db.withTransaction {

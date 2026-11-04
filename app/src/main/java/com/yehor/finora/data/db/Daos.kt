@@ -1,10 +1,26 @@
 package com.yehor.finora.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Dao
+import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.yehor.finora.domain.model.AccountStatus
 import kotlinx.coroutines.flow.Flow
+
+data class AccountWithBalanceRow(
+    @Embedded val account: AccountEntity,
+    @ColumnInfo(name = "balance_minor") val balanceMinor: Long
+)
+
+/** Raw row of [CategoryDao.directTotals]. `category_id` is null for Uncategorized. */
+data class CategoryDirectTotalRow(
+    @ColumnInfo(name = "category_id") val categoryId: Long?,
+    @ColumnInfo(name = "currency_code") val currencyCode: String,
+    @ColumnInfo(name = "total_minor") val totalMinor: Long,
+    @ColumnInfo(name = "operation_count") val operationCount: Int,
+)
 
 @Dao
 interface CurrencyDao {
@@ -25,6 +41,37 @@ interface AccountDao {
 
     @Query("SELECT currency_code FROM account WHERE id = :id")
     suspend fun currencyCodeOf(id: Long): String?
+
+    @Query("""
+        SELECT a.*, COALESCE(SUM(e.amount_minor), 0) AS balance_minor
+        FROM account a
+        LEFT JOIN ledger_entry e ON e.account_id = a.id
+        GROUP BY a.id
+        ORDER BY a.id
+    """)
+    fun observeWithBalance(): Flow<List<AccountWithBalanceRow>>
+
+    @Query("SELECT * FROM account WHERE status = 'ACTIVE' OR id = :originalAccountId ORDER BY id")
+    fun observePickable(originalAccountId: Long): Flow<List<AccountEntity>>
+
+    @Query("SELECT * FROM account WHERE id = :id")
+    fun observeById(id: Long): Flow<AccountEntity?>
+
+    @Query("UPDATE account SET name = :name, type = :type, icon = :icon, color = :color, description = :description WHERE id = :id")
+    suspend fun updateDetails(id: Long, name: String, type: String, icon: String?, color: Long?, description: String?)
+
+    @Query("UPDATE account SET status = :status WHERE id = :id")
+    suspend fun setStatus(id: Long, status: AccountStatus)
+
+    @Query("DELETE FROM account WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("""
+        SELECT COUNT(*) FROM ledger_entry e
+        INNER JOIN operation o ON e.operation_id = o.id
+        WHERE e.account_id = :id AND o.type != 'OPENING_BALANCE'
+    """)
+    suspend fun nonOpeningEntryCount(id: Long): Int
 }
 
 @Dao
@@ -37,6 +84,46 @@ interface CategoryDao {
 
     @Query("SELECT * FROM category ORDER BY id")
     fun observeAll(): Flow<List<CategoryEntity>>
+
+    @Query("SELECT * FROM category ORDER BY id")
+    suspend fun getAll(): List<CategoryEntity>
+
+    @Query("UPDATE category SET name = :name, icon = :icon, color = :color WHERE id = :id")
+    suspend fun updateDetails(id: Long, name: String, icon: String?, color: Long?)
+
+    @Query("UPDATE category SET parent_id = :parentId WHERE id = :id")
+    suspend fun setParent(id: Long, parentId: Long?)
+
+    @Query("UPDATE category SET parent_id = :toParentId WHERE parent_id = :fromParentId")
+    suspend fun reparentChildren(fromParentId: Long, toParentId: Long?)
+
+    @Query("UPDATE operation SET category_id = :toId, updated_at = :now WHERE category_id = :fromId")
+    suspend fun reassignOperations(fromId: Long, toId: Long?, now: Long)
+
+    @Query("SELECT COUNT(*) FROM operation WHERE category_id = :id")
+    suspend fun operationCount(id: Long): Int
+
+    @Query("SELECT COUNT(*) FROM category WHERE parent_id = :id")
+    suspend fun childCount(id: Long): Int
+
+    @Query("DELETE FROM category WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("""
+        SELECT o.category_id      AS category_id,
+               e.currency_code    AS currency_code,
+               SUM(e.amount_minor) AS total_minor,
+               COUNT(DISTINCT o.id) AS operation_count
+        FROM operation o
+        JOIN ledger_entry e ON e.operation_id = o.id
+        WHERE o.type = :type AND o.occurred_at >= :from AND o.occurred_at < :to
+        GROUP BY o.category_id, e.currency_code
+    """)
+    suspend fun directTotals(
+        type: com.yehor.finora.domain.model.OperationType,
+        from: Long,
+        to: Long
+    ): List<CategoryDirectTotalRow>
 }
 
 @Dao
@@ -61,6 +148,12 @@ interface OperationDao {
 
     @Query("SELECT * FROM operation ORDER BY occurred_at DESC, id DESC")
     fun observeAll(): Flow<List<OperationEntity>>
+
+    @Query("SELECT * FROM operation WHERE opening_account_id = :accountId LIMIT 1")
+    suspend fun openingBalanceOf(accountId: Long): OperationEntity?
+
+    @Query("DELETE FROM operation WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
 
 @Dao
@@ -77,6 +170,22 @@ interface LedgerEntryDao {
     /** Throws `SQLiteException` ("integer overflow") when the sum exceeds the range of Long. */
     @Query("SELECT COALESCE(SUM(amount_minor), 0) FROM ledger_entry WHERE account_id = :accountId")
     suspend fun balanceMinor(accountId: Long): Long
+
+    @Query("UPDATE ledger_entry SET amount_minor = :amountMinor WHERE operation_id = :operationId")
+    suspend fun updateAmount(operationId: Long, amountMinor: Long)
+
+    @Query("""
+        SELECT MIN(e.occurred_at) FROM ledger_entry e
+        INNER JOIN operation o ON e.operation_id = o.id
+        WHERE e.account_id = :accountId AND o.type != 'OPENING_BALANCE'
+    """)
+    suspend fun earliestNonOpeningEntryAt(accountId: Long): Long?
+
+    @Query("""
+        SELECT occurred_at FROM operation
+        WHERE opening_account_id = :accountId LIMIT 1
+    """)
+    suspend fun openingDateOf(accountId: Long): Long?
 }
 
 @Dao

@@ -7,6 +7,7 @@ import com.yehor.finora.data.db.ALL_MIGRATIONS
 import com.yehor.finora.data.db.AccountDao
 import com.yehor.finora.data.db.AppSettingDao
 import com.yehor.finora.data.db.FinoraDatabase
+import com.yehor.finora.data.db.DefaultCategorySeedCallback
 import com.yehor.finora.data.db.FinoraDatabaseCallback
 import dagger.Module
 import dagger.Provides
@@ -28,6 +29,7 @@ object DatabaseModule {
             .openHelperFactory(FrameworkSQLiteOpenHelperFactory())
             .setJournalMode(androidx.room.RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
             .addCallback(FinoraDatabaseCallback)
+            .addCallback(DefaultCategorySeedCallback)
             .addMigrations(*ALL_MIGRATIONS)
             .build()
 

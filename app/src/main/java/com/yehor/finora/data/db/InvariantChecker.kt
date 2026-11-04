@@ -71,5 +71,38 @@ object InvariantChecker {
             JOIN category p ON p.id = c.parent_id
             WHERE p.type <> c.type
         """,
+        "opening balance dated after an entry" to """
+            SELECT 'account ' || o.opening_account_id FROM operation o
+            WHERE o.type = 'OPENING_BALANCE' AND EXISTS (
+                SELECT 1 FROM ledger_entry e
+                WHERE e.account_id = o.opening_account_id
+                  AND e.operation_id <> o.id
+                  AND e.occurred_at < o.occurred_at
+            )
+        """,
+        // chain(start_id, cur_id, depth): cur_id is the depth-th ancestor of start_id. Bounded at 5,
+        // so it terminates on any data, including cycles.
+        "category deeper than 3 levels" to """
+            WITH RECURSIVE chain(start_id, cur_id, depth) AS (
+                SELECT id, parent_id, 1 FROM category
+                UNION ALL
+                SELECT chain.start_id, c.parent_id, chain.depth + 1
+                FROM chain JOIN category c ON c.id = chain.cur_id
+                WHERE chain.depth < 5
+            )
+            SELECT DISTINCT 'category ' || start_id FROM chain
+            WHERE depth = 3 AND cur_id IS NOT NULL
+        """,
+        "category cycle" to """
+            WITH RECURSIVE chain(start_id, cur_id, depth) AS (
+                SELECT id, parent_id, 1 FROM category
+                UNION ALL
+                SELECT chain.start_id, c.parent_id, chain.depth + 1
+                FROM chain JOIN category c ON c.id = chain.cur_id
+                WHERE chain.depth < 5
+            )
+            SELECT DISTINCT 'category ' || start_id FROM chain
+            WHERE cur_id = start_id
+        """,
     )
 }

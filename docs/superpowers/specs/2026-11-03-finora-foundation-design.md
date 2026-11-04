@@ -142,6 +142,8 @@ Recurring schedules, exchange rates and the transfer-fee link are not in v1. The
 | No `operation_tag` row references an OPENING_BALANCE operation | Repository + invariant checker |
 | `ledger_entry.occurred_at` = its parent `operation.occurred_at` for every entry | Repository + invariant checker (below) |
 | Category type matches operation type; child has parent's type; no cycles | Repository + test |
+| Category nesting is at most 3 levels (root, child, grandchild). Added by the Accounts and Categories design. | Repository (`CategoryRules`) + invariant checker |
+| An account's OPENING_BALANCE is dated on or before every other entry of that account. Added by the Accounts and Categories design. | Repository + invariant checker |
 | No orphan rows | FKs with `foreign_keys=ON` |
 
 A test-side **invariant checker** runs SQL over the whole database for each row above that is not a constraint. It is used by Foundation tests now and is reused by import validation in sub-project 8.

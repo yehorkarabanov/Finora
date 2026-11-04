@@ -1,0 +1,23 @@
+package com.yehor.finora.data.repo
+
+import com.yehor.finora.domain.category.CategoryRules.ParentCheck
+
+/**
+ * A non-opening entry, or the opening balance itself, would break the rule that an account's
+ * opening balance is dated on or before every other entry of that account (design 4.6, O1).
+ */
+class OpeningBalanceOrderException(
+    val accountId: Long,
+    val openingAt: Long,
+    val entryAt: Long,
+) : InvariantViolationException(
+    "Opening balance of account $accountId (at $openingAt) must not be after an entry at $entryAt",
+)
+
+/** A category create or move was refused by `CategoryRules.checkParent`. */
+class InvalidCategoryParentException(val reason: ParentCheck) :
+    InvariantViolationException("Invalid category parent: $reason")
+
+/** An account cannot be deleted because it has entries other than its own opening balance. */
+class AccountHasHistoryException(val entryCount: Int) :
+    IllegalStateException("Account has $entryCount transactions and can only be archived")
