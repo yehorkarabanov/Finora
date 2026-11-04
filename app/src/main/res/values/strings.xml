@@ -131,4 +131,119 @@
     <string name="category_delete_target">Move transactions to</string>
     <string name="category_delete_choose_other">Choose another category…</string>
     <string name="category_delete_target_chosen">Category: %1$s</string>
+
+    <!-- Tags -->
+    <string name="tags_title">Tags</string>
+    <string name="tags_add">Add tag</string>
+    <string name="tags_empty_title">No tags yet</string>
+    <string name="tags_empty_body">Tags help group and analyze transactions across accounts and categories.</string>
+    <plurals name="tags_usage_count">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
+    <string name="tag_form_new_title">New tag</string>
+    <string name="tag_form_edit_title">Edit tag</string>
+    <string name="tag_form_name">Name</string>
+    <string name="tag_form_no_color">No color</string>
+    <string name="tag_form_error_empty">Enter a name</string>
+    <string name="tag_form_error_too_long">Name is too long (30 characters at most)</string>
+    <string name="tag_form_error_duplicate">A tag with this name already exists</string>
+    <string name="tag_delete_title">Delete tag?</string>
+    <plurals name="tag_delete_body">
+        <item quantity="one">Used in %1$d transaction. It stays, and loses this tag.</item>
+        <item quantity="other">Used in %1$d transactions. They stay, and lose this tag.</item>
+    </plurals>
+    <string name="tag_delete_body_unused">The tag will be deleted.</string>
+    <string name="action_show_transactions">Show transactions</string>
+    <string name="action_remove">Remove</string>
+    <string name="tag_picker_create">+ Create \"%1$s\"</string>
+    <string name="tag_picker_new_suffix">%1$s (new)</string>
+
+    <!-- Transactions -->
+    <string name="transactions_title">Transactions</string>
+    <string name="transactions_add">Add transaction</string>
+    <string name="transactions_empty_title">No transactions yet</string>
+    <string name="transactions_empty_body">Record your income and expenses to track your spending.</string>
+    <string name="transactions_empty_filter_title">No transactions found</string>
+    <string name="transactions_empty_filter_body">Try adjusting or clearing your filters.</string>
+    <string name="transactions_clear_filters">Clear filters</string>
+    <string name="transactions_summary_count">%1$d operations</string>
+    <string name="transactions_summary_income">+%1$s</string>
+    <string name="transactions_summary_expense">−%1$s</string>
+    <string name="transactions_day_today">Today</string>
+    <string name="transactions_day_yesterday">Yesterday</string>
+
+    <!-- Transaction Form -->
+    <string name="transaction_form_new_title">New transaction</string>
+    <string name="transaction_form_edit_title">Edit transaction</string>
+    <string name="transaction_kind_expense">Expense</string>
+    <string name="transaction_kind_income">Income</string>
+    <string name="transaction_kind_transfer">Transfer</string>
+    <string name="transaction_form_amount">Amount</string>
+    <string name="transaction_form_account">Account</string>
+    <string name="transaction_form_category">Category</string>
+    <string name="transaction_form_create_category">Create category</string>
+    <string name="transaction_form_date">Date</string>
+    <string name="transaction_form_date_time">Date &amp; time</string>
+    <string name="transaction_form_description">Description</string>
+    <string name="transaction_form_tags">Tags</string>
+    <string name="transaction_form_error_amount_empty">Enter an amount</string>
+    <string name="transaction_form_error_amount_invalid">Enter a valid amount</string>
+    <string name="transaction_form_error_amount_precise">Too many decimal places for this currency</string>
+    <string name="transaction_form_error_amount_positive">Amount must be positive</string>
+    <string name="transaction_form_error_amount_range">Amount is out of range</string>
+    <string name="transaction_form_error_account_missing">Select an account</string>
+    <string name="transaction_form_error_category_missing">Select a category</string>
+    <string name="transaction_form_error_description_long">Description is too long (500 characters at most)</string>
+    <string name="transaction_form_error_future_date">Date and time cannot be in the future</string>
+    <string name="transaction_form_opening_order_body">This transaction is dated before the account\'s initial balance. Move the initial balance back so it is not later than this transaction?</string>
+    <string name="transaction_form_duplicate">Duplicate</string>
+    <string name="transaction_form_delete_title">Delete transaction?</string>
+    <string name="transaction_form_delete_body">The transaction will be deleted and the account balance will change by %1$s.</string>
+
+    <!-- Cross-currency Reassignment Dialog -->
+    <string name="currency_change_dialog_title">Change currency without converting?</string>
+    <string name="currency_change_dialog_body">%1$s will become %2$s. This is not a currency conversion. No exchange rate is used and the number stays the same. The balance of %3$s changes by %4$s and the balance of %5$s changes by %6$s.</string>
+    <string name="currency_change_dialog_confirm">Change currency</string>
+
+    <!-- Filters and Sorting -->
+    <string name="filter_title">Filters</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_accounts">Accounts</string>
+    <string name="filter_categories">Categories</string>
+    <string name="filter_tags">Tags</string>
+    <string name="filter_tag_mode_any">Match ANY tag</string>
+    <string name="filter_tag_mode_all">Match ALL tags</string>
+    <string name="filter_date">Date range</string>
+    <string name="filter_date_from">From</string>
+    <string name="filter_date_to">To</string>
+    <string name="filter_amount">Amount range</string>
+    <string name="filter_amount_min">Min</string>
+    <string name="filter_amount_max">Max</string>
+    <string name="filter_amount_disabled_hint">Select accounts that share one currency to filter or sort by amount.</string>
+    <string name="filter_apply">Apply filters</string>
+    <string name="filter_reset">Reset</string>
+    <string name="sort_title">Sort by</string>
+    <string name="sort_date_desc">Newest first</string>
+    <string name="sort_date_asc">Oldest first</string>
+    <string name="sort_amount_desc">Amount (high to low)</string>
+    <string name="sort_amount_asc">Amount (low to high)</string>
+
+    <string name="filter_clear_all">Clear all</string>
+    <string name="filter_clear_date">Clear</string>
+    <string name="filter_amount_dropped">Amount range removed: the selected accounts use different currencies.</string>
+    <string name="filter_chip_amount">%1$s – %2$s</string>
+    <string name="filter_chip_amount_min">From %1$s</string>
+    <string name="filter_chip_amount_max">Up to %1$s</string>
+    <string name="filter_chip_date_range">%1$s – %2$s</string>
+    <string name="filter_chip_date_from">From %1$s</string>
+    <string name="filter_chip_date_to">Until %1$s</string>
+    <string name="filter_chip_search">“%1$s”</string>
+    <string name="filter_categories_count">Categories (%1$d)</string>
+    <string name="filter_categories_choose">Choose categories</string>
+
+    <!-- Category Delete Review -->
+    <string name="category_delete_review_transactions">Review transactions</string>
+    <string name="category_delete_direct_only_note">Direct transactions only. Subcategory transactions are not included.</string>
+
 </resources>

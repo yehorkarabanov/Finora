@@ -1,6 +1,7 @@
 package com.yehor.finora.data.repo
 
 import com.yehor.finora.domain.category.CategoryRules.ParentCheck
+import com.yehor.finora.domain.tag.TagNameError
 
 /**
  * A non-opening entry, or the opening balance itself, would break the rule that an account's
@@ -21,3 +22,19 @@ class InvalidCategoryParentException(val reason: ParentCheck) :
 /** An account cannot be deleted because it has entries other than its own opening balance. */
 class AccountHasHistoryException(val entryCount: Int) :
     IllegalStateException("Account has $entryCount transactions and can only be archived")
+
+/** An operation was dated in the future (T11). */
+class FutureDateException(val occurredAt: Long, val now: Long) :
+    InvariantViolationException("Operation date ($occurredAt) is in the future relative to $now")
+
+/** A tag name is invalid according to TagNameRules. */
+class InvalidTagNameException(val error: TagNameError) :
+    IllegalArgumentException("Invalid tag name: $error")
+
+/** A tag with the same case-insensitive name already exists. */
+class DuplicateTagNameException(val existingId: Long) :
+    IllegalArgumentException("Tag name already exists with id $existingId")
+
+/** Cross-currency reassignment was attempted without explicit confirmation (T12). */
+class CurrencyChangeNotConfirmedException(val fromCode: String, val toCode: String) :
+    IllegalStateException("Changing currency from $fromCode to $toCode requires explicit confirmation")

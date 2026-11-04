@@ -40,6 +40,9 @@ import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
+import com.yehor.finora.ui.operations.TransactionEditScreen
+import com.yehor.finora.ui.operations.TransactionsScreen
+import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
 @Composable
@@ -84,7 +87,19 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         modifier = Modifier.padding(padding).consumeWindowInsets(padding),
     ) {
         composable(Routes.DASHBOARD) { PlaceholderScreen(R.string.nav_dashboard) }
-        composable(Routes.TRANSACTIONS) { PlaceholderScreen(R.string.nav_transactions) }
+        composable(
+            Routes.TRANSACTIONS_PRESET,
+            arguments = listOf(
+                navArgument("accountId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("categoryId") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            TransactionsScreen(
+                onAdd = { navController.navigate(Routes.transactionNew()) },
+                onOpenTransaction = { id -> navController.navigate(Routes.transactionEdit(id)) },
+            )
+        }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onOpen = { navController.navigate(Routes.accountDetail(it)) },
@@ -101,6 +116,13 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             AccountDetailScreen(
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
+                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) },
+                onShowAllTransactions = { accountId ->
+                    navController.navigate(Routes.transactionsForAccount(accountId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
             )
         }
         composable(
@@ -108,6 +130,32 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
         ) {
             AccountEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.TRANSACTION_NEW,
+            arguments = listOf(
+                navArgument("kind") { type = NavType.StringType; defaultValue = "EXPENSE" },
+                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            TransactionEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
+        }
+        composable(
+            Routes.TRANSACTION_EDIT,
+            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
+        ) {
+            TransactionEditScreen(
+                onBack = { navController.popBackStack() },
+                onDuplicate = { id ->
+                    navController.navigate(Routes.transactionNew(duplicateOf = id)) {
+                        popUpTo(Routes.TRANSACTION_EDIT) { inclusive = true }
+                    }
+                },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
         }
         composable(Routes.STATISTICS) { PlaceholderScreen(R.string.nav_statistics) }
         composable(Routes.MORE) {
@@ -118,6 +166,12 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onBack = { navController.popBackStack() },
                 onAdd = { type, parentId -> navController.navigate(Routes.categoryNew(type.name, parentId)) },
                 onEdit = { navController.navigate(Routes.categoryEdit(it)) },
+                onReviewTransactions = { categoryId ->
+                    navController.navigate(Routes.transactionsForCategory(categoryId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
             )
         }
         composable(
@@ -136,7 +190,15 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             CategoryEditScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.TAGS) {
-            PlaceholderScreen(R.string.more_tags, onBack = { navController.popBackStack() })
+            TagsScreen(
+                onBack = { navController.popBackStack() },
+                onShowTransactions = { tagId ->
+                    navController.navigate(Routes.transactionsForTag(tagId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
+            )
         }
         composable(Routes.RECURRING) {
             PlaceholderScreen(R.string.more_recurring, onBack = { navController.popBackStack() })

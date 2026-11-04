@@ -1,12 +1,17 @@
 package com.yehor.finora.data.db
 
+import androidx.paging.PagingSource
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Embedded
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
+import androidx.room.Transaction
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.model.OperationType
 import kotlinx.coroutines.flow.Flow
 
 data class AccountWithBalanceRow(
@@ -133,6 +138,33 @@ interface TagDao {
 
     @Query("SELECT * FROM tag ORDER BY name")
     fun observeAll(): Flow<List<TagEntity>>
+
+    @Query("SELECT * FROM tag ORDER BY name")
+    suspend fun getAll(): List<TagEntity>
+
+    @Query("SELECT * FROM tag WHERE id = :id")
+    suspend fun getById(id: Long): TagEntity?
+
+    @Query("""
+        SELECT t.*, COUNT(ot.operation_id) AS usageCount
+        FROM tag t
+        LEFT JOIN operation_tag ot ON ot.tag_id = t.id
+        GROUP BY t.id
+        ORDER BY t.name
+    """)
+    fun observeAllWithUsage(): Flow<List<TagWithUsageRow>>
+
+    @Query("UPDATE tag SET name = :name, color = :color WHERE id = :id")
+    suspend fun updateDetails(id: Long, name: String, color: Long?)
+
+    @Query("UPDATE tag SET color = :color WHERE id = :id")
+    suspend fun setColor(id: Long, color: Long?)
+
+    @Query("DELETE FROM tag WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("SELECT COUNT(*) FROM operation_tag WHERE tag_id = :id")
+    suspend fun usageCount(id: Long): Int
 }
 
 @Dao
@@ -154,6 +186,39 @@ interface OperationDao {
 
     @Query("DELETE FROM operation WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Transaction
+    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class])
+    fun page(query: SupportSQLiteQuery): PagingSource<Int, OperationWithDetails>
+
+    @Transaction
+    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class])
+    fun listWithDetails(query: SupportSQLiteQuery): Flow<List<OperationWithDetails>>
+
+    @RawQuery
+    suspend fun summarize(query: SupportSQLiteQuery): List<SummaryRow>
+
+    @Transaction
+    @Query("SELECT * FROM operation WHERE id = :id")
+    fun observeWithDetails(id: Long): Flow<OperationWithDetails?>
+
+    @Query("UPDATE operation SET occurred_at = :occurredAt, category_id = :categoryId, description = :description, updated_at = :updatedAt WHERE id = :id")
+    suspend fun updateFields(id: Long, occurredAt: Long, categoryId: Long?, description: String?, updatedAt: Long)
+
+    @Query("""
+        SELECT DISTINCT category_id FROM operation
+        WHERE type = :type AND category_id IS NOT NULL
+        ORDER BY occurred_at DESC, id DESC LIMIT :limit
+    """)
+    suspend fun recentCategoryIds(type: OperationType, limit: Int): List<Long>
+
+    @Query("""
+        SELECT e.account_id FROM operation o
+        JOIN ledger_entry e ON e.operation_id = o.id
+        WHERE o.type IN ('INCOME', 'EXPENSE')
+        ORDER BY o.occurred_at DESC, o.id DESC LIMIT 1
+    """)
+    suspend fun latestAccountId(): Long?
 }
 
 @Dao
@@ -173,6 +238,9 @@ interface LedgerEntryDao {
 
     @Query("UPDATE ledger_entry SET amount_minor = :amountMinor WHERE operation_id = :operationId")
     suspend fun updateAmount(operationId: Long, amountMinor: Long)
+
+    @Query("UPDATE ledger_entry SET account_id = :accountId, currency_code = :currencyCode, amount_minor = :amountMinor, occurred_at = :occurredAt WHERE operation_id = :operationId")
+    suspend fun updateEntry(operationId: Long, accountId: Long, currencyCode: String, amountMinor: Long, occurredAt: Long)
 
     @Query("""
         SELECT MIN(e.occurred_at) FROM ledger_entry e
@@ -195,6 +263,9 @@ interface OperationTagDao {
 
     @Query("SELECT tag_id FROM operation_tag WHERE operation_id = :operationId ORDER BY tag_id")
     suspend fun tagIdsOf(operationId: Long): List<Long>
+
+    @Query("DELETE FROM operation_tag WHERE operation_id = :operationId")
+    suspend fun deleteAllFor(operationId: Long)
 }
 
 @Dao

@@ -98,6 +98,7 @@ data class TagEntity(
         Index(value = ["type", "occurred_at"]),
         Index(value = ["category_id", "occurred_at"]),
         Index(value = ["opening_account_id"], unique = true),
+        Index(value = ["occurred_at", "id"]),
     ],
 )
 data class OperationEntity(

@@ -9,7 +9,7 @@ import java.io.File
  * Ensures that the Room database schema (com.yehor.finora.data.db.FinoraDatabase/1.json)
  * remains exactly byte-identical to the committed v1 expected schema.
  *
- * This guards against any accidental schema changes (S9).
+ * In sub-project 3, the pinned baseline includes index_operation_occurred_at_id (S9).
  */
 class SchemaUnchangedTest {
 

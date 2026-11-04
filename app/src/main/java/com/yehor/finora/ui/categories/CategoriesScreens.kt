@@ -80,6 +80,7 @@ fun CategoriesScreen(
     onBack: () -> Unit,
     onAdd: (type: CategoryType, parentId: Long?) -> Unit,
     onEdit: (Long) -> Unit,
+    onReviewTransactions: (Long) -> Unit,
     viewModel: CategoriesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -139,6 +140,10 @@ fun CategoriesScreen(
             onUncategorized = { viewModel.onTarget(ReassignTarget.Uncategorized) },
             onSuggested = { dialog.impact.suggestedTarget?.let { viewModel.onTarget(ReassignTarget.To(it)) } },
             onChooseOther = { pickOther = true },
+            onReviewTransactions = {
+                viewModel.dismissDelete()
+                onReviewTransactions(dialog.categoryId)
+            },
             onConfirm = viewModel::confirmDelete,
             onDismiss = viewModel::dismissDelete,
         )
@@ -212,6 +217,7 @@ private fun DeleteCategoryDialog(
     onUncategorized: () -> Unit,
     onSuggested: () -> Unit,
     onChooseOther: () -> Unit,
+    onReviewTransactions: () -> Unit,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -235,6 +241,14 @@ private fun DeleteCategoryDialog(
                             R.plurals.category_delete_operations, impact.directOperationCount, impact.directOperationCount,
                         ),
                     )
+                    Text(
+                        stringResource(R.string.category_delete_direct_only_note),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TextButton(onClick = onReviewTransactions) {
+                        Text(stringResource(R.string.category_delete_review_transactions))
+                    }
                     Text(stringResource(R.string.category_delete_target), style = MaterialTheme.typography.labelMedium)
                     if (impact.suggestedTarget != null && state.suggestedName != null) {
                         TargetOption(state.suggestedName, selected == DeleteTargetOption.SUGGESTED, onSuggested)

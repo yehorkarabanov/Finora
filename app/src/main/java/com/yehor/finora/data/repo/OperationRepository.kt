@@ -1,16 +1,18 @@
 package com.yehor.finora.data.repo
 
+import android.database.sqlite.SQLiteException
 import androidx.room.withTransaction
 import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.db.LedgerEntryEntity
 import com.yehor.finora.data.db.OperationEntity
 import com.yehor.finora.data.db.OperationTagEntity
+import com.yehor.finora.data.db.TagEntity
 import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.MoneyOverflowException
-import android.database.sqlite.SQLiteException
+import com.yehor.finora.domain.tag.TagNameRules
 import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +26,6 @@ open class InvariantViolationException(message: String) : IllegalArgumentExcepti
 /**
  * The single write path for operations and their ledger entries. Invariants that Room cannot
  * express as constraints (section 6.4 of the design) are enforced here, inside one transaction.
- * CRUD screens and use cases are built on top of this in later sub-projects.
  */
 @Singleton
 class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
@@ -36,9 +37,15 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         categoryId: Long? = null,
         description: String? = null,
         openingAccountId: Long? = null,
+        tagIds: Set<Long> = emptySet(),
+        newTagNames: List<String> = emptyList(),
         moveOpeningBalanceBack: Boolean = false,
         now: Long = System.currentTimeMillis(),
     ): Long = db.withTransaction {
+        if (type == OperationType.INCOME || type == OperationType.EXPENSE) {
+            if (occurredAt > now) throw FutureDateException(occurredAt, now)
+        }
+
         // Reject if any of the entry accounts are archived (S4.7)
         entries.forEach { e ->
             val account = db.accountDao().getById(e.accountId)
@@ -51,29 +58,28 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         // Reject a non-opening entry dated before its account's opening date (S4.6)
         if (type != OperationType.OPENING_BALANCE) {
             entries.forEach { e ->
-                val openingDate = db.ledgerEntryDao().openingDateOf(e.accountId)
-                if (openingDate != null && occurredAt < openingDate) {
-                    if (moveOpeningBalanceBack) {
-                        val startOfLocalDay = OpeningDatePolicy(ZoneId.systemDefault()).startOfDay(occurredAt)
-                        val openingOp = db.operationDao().openingBalanceOf(e.accountId)
-                        if (openingOp != null) {
-                            db.operationDao().updateOccurredAt(openingOp.id, startOfLocalDay, now)
-                            db.ledgerEntryDao().updateOccurredAt(openingOp.id, startOfLocalDay)
-                        }
-                    } else {
-                        throw OpeningBalanceOrderException(e.accountId, openingDate, occurredAt)
-                    }
-                }
+                enforceOpeningOrder(e.accountId, occurredAt, moveOpeningBalanceBack, now)
+            }
+        }
+
+        // Pre-check balance overflow for affected accounts
+        entries.forEach { e ->
+            val currentBalance = balanceMinor(e.accountId)
+            try {
+                Math.addExact(currentBalance, e.amountMinor)
+            } catch (_: ArithmeticException) {
+                throw MoneyOverflowException("Balance overflow for account ${e.accountId}")
             }
         }
 
         validate(type, entries, categoryId, openingAccountId)
+
         val operationId = db.operationDao().insert(
             OperationEntity(
                 type = type,
                 occurredAt = occurredAt,
                 categoryId = categoryId,
-                description = description,
+                description = description?.trim()?.takeIf { it.isNotEmpty() },
                 openingAccountId = openingAccountId,
                 createdAt = now,
                 updatedAt = now,
@@ -92,7 +98,118 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                 ),
             )
         }
+
+        if (tagIds.isNotEmpty() || newTagNames.isNotEmpty()) {
+            if (type == OperationType.OPENING_BALANCE) {
+                throw InvariantViolationException("Tags cannot be assigned to an opening balance")
+            }
+            resolveAndLinkTags(operationId, tagIds, newTagNames, now)
+        }
+
         operationId
+    }
+
+    /**
+     * Rewrites an INCOME or EXPENSE operation. [amountMinor] is the positive magnitude in the
+     * currency of the target account. A currency change needs [confirmCurrencyChange] (T12).
+     */
+    suspend fun updateOperation(
+        id: Long,
+        accountId: Long,
+        amountMinor: Long,
+        categoryId: Long?,
+        occurredAt: Long,
+        description: String?,
+        tagIds: Set<Long> = emptySet(),
+        newTagNames: List<String> = emptyList(),
+        moveOpeningBalanceBack: Boolean = false,
+        confirmCurrencyChange: Boolean = false,
+        now: Long = System.currentTimeMillis(),
+    ) = db.withTransaction {
+        val op = db.operationDao().getById(id)
+            ?: throw InvariantViolationException("Unknown operation $id")
+        if (op.type != OperationType.INCOME && op.type != OperationType.EXPENSE) {
+            throw InvariantViolationException("Only INCOME and EXPENSE operations can be updated here")
+        }
+        if (occurredAt > now) throw FutureDateException(occurredAt, now)
+        if (amountMinor <= 0) throw InvariantViolationException("Amount must be positive")
+
+        val oldEntry = db.ledgerEntryDao().entriesOf(id).single()
+        val targetAccount = db.accountDao().getById(accountId)
+            ?: throw InvariantViolationException("Unknown account $accountId")
+
+        // The target may be archived only when it is the operation's own original account.
+        if (targetAccount.status == AccountStatus.ARCHIVED && targetAccount.id != oldEntry.accountId) {
+            throw InvariantViolationException("Cannot move operation to a different archived account")
+        }
+
+        // T12 cross-currency check
+        val targetCurrency = targetAccount.currencyCode
+        if (targetCurrency != oldEntry.currencyCode && !confirmCurrencyChange) {
+            throw CurrencyChangeNotConfirmedException(oldEntry.currencyCode, targetCurrency)
+        }
+
+        enforceOpeningOrder(accountId, occurredAt, moveOpeningBalanceBack, now)
+
+        val signedAmount = if (op.type == OperationType.INCOME) amountMinor else -amountMinor
+
+        // Pre-check balance overflow
+        try {
+            if (accountId == oldEntry.accountId) {
+                Math.addExact(balanceMinor(accountId), signedAmount - oldEntry.amountMinor)
+            } else {
+                Math.addExact(balanceMinor(oldEntry.accountId), -oldEntry.amountMinor)
+                Math.addExact(balanceMinor(accountId), signedAmount)
+            }
+        } catch (_: ArithmeticException) {
+            throw MoneyOverflowException("Balance overflow for account $accountId")
+        }
+
+        validateCategoryType(op.type, categoryId)
+
+        db.operationDao().updateFields(
+            id = id,
+            occurredAt = occurredAt,
+            categoryId = categoryId,
+            description = description?.trim()?.takeIf { it.isNotEmpty() },
+            updatedAt = now,
+        )
+        db.ledgerEntryDao().updateEntry(
+            operationId = id,
+            accountId = accountId,
+            currencyCode = targetCurrency,
+            amountMinor = signedAmount,
+            occurredAt = occurredAt,
+        )
+
+        db.operationTagDao().deleteAllFor(id)
+        if (tagIds.isNotEmpty() || newTagNames.isNotEmpty()) {
+            resolveAndLinkTags(id, tagIds, newTagNames, now)
+        }
+    }
+
+    suspend fun deleteOperation(id: Long) = db.withTransaction {
+        val op = db.operationDao().getById(id)
+            ?: throw InvariantViolationException("Unknown operation $id")
+        if (op.type != OperationType.INCOME && op.type != OperationType.EXPENSE) {
+            throw InvariantViolationException("Only INCOME and EXPENSE operations can be deleted")
+        }
+        db.operationDao().deleteById(id)
+    }
+
+    suspend fun setTags(
+        operationId: Long,
+        tagIds: Set<Long>,
+        newTagNames: List<String> = emptyList(),
+        now: Long = System.currentTimeMillis(),
+    ) = db.withTransaction {
+        val op = db.operationDao().getById(operationId)
+            ?: throw InvariantViolationException("Unknown operation $operationId")
+        if (op.type == OperationType.OPENING_BALANCE) {
+            throw InvariantViolationException("Tags cannot be assigned to an opening balance")
+        }
+        db.operationTagDao().deleteAllFor(operationId)
+        resolveAndLinkTags(operationId, tagIds, newTagNames, now)
     }
 
     /** Moves the operation and every one of its ledger entries to [occurredAt] together. */
@@ -103,6 +220,9 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
     ) = db.withTransaction {
         val op = db.operationDao().getById(operationId)
             ?: throw InvariantViolationException("Unknown operation $operationId")
+        if (op.type == OperationType.INCOME || op.type == OperationType.EXPENSE) {
+            if (occurredAt > now) throw FutureDateException(occurredAt, now)
+        }
 
         if (op.type == OperationType.OPENING_BALANCE) {
             val accountId = op.openingAccountId
@@ -177,6 +297,70 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         throw e
     }
 
+    private suspend fun resolveAndLinkTags(
+        operationId: Long,
+        tagIds: Set<Long>,
+        newTagNames: List<String>,
+        now: Long,
+    ) {
+        val existingIds = db.tagDao().getAll().map { it.id }.toSet()
+        tagIds.forEach { id ->
+            if (id !in existingIds) throw InvariantViolationException("Unknown tag id $id")
+        }
+
+        val resolvedIds = tagIds.toMutableSet()
+        newTagNames.map { TagNameRules.normalize(it) }.distinct().forEach { name ->
+            val error = TagNameRules.validate(name)
+            if (error != null) throw InvalidTagNameException(error)
+            val key = TagNameRules.key(name)
+            val matched = db.tagDao().getAll().find { TagNameRules.key(it.name) == key }
+            val id = matched?.id
+                ?: db.tagDao().insert(TagEntity(name = name, color = null, createdAt = now))
+            resolvedIds.add(id)
+        }
+
+        resolvedIds.forEach { tagId ->
+            db.operationTagDao().insert(OperationTagEntity(operationId, tagId))
+        }
+    }
+
+    private suspend fun enforceOpeningOrder(
+        accountId: Long,
+        occurredAt: Long,
+        moveOpeningBalanceBack: Boolean,
+        now: Long,
+    ) {
+        val openingDate = db.ledgerEntryDao().openingDateOf(accountId)
+        if (openingDate != null && occurredAt < openingDate) {
+            if (moveOpeningBalanceBack) {
+                val startOfLocalDay = OpeningDatePolicy(ZoneId.systemDefault()).startOfDay(occurredAt)
+                val openingOp = db.operationDao().openingBalanceOf(accountId)
+                if (openingOp != null) {
+                    db.operationDao().updateOccurredAt(openingOp.id, startOfLocalDay, now)
+                    db.ledgerEntryDao().updateOccurredAt(openingOp.id, startOfLocalDay)
+                }
+            } else {
+                throw OpeningBalanceOrderException(accountId, openingDate, occurredAt)
+            }
+        }
+    }
+
+    private suspend fun validateCategoryType(type: OperationType, categoryId: Long?) {
+        if (categoryId != null) {
+            val category = db.categoryDao().getById(categoryId)
+                ?: throw InvariantViolationException("Unknown category $categoryId")
+            val expected = when (type) {
+                OperationType.INCOME -> CategoryType.INCOME
+                OperationType.EXPENSE -> CategoryType.EXPENSE
+                OperationType.TRANSFER -> CategoryType.TRANSFER
+                OperationType.OPENING_BALANCE -> null
+            }
+            if (category.type != expected) {
+                throw InvariantViolationException("Category type does not match operation type")
+            }
+        }
+    }
+
     private suspend fun validate(
         type: OperationType,
         entries: List<EntryDraft>,
@@ -227,19 +411,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                 }
             }
         }
-        if (categoryId != null) {
-            val category = db.categoryDao().getById(categoryId)
-                ?: throw InvariantViolationException("Unknown category $categoryId")
-            val expected = when (type) {
-                OperationType.INCOME -> CategoryType.INCOME
-                OperationType.EXPENSE -> CategoryType.EXPENSE
-                OperationType.TRANSFER -> CategoryType.TRANSFER
-                OperationType.OPENING_BALANCE -> null
-            }
-            if (category.type != expected) {
-                throw InvariantViolationException("Category type does not match operation type")
-            }
-        }
+        validateCategoryType(type, categoryId)
     }
 
     private fun requireEntries(entries: List<EntryDraft>, count: Int, type: OperationType) {

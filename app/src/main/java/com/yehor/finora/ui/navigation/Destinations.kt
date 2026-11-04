@@ -13,6 +13,7 @@ import com.yehor.finora.R
 object Routes {
     const val DASHBOARD = "dashboard"
     const val TRANSACTIONS = "transactions"
+    const val TRANSACTIONS_PRESET = "transactions?accountId={accountId}&tagId={tagId}&categoryId={categoryId}"
     const val ACCOUNTS = "accounts"
     const val ACCOUNT_NEW = "accounts/new"
     const val ACCOUNT_DETAIL = "accounts/{accountId}"
@@ -26,12 +27,20 @@ object Routes {
     const val RECURRING = "more/recurring"
     const val TRANSFERS = "more/transfers"
     const val SETTINGS = "more/settings"
+    const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}"
+    const val TRANSACTION_EDIT = "transactions/{operationId}"
 
     fun accountDetail(id: Long) = "accounts/$id"
     fun accountEdit(id: Long) = "accounts/$id/edit"
     fun categoryNew(type: String, parentId: Long? = null) =
         "more/categories/new?type=$type" + (parentId?.let { "&parentId=$it" } ?: "")
     fun categoryEdit(id: Long) = "more/categories/$id/edit"
+    fun transactionsForTag(tagId: Long) = "transactions?tagId=$tagId"
+    fun transactionsForAccount(accountId: Long) = "transactions?accountId=$accountId"
+    fun transactionsForCategory(categoryId: Long) = "transactions?categoryId=$categoryId"
+    fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null) =
+        "transactions/new?kind=$kind" + (duplicateOf?.let { "&duplicateOf=$it" } ?: "")
+    fun transactionEdit(id: Long) = "transactions/$id"
 }
 
 enum class TopLevelDestination(
@@ -51,4 +60,4 @@ enum class TopLevelDestination(
  * `more/...` screens highlight the More tab through the same rule.
  */
 fun isRouteUnder(route: String?, tabRoute: String): Boolean =
-    route != null && (route == tabRoute || route.startsWith("$tabRoute/"))
+    route != null && (route == tabRoute || route.startsWith("$tabRoute/") || route.startsWith("$tabRoute?"))
