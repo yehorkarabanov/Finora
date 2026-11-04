@@ -1,9 +1,8 @@
 package com.yehor.finora.domain.account
 
+import com.yehor.finora.domain.money.AmountParseResult
+import com.yehor.finora.domain.money.AmountParser
 import com.yehor.finora.domain.money.Currency
-import com.yehor.finora.domain.money.Money
-import com.yehor.finora.domain.money.MoneyOverflowException
-import java.math.BigDecimal
 
 enum class AccountDraftError {
     NAME_EMPTY,
@@ -26,8 +25,6 @@ sealed interface AmountParse {
 object AccountDraftValidator {
     const val NAME_MAX = 50
     const val DESCRIPTION_MAX = 500
-
-    private val amountPattern = Regex("""^-?(\d+([.,]\d*)?|[.,]\d+)$""")
 
     /**
      * [amountText] is the signed amount: digits, one decimal separator (`.` or `,`) and an optional
@@ -52,22 +49,12 @@ object AccountDraftValidator {
     }
 
     /** Parses [text] into minor units of [currency] without rounding. */
-    fun parseAmount(text: String, currency: Currency): AmountParse {
-        val trimmed = text.trim()
-        if (trimmed.isEmpty()) return AmountParse.Empty
-        if (!amountPattern.matches(trimmed)) return AmountParse.Invalid(AccountDraftError.AMOUNT_INVALID)
-        val normalized = trimmed.replace(',', '.')
-        val decimal = BigDecimal(if (normalized.endsWith(".")) normalized.dropLast(1) else normalized)
-        if (decimal.stripTrailingZeros().scale() > currency.scale) {
-            return AmountParse.Invalid(AccountDraftError.AMOUNT_TOO_PRECISE)
+    fun parseAmount(text: String, currency: Currency): AmountParse =
+        when (val result = AmountParser.parse(text, currency)) {
+            is AmountParseResult.Empty -> AmountParse.Empty
+            is AmountParseResult.Value -> AmountParse.Value(result.minor)
+            is AmountParseResult.InvalidFormat -> AmountParse.Invalid(AccountDraftError.AMOUNT_INVALID)
+            is AmountParseResult.TooPrecise -> AmountParse.Invalid(AccountDraftError.AMOUNT_TOO_PRECISE)
+            is AmountParseResult.OutOfRange -> AmountParse.Invalid(AccountDraftError.AMOUNT_OUT_OF_RANGE)
         }
-        return try {
-            val minor = Money.parse(decimal.toPlainString(), currency).amountMinor
-            // Long.MIN_VALUE cannot be negated, so keep the range symmetric.
-            if (minor == Long.MIN_VALUE) AmountParse.Invalid(AccountDraftError.AMOUNT_OUT_OF_RANGE)
-            else AmountParse.Value(minor)
-        } catch (_: MoneyOverflowException) {
-            AmountParse.Invalid(AccountDraftError.AMOUNT_OUT_OF_RANGE)
-        }
-    }
 }
