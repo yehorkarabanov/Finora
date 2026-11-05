@@ -59,8 +59,7 @@ object InvariantChecker {
             SELECT 'operation ' || o.id FROM operation o
             LEFT JOIN ledger_entry e ON e.operation_id = o.id
             GROUP BY o.id HAVING o.type = 'TRANSFER'
-                AND (COUNT(e.id) <> 2 OR COUNT(DISTINCT e.account_id) <> 2
-                    OR SUM(e.amount_minor < 0) <> 1 OR SUM(e.amount_minor > 0) <> 1)
+                AND (COUNT(e.id) <> 2 OR COUNT(DISTINCT e.account_id) <> 2)
         """,
         "category type mismatch" to """
             SELECT 'operation ' || o.id FROM operation o

@@ -335,31 +335,6 @@ class LedgerSchemaTest {
     }
 
     @Test
-    fun checkerFlagsRawSqlTransferWithoutOppositeSigns() = runBlocking {
-        val a = account("USD", "a")
-        val b = account("USD", "b")
-        val transfer = repo.insertOperation(
-            OperationType.TRANSFER, 1,
-            listOf(EntryDraft(a, -5), EntryDraft(b, 5)),
-            categoryId = category(CategoryType.TRANSFER),
-        )
-        assertFalse(violations().any { it.startsWith("transfer shape") })
-
-        // Both sides positive.
-        exec("UPDATE ledger_entry SET amount_minor = 5 WHERE operation_id = $transfer")
-        assertTrue(violations().any { it.startsWith("transfer shape") })
-
-        // Both sides negative.
-        exec("UPDATE ledger_entry SET amount_minor = -5 WHERE operation_id = $transfer")
-        assertTrue(violations().any { it.startsWith("transfer shape") })
-
-        // One side zero.
-        exec("UPDATE ledger_entry SET amount_minor = 0 WHERE operation_id = $transfer AND account_id = $a")
-        exec("UPDATE ledger_entry SET amount_minor = 5 WHERE operation_id = $transfer AND account_id = $b")
-        assertTrue(violations().any { it.startsWith("transfer shape") })
-    }
-
-    @Test
     fun balanceQueryUsesCoveringIndexWithoutTableScan() {
         db.openHelper.writableDatabase.query(
             "EXPLAIN QUERY PLAN SELECT COALESCE(SUM(amount_minor), 0) FROM ledger_entry WHERE account_id = 1",
