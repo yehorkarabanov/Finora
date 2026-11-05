@@ -56,6 +56,7 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.DayGroup
 import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionSort
 import com.yehor.finora.ui.common.TransactionRow
 import java.time.format.DateTimeFormatter
@@ -65,7 +66,7 @@ import java.time.format.FormatStyle
 @Composable
 fun TransactionsScreen(
     onAdd: () -> Unit,
-    onOpenTransaction: (Long) -> Unit,
+    onOpenTransaction: (TransactionItem) -> Unit,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -194,7 +195,7 @@ fun TransactionsScreen(
                             item(key = row?.key ?: "placeholder_$index") {
                                 val entry = pagedItems[index] as? TransactionListRow.Entry
                                 if (entry != null) {
-                                    TransactionRow(item = entry.item, onClick = { onOpenTransaction(entry.item.id) })
+                                    TransactionRow(item = entry.item, onClick = { onOpenTransaction(entry.item) })
                                 }
                             }
                         }

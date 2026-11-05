@@ -242,6 +242,9 @@ interface LedgerEntryDao {
     @Query("UPDATE ledger_entry SET account_id = :accountId, currency_code = :currencyCode, amount_minor = :amountMinor, occurred_at = :occurredAt WHERE operation_id = :operationId")
     suspend fun updateEntry(operationId: Long, accountId: Long, currencyCode: String, amountMinor: Long, occurredAt: Long)
 
+    @Query("UPDATE ledger_entry SET account_id = :accountId, currency_code = :currencyCode, amount_minor = :amountMinor, occurred_at = :occurredAt WHERE id = :entryId")
+    suspend fun updateEntryById(entryId: Long, accountId: Long, currencyCode: String, amountMinor: Long, occurredAt: Long)
+
     @Query("""
         SELECT MIN(e.occurred_at) FROM ledger_entry e
         INNER JOIN operation o ON e.operation_id = o.id

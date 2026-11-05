@@ -12,6 +12,7 @@ import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.MoneyOverflowException
+import com.yehor.finora.domain.operation.TransferDraft
 import com.yehor.finora.domain.tag.TagNameRules
 import java.time.ZoneId
 import javax.inject.Inject
@@ -191,8 +192,153 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
     suspend fun deleteOperation(id: Long) = db.withTransaction {
         val op = db.operationDao().getById(id)
             ?: throw InvariantViolationException("Unknown operation $id")
-        if (op.type != OperationType.INCOME && op.type != OperationType.EXPENSE) {
-            throw InvariantViolationException("Only INCOME and EXPENSE operations can be deleted")
+        if (op.type != OperationType.INCOME && op.type != OperationType.EXPENSE && op.type != OperationType.TRANSFER) {
+            throw InvariantViolationException("Only INCOME, EXPENSE and TRANSFER operations can be deleted")
+        }
+        db.operationDao().deleteById(id)
+    }
+
+    /**
+     * Writes a TRANSFER and both of its ledger entries in one transaction. The source entry is
+     * `-sentAmountMinor` and the destination entry is `+receivedAmountMinor`, each in the currency
+     * of its own account. The two amounts are independent and are never converted.
+     */
+    suspend fun insertTransfer(
+        draft: TransferDraft,
+        moveOpeningBalanceBack: Boolean = false,
+        now: Long = System.currentTimeMillis(),
+    ): Long = db.withTransaction {
+        if (draft.occurredAt > now) throw FutureDateException(draft.occurredAt, now)
+        if (draft.sentAmountMinor <= 0 || draft.receivedAmountMinor <= 0) {
+            throw InvariantViolationException("Transfer amounts must be positive")
+        }
+        insertOperation(
+            type = OperationType.TRANSFER,
+            occurredAt = draft.occurredAt,
+            entries = listOf(
+                EntryDraft(draft.sourceAccountId, -draft.sentAmountMinor),
+                EntryDraft(draft.destAccountId, draft.receivedAmountMinor),
+            ),
+            categoryId = draft.categoryId,
+            description = draft.description,
+            tagIds = draft.tagIds,
+            newTagNames = draft.newTagNames,
+            moveOpeningBalanceBack = moveOpeningBalanceBack,
+            now = now,
+        )
+    }
+
+    /**
+     * Rewrites a TRANSFER. Either side may move to another active account, or stay on its own
+     * archived account. A currency change on either side needs [confirmCurrencyChange] (T12).
+     */
+    suspend fun updateTransfer(
+        id: Long,
+        draft: TransferDraft,
+        moveOpeningBalanceBack: Boolean = false,
+        confirmCurrencyChange: Boolean = false,
+        now: Long = System.currentTimeMillis(),
+    ) = db.withTransaction {
+        val op = db.operationDao().getById(id)
+            ?: throw InvariantViolationException("Unknown operation $id")
+        if (op.type != OperationType.TRANSFER) {
+            throw InvariantViolationException("Only TRANSFER operations can be updated here")
+        }
+        if (draft.occurredAt > now) throw FutureDateException(draft.occurredAt, now)
+        if (draft.sentAmountMinor <= 0 || draft.receivedAmountMinor <= 0) {
+            throw InvariantViolationException("Transfer amounts must be positive")
+        }
+        if (draft.sourceAccountId == draft.destAccountId) {
+            throw InvariantViolationException("Transfer must use two different accounts")
+        }
+
+        val oldEntries = db.ledgerEntryDao().entriesOf(id)
+        if (oldEntries.size != 2) throw InvariantViolationException("TRANSFER needs exactly 2 ledger entries")
+        val oldSource = oldEntries.single { it.amountMinor < 0 }
+        val oldDest = oldEntries.single { it.amountMinor > 0 }
+
+        val newSource = db.accountDao().getById(draft.sourceAccountId)
+            ?: throw InvariantViolationException("Unknown account ${draft.sourceAccountId}")
+        val newDest = db.accountDao().getById(draft.destAccountId)
+            ?: throw InvariantViolationException("Unknown account ${draft.destAccountId}")
+
+        // A side may sit on an archived account only when it is that side's own original account.
+        listOf(newSource to oldSource, newDest to oldDest).forEach { (account, old) ->
+            if (account.status == AccountStatus.ARCHIVED && account.id != old.accountId) {
+                throw InvariantViolationException("Cannot move transfer to a different archived account")
+            }
+        }
+
+        // T12: a currency change on either side needs explicit confirmation.
+        listOf(newSource to oldSource, newDest to oldDest).forEach { (account, old) ->
+            if (account.currencyCode != old.currencyCode && !confirmCurrencyChange) {
+                throw CurrencyChangeNotConfirmedException(old.currencyCode, account.currencyCode)
+            }
+        }
+
+        enforceOpeningOrder(newSource.id, draft.occurredAt, moveOpeningBalanceBack, now)
+        enforceOpeningOrder(newDest.id, draft.occurredAt, moveOpeningBalanceBack, now)
+
+        val newSourceAmount = -draft.sentAmountMinor
+        val newDestAmount = draft.receivedAmountMinor
+
+        // Pre-check balance overflow: net change per affected account, old entries removed.
+        val deltas = mutableMapOf<Long, Long>()
+        fun addDelta(accountId: Long, amount: Long) {
+            deltas[accountId] = try {
+                Math.addExact(deltas[accountId] ?: 0L, amount)
+            } catch (_: ArithmeticException) {
+                throw MoneyOverflowException("Balance overflow for account $accountId")
+            }
+        }
+        addDelta(oldSource.accountId, -oldSource.amountMinor)
+        addDelta(oldDest.accountId, -oldDest.amountMinor)
+        addDelta(newSource.id, newSourceAmount)
+        addDelta(newDest.id, newDestAmount)
+        deltas.forEach { (accountId, delta) ->
+            try {
+                Math.addExact(balanceMinor(accountId), delta)
+            } catch (_: ArithmeticException) {
+                throw MoneyOverflowException("Balance overflow for account $accountId")
+            }
+        }
+
+        validateCategoryType(OperationType.TRANSFER, draft.categoryId)
+
+        db.operationDao().updateFields(
+            id = id,
+            occurredAt = draft.occurredAt,
+            categoryId = draft.categoryId,
+            description = draft.description?.trim()?.takeIf { it.isNotEmpty() },
+            updatedAt = now,
+        )
+        db.ledgerEntryDao().updateEntryById(
+            entryId = oldSource.id,
+            accountId = newSource.id,
+            currencyCode = newSource.currencyCode,
+            amountMinor = newSourceAmount,
+            occurredAt = draft.occurredAt,
+        )
+        db.ledgerEntryDao().updateEntryById(
+            entryId = oldDest.id,
+            accountId = newDest.id,
+            currencyCode = newDest.currencyCode,
+            amountMinor = newDestAmount,
+            occurredAt = draft.occurredAt,
+        )
+
+        db.operationTagDao().deleteAllFor(id)
+        if (draft.tagIds.isNotEmpty() || draft.newTagNames.isNotEmpty()) {
+            resolveAndLinkTags(id, draft.tagIds, draft.newTagNames, now)
+        }
+    }
+
+    /** Deletes a TRANSFER. Both ledger entries and the tag links cascade with the operation row. */
+    suspend fun deleteTransfer(id: Long) = db.withTransaction {
+        val op = db.operationDao().getById(id)
+            ?: throw InvariantViolationException("Unknown operation $id")
+        if (op.type != OperationType.TRANSFER) {
+            throw InvariantViolationException("Only TRANSFER operations can be deleted here")
         }
         db.operationDao().deleteById(id)
     }

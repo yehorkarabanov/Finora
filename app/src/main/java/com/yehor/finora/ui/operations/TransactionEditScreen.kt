@@ -69,6 +69,7 @@ private val AMOUNT_ERRORS = setOf(
 @Composable
 fun TransactionEditScreen(
     onBack: () -> Unit,
+    onSelectTransfer: (() -> Unit)? = null,
     onDuplicate: ((Long) -> Unit)? = null,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
     viewModel: TransactionEditViewModel = hiltViewModel(),
@@ -143,18 +144,27 @@ fun TransactionEditScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val segmentCount = if (onSelectTransfer != null) 3 else 2
                 SegmentedButton(
                     selected = state.kind == TransactionKind.EXPENSE,
                     onClick = { viewModel.onKindChange(TransactionKind.EXPENSE) },
                     enabled = !state.isEdit,
-                    shape = SegmentedButtonDefaults.itemShape(0, 2),
+                    shape = SegmentedButtonDefaults.itemShape(0, segmentCount),
                 ) { Text(stringResource(R.string.transaction_kind_expense)) }
                 SegmentedButton(
                     selected = state.kind == TransactionKind.INCOME,
                     onClick = { viewModel.onKindChange(TransactionKind.INCOME) },
                     enabled = !state.isEdit,
-                    shape = SegmentedButtonDefaults.itemShape(1, 2),
+                    shape = SegmentedButtonDefaults.itemShape(1, segmentCount),
                 ) { Text(stringResource(R.string.transaction_kind_income)) }
+                if (onSelectTransfer != null) {
+                    SegmentedButton(
+                        selected = false,
+                        onClick = onSelectTransfer,
+                        enabled = !state.isEdit,
+                        shape = SegmentedButtonDefaults.itemShape(2, segmentCount),
+                    ) { Text(stringResource(R.string.transaction_kind_transfer)) }
+                }
             }
 
             val amountError = state.isOverflow || state.errors.any { it in AMOUNT_ERRORS }

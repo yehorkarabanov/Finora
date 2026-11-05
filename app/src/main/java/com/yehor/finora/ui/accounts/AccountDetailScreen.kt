@@ -3,6 +3,7 @@ package com.yehor.finora.ui.accounts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
@@ -55,7 +58,8 @@ internal fun formatDate(millis: Long): String =
 fun AccountDetailScreen(
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
-    onOpenTransaction: (Long) -> Unit,
+    onTransfer: (Long) -> Unit,
+    onOpenTransaction: (TransactionItem) -> Unit,
     onShowAllTransactions: (Long) -> Unit,
     viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
@@ -142,7 +146,7 @@ fun AccountDetailScreen(
             } else {
                 Column {
                     loaded.recentTransactions.forEach { item ->
-                        TransactionRow(item = item, onClick = { onOpenTransaction(item.id) })
+                        TransactionRow(item = item, onClick = { onOpenTransaction(item) })
                     }
                     TextButton(onClick = { onShowAllTransactions(account.id) }) {
                         Text(stringResource(R.string.action_show_transactions))
@@ -151,8 +155,17 @@ fun AccountDetailScreen(
             }
             HorizontalDivider()
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Button(onClick = { onEdit(account.id) }) { Text(stringResource(R.string.action_edit)) }
+                if (!archived) {
+                    FilledTonalButton(onClick = { onTransfer(account.id) }) {
+                        Text(stringResource(R.string.account_detail_transfer))
+                    }
+                }
                 OutlinedButton(onClick = {
                     when {
                         archived -> viewModel.setArchived(false)

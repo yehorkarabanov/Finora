@@ -1,6 +1,7 @@
 package com.yehor.finora.domain.operation
 
 import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.Currency
 
 /** A filter and sort that are valid for the current accounts, categories and tags. */
@@ -15,7 +16,13 @@ data class NormalizedFilter(
 object FilterScope {
 
     /** History filter preset from the optional navigation arguments. */
-    fun preset(accountId: Long?, tagId: Long?, categoryId: Long?): TransactionFilter = TransactionFilter(
+    fun preset(
+        accountId: Long?,
+        tagId: Long?,
+        categoryId: Long?,
+        types: Set<OperationType> = emptySet(),
+    ): TransactionFilter = TransactionFilter(
+        types = types,
         accountIds = setOfNotNull(accountId),
         tagIds = setOfNotNull(tagId),
         categoryIds = setOfNotNull(categoryId),

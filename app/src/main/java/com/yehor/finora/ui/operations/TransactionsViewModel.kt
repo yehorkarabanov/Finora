@@ -13,6 +13,7 @@ import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.category.Category
+import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.operation.CurrencySummary
 import com.yehor.finora.domain.operation.DayGroup
@@ -81,6 +82,11 @@ class TransactionsViewModel @Inject constructor(
         accountId = savedStateHandle.get<Long>("accountId")?.takeIf { it > 0 },
         tagId = savedStateHandle.get<Long>("tagId")?.takeIf { it > 0 },
         categoryId = savedStateHandle.get<Long>("categoryId")?.takeIf { it > 0 },
+        types = if (savedStateHandle.get<String>("types") == OperationType.TRANSFER.name) {
+            setOf(OperationType.TRANSFER)
+        } else {
+            emptySet()
+        },
     )
 
     private val _filter = MutableStateFlow(initialFilter)

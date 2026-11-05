@@ -13,7 +13,7 @@ import com.yehor.finora.R
 object Routes {
     const val DASHBOARD = "dashboard"
     const val TRANSACTIONS = "transactions"
-    const val TRANSACTIONS_PRESET = "transactions?accountId={accountId}&tagId={tagId}&categoryId={categoryId}"
+    const val TRANSACTIONS_PRESET = "transactions?accountId={accountId}&tagId={tagId}&categoryId={categoryId}&types={types}"
     const val ACCOUNTS = "accounts"
     const val ACCOUNT_NEW = "accounts/new"
     const val ACCOUNT_DETAIL = "accounts/{accountId}"
@@ -26,9 +26,12 @@ object Routes {
     const val TAGS = "more/tags"
     const val RECURRING = "more/recurring"
     const val TRANSFERS = "more/transfers"
+    const val TRANSFERS_PRESET = "more/transfers?types={types}"
     const val SETTINGS = "more/settings"
     const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}"
     const val TRANSACTION_EDIT = "transactions/{operationId}"
+    const val TRANSFER_NEW = "transfers/new?duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
+    const val TRANSFER_EDIT = "transfers/{operationId}"
 
     fun accountDetail(id: Long) = "accounts/$id"
     fun accountEdit(id: Long) = "accounts/$id/edit"
@@ -41,6 +44,14 @@ object Routes {
     fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null) =
         "transactions/new?kind=$kind" + (duplicateOf?.let { "&duplicateOf=$it" } ?: "")
     fun transactionEdit(id: Long) = "transactions/$id"
+    fun transferNew(duplicateOf: Long? = null, sourceAccountId: Long? = null): String {
+        val params = listOfNotNull(
+            duplicateOf?.let { "duplicateOf=$it" },
+            sourceAccountId?.let { "sourceAccountId=$it" },
+        )
+        return "transfers/new" + if (params.isEmpty()) "" else params.joinToString("&", prefix = "?")
+    }
+    fun transferEdit(id: Long) = "transfers/$id"
 }
 
 enum class TopLevelDestination(
