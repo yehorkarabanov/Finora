@@ -47,7 +47,7 @@ fun TransactionRow(
     }
 
     ListItem(
-        modifier = modifier.clickable(enabled = !isTransfer, onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         leadingContent = {
             if (isTransfer) {
                 Icon(

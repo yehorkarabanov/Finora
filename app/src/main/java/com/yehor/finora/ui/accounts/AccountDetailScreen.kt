@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
@@ -55,7 +56,7 @@ internal fun formatDate(millis: Long): String =
 fun AccountDetailScreen(
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
-    onOpenTransaction: (Long) -> Unit,
+    onOpenTransaction: (TransactionItem) -> Unit,
     onShowAllTransactions: (Long) -> Unit,
     viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
@@ -142,7 +143,7 @@ fun AccountDetailScreen(
             } else {
                 Column {
                     loaded.recentTransactions.forEach { item ->
-                        TransactionRow(item = item, onClick = { onOpenTransaction(item.id) })
+                        TransactionRow(item = item, onClick = { onOpenTransaction(item) })
                     }
                     TextButton(onClick = { onShowAllTransactions(account.id) }) {
                         Text(stringResource(R.string.action_show_transactions))

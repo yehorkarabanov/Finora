@@ -40,8 +40,11 @@ import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
+import com.yehor.finora.domain.model.OperationType
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.operations.TransactionsScreen
+import com.yehor.finora.ui.operations.TransferEditScreen
 import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
@@ -93,11 +96,24 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 navArgument("accountId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("categoryId") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("types") { type = NavType.StringType; defaultValue = "" },
             ),
         ) {
             TransactionsScreen(
                 onAdd = { navController.navigate(Routes.transactionNew()) },
-                onOpenTransaction = { id -> navController.navigate(Routes.transactionEdit(id)) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) },
+                onOpenTransaction = { navController.navigate(openRoute(it)) },
+            )
+        }
+        // More -> Transfers: the same history screen, preset to TRANSFER operations.
+        composable(
+            Routes.TRANSFERS_PRESET,
+            arguments = listOf(navArgument("types") { type = NavType.StringType; defaultValue = "TRANSFER" }),
+        ) {
+            TransactionsScreen(
+                onAdd = { navController.navigate(Routes.transactionNew()) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) },
+                onOpenTransaction = { navController.navigate(openRoute(it)) },
             )
         }
         composable(Routes.ACCOUNTS) {
@@ -116,7 +132,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             AccountDetailScreen(
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
-                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) },
+                onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onShowAllTransactions = { accountId ->
                     navController.navigate(Routes.transactionsForAccount(accountId)) {
                         launchSingleTop = true
@@ -140,6 +156,11 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
+                onSelectTransfer = {
+                    navController.navigate(Routes.transferNew()) {
+                        popUpTo(Routes.TRANSACTION_NEW) { inclusive = true }
+                    }
+                },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
             )
         }
@@ -155,6 +176,25 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                     }
                 },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
+        }
+        composable(
+            Routes.TRANSFER_NEW,
+            arguments = listOf(navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L }),
+        ) {
+            TransferEditScreen(onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.TRANSFER_EDIT,
+            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
+        ) {
+            TransferEditScreen(
+                onBack = { navController.popBackStack() },
+                onDuplicate = { id ->
+                    navController.navigate(Routes.transferNew(duplicateOf = id)) {
+                        popUpTo(Routes.TRANSFER_EDIT) { inclusive = true }
+                    }
+                },
             )
         }
         composable(Routes.STATISTICS) { PlaceholderScreen(R.string.nav_statistics) }
@@ -203,14 +243,14 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         composable(Routes.RECURRING) {
             PlaceholderScreen(R.string.more_recurring, onBack = { navController.popBackStack() })
         }
-        composable(Routes.TRANSFERS) {
-            PlaceholderScreen(R.string.more_transfers, onBack = { navController.popBackStack() })
-        }
         composable(Routes.SETTINGS) {
             SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
 }
+
+private fun openRoute(item: TransactionItem): String =
+    if (item.type == OperationType.TRANSFER) Routes.transferEdit(item.id) else Routes.transactionEdit(item.id)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

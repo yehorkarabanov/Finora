@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -31,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +58,7 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.DayGroup
 import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionSort
 import com.yehor.finora.ui.common.TransactionRow
 import java.time.format.DateTimeFormatter
@@ -65,7 +68,8 @@ import java.time.format.FormatStyle
 @Composable
 fun TransactionsScreen(
     onAdd: () -> Unit,
-    onOpenTransaction: (Long) -> Unit,
+    onAddTransfer: () -> Unit,
+    onOpenTransaction: (TransactionItem) -> Unit,
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -156,8 +160,16 @@ fun TransactionsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.transactions_add))
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                SmallFloatingActionButton(onClick = onAddTransfer) {
+                    Icon(Icons.Default.SwapHoriz, contentDescription = stringResource(R.string.transfers_add))
+                }
+                FloatingActionButton(onClick = onAdd) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.transactions_add))
+                }
             }
         },
     ) { padding ->
@@ -194,7 +206,7 @@ fun TransactionsScreen(
                             item(key = row?.key ?: "placeholder_$index") {
                                 val entry = pagedItems[index] as? TransactionListRow.Entry
                                 if (entry != null) {
-                                    TransactionRow(item = entry.item, onClick = { onOpenTransaction(entry.item.id) })
+                                    TransactionRow(item = entry.item, onClick = { onOpenTransaction(entry.item) })
                                 }
                             }
                         }
