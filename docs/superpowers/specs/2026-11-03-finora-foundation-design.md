@@ -51,7 +51,7 @@ Rules:
 1. **Foundation** (this document): build setup, schema, `Money`/`Currency`, migrations, settings, theme, navigation shell, backup exclusion.
 2. **Accounts and categories**: account CRUD and archiving, category tree with direct assignment, aggregation, cycle prevention, opening balance UI.
 3. **Operations and tags**: income and expense entry, history, search and filters, tags with ANY/ALL.
-4. **Transfers**: same- and cross-currency transfers, fee as a linked expense operation, transfer categories. Adds the fee-link column through a real migration.
+4. **Transfers**: same- and cross-currency transfers with two independent amounts (sent and received), transfer categories. No schema change or separate fee operation in v1.
 5. **Currency**: NBP provider, rate cache, manual overrides, Display Currency, estimate and outdated markers.
 6. **Recurring**: schedules, pause/skip, missed occurrences, idempotent generation.
 7. **Dashboard and analytics**: period filters, category drill-down, account and tag analytics.
@@ -108,7 +108,7 @@ IDs are `Long` auto-generated primary keys. Timestamps are epoch milliseconds in
 | `operation_tag` | `operation_id`, `tag_id`, PK `(operation_id, tag_id)` |
 | `app_setting` | `key` PK, `value`, `updated_at` |
 
-Recurring schedules, exchange rates and the transfer-fee link are not in v1. They arrive through real migrations in their own sub-projects.
+Recurring schedules and exchange rates are not in v1. They arrive through real migrations in their own sub-projects.
 
 ### 6.2 Operation types
 

@@ -378,9 +378,10 @@ Each transfer must contain:
 - Transfer category.
 - Optional description.
 - Optional tags.
-- Optional transfer fee.
   8.3 Same-Currency Transfers
-  When both accounts use the same currency, the user enters the amount being transferred.
+  For transfers where both accounts use the same currency, the user independently enters both the Amount Sent and the Amount Received.
+
+The two amounts may be equal (e.g. 500 PLN → 500 PLN) or different (e.g. 500 PLN → 490 PLN if an intermediary deducted an amount). The difference directly affects account balances and is not recorded as an expense.
 
 Example:
 Account	Change
@@ -389,7 +390,7 @@ Cash PLN	'+500 PLN
 
 The transfer must not affect income or expense totals.
 8.4 Cross-Currency Transfers
-When accounts use different currencies, users must manually specify both amounts.
+When accounts use different currencies, users manually specify both the Amount Sent and the Amount Received in their respective native currencies.
 
 Example:
 Account	Change
@@ -398,15 +399,11 @@ IBKR USD	'+250 USD
 
 The application must preserve both original values.
 
-The effective exchange rate may be displayed as additional information, calculated from the entered amounts.
+The effective exchange rate may be displayed as additional informational data, calculated from the entered amounts.
 
 The application must not replace user-provided amounts with externally retrieved exchange rates.
-8.5 Transfer Fees
-Users must be able to record transfer fees.
-
-Fees must be treated as expenses and assigned to an expense category.
-
-The application must distinguish between the amount transferred and the fee charged.
+8.5 Transfer Fees (Scope Decision for v1)
+In v1, separate transfer fee tracking and linked fee operations are excluded. Any difference between Amount Sent and Amount Received directly adjusts account balances without generating separate expense entries.
 8.6 Transfer Categories
 Transfers must have their own independent category hierarchy.
 
@@ -938,10 +935,10 @@ Part VII. Business Rules and Important Constraints
 28. Transfer Rules
 1. Перевод всегда связывает два разных счёта.
 2. Переводы не считаются доходами или расходами.
-3. Переводы между одинаковыми валютами используют одинаковые суммы списания и зачисления, если пользователь не указывает иное.
-4. Переводы между разными валютами требуют ручного ввода суммы списания и зачисления.
+3. Переводы (как между одинаковыми, так и между разными валютами) всегда требуют раздельного ввода суммы списания и суммы зачисления. Для одинаковых валют суммы могут совпадать или различаться.
+4. Переводы между разными валютами требуют ручного ввода обеих сумм; эффективный курс рассчитывается исключительно для информации.
 5. Фактические суммы не должны изменяться после обновления курсов.
-6. Комиссия за перевод учитывается как отдельный расход.
+6. В v1 отдельные операции комиссий за перевод исключены; разница между суммами списания и зачисления влияет напрямую на балансы счетов и не учитывается как отдельный расход.
 7. Перевод должен иметь собственную категорию.
 8. Удаление или редактирование перевода должно затрагивать обе стороны операции.
 9. Переводы между своими счетами не должны влиять на чистый денежный поток.
@@ -1012,11 +1009,10 @@ ACCOUNTS
   TRANSFERS
 - [ ] Можно переводить деньги между счетами.
 - [ ] Поддерживаются одинаковые и разные валюты.
-- [ ] Для разных валют пользователь задаёт обе суммы.
+- [ ] Пользователь всегда раздельно задаёт суммы списания и зачисления.
 - [ ] Переводы не учитываются как доходы или расходы.
 - [ ] Поддерживаются категории переводов.
 - [ ] Обе стороны перевода всегда синхронизированы.
-- [ ] Поддерживаются комиссии.
   RECURRING
 - [ ] Можно создавать ежедневные, еженедельные, ежемесячные и ежегодные расписания.
 - [ ] Автоматически создаются обычные транзакции.
