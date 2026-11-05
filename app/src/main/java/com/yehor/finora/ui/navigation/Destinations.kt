@@ -30,7 +30,7 @@ object Routes {
     const val SETTINGS = "more/settings"
     const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}"
     const val TRANSACTION_EDIT = "transactions/{operationId}"
-    const val TRANSFER_NEW = "transfers/new?duplicateOf={duplicateOf}"
+    const val TRANSFER_NEW = "transfers/new?duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
     const val TRANSFER_EDIT = "transfers/{operationId}"
 
     fun accountDetail(id: Long) = "accounts/$id"
@@ -44,8 +44,13 @@ object Routes {
     fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null) =
         "transactions/new?kind=$kind" + (duplicateOf?.let { "&duplicateOf=$it" } ?: "")
     fun transactionEdit(id: Long) = "transactions/$id"
-    fun transferNew(duplicateOf: Long? = null) =
-        "transfers/new" + (duplicateOf?.let { "?duplicateOf=$it" } ?: "")
+    fun transferNew(duplicateOf: Long? = null, sourceAccountId: Long? = null): String {
+        val params = listOfNotNull(
+            duplicateOf?.let { "duplicateOf=$it" },
+            sourceAccountId?.let { "sourceAccountId=$it" },
+        )
+        return "transfers/new" + if (params.isEmpty()) "" else params.joinToString("&", prefix = "?")
+    }
     fun transferEdit(id: Long) = "transfers/$id"
 }
 

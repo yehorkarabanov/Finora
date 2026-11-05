@@ -90,6 +90,7 @@ class TransferEditViewModel @Inject constructor(
 
     private val operationId: Long? = savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 }
     private val duplicateOf: Long? = savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 }
+    private val presetSourceId: Long? = savedStateHandle.get<Long>("sourceAccountId")?.takeIf { it > 0 }
 
     private val _state = MutableStateFlow(
         TransferEditUiState(isEdit = operationId != null, operationId = operationId ?: 0),
@@ -141,11 +142,13 @@ class TransferEditViewModel @Inject constructor(
         if (source != null) {
             applySource(source)
         } else {
-            val active = accountRepository.observeAll().first().map { it.account }
-                .filter { it.status == AccountStatus.ACTIVE }
+            // From and To start empty. Only an account page can preselect From.
+            val presetSource = presetSourceId?.let { id ->
+                accountRepository.observeAll().first().map { it.account }
+                    .firstOrNull { it.id == id && it.status == AccountStatus.ACTIVE }
+            }
             _state.value = _state.value.copy(
-                sourceAccountId = active.getOrNull(0)?.id,
-                destAccountId = active.getOrNull(1)?.id,
+                sourceAccountId = presetSource?.id,
                 selectedCategoryId = recent.firstOrNull(),
             )
         }

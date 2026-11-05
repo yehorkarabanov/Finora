@@ -50,6 +50,7 @@
     <!-- Accounts -->
     <string name="accounts_title">Accounts</string>
     <string name="accounts_add">Add account</string>
+    <string name="accounts_add_transfer">Add transfer</string>
     <string name="accounts_empty_title">No accounts yet</string>
     <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
     <string name="accounts_archived_section">Archived (%1$d)</string>
@@ -215,7 +216,7 @@
     <string name="transfer_form_delete_body">The transfer will be deleted. %1$s returns to the source account and %2$s is removed from the destination account.</string>
     <string name="transfer_form_opening_order_body">This transfer is dated before the initial balance of one of its accounts. Move the initial balances back so they are not later than this transfer?</string>
     <string name="transfer_currency_change_body">An account on this transfer now has a different currency. This is not a currency conversion. No exchange rate is used and the number stays the same:\n%1$s</string>
-    <string name="transfers_add">Add transfer</string>
+    <string name="account_detail_transfer">Transfer</string>
 
     <!-- Cross-currency Reassignment Dialog -->
     <string name="currency_change_dialog_title">Change currency without converting?</string>

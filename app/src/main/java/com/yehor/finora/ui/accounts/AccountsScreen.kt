@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,6 +23,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -83,21 +85,33 @@ fun BalanceText(balance: Balance, modifier: Modifier = Modifier, large: Boolean 
 fun AccountsScreen(
     onOpen: (Long) -> Unit,
     onAdd: () -> Unit,
+    onAddTransfer: () -> Unit,
     viewModel: AccountsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    AccountsContent(state, onOpen, onAdd)
+    AccountsContent(state, onOpen, onAdd, onAddTransfer)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AccountsContent(state: AccountsUiState, onOpen: (Long) -> Unit, onAdd: () -> Unit) {
+fun AccountsContent(state: AccountsUiState, onOpen: (Long) -> Unit, onAdd: () -> Unit, onAddTransfer: () -> Unit) {
     var archivedExpanded by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.accounts_title)) }) },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.accounts_add))
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                // A transfer needs two different active accounts.
+                if (state.active.size >= 2) {
+                    SmallFloatingActionButton(onClick = onAddTransfer) {
+                        Icon(Icons.Filled.SwapHoriz, contentDescription = stringResource(R.string.accounts_add_transfer))
+                    }
+                }
+                FloatingActionButton(onClick = onAdd) {
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.accounts_add))
+                }
             }
         },
     ) { padding ->
@@ -188,7 +202,7 @@ private fun AccountsPreview() {
                 ),
                 archived = emptyList(),
             ),
-            onOpen = {}, onAdd = {},
+            onOpen = {}, onAdd = {}, onAddTransfer = {},
         )
     }
 }

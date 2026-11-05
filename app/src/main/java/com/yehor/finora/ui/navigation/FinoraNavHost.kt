@@ -101,7 +101,6 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         ) {
             TransactionsScreen(
                 onAdd = { navController.navigate(Routes.transactionNew()) },
-                onAddTransfer = { navController.navigate(Routes.transferNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
             )
         }
@@ -112,7 +111,6 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         ) {
             TransactionsScreen(
                 onAdd = { navController.navigate(Routes.transactionNew()) },
-                onAddTransfer = { navController.navigate(Routes.transferNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
             )
         }
@@ -120,6 +118,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             AccountsScreen(
                 onOpen = { navController.navigate(Routes.accountDetail(it)) },
                 onAdd = { navController.navigate(Routes.ACCOUNT_NEW) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) },
             )
         }
         composable(Routes.ACCOUNT_NEW) {
@@ -132,6 +131,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             AccountDetailScreen(
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
+                onTransfer = { navController.navigate(Routes.transferNew(sourceAccountId = it)) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onShowAllTransactions = { accountId ->
                     navController.navigate(Routes.transactionsForAccount(accountId)) {
@@ -180,7 +180,10 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         }
         composable(
             Routes.TRANSFER_NEW,
-            arguments = listOf(navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L }),
+            arguments = listOf(
+                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
+            ),
         ) {
             TransferEditScreen(onBack = { navController.popBackStack() })
         }
