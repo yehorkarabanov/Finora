@@ -16,7 +16,8 @@ data class AccountFormState(
     val loaded: Boolean = false,
     val name: String = "",
     val type: AccountType = AccountType.BANK,
-    val currency: Currency = CurrencyRegistry.get("USD"),
+    /** Null on a new account until the user picks one. */
+    val currency: Currency? = null,
     val icon: String? = null,
     val color: Long? = null,
     val description: String = "",
@@ -36,13 +37,18 @@ data class AccountFormState(
 
 object AccountFormLogic {
 
+    /** Scale used to parse the opening balance text while no currency is chosen yet. */
+    private val PARSE_FALLBACK = CurrencyRegistry.get("USD")
+
+    private fun parseCurrency(s: AccountFormState): Currency = s.currency ?: PARSE_FALLBACK
+
     /** Archived accounts can change or remove an existing opening balance, but not add one (design 4.7). */
     fun openingSectionEnabled(s: AccountFormState): Boolean =
         !(s.isEdit && s.archived && s.originalOpeningMinor == null)
 
     /** Signed minor units entered in the form, null when the amount is empty or zero or unparsable. */
     fun openingMinor(s: AccountFormState): Long? {
-        val parsed = AccountDraftValidator.parseAmount(s.amountText, s.currency) as? AmountParse.Value ?: return null
+        val parsed = AccountDraftValidator.parseAmount(s.amountText, parseCurrency(s)) as? AmountParse.Value ?: return null
         return parsed.minor.takeIf { it != 0L }
     }
 
@@ -51,7 +57,7 @@ object AccountFormLogic {
             name = s.name,
             description = s.description,
             amountText = if (openingSectionEnabled(s)) s.amountText else "",
-            currency = s.currency,
+            currency = parseCurrency(s),
         )
 
     /** True when the chosen date is later than [OpeningDatePolicy.latestAllowed]. Only matters with an amount. */
@@ -59,17 +65,18 @@ object AccountFormLogic {
         openingMinor(s) != null && s.dateMillis > policy.latestAllowed(now, s.earliestOtherEntryAt)
 
     fun canSave(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean =
-        s.loaded && !s.saving && errors(s).isEmpty() && !dateTooLate(s, policy, now)
+        s.loaded && !s.saving && s.currency != null && errors(s).isEmpty() && !dateTooLate(s, policy, now)
 
     /**
      * Non-blocking warning on edit: the amount of change to the current balance. Null when the account has
      * no other entries (then the opening balance IS the balance and the change is obvious), or nothing changed.
      */
     fun balanceDelta(s: AccountFormState): Money? {
+        val currency = s.currency ?: return null
         if (!s.isEdit || s.earliestOtherEntryAt == null || !openingSectionEnabled(s)) return null
-        if (AccountDraftValidator.parseAmount(s.amountText, s.currency) is AmountParse.Invalid) return null
+        if (AccountDraftValidator.parseAmount(s.amountText, currency) is AmountParse.Invalid) return null
         val delta = (openingMinor(s) ?: 0L) - (s.originalOpeningMinor ?: 0L)
-        return if (delta == 0L) null else Money(delta, s.currency)
+        return if (delta == 0L) null else Money(delta, currency)
     }
 
     /** Text to prefill the amount field from a signed opening balance. */

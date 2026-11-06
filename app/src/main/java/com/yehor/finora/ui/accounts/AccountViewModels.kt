@@ -121,7 +121,6 @@ class AccountDetailViewModel @Inject constructor(
 class AccountEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: AccountRepository,
-    private val settings: SettingsRepository,
 ) : ViewModel() {
     private val accountId: Long? = savedStateHandle.get<Long>("accountId")
     private val policy = OpeningDatePolicy(ZoneId.systemDefault())
@@ -137,11 +136,9 @@ class AccountEditViewModel @Inject constructor(
 
     private suspend fun load() {
         if (accountId == null) {
-            val currency = settings.displayCurrency.first().currency
             _state.update {
                 it.copy(
                     loaded = true,
-                    currency = currency,
                     dateMillis = policy.defaultForNewAccount(System.currentTimeMillis()),
                 )
             }
@@ -194,7 +191,7 @@ class AccountEditViewModel @Inject constructor(
             try {
                 if (accountId == null) {
                     repository.create(
-                        name = name, currencyCode = s.currency.code, type = s.type.name,
+                        name = name, currencyCode = checkNotNull(s.currency).code, type = s.type.name,
                         icon = s.icon, color = s.color, description = description,
                         openingMinor = openingMinor, openingDate = policy.defaultForNewAccount(now), now = now,
                     )

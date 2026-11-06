@@ -134,7 +134,7 @@ fun AccountEditScreen(
             // A text field consumes taps itself, so an overlay captures the click that opens the dialog.
             Box {
                 OutlinedTextField(
-                    value = "${state.currency.code} (${state.currency.name})",
+                    value = state.currency?.let { "${it.code} (${it.name})" }.orEmpty(),
                     onValueChange = {},
                     readOnly = true,
                     enabled = !state.isEdit,
@@ -189,7 +189,7 @@ fun AccountEditScreen(
                     value = state.amountText,
                     onValueChange = viewModel::onAmount,
                     label = { Text(stringResource(R.string.account_form_initial_balance)) },
-                    suffix = { Text(state.currency.symbol) },
+                    suffix = { Text(state.currency?.symbol.orEmpty()) },
                     singleLine = true,
                     // Decimal keyboards often lack a minus key, and a negative opening balance is allowed.
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),

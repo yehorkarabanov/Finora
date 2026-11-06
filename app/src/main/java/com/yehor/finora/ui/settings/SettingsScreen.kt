@@ -3,6 +3,7 @@ package com.yehor.finora.ui.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -103,19 +106,37 @@ private fun SettingsContent(
     }
 
     if (showCurrencyDialog) {
+        var query by rememberSaveable { mutableStateOf("") }
+        val matches = remember(query, state.availableCurrencies) {
+            val q = query.trim()
+            if (q.isEmpty()) {
+                state.availableCurrencies
+            } else {
+                state.availableCurrencies.filter { it.code.contains(q, true) || it.name.contains(q, true) }
+            }
+        }
         AlertDialog(
             onDismissRequest = { showCurrencyDialog = false },
             title = { Text(stringResource(R.string.settings_display_currency_choose)) },
             text = {
-                LazyColumn {
-                    items(state.availableCurrencies, key = { it.code }) { currency ->
-                        ListItem(
-                            headlineContent = { Text("${currency.code} (${currency.name})") },
-                            modifier = Modifier.clickable {
-                                onCurrencySelected(currency)
-                                showCurrencyDialog = false
-                            },
-                        )
+                Column {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = { Text(stringResource(R.string.account_form_currency_search)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    LazyColumn(Modifier.padding(top = 8.dp)) {
+                        items(matches, key = { it.code }) { currency ->
+                            ListItem(
+                                headlineContent = { Text("${currency.code} (${currency.name})") },
+                                modifier = Modifier.clickable {
+                                    onCurrencySelected(currency)
+                                    showCurrencyDialog = false
+                                },
+                            )
+                        }
                     }
                 }
             },

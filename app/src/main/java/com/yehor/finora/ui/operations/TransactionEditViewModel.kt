@@ -141,13 +141,6 @@ class TransactionEditViewModel @Inject constructor(
         val source = (operationId ?: duplicateOf)?.let { transactionRepository.observeTransaction(it).first() }
         if (source != null) {
             applySource(source)
-        } else {
-            val defaultId = transactionRepository.defaultAccountId()
-            val active = accountRepository.observeAll().first().map { it.account }
-                .filter { it.status == AccountStatus.ACTIVE }
-            _state.value = _state.value.copy(
-                selectedAccountId = (active.find { it.id == defaultId } ?: active.firstOrNull())?.id,
-            )
         }
         loadRecentCategories(_state.value.kind)
     }
