@@ -8,6 +8,7 @@ import com.yehor.finora.data.repo.CategoryRepository
 import com.yehor.finora.data.repo.CurrencyChangeNotConfirmedException
 import com.yehor.finora.data.repo.FutureDateException
 import com.yehor.finora.data.repo.OpeningBalanceOrderException
+import com.yehor.finora.data.repo.RecurringRepository
 import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
@@ -71,6 +72,9 @@ data class TransactionEditUiState(
     /** The change a delete makes to the account balance. */
     val deleteBalanceChange: Money? = null,
     val saved: Boolean = false,
+    /** The schedule that created this transaction, while it still exists. Only set when editing. */
+    val recurringScheduleId: Long? = null,
+    val recurringScheduleName: String? = null,
 ) {
     val selectedAccount: Account?
         get() = accounts.find { it.account.id == selectedAccountId }?.account
@@ -87,6 +91,7 @@ class TransactionEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
+    private val recurringRepository: RecurringRepository,
     categoryRepository: CategoryRepository,
     tagRepository: TagRepository,
 ) : ViewModel() {
@@ -141,6 +146,14 @@ class TransactionEditViewModel @Inject constructor(
         val source = (operationId ?: duplicateOf)?.let { transactionRepository.observeTransaction(it).first() }
         if (source != null) {
             applySource(source)
+            if (operationId != null) {
+                source.recurringScheduleId?.let { scheduleId ->
+                    val name = recurringRepository.observeSchedule(scheduleId).first()?.name
+                    if (name != null) {
+                        _state.value = _state.value.copy(recurringScheduleId = scheduleId, recurringScheduleName = name)
+                    }
+                }
+            }
         }
         loadRecentCategories(_state.value.kind)
     }

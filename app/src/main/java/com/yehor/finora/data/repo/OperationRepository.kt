@@ -443,12 +443,11 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         throw e
     }
 
-    private suspend fun resolveAndLinkTags(
-        operationId: Long,
+    suspend fun resolveTagIds(
         tagIds: Set<Long>,
         newTagNames: List<String>,
         now: Long,
-    ) {
+    ): Set<Long> {
         val existingIds = db.tagDao().getAll().map { it.id }.toSet()
         tagIds.forEach { id ->
             if (id !in existingIds) throw InvariantViolationException("Unknown tag id $id")
@@ -464,7 +463,16 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                 ?: db.tagDao().insert(TagEntity(name = name, color = null, createdAt = now))
             resolvedIds.add(id)
         }
+        return resolvedIds
+    }
 
+    private suspend fun resolveAndLinkTags(
+        operationId: Long,
+        tagIds: Set<Long>,
+        newTagNames: List<String>,
+        now: Long,
+    ) {
+        val resolvedIds = resolveTagIds(tagIds, newTagNames, now)
         resolvedIds.forEach { tagId ->
             db.operationTagDao().insert(OperationTagEntity(operationId, tagId))
         }

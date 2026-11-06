@@ -71,6 +71,7 @@ sealed interface AccountDetailUiState {
     data class Loaded(
         val detail: AccountDetail,
         val transactionCount: Int,
+        val scheduleCount: Int = 0,
         val recentTransactions: List<TransactionItem> = emptyList(),
     ) : AccountDetailUiState
 }
@@ -91,7 +92,12 @@ class AccountDetailViewModel @Inject constructor(
         if (detail == null) {
             AccountDetailUiState.Missing
         } else {
-            AccountDetailUiState.Loaded(detail, repository.nonOpeningEntryCount(accountId), recent)
+            AccountDetailUiState.Loaded(
+                detail,
+                repository.nonOpeningEntryCount(accountId),
+                repository.scheduleCount(accountId),
+                recent,
+            )
         }
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountDetailUiState.Loading)

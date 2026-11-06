@@ -21,6 +21,11 @@ data class OperationWithDetails(
         ),
     )
     val tags: List<TagEntity>,
+    @Relation(
+        parentColumn = "id",
+        entityColumn = "operation_id",
+    )
+    val occurrences: List<RecurringOccurrenceEntity> = emptyList(),
 )
 
 data class TagWithUsageRow(

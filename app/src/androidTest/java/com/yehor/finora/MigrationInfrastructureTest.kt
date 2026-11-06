@@ -61,6 +61,6 @@ class MigrationInfrastructureTest {
     @Test
     fun productionChainContainsNoMigrationBeyondProductionVersion() {
         assertTrue(ALL_MIGRATIONS.none { it.endVersion > FinoraDatabase.VERSION })
-        assertEquals(2, FinoraDatabase.VERSION)
+        assertEquals(3, FinoraDatabase.VERSION)
     }
 }

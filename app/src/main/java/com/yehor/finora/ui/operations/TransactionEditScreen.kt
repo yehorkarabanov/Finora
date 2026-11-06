@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -72,6 +73,7 @@ fun TransactionEditScreen(
     onSelectTransfer: (() -> Unit)? = null,
     onDuplicate: ((Long) -> Unit)? = null,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
+    onOpenSchedule: ((Long) -> Unit)? = null,
     viewModel: TransactionEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -143,6 +145,14 @@ fun TransactionEditScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            val scheduleId = state.recurringScheduleId
+            val scheduleName = state.recurringScheduleName
+            if (scheduleId != null && scheduleName != null && onOpenSchedule != null) {
+                TextButton(onClick = { onOpenSchedule(scheduleId) }) {
+                    Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.transaction_form_created_by_schedule, scheduleName))
+                }
+            }
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 val segmentCount = if (onSelectTransfer != null) 3 else 2
                 SegmentedButton(

@@ -14,10 +14,14 @@ class FinoraApp : Application() {
     @Inject
     lateinit var rates: RateRepository
 
+    @Inject
+    lateinit var recurring: com.yehor.finora.data.repo.RecurringRepository
+
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
         super.onCreate()
         rates.start(appScope)
+        recurring.start(appScope)
     }
 }

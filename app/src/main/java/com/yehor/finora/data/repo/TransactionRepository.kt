@@ -202,6 +202,7 @@ class TransactionRepository @Inject constructor(
             entries = entries,
             createdAt = op.createdAt,
             updatedAt = op.updatedAt,
+            recurringScheduleId = details.occurrences.firstOrNull()?.scheduleId,
         )
     }
 }

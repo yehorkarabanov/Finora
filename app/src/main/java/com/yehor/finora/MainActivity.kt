@@ -18,7 +18,9 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
         // Re-check staleness when the app returns to the foreground.
-        (application as FinoraApp).rates.requestRefresh()
+        val app = application as FinoraApp
+        app.rates.requestRefresh()
+        app.recurring.requestGenerate()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

@@ -235,19 +235,24 @@ private fun DeleteCategoryDialog(
                 if (impact.childCount > 0) {
                     Text(pluralStringResource(R.plurals.category_delete_children, impact.childCount, impact.childCount))
                 }
+                if (impact.scheduleCount > 0) {
+                    Text(pluralStringResource(R.plurals.category_delete_schedules, impact.scheduleCount, impact.scheduleCount))
+                }
                 if (DeleteDialogLogic.needsTarget(impact)) {
-                    Text(
-                        pluralStringResource(
-                            R.plurals.category_delete_operations, impact.directOperationCount, impact.directOperationCount,
-                        ),
-                    )
-                    Text(
-                        stringResource(R.string.category_delete_direct_only_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    TextButton(onClick = onReviewTransactions) {
-                        Text(stringResource(R.string.category_delete_review_transactions))
+                    if (impact.directOperationCount > 0) {
+                        Text(
+                            pluralStringResource(
+                                R.plurals.category_delete_operations, impact.directOperationCount, impact.directOperationCount,
+                            ),
+                        )
+                        Text(
+                            stringResource(R.string.category_delete_direct_only_note),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = onReviewTransactions) {
+                            Text(stringResource(R.string.category_delete_review_transactions))
+                        }
                     }
                     Text(stringResource(R.string.category_delete_target), style = MaterialTheme.typography.labelMedium)
                     if (impact.suggestedTarget != null && state.suggestedName != null) {

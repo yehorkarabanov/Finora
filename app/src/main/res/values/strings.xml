@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Finora</string>
 
     <string name="nav_dashboard">Dashboard</string>
@@ -270,5 +270,149 @@
     <!-- Category Delete Review -->
     <string name="category_delete_review_transactions">Review transactions</string>
     <string name="category_delete_direct_only_note">Direct transactions only. Subcategory transactions are not included.</string>
+
+    <!-- Recurring: hooks in other screens -->
+    <plurals name="account_delete_schedules">
+        <item quantity="one">%1$d recurring schedule on this account will be deleted too.</item>
+        <item quantity="other">%1$d recurring schedules on this account will be deleted too.</item>
+    </plurals>
+    <string name="account_archive_schedules_note">Recurring schedules on this account create nothing until it is unarchived. Then everything that came due is created.</string>
+    <plurals name="category_delete_schedules">
+        <item quantity="one">%1$d recurring schedule will use the chosen category.</item>
+        <item quantity="other">%1$d recurring schedules will use the chosen category.</item>
+    </plurals>
+    <string name="recurring_marker">Recurring</string>
+    <string name="transaction_form_created_by_schedule">Created by recurring schedule %1$s</string>
+
+    <!-- Recurring: list -->
+    <string name="recurring_add">Add schedule</string>
+    <string name="recurring_empty_title">No recurring transactions yet</string>
+    <string name="recurring_empty_body">A schedule creates an income or an expense for you on a repeating date, such as rent on the 1st of every month.</string>
+    <string name="recurring_section_active">Active</string>
+    <string name="recurring_section_paused">Paused</string>
+    <string name="recurring_section_ended">Ended</string>
+    <string name="recurring_row_subtitle">%1$s · %2$s</string>
+    <string name="recurring_status_next">Next: %1$s</string>
+    <string name="recurring_status_paused">Paused</string>
+    <string name="recurring_status_ended">Ended %1$s</string>
+    <string name="recurring_issue_archived_short">Account archived. Nothing is created.</string>
+    <string name="recurring_issue_opening_short">Dated before the initial balance</string>
+    <string name="recurring_issue_overflow_short">The balance cannot grow any further</string>
+
+    <!-- Recurring: frequency -->
+    <string name="recurring_freq_daily">Daily</string>
+    <string name="recurring_freq_weekly">Weekly</string>
+    <string name="recurring_freq_monthly">Monthly</string>
+    <string name="recurring_freq_yearly">Yearly</string>
+    <string name="recurring_freq_custom">Custom</string>
+    <string name="recurring_every_day">Every day</string>
+    <string name="recurring_every_week">Every week</string>
+    <string name="recurring_every_month">Every month</string>
+    <string name="recurring_every_year">Every year</string>
+    <plurals name="recurring_every_n_days">
+        <item quantity="one">Every %1$d day</item>
+        <item quantity="other">Every %1$d days</item>
+    </plurals>
+    <plurals name="recurring_every_n_weeks">
+        <item quantity="one">Every %1$d week</item>
+        <item quantity="other">Every %1$d weeks</item>
+    </plurals>
+    <plurals name="recurring_every_n_months">
+        <item quantity="one">Every %1$d month</item>
+        <item quantity="other">Every %1$d months</item>
+    </plurals>
+    <plurals name="recurring_every_n_years">
+        <item quantity="one">Every %1$d year</item>
+        <item quantity="other">Every %1$d years</item>
+    </plurals>
+    <string name="recurring_unit_days">Days</string>
+    <string name="recurring_unit_weeks">Weeks</string>
+    <string name="recurring_unit_months">Months</string>
+    <string name="recurring_unit_years">Years</string>
+
+    <!-- Recurring: detail -->
+    <string name="recurring_detail_title">Recurring</string>
+    <string name="recurring_detail_summary">%1$s · %2$s</string>
+    <string name="recurring_detail_account">Account: %1$s</string>
+    <string name="recurring_detail_category">Category: %1$s</string>
+    <string name="recurring_detail_ends">Ends on %1$s</string>
+    <string name="recurring_detail_no_end">No end date</string>
+    <string name="recurring_detail_upcoming">Upcoming</string>
+    <string name="recurring_detail_upcoming_paused">Not active while the schedule is paused.</string>
+    <string name="recurring_detail_upcoming_none">No more occurrences.</string>
+    <string name="recurring_detail_history">History</string>
+    <string name="recurring_detail_history_empty">Nothing has been created yet.</string>
+    <string name="recurring_detail_history_more" tools:ignore="PluralsCandidate">Only the latest %1$d are shown.</string>
+    <string name="recurring_history_deleted">Transaction deleted</string>
+    <string name="recurring_history_skipped">Skipped</string>
+    <string name="recurring_action_pause">Pause</string>
+    <string name="recurring_action_resume">Resume</string>
+    <string name="recurring_action_skip_next">Skip next</string>
+    <string name="recurring_action_skip">Skip</string>
+    <string name="recurring_skip_title">Skip this occurrence?</string>
+    <string name="recurring_skip_body">%1$s will be skipped. No transaction is created and the schedule continues.</string>
+    <string name="recurring_resume_title">Resume schedule</string>
+    <plurals name="recurring_resume_body">
+        <item quantity="one">While paused, %1$d occurrence came due (%2$s).</item>
+        <item quantity="other">While paused, %1$d occurrences came due (%2$s).</item>
+    </plurals>
+    <string name="recurring_range_single">%1$s</string>
+    <string name="recurring_range_multi">%1$s to %2$s</string>
+    <string name="recurring_resume_create">Create them</string>
+    <string name="recurring_resume_skip">Skip them and continue from %1$s</string>
+    <string name="recurring_resume_skip_ended">Skip them (the schedule then ends)</string>
+    <string name="recurring_delete_title">Delete schedule?</string>
+    <plurals name="recurring_delete_body">
+        <item quantity="one">%1$d transaction created by this schedule stays in your history. It will no longer be marked as recurring.</item>
+        <item quantity="other">%1$d transactions created by this schedule stay in your history. They will no longer be marked as recurring.</item>
+    </plurals>
+    <string name="recurring_delete_body_none">The schedule will be deleted. No transactions were created by it.</string>
+    <string name="recurring_issue_archived">Account archived. Nothing is created. Change the account in Edit, pause or delete the schedule, or unarchive the account.</string>
+    <string name="recurring_issue_opening">%1$s is before the initial balance of %2$s (%3$s).</string>
+    <string name="recurring_issue_overflow">The balance of %1$s cannot grow any further. Edit, pause or delete the schedule.</string>
+    <string name="recurring_issue_move_back">Move initial balance back and create</string>
+    <string name="recurring_issue_skip">Skip these occurrences</string>
+    <string name="recurring_move_back_title">Move the initial balance?</string>
+    <string name="recurring_move_back_body">Some transactions are dated before the initial balance of the account. Move the initial balance back so it is not later than the first of them? The current balance does not change.</string>
+    <string name="recurring_error_title">Could not complete</string>
+    <string name="recurring_error_archived">The account is archived. Nothing was created.</string>
+    <string name="recurring_error_overflow">The balance of the account cannot grow any further. Nothing was created.</string>
+    <string name="recurring_error_ok">OK</string>
+
+    <!-- Recurring: form -->
+    <string name="recurring_form_new_title">New schedule</string>
+    <string name="recurring_form_edit_title">Edit schedule</string>
+    <string name="recurring_form_name">Name</string>
+    <string name="recurring_form_amount">Amount</string>
+    <string name="recurring_form_frequency">Frequency</string>
+    <string name="recurring_form_every">Every</string>
+    <string name="recurring_form_summary">%1$s, starting %2$s</string>
+    <string name="recurring_form_starts_on">Starts on</string>
+    <string name="recurring_form_next_occurrence">Next occurrence</string>
+    <string name="recurring_form_ends_on">Ends on (optional)</string>
+    <string name="recurring_form_clear_end">Clear end date</string>
+    <string name="recurring_form_preview_next">Next: %1$s</string>
+    <plurals name="recurring_form_preview_due">
+        <item quantity="one">%1$d transaction dated %2$s will be created now.</item>
+        <item quantity="other">%1$d transactions dated %2$s will be created now.</item>
+    </plurals>
+    <string name="recurring_form_error_name_empty">Enter a name</string>
+    <string name="recurring_form_error_name_long">Name is too long (60 characters at most)</string>
+    <string name="recurring_form_error_interval">Enter a number from 1 to 365</string>
+    <string name="recurring_form_error_date_range">Choose a date between 2000 and 2100</string>
+    <string name="recurring_form_error_end_before_start">The end date must not be before the first date</string>
+    <string name="recurring_form_error_not_after_handled">Choose a date after %1$s, the last occurrence that was already handled</string>
+    <string name="recurring_form_error_too_many">Too many transactions would be created at once. Choose a later start date.</string>
+    <string name="recurring_form_error_overflow">The balance of this account cannot grow any further</string>
+    <string name="recurring_currency_title">Change currency without converting?</string>
+    <string name="recurring_currency_body">Future transactions will be %1$s instead of %2$s. This is not a currency conversion. Transactions already created are not changed.</string>
+    <string name="recurring_currency_confirm">Change currency</string>
+    <plurals name="recurring_past_title">
+        <item quantity="one">Create %1$d transaction now?</item>
+        <item quantity="other">Create %1$d transactions now?</item>
+    </plurals>
+    <string name="recurring_past_body">Dated %1$s.</string>
+    <string name="recurring_past_confirm">Create</string>
+    <string name="recurring_opening_order_body">These transactions are dated before the initial balance of the account. Move the initial balance back so it is not later than the first of them? The current balance does not change.</string>
 
 </resources>

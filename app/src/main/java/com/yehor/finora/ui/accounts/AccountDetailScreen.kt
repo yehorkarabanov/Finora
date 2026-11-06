@@ -169,7 +169,7 @@ fun AccountDetailScreen(
                 OutlinedButton(onClick = {
                     when {
                         archived -> viewModel.setArchived(false)
-                        archiveNeedsConfirmation(detail.balance) -> confirmArchive = true
+                        archiveNeedsConfirmation(detail.balance) || loaded.scheduleCount > 0 -> confirmArchive = true
                         else -> viewModel.setArchived(true)
                     }
                 }) {
@@ -186,15 +186,25 @@ fun AccountDetailScreen(
                 onDismissRequest = { confirmDelete = false },
                 title = { Text(stringResource(R.string.account_delete_title)) },
                 text = {
-                    if (loaded.transactionCount == 0) {
-                        Text(stringResource(R.string.account_delete_body))
-                    } else {
-                        Text(
-                            pluralStringResource(
-                                R.plurals.account_delete_body_with_transactions,
-                                loaded.transactionCount, loaded.transactionCount,
-                            ),
-                        )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (loaded.transactionCount == 0) {
+                            Text(stringResource(R.string.account_delete_body))
+                        } else {
+                            Text(
+                                pluralStringResource(
+                                    R.plurals.account_delete_body_with_transactions,
+                                    loaded.transactionCount, loaded.transactionCount,
+                                ),
+                            )
+                        }
+                        if (loaded.scheduleCount > 0) {
+                            Text(
+                                pluralStringResource(
+                                    R.plurals.account_delete_schedules,
+                                    loaded.scheduleCount, loaded.scheduleCount,
+                                ),
+                            )
+                        }
                     }
                 },
                 confirmButton = {
@@ -213,7 +223,14 @@ fun AccountDetailScreen(
             AlertDialog(
                 onDismissRequest = { confirmArchive = false },
                 title = { Text(stringResource(R.string.account_archive_title)) },
-                text = { Text(stringResource(R.string.account_archive_body, balanceText)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(stringResource(R.string.account_archive_body, balanceText))
+                        if (loaded.scheduleCount > 0) {
+                            Text(stringResource(R.string.account_archive_schedules_note))
+                        }
+                    }
+                },
                 confirmButton = {
                     TextButton(onClick = { confirmArchive = false; viewModel.setArchived(true) }) {
                         Text(stringResource(R.string.action_archive))

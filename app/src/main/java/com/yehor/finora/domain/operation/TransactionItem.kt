@@ -23,6 +23,7 @@ data class TransactionItem(
     val entries: List<TransactionEntryView>,
     val createdAt: Long,
     val updatedAt: Long,
+    val recurringScheduleId: Long? = null,
 )
 
 data class CurrencySummary(

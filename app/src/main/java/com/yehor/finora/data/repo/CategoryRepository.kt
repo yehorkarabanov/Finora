@@ -20,6 +20,7 @@ data class DeletionImpact(
     val directOperationCount: Int,
     val childCount: Int,
     val suggestedTarget: Long?,
+    val scheduleCount: Int = 0,
 )
 
 /** Where the direct operations of a deleted category go. */
@@ -77,6 +78,7 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
             directOperationCount = db.categoryDao().operationCount(id),
             childCount = db.categoryDao().childCount(id),
             suggestedTarget = entity.parentId,
+            scheduleCount = db.recurringDao().scheduleCountForCategory(id),
         )
     }
 
@@ -105,6 +107,7 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
                 target.categoryId
             }
         }
+        db.recurringDao().reassignCategory(id, targetId)
         db.categoryDao().reassignOperations(id, targetId, now)
         db.categoryDao().reparentChildren(id, entity.parentId)
         db.categoryDao().deleteById(id)

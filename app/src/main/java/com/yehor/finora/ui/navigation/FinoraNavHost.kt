@@ -45,6 +45,9 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.operations.TransactionsScreen
 import com.yehor.finora.ui.operations.TransferEditScreen
+import com.yehor.finora.ui.recurring.RecurringDetailScreen
+import com.yehor.finora.ui.recurring.RecurringEditScreen
+import com.yehor.finora.ui.recurring.RecurringScreen
 import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
 
@@ -175,6 +178,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                     }
                 },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+                onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
             )
         }
         composable(
@@ -243,7 +247,37 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             )
         }
         composable(Routes.RECURRING) {
-            PlaceholderScreen(R.string.more_recurring, onBack = { navController.popBackStack() })
+            RecurringScreen(
+                onBack = { navController.popBackStack() },
+                onAdd = { navController.navigate(Routes.RECURRING_NEW) },
+                onOpen = { navController.navigate(Routes.recurringDetail(it)) },
+            )
+        }
+        // `new` is a literal segment and wins over {scheduleId}.
+        composable(Routes.RECURRING_NEW) {
+            RecurringEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
+        }
+        composable(
+            Routes.RECURRING_DETAIL,
+            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType }),
+        ) {
+            RecurringDetailScreen(
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(Routes.recurringEdit(it)) },
+                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) },
+            )
+        }
+        composable(
+            Routes.RECURRING_EDIT,
+            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType }),
+        ) {
+            RecurringEditScreen(
+                onBack = { navController.popBackStack() },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+            )
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(onBack = { navController.popBackStack() })
