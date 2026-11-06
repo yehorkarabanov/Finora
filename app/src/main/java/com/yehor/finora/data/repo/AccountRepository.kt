@@ -202,6 +202,8 @@ class AccountRepository @Inject constructor(
     /** Number of ledger entries other than the account's own opening balance (rule A5). */
     suspend fun nonOpeningEntryCount(id: Long): Int = db.accountDao().nonOpeningEntryCount(id)
 
+    suspend fun scheduleCount(id: Long): Int = db.recurringDao().scheduleCountForAccount(id)
+
     suspend fun setArchived(id: Long, archived: Boolean) {
         val status = if (archived) AccountStatus.ARCHIVED else AccountStatus.ACTIVE
         db.accountDao().setStatus(id, status)
@@ -212,6 +214,7 @@ class AccountRepository @Inject constructor(
      * touching the account is deleted as a whole, so the other account loses that entry too.
      */
     suspend fun delete(id: Long) = db.withTransaction {
+        db.recurringDao().deleteForAccount(id)
         db.operationDao().deleteAllTouchingAccount(id)
         db.accountDao().deleteById(id)
     }

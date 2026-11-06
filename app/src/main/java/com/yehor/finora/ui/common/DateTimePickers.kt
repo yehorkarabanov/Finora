@@ -39,6 +39,8 @@ fun DateField(
     maxDate: LocalDate,
     modifier: Modifier = Modifier,
     label: String = stringResource(R.string.transaction_form_date),
+    /** The month the picker opens on while [date] is empty. */
+    emptyPickerDate: LocalDate = maxDate,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -60,7 +62,7 @@ fun DateField(
     if (showDialog) {
         val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date ?: maxDate),
+            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date ?: emptyPickerDate),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= maxUtcMidnight
             },

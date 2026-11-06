@@ -25,6 +25,9 @@ object Routes {
     const val CATEGORY_EDIT = "more/categories/{categoryId}/edit"
     const val TAGS = "more/tags"
     const val RECURRING = "more/recurring"
+    const val RECURRING_NEW = "more/recurring/new"
+    const val RECURRING_DETAIL = "more/recurring/{scheduleId}"
+    const val RECURRING_EDIT = "more/recurring/{scheduleId}/edit"
     const val TRANSFERS = "more/transfers"
     const val TRANSFERS_PRESET = "more/transfers?types={types}"
     const val SETTINGS = "more/settings"
@@ -52,6 +55,8 @@ object Routes {
         return "transfers/new" + if (params.isEmpty()) "" else params.joinToString("&", prefix = "?")
     }
     fun transferEdit(id: Long) = "transfers/$id"
+    fun recurringDetail(id: Long) = "more/recurring/$id"
+    fun recurringEdit(id: Long) = "more/recurring/$id/edit"
 }
 
 enum class TopLevelDestination(

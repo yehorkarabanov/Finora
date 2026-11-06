@@ -42,7 +42,8 @@ class MigrationV2Test {
     fun cacheWorksAndInvariantCheckerFlagsEachViolation() {
         val name = "migration-rates"
         helper.createDatabase(name, 1).close()
-        val db = helper.runMigrationsAndValidate(name, 2, true)
+        // InvariantChecker covers the current schema, so migrate the whole chain.
+        val db = helper.runMigrationsAndValidate(name, 3, true)
         db.execSQL("INSERT INTO currency (code, scale, symbol, name) VALUES ('PLN', 2, 'zł', 'Zloty')")
         db.execSQL("INSERT INTO currency (code, scale, symbol, name) VALUES ('USD', 2, '$', 'Dollar')")
         db.execSQL(

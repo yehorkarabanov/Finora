@@ -16,6 +16,11 @@ import javax.inject.Singleton
 @Singleton
 class TagRepository @Inject constructor(private val db: FinoraDatabase) {
 
+    fun observeAll(): Flow<List<Tag>> =
+        db.tagDao().observeAll().map { list ->
+            list.map { Tag(it.id, it.name, it.color, it.createdAt) }
+        }
+
     fun observeAllWithUsage(): Flow<List<TagWithUsage>> =
         db.tagDao().observeAllWithUsage().map { rows ->
             val collator = Collator.getInstance(Locale.getDefault())

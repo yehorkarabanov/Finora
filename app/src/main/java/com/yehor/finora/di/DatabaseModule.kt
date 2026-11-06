@@ -42,4 +42,7 @@ object DatabaseModule {
 
     @Provides
     fun provideRateDao(db: FinoraDatabase): RateDao = db.rateDao()
+
+    @Provides
+    fun provideRecurringDao(db: FinoraDatabase): com.yehor.finora.data.db.RecurringDao = db.recurringDao()
 }

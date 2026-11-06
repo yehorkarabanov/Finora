@@ -34,3 +34,7 @@ class DuplicateTagNameException(val existingId: Long) :
 /** Cross-currency reassignment was attempted without explicit confirmation (T12). */
 class CurrencyChangeNotConfirmedException(val fromCode: String, val toCode: String) :
     IllegalStateException("Changing currency from $fromCode to $toCode requires explicit confirmation")
+
+/** Generation for a schedule is blocked due to an account/balance issue. */
+class ScheduleBlockedException(val issue: com.yehor.finora.domain.recurring.GenerationIssue) :
+    IllegalStateException("Recurring schedule generation blocked: $issue")

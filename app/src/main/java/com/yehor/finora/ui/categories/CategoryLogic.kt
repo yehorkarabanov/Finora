@@ -47,11 +47,11 @@ object DeleteDialogLogic {
     fun initialTarget(impact: DeletionImpact): ReassignTarget =
         impact.suggestedTarget?.let { ReassignTarget.To(it) } ?: ReassignTarget.Uncategorized
 
-    /** Only direct operations need a destination; subcategories move up on their own (C8). */
-    fun needsTarget(impact: DeletionImpact): Boolean = impact.directOperationCount > 0
+    /** Direct operations and schedules need a destination; subcategories move up on their own (C8). */
+    fun needsTarget(impact: DeletionImpact): Boolean = impact.directOperationCount > 0 || impact.scheduleCount > 0
 
     fun nothingToMove(impact: DeletionImpact): Boolean =
-        impact.directOperationCount == 0 && impact.childCount == 0
+        impact.directOperationCount == 0 && impact.childCount == 0 && impact.scheduleCount == 0
 
     fun selectedOption(state: DeleteDialogState): DeleteTargetOption = when (val t = state.target) {
         ReassignTarget.Uncategorized -> DeleteTargetOption.UNCATEGORIZED

@@ -201,7 +201,15 @@ class AccountRepositoryTest {
         val good = create(name = "good", opening = 5)
         val badDay = now - day
         ops.insertOperation(OperationType.INCOME, badDay, listOf(EntryDraft(bad, Long.MAX_VALUE)), now = now)
-        ops.insertOperation(OperationType.INCOME, badDay, listOf(EntryDraft(bad, 1)), now = now)
+        // insertOperation refuses to overflow, so the overflowing row is written directly.
+        val raw = db.openHelper.writableDatabase
+        raw.execSQL(
+            "INSERT INTO operation (type, occurred_at, created_at, updated_at) VALUES ('INCOME', $badDay, $now, $now)",
+        )
+        raw.execSQL(
+            "INSERT INTO ledger_entry (operation_id, account_id, currency_code, amount_minor, occurred_at) " +
+                "VALUES (last_insert_rowid(), $bad, 'USD', 1, $badDay)",
+        )
         val list = repo.observeAll().first()
         assertEquals(Balance.Overflow, list.single { it.account.id == bad }.balance)
         assertEquals(5L, ((list.single { it.account.id == good }.balance) as Balance.Value).money.amountMinor)

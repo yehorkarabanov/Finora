@@ -44,6 +44,9 @@ class SchemaUnchangedTest {
     fun schemaV2IsByteIdentical() = assertIdentical(2)
 
     @Test
+    fun schemaV3IsByteIdentical() = assertIdentical(3)
+
+    @Test
     fun exchangeRateIsTheOnlyRateTable() {
         val text = File(appDir(), "schemas/com.yehor.finora.data.db.FinoraDatabase/2.json").readText()
         val tableNames = Regex("\"tableName\"\\s*:\\s*\"([^\"]+)\"").findAll(text).map { it.groupValues[1] }.toList()

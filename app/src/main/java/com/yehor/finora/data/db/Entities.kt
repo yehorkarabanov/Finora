@@ -8,6 +8,10 @@ import androidx.room.PrimaryKey
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
+import com.yehor.finora.domain.operation.TransactionKind
+import com.yehor.finora.domain.recurring.OccurrenceStatus
+import com.yehor.finora.domain.recurring.RecurrenceUnit
+import com.yehor.finora.domain.recurring.ScheduleStatus
 
 @Entity(tableName = "currency")
 data class CurrencyEntity(
@@ -204,5 +208,96 @@ data class ExchangeRateEntity(
     val source: String,
     @ColumnInfo(name = "quote_date") val quoteDate: String,
     @ColumnInfo(name = "fetched_at") val fetchedAt: Long,
+)
+
+@Entity(
+    tableName = "recurring_schedule",
+    foreignKeys = [
+        ForeignKey(
+            entity = AccountEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["account_id"],
+        ),
+        ForeignKey(
+            entity = CategoryEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["category_id"],
+        ),
+    ],
+    indices = [
+        Index(value = ["account_id"]),
+        Index(value = ["category_id"]),
+        Index(value = ["status", "next_date"]),
+    ],
+)
+data class RecurringScheduleEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val kind: TransactionKind,
+    @ColumnInfo(name = "account_id") val accountId: Long,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    @ColumnInfo(name = "category_id") val categoryId: Long?,
+    val unit: RecurrenceUnit,
+    @ColumnInfo(name = "interval_count") val intervalCount: Int,
+    @ColumnInfo(name = "start_date") val startDate: Long,
+    @ColumnInfo(name = "end_date") val endDate: Long?,
+    @ColumnInfo(name = "next_date") val nextDate: Long?,
+    val status: ScheduleStatus,
+    @ColumnInfo(name = "created_at") val createdAt: Long,
+    @ColumnInfo(name = "updated_at") val updatedAt: Long,
+)
+
+@Entity(
+    tableName = "recurring_schedule_tag",
+    primaryKeys = ["schedule_id", "tag_id"],
+    foreignKeys = [
+        ForeignKey(
+            entity = RecurringScheduleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["schedule_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = TagEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["tag_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
+    indices = [Index(value = ["tag_id", "schedule_id"])],
+)
+data class RecurringScheduleTagEntity(
+    @ColumnInfo(name = "schedule_id") val scheduleId: Long,
+    @ColumnInfo(name = "tag_id") val tagId: Long,
+)
+
+@Entity(
+    tableName = "recurring_occurrence",
+    foreignKeys = [
+        ForeignKey(
+            entity = RecurringScheduleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["schedule_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+        ForeignKey(
+            entity = OperationEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["operation_id"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
+    ],
+    indices = [
+        Index(value = ["schedule_id", "occurrence_date"], unique = true),
+        Index(value = ["operation_id"]),
+    ],
+)
+data class RecurringOccurrenceEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    @ColumnInfo(name = "schedule_id") val scheduleId: Long,
+    @ColumnInfo(name = "occurrence_date") val occurrenceDate: Long,
+    val status: OccurrenceStatus,
+    @ColumnInfo(name = "operation_id") val operationId: Long?,
+    @ColumnInfo(name = "handled_at") val handledAt: Long,
 )
 

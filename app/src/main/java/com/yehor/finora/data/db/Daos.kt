@@ -9,7 +9,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.yehor.finora.domain.recurring.ScheduleStatus
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.OperationType
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +19,13 @@ import kotlinx.coroutines.flow.Flow
 data class AccountWithBalanceRow(
     @Embedded val account: AccountEntity,
     @ColumnInfo(name = "balance_minor") val balanceMinor: Long
+)
+
+/** The ledger amount of one operation, used to show what a schedule actually generated. */
+data class OperationAmountRow(
+    @ColumnInfo(name = "operation_id") val operationId: Long,
+    @ColumnInfo(name = "currency_code") val currencyCode: String,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
 )
 
 /** Raw row of [CategoryDao.directTotals]. `category_id` is null for Uncategorized. */
@@ -192,11 +201,11 @@ interface OperationDao {
     suspend fun deleteAllTouchingAccount(accountId: Long)
 
     @Transaction
-    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class])
+    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class, RecurringOccurrenceEntity::class])
     fun page(query: SupportSQLiteQuery): PagingSource<Int, OperationWithDetails>
 
     @Transaction
-    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class])
+    @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class, RecurringOccurrenceEntity::class])
     fun listWithDetails(query: SupportSQLiteQuery): Flow<List<OperationWithDetails>>
 
     @RawQuery
@@ -300,5 +309,78 @@ interface RateDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(rows: List<ExchangeRateEntity>)
+}
+
+@Dao
+interface RecurringDao {
+    @Insert
+    suspend fun insertSchedule(schedule: RecurringScheduleEntity): Long
+
+    @Update
+    suspend fun updateSchedule(schedule: RecurringScheduleEntity)
+
+    @Query("DELETE FROM recurring_schedule WHERE id = :id")
+    suspend fun deleteSchedule(id: Long)
+
+    @Query("SELECT * FROM recurring_schedule ORDER BY next_date IS NULL, next_date, name")
+    fun observeSchedules(): Flow<List<RecurringScheduleEntity>>
+
+    @Query("SELECT * FROM recurring_schedule WHERE id = :id")
+    fun observeSchedule(id: Long): Flow<RecurringScheduleEntity?>
+
+    @Query("SELECT * FROM recurring_schedule WHERE id = :id")
+    suspend fun getSchedule(id: Long): RecurringScheduleEntity?
+
+    @Query("""
+        SELECT * FROM recurring_schedule
+        WHERE status = 'ACTIVE' AND next_date IS NOT NULL AND next_date <= :todayEpochDay
+        ORDER BY id
+    """)
+    suspend fun dueSchedules(todayEpochDay: Long): List<RecurringScheduleEntity>
+
+    @Insert
+    suspend fun insertScheduleTags(tags: List<RecurringScheduleTagEntity>)
+
+    @Query("SELECT tag_id FROM recurring_schedule_tag WHERE schedule_id = :scheduleId")
+    suspend fun tagIdsOf(scheduleId: Long): List<Long>
+
+    @Query("DELETE FROM recurring_schedule_tag WHERE schedule_id = :scheduleId")
+    suspend fun deleteTagsOf(scheduleId: Long)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertOccurrence(occurrence: RecurringOccurrenceEntity): Long
+
+    @Query("UPDATE recurring_occurrence SET operation_id = :operationId WHERE id = :occurrenceId")
+    suspend fun setOccurrenceOperation(occurrenceId: Long, operationId: Long?)
+
+    @Query("SELECT MAX(occurrence_date) FROM recurring_occurrence WHERE schedule_id = :scheduleId")
+    suspend fun lastHandledDate(scheduleId: Long): Long?
+
+    @Query("SELECT * FROM recurring_occurrence WHERE schedule_id = :scheduleId ORDER BY occurrence_date DESC, id DESC LIMIT :limit")
+    fun observeOccurrences(scheduleId: Long, limit: Int): Flow<List<RecurringOccurrenceEntity>>
+
+    @Query("SELECT operation_id, currency_code, amount_minor FROM ledger_entry WHERE operation_id IN (:operationIds)")
+    suspend fun amountsOf(operationIds: List<Long>): List<OperationAmountRow>
+
+    @Query("SELECT COUNT(*) FROM recurring_occurrence WHERE schedule_id = :scheduleId AND operation_id IS NOT NULL")
+    suspend fun generatedCount(scheduleId: Long): Int
+
+    @Query("UPDATE recurring_schedule SET next_date = :nextDate WHERE id = :id")
+    suspend fun updateNextDate(id: Long, nextDate: Long?)
+
+    @Query("UPDATE recurring_schedule SET status = :status, updated_at = :updatedAt WHERE id = :id")
+    suspend fun setStatus(id: Long, status: com.yehor.finora.domain.recurring.ScheduleStatus, updatedAt: Long)
+
+    @Query("UPDATE recurring_schedule SET category_id = :toId WHERE category_id = :fromId")
+    suspend fun reassignCategory(fromId: Long, toId: Long?)
+
+    @Query("DELETE FROM recurring_schedule WHERE account_id = :accountId")
+    suspend fun deleteForAccount(accountId: Long)
+
+    @Query("SELECT COUNT(*) FROM recurring_schedule WHERE account_id = :accountId")
+    suspend fun scheduleCountForAccount(accountId: Long): Int
+
+    @Query("SELECT COUNT(*) FROM recurring_schedule WHERE category_id = :categoryId")
+    suspend fun scheduleCountForCategory(categoryId: Long): Int
 }
 

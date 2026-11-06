@@ -17,10 +17,16 @@ import com.yehor.finora.domain.money.CurrencyRegistry
         OperationTagEntity::class,
         AppSettingEntity::class,
         ExchangeRateEntity::class,
+        RecurringScheduleEntity::class,
+        RecurringScheduleTagEntity::class,
+        RecurringOccurrenceEntity::class,
     ],
     version = FinoraDatabase.VERSION,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 1, to = 2)],
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3),
+    ],
 )
 abstract class FinoraDatabase : RoomDatabase() {
     abstract fun currencyDao(): CurrencyDao
@@ -32,9 +38,10 @@ abstract class FinoraDatabase : RoomDatabase() {
     abstract fun operationTagDao(): OperationTagDao
     abstract fun appSettingDao(): AppSettingDao
     abstract fun rateDao(): RateDao
+    abstract fun recurringDao(): RecurringDao
 
     companion object {
-        const val VERSION = 2
+        const val VERSION = 3
         const val FILE_NAME = "finora.db"
     }
 }

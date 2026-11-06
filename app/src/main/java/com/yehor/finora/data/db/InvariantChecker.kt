@@ -126,5 +126,45 @@ object InvariantChecker {
             SELECT base_currency || '/' || quote_currency FROM exchange_rate
             WHERE trim(source) = ''
         """,
+        "recurring amount not positive" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE amount_minor <= 0
+        """,
+        "recurring bad interval" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE interval_count < 1 OR interval_count > 365
+        """,
+        "recurring end before start" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE end_date IS NOT NULL AND end_date < start_date
+        """,
+        "recurring next out of range" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE next_date IS NOT NULL AND (next_date < start_date OR (end_date IS NOT NULL AND next_date > end_date))
+        """,
+        "recurring open-ended without next" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE next_date IS NULL AND end_date IS NULL
+        """,
+        "recurring category type mismatch" to """
+            SELECT 'schedule ' || s.id FROM recurring_schedule s
+            JOIN category c ON c.id = s.category_id
+            WHERE c.type <> s.kind
+        """,
+        "recurring occurrence not before next" to """
+            SELECT 'occurrence ' || o.id FROM recurring_occurrence o
+            JOIN recurring_schedule s ON s.id = o.schedule_id
+            WHERE s.next_date IS NOT NULL AND o.occurrence_date >= s.next_date
+        """,
+        "recurring skipped with operation" to """
+            SELECT 'occurrence ' || id FROM recurring_occurrence
+            WHERE status = 'SKIPPED' AND operation_id IS NOT NULL
+        """,
+        "recurring generated operation mismatch" to """
+            SELECT 'occurrence ' || ro.id FROM recurring_occurrence ro
+            JOIN recurring_schedule s ON s.id = ro.schedule_id
+            JOIN operation o ON o.id = ro.operation_id
+            WHERE ro.operation_id IS NOT NULL AND o.type <> s.kind
+        """,
     )
 }

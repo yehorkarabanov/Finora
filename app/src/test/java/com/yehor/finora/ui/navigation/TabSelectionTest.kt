@@ -20,6 +20,10 @@ class TabSelectionTest {
         assertTrue(isRouteUnder(Routes.CATEGORY_NEW, Routes.MORE))
         assertTrue(isRouteUnder(Routes.CATEGORY_EDIT, Routes.MORE))
         assertTrue(isRouteUnder(Routes.SETTINGS, Routes.MORE))
+        assertTrue(isRouteUnder(Routes.RECURRING, Routes.MORE))
+        assertTrue(isRouteUnder(Routes.RECURRING_NEW, Routes.MORE))
+        assertTrue(isRouteUnder(Routes.RECURRING_DETAIL, Routes.MORE))
+        assertTrue(isRouteUnder(Routes.RECURRING_EDIT, Routes.MORE))
     }
 
     @Test
@@ -46,5 +50,7 @@ class TabSelectionTest {
         assertTrue(Routes.categoryNew("INCOME") == "more/categories/new?type=INCOME")
         assertTrue(Routes.categoryNew("EXPENSE", 9) == "more/categories/new?type=EXPENSE&parentId=9")
         assertTrue(Routes.categoryEdit(3) == "more/categories/3/edit")
+        assertTrue(Routes.recurringDetail(7) == "more/recurring/7")
+        assertTrue(Routes.recurringEdit(7) == "more/recurring/7/edit")
     }
 }

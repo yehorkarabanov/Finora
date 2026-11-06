@@ -50,6 +50,9 @@ class CategoryLogicTest {
         assertFalse(DeleteDialogLogic.needsTarget(DeletionImpact(0, 2, 5)))
         assertTrue(DeleteDialogLogic.nothingToMove(DeletionImpact(0, 0, null)))
         assertFalse(DeleteDialogLogic.nothingToMove(DeletionImpact(0, 1, null)))
+        // A category used only by schedules still needs a destination for them.
+        assertTrue(DeleteDialogLogic.needsTarget(DeletionImpact(0, 0, null, scheduleCount = 2)))
+        assertFalse(DeleteDialogLogic.nothingToMove(DeletionImpact(0, 0, null, scheduleCount = 2)))
     }
 
     @Test
