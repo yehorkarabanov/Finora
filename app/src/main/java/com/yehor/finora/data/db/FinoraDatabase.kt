@@ -1,5 +1,6 @@
 package com.yehor.finora.data.db
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -15,9 +16,11 @@ import com.yehor.finora.domain.money.CurrencyRegistry
         LedgerEntryEntity::class,
         OperationTagEntity::class,
         AppSettingEntity::class,
+        ExchangeRateEntity::class,
     ],
     version = FinoraDatabase.VERSION,
     exportSchema = true,
+    autoMigrations = [AutoMigration(from = 1, to = 2)],
 )
 abstract class FinoraDatabase : RoomDatabase() {
     abstract fun currencyDao(): CurrencyDao
@@ -28,9 +31,10 @@ abstract class FinoraDatabase : RoomDatabase() {
     abstract fun ledgerEntryDao(): LedgerEntryDao
     abstract fun operationTagDao(): OperationTagDao
     abstract fun appSettingDao(): AppSettingDao
+    abstract fun rateDao(): RateDao
 
     companion object {
-        const val VERSION = 1
+        const val VERSION = 2
         const val FILE_NAME = "finora.db"
     }
 }

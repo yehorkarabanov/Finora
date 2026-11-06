@@ -9,6 +9,8 @@ import androidx.paging.insertSeparators
 import androidx.paging.map
 import com.yehor.finora.data.repo.AccountRepository
 import com.yehor.finora.data.repo.CategoryRepository
+import com.yehor.finora.data.repo.RateRepository
+import com.yehor.finora.data.repo.SettingsRepository
 import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
@@ -63,6 +65,8 @@ data class TransactionsUiState(
     /** The single currency in scope, or null when amount filter and amount sort are unavailable. */
     val scopeCurrency: Currency? = null,
     val summary: List<CurrencySummary> = emptyList(),
+    /** Converted line, only for a summary that spans several currencies. */
+    val convertedSummary: ConvertedSummary? = null,
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tags: List<Tag> = emptyList(),
@@ -76,6 +80,8 @@ class TransactionsViewModel @Inject constructor(
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
     tagRepository: TagRepository,
+    rateRepository: RateRepository,
+    settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val initialFilter = FilterScope.preset(
@@ -116,12 +122,23 @@ class TransactionsViewModel @Inject constructor(
             if (filter.isActive) transactionRepository.observeSummary(filter) else flowOf(emptyList())
         }
 
-    val state: StateFlow<TransactionsUiState> = combine(normalized, summary, accounts, categories, tags) { n, s, a, c, t ->
+    private val summaryWithConversion: Flow<Pair<List<CurrencySummary>, ConvertedSummary?>> = combine(
+        summary,
+        rateRepository.observeTable(),
+        settingsRepository.displayCurrency,
+    ) { s, table, display ->
+        s to SummaryConversion.build(s, display.currency, table, System.currentTimeMillis())
+    }
+
+    val state: StateFlow<TransactionsUiState> = combine(
+        normalized, summaryWithConversion, accounts, categories, tags,
+    ) { n, s, a, c, t ->
         TransactionsUiState(
             filter = n.filter,
             sort = n.sort,
             scopeCurrency = n.scopeCurrency,
-            summary = s,
+            summary = s.first,
+            convertedSummary = s.second,
             accounts = a,
             categories = c,
             tags = t,

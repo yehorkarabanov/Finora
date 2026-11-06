@@ -6,27 +6,23 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Ensures that the Room database schema (com.yehor.finora.data.db.FinoraDatabase/1.json)
- * remains exactly byte-identical to the committed v1 expected schema.
- *
- * In sub-project 3, the pinned baseline includes index_operation_occurred_at_id (S9).
+ * Ensures each committed Room schema file stays byte-identical to its pinned copy.
+ * `1.json` is the frozen baseline and never changes again; `2.json` adds `exchange_rate`.
  */
 class SchemaUnchangedTest {
 
-    @Test
-    fun schemaFileIsByteIdentical() {
-        val schemaPath = "schemas/com.yehor.finora.data.db.FinoraDatabase/1.json"
-        val expectedPath = "src/test/resources/schema-v1.expected.json"
-
-        // We run unit tests from the sub-project directory (app/) or project root.
-        // Let's resolve files relative to the 'app' module root.
+    private fun appDir(): File {
+        // Unit tests run from the app/ directory or the project root.
         var appDir = File(".")
         if (!File(appDir, "src").exists() && File(appDir, "app").exists()) {
             appDir = File(appDir, "app")
         }
+        return appDir
+    }
 
-        val schemaFile = File(appDir, schemaPath)
-        val expectedFile = File(appDir, expectedPath)
+    private fun assertIdentical(version: Int) {
+        val schemaFile = File(appDir(), "schemas/com.yehor.finora.data.db.FinoraDatabase/$version.json")
+        val expectedFile = File(appDir(), "src/test/resources/schema-v$version.expected.json")
 
         assertTrue("Active schema file not found at ${schemaFile.absolutePath}", schemaFile.exists())
         assertTrue("Expected schema file not found at ${expectedFile.absolutePath}", expectedFile.exists())
@@ -35,9 +31,23 @@ class SchemaUnchangedTest {
         val expectedContent = expectedFile.readText().replace("\r\n", "\n").trim()
 
         assertEquals(
-            "Database schema has changed! If this was intentional, update the plan. Otherwise, revert the entity changes.",
+            "Database schema v$version has changed! If this was intentional, update the plan. Otherwise, revert the entity changes.",
             expectedContent,
-            activeContent
+            activeContent,
         )
+    }
+
+    @Test
+    fun schemaV1IsByteIdentical() = assertIdentical(1)
+
+    @Test
+    fun schemaV2IsByteIdentical() = assertIdentical(2)
+
+    @Test
+    fun exchangeRateIsTheOnlyRateTable() {
+        val text = File(appDir(), "schemas/com.yehor.finora.data.db.FinoraDatabase/2.json").readText()
+        val tableNames = Regex("\"tableName\"\\s*:\\s*\"([^\"]+)\"").findAll(text).map { it.groupValues[1] }.toList()
+        assertEquals(listOf("exchange_rate"), tableNames.filter { it.contains("rate", ignoreCase = true) })
+        assertTrue(tableNames.none { it.contains("manual", ignoreCase = true) })
     }
 }

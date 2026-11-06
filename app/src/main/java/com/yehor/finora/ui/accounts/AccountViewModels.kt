@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yehor.finora.data.repo.AccountRepository
 import com.yehor.finora.data.repo.OpeningBalanceOrderException
+import com.yehor.finora.data.repo.RateRepository
 import com.yehor.finora.data.repo.SettingsRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.AccountDetail
@@ -37,15 +38,28 @@ data class AccountsUiState(
     val loading: Boolean = true,
     val active: List<AccountWithBalance> = emptyList(),
     val archived: List<AccountWithBalance> = emptyList(),
+    val valuation: ValuationCardState? = null,
 )
 
 @HiltViewModel
-class AccountsViewModel @Inject constructor(repository: AccountRepository) : ViewModel() {
-    val state: StateFlow<AccountsUiState> = repository.observeAll()
-        .map { list ->
-            val (active, archived) = list.partition { it.account.status == AccountStatus.ACTIVE }
-            AccountsUiState(loading = false, active = active, archived = archived)
-        }
+class AccountsViewModel @Inject constructor(
+    repository: AccountRepository,
+    rates: RateRepository,
+    settings: SettingsRepository,
+) : ViewModel() {
+    val state: StateFlow<AccountsUiState> = combine(
+        repository.observeAll(),
+        rates.observeTable(),
+        settings.displayCurrency,
+    ) { list, table, display ->
+        val (active, archived) = list.partition { it.account.status == AccountStatus.ACTIVE }
+        AccountsUiState(
+            loading = false,
+            active = active,
+            archived = archived,
+            valuation = ValuationCardLogic.build(active, display.currency, table, System.currentTimeMillis()),
+        )
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountsUiState())
 }
 

@@ -55,6 +55,14 @@
     <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
     <string name="accounts_archived_section">Archived (%1$d)</string>
     <string name="accounts_balance_overflow">Balance is out of range</string>
+    <string name="valuation_title_native">Total balance</string>
+    <string name="valuation_title_estimate">Total valuation (estimate)</string>
+    <string name="valuation_unavailable">Unavailable</string>
+    <string name="valuation_outdated">Rates may be outdated. Last updated %1$s</string>
+    <string name="valuation_not_included">Not included: %1$s (no rate)</string>
+    <string name="valuation_converted_income">Income %1$s</string>
+    <string name="valuation_converted_expense">Expense %1$s</string>
+    <string name="valuation_converted_net">Net %1$s</string>
     <string name="account_type_bank">Bank</string>
     <string name="account_type_cash">Cash</string>
     <string name="account_type_savings">Savings</string>

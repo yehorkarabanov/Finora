@@ -52,7 +52,7 @@ class MigrationInfrastructureTest {
 
     @Test
     fun productionV1CanBeCreatedAndValidated() {
-        productionHelper.createDatabase("production-v1", FinoraDatabase.VERSION).close()
+        productionHelper.createDatabase("production-v1", 1).close()
         productionHelper.runMigrationsAndValidate(
             "production-v1", FinoraDatabase.VERSION, true, *ALL_MIGRATIONS,
         ).close()
@@ -61,6 +61,6 @@ class MigrationInfrastructureTest {
     @Test
     fun productionChainContainsNoMigrationBeyondProductionVersion() {
         assertTrue(ALL_MIGRATIONS.none { it.endVersion > FinoraDatabase.VERSION })
-        assertEquals(1, FinoraDatabase.VERSION)
+        assertEquals(2, FinoraDatabase.VERSION)
     }
 }

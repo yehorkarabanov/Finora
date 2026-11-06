@@ -58,6 +58,8 @@ import com.yehor.finora.domain.operation.DayGroup
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionSort
+import com.yehor.finora.ui.accounts.NotIncludedLine
+import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.common.TransactionRow
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -253,6 +255,32 @@ private fun SummaryBar(state: TransactionsUiState) {
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                     )
+                }
+            }
+            state.convertedSummary?.let { converted ->
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    val parts = listOfNotNull(
+                        converted.income?.let { stringResource(R.string.valuation_converted_income, it.format()) },
+                        converted.expense?.let { stringResource(R.string.valuation_converted_expense, it.format()) },
+                        converted.net?.let { stringResource(R.string.valuation_converted_net, it.format()) },
+                    )
+                    if (parts.isEmpty()) {
+                        Text(stringResource(R.string.valuation_unavailable), style = MaterialTheme.typography.bodyMedium)
+                    } else {
+                        Text(
+                            parts.joinToString("  "),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    if (converted.outdated) {
+                        Text(
+                            stringResource(R.string.valuation_outdated, formatDate(converted.oldestFetchedAt)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    NotIncludedLine(converted.excluded)
                 }
             }
         }

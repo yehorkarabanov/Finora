@@ -135,6 +135,9 @@ fun AccountsContent(state: AccountsUiState, onOpen: (Long) -> Unit, onAdd: () ->
                 contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                state.valuation?.let { valuation ->
+                    item(key = "valuation") { ValuationCard(valuation) }
+                }
                 items(state.active, key = { it.account.id }) { AccountCard(it, onOpen) }
                 if (state.archived.isNotEmpty()) {
                     item(key = "archived-header") {

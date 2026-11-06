@@ -110,5 +110,21 @@ object InvariantChecker {
             SELECT DISTINCT 'category ' || start_id FROM chain
             WHERE cur_id = start_id
         """,
+        "exchange_rate same currency" to """
+            SELECT base_currency || '/' || quote_currency FROM exchange_rate
+            WHERE base_currency = quote_currency
+        """,
+        "exchange_rate invalid rate" to """
+            SELECT base_currency || '/' || quote_currency FROM exchange_rate
+            WHERE rate GLOB '*[^0-9.]*' OR rate GLOB '*.*.*' OR rate NOT GLOB '*[1-9]*'
+        """,
+        "exchange_rate invalid quote date" to """
+            SELECT base_currency || '/' || quote_currency FROM exchange_rate
+            WHERE quote_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+        """,
+        "exchange_rate blank source" to """
+            SELECT base_currency || '/' || quote_currency FROM exchange_rate
+            WHERE trim(source) = ''
+        """,
     )
 }

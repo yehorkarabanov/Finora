@@ -285,3 +285,16 @@ interface AppSettingDao {
     @Query("SELECT value FROM app_setting WHERE `key` = :key")
     suspend fun get(key: String): String?
 }
+
+@Dao
+interface RateDao {
+    @Query("SELECT * FROM exchange_rate")
+    fun observeAll(): Flow<List<ExchangeRateEntity>>
+
+    @Query("SELECT * FROM exchange_rate")
+    suspend fun getAll(): List<ExchangeRateEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(rows: List<ExchangeRateEntity>)
+}
+

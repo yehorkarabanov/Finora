@@ -14,6 +14,13 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    override fun onStart() {
+        super.onStart()
+        // Re-check staleness when the app returns to the foreground.
+        (application as FinoraApp).rates.requestRefresh()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -175,3 +175,34 @@ data class AppSettingEntity(
     val value: String,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
 )
+
+/**
+ * Latest cached market rate for one directed pair. `rate` is a canonical plain decimal string,
+ * never a floating point column. Positivity and `base <> quote` are checked by [InvariantChecker].
+ */
+@Entity(
+    tableName = "exchange_rate",
+    primaryKeys = ["base_currency", "quote_currency"],
+    foreignKeys = [
+        ForeignKey(
+            entity = CurrencyEntity::class,
+            parentColumns = ["code"],
+            childColumns = ["base_currency"],
+        ),
+        ForeignKey(
+            entity = CurrencyEntity::class,
+            parentColumns = ["code"],
+            childColumns = ["quote_currency"],
+        ),
+    ],
+    indices = [Index(value = ["quote_currency"])],
+)
+data class ExchangeRateEntity(
+    @ColumnInfo(name = "base_currency") val baseCurrency: String,
+    @ColumnInfo(name = "quote_currency") val quoteCurrency: String,
+    val rate: String,
+    val source: String,
+    @ColumnInfo(name = "quote_date") val quoteDate: String,
+    @ColumnInfo(name = "fetched_at") val fetchedAt: Long,
+)
+
