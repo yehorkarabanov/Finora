@@ -5,7 +5,6 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.db.FinoraDatabaseCallback
 import com.yehor.finora.data.db.InvariantChecker
-import com.yehor.finora.data.repo.AccountHasHistoryException
 import com.yehor.finora.data.repo.AccountRepository
 import com.yehor.finora.data.repo.EntryDraft
 import com.yehor.finora.data.repo.OperationRepository
@@ -21,7 +20,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 
@@ -248,30 +246,25 @@ class AccountRepositoryTest {
     }
 
     @Test
-    fun deleteRefusedWithHistoryAndChangesNothing() = runBlocking {
+    fun deleteWithHistoryRemovesTransactionsIncludingTransfers() = runBlocking {
         val a = create(opening = 1_000)
-        val b = create(name = "b")
+        val b = create(opening = 500, name = "b")
         ops.insertOperation(OperationType.EXPENSE, now, listOf(EntryDraft(a, -10)), now = now)
         ops.insertOperation(
             OperationType.TRANSFER, now,
             listOf(EntryDraft(a, -100), EntryDraft(b, 100)), now = now,
         )
 
-        try {
-            repo.delete(a)
-            fail("expected AccountHasHistoryException")
-        } catch (e: AccountHasHistoryException) {
-            assertEquals(2, e.entryCount)
-        }
-        try {
-            repo.delete(b)
-            fail("expected AccountHasHistoryException")
-        } catch (e: AccountHasHistoryException) {
-            assertEquals(1, e.entryCount)
-        }
-        assertNotNull(db.accountDao().getById(a))
-        assertNotNull(db.operationDao().openingBalanceOf(a))
-        assertEquals(890L, minorOf(a))
+        repo.delete(a)
+
+        assertNull(db.accountDao().getById(a))
+        assertNotNull(db.accountDao().getById(b))
+        // The transfer is gone as a whole, so b is back to its opening balance.
+        assertEquals(500L, minorOf(b))
+        val opRows = db.openHelper.writableDatabase.query("SELECT COUNT(*) FROM operation")
+            .use { it.moveToFirst(); it.getInt(0) }
+        assertEquals(1, opRows)
+        assertTrue(violations().toString(), violations().isEmpty())
     }
 
     // ---- display currency ----

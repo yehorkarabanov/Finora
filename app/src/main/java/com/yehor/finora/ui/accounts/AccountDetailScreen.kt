@@ -175,18 +175,9 @@ fun AccountDetailScreen(
                 }) {
                     Text(stringResource(if (archived) R.string.action_unarchive else R.string.action_archive))
                 }
-                OutlinedButton(onClick = { confirmDelete = true }, enabled = loaded.canDelete) {
+                OutlinedButton(onClick = { confirmDelete = true }) {
                     Text(stringResource(R.string.action_delete))
                 }
-            }
-            if (!loaded.canDelete) {
-                Text(
-                    pluralStringResource(
-                        R.plurals.account_detail_delete_blocked, loaded.transactionCount, loaded.transactionCount,
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
             }
         }
 
@@ -194,7 +185,18 @@ fun AccountDetailScreen(
             AlertDialog(
                 onDismissRequest = { confirmDelete = false },
                 title = { Text(stringResource(R.string.account_delete_title)) },
-                text = { Text(stringResource(R.string.account_delete_body)) },
+                text = {
+                    if (loaded.transactionCount == 0) {
+                        Text(stringResource(R.string.account_delete_body))
+                    } else {
+                        Text(
+                            pluralStringResource(
+                                R.plurals.account_delete_body_with_transactions,
+                                loaded.transactionCount, loaded.transactionCount,
+                            ),
+                        )
+                    }
+                },
                 confirmButton = {
                     TextButton(onClick = { confirmDelete = false; viewModel.delete() }) {
                         Text(stringResource(R.string.action_delete))

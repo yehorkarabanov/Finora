@@ -207,15 +207,12 @@ class AccountRepository @Inject constructor(
         db.accountDao().setStatus(id, status)
     }
 
+    /**
+     * Deletes the account together with all its transactions and its opening balance. A transfer
+     * touching the account is deleted as a whole, so the other account loses that entry too.
+     */
     suspend fun delete(id: Long) = db.withTransaction {
-        val entryCount = db.accountDao().nonOpeningEntryCount(id)
-        if (entryCount > 0) {
-            throw AccountHasHistoryException(entryCount)
-        }
-        val openingOp = db.operationDao().openingBalanceOf(id)
-        if (openingOp != null) {
-            db.operationDao().deleteById(openingOp.id)
-        }
+        db.operationDao().deleteAllTouchingAccount(id)
         db.accountDao().deleteById(id)
     }
 }

@@ -75,12 +75,12 @@
     <string name="account_detail_no_initial_balance">No initial balance</string>
     <string name="account_detail_archived_banner">Archived. Existing transactions can be edited, new ones cannot be added.</string>
     <string name="account_detail_history_placeholder">Transactions will appear here.</string>
-    <plurals name="account_detail_delete_blocked">
-        <item quantity="one">This account has %1$d transaction. Archive it instead.</item>
-        <item quantity="other">This account has %1$d transactions. Archive it instead.</item>
-    </plurals>
     <string name="account_delete_title">Delete account?</string>
     <string name="account_delete_body">The account and its initial balance will be deleted.</string>
+    <plurals name="account_delete_body_with_transactions">
+        <item quantity="one">This account has %1$d transaction. It will be deleted along with the account, including any transfer to or from other accounts. This cannot be undone. Archive the account instead if you want to keep the history.</item>
+        <item quantity="other">This account has %1$d transactions. They will be deleted along with the account, including any transfers to or from other accounts. This cannot be undone. Archive the account instead if you want to keep the history.</item>
+    </plurals>
     <string name="account_archive_title">Archive account?</string>
     <string name="account_archive_body">The account has a balance of %1$s. Archived accounts are excluded from totals.</string>
 

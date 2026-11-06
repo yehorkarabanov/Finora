@@ -72,10 +72,7 @@ sealed interface AccountDetailUiState {
         val detail: AccountDetail,
         val transactionCount: Int,
         val recentTransactions: List<TransactionItem> = emptyList(),
-    ) : AccountDetailUiState {
-        /** Rule A5. */
-        val canDelete: Boolean get() = transactionCount == 0
-    }
+    ) : AccountDetailUiState
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -108,10 +105,7 @@ class AccountDetailViewModel @Inject constructor(
     }
 
     fun delete() {
-        viewModelScope.launch {
-            // A refusal (history appeared meanwhile) leaves the account in place; the state refreshes.
-            runCatching { repository.delete(accountId) }
-        }
+        viewModelScope.launch { repository.delete(accountId) }
     }
 }
 

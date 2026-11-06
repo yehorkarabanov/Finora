@@ -19,10 +19,6 @@ class OpeningBalanceOrderException(
 class InvalidCategoryParentException(val reason: ParentCheck) :
     InvariantViolationException("Invalid category parent: $reason")
 
-/** An account cannot be deleted because it has entries other than its own opening balance. */
-class AccountHasHistoryException(val entryCount: Int) :
-    IllegalStateException("Account has $entryCount transactions and can only be archived")
-
 /** An operation was dated in the future (T11). */
 class FutureDateException(val occurredAt: Long, val now: Long) :
     InvariantViolationException("Operation date ($occurredAt) is in the future relative to $now")

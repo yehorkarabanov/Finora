@@ -187,6 +187,10 @@ interface OperationDao {
     @Query("DELETE FROM operation WHERE id = :id")
     suspend fun deleteById(id: Long)
 
+    /** Deletes every operation with a ledger entry on [accountId], including its opening balance. Entries and tag links cascade. */
+    @Query("DELETE FROM operation WHERE id IN (SELECT operation_id FROM ledger_entry WHERE account_id = :accountId)")
+    suspend fun deleteAllTouchingAccount(accountId: Long)
+
     @Transaction
     @RawQuery(observedEntities = [OperationEntity::class, LedgerEntryEntity::class, OperationTagEntity::class, TagEntity::class])
     fun page(query: SupportSQLiteQuery): PagingSource<Int, OperationWithDetails>
