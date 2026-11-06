@@ -63,12 +63,11 @@ fun FinoraShell() {
                     NavigationBarItem(
                         selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true,
                         onClick = {
+                            // Always open the tab's root screen. Sub-screens opened earlier in the tab
+                            // are discarded, not saved and restored.
                             navController.navigate(dest.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
+                                popUpTo(navController.graph.findStartDestination().id)
                                 launchSingleTop = true
-                                restoreState = true
                             }
                         },
                         icon = { Icon(dest.icon, contentDescription = null) },
