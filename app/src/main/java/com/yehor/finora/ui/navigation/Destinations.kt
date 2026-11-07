@@ -37,6 +37,8 @@ object Routes {
     const val TRANSFERS = "more/transfers"
     const val TRANSFERS_PRESET = "more/transfers?types={types}"
     const val SETTINGS = "more/settings"
+    const val DATA = "more/settings/data"
+    const val DATA_CSV = "more/settings/data/csv?filter={filter}"
     const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}"
     const val TRANSACTION_EDIT = "transactions/{operationId}"
     const val TRANSFER_NEW = "transfers/new?duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
@@ -70,6 +72,8 @@ object Routes {
     fun transferEdit(id: Long) = "transfers/$id"
     fun recurringDetail(id: Long) = "more/recurring/$id"
     fun recurringEdit(id: Long) = "more/recurring/$id/edit"
+    fun dataCsv(filter: TransactionFilter = TransactionFilter()): String =
+        "more/settings/data/csv?filter=" + Uri.encode(FilterCodec.encode(filter))
 }
 
 enum class TopLevelDestination(

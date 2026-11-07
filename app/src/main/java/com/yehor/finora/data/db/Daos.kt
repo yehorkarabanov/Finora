@@ -218,6 +218,9 @@ interface OperationDao {
     suspend fun figures(query: SupportSQLiteQuery): List<FigureRow>
 
     @RawQuery
+    suspend fun count(query: SupportSQLiteQuery): Int
+
+    @RawQuery
     suspend fun overview(query: SupportSQLiteQuery): List<OverviewRow>
 
     @RawQuery

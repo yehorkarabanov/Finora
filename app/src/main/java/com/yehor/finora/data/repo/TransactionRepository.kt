@@ -110,6 +110,12 @@ class TransactionRepository @Inject constructor(
         }
     }
 
+    suspend fun count(filter: TransactionFilter): Int {
+        val tree = CategoryTree(categoryRepository.observeAll().first())
+        val query = TransactionQuery.buildCount(filter, categoryClosure(filter, tree))
+        return db.operationDao().count(query)
+    }
+
     /** [summarize] again whenever operations, ledger entries, tags or categories change. */
     fun observeSummary(filter: TransactionFilter): Flow<List<CurrencySummary>> =
         combine(

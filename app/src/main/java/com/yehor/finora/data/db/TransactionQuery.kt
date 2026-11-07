@@ -69,6 +69,21 @@ object TransactionQuery {
         return SimpleSQLiteQuery(sql, args.toTypedArray())
     }
 
+    fun buildCount(
+        filter: TransactionFilter,
+        categoryClosure: Set<Long>,
+    ): SimpleSQLiteQuery {
+        val args = mutableListOf<Any>()
+        val whereClauses = buildWhereClauses(filter, categoryClosure, filter.amount?.currency?.code, args)
+        val whereSql = if (whereClauses.isNotEmpty()) {
+            "WHERE " + whereClauses.joinToString(" AND ")
+        } else {
+            ""
+        }
+        val sql = "SELECT COUNT(*) FROM operation o $whereSql"
+        return SimpleSQLiteQuery(sql, args.toTypedArray())
+    }
+
     internal fun buildWhereClauses(
         filter: TransactionFilter,
         categoryClosure: Set<Long>,

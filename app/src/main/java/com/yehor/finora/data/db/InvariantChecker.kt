@@ -1,19 +1,23 @@
 package com.yehor.finora.data.db
 
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.yehor.finora.domain.dataio.ImportProblem
 
 /**
  * Runs SQL over the whole database for each invariant that is not a schema constraint
- * (design section 6.4). Returns human-readable violations; an empty list means the data is valid.
- * Reused by import validation in a later sub-project.
+ * (design section 6.4 and 10). Returns human-readable violations; an empty list means the data is valid.
+ * Reused by import validation.
  */
 object InvariantChecker {
 
-    fun check(db: SupportSQLiteDatabase): List<String> {
-        val violations = mutableListOf<String>()
+    fun check(db: SupportSQLiteDatabase): List<String> =
+        checkDetailed(db).map { "${it.check}: ${it.subject}" }
+
+    fun checkDetailed(db: SupportSQLiteDatabase): List<ImportProblem> {
+        val violations = mutableListOf<ImportProblem>()
         checks.forEach { (name, sql) ->
             db.query(sql).use { c ->
-                while (c.moveToNext()) violations += "$name: ${c.getString(0)}"
+                while (c.moveToNext()) violations += ImportProblem(name, c.getString(0))
             }
         }
         return violations
@@ -165,6 +169,55 @@ object InvariantChecker {
             JOIN recurring_schedule s ON s.id = ro.schedule_id
             JOIN operation o ON o.id = ro.operation_id
             WHERE ro.operation_id IS NOT NULL AND o.type <> s.kind
+        """,
+        "account status domain" to """
+            SELECT 'account ' || id FROM account
+            WHERE status NOT IN ('ACTIVE', 'ARCHIVED')
+        """,
+        "category type domain" to """
+            SELECT 'category ' || id FROM category
+            WHERE type NOT IN ('INCOME', 'EXPENSE', 'TRANSFER')
+        """,
+        "operation type domain" to """
+            SELECT 'operation ' || id FROM operation
+            WHERE type NOT IN ('INCOME', 'EXPENSE', 'TRANSFER', 'OPENING_BALANCE')
+        """,
+        "recurring kind domain" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE kind NOT IN ('INCOME', 'EXPENSE')
+        """,
+        "recurring unit domain" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE unit NOT IN ('DAY', 'WEEK', 'MONTH', 'YEAR')
+        """,
+        "recurring status domain" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE status NOT IN ('ACTIVE', 'PAUSED')
+        """,
+        "recurring occurrence status domain" to """
+            SELECT 'occurrence ' || id FROM recurring_occurrence
+            WHERE status NOT IN ('GENERATED', 'SKIPPED')
+        """,
+        "ledger amount storage class" to """
+            SELECT 'entry ' || id FROM ledger_entry
+            WHERE typeof(amount_minor) <> 'integer'
+        """,
+        "timestamp storage class" to """
+            SELECT 'operation ' || id FROM operation
+            WHERE typeof(occurred_at) <> 'integer'
+               OR typeof(created_at) <> 'integer'
+               OR typeof(updated_at) <> 'integer'
+            UNION
+            SELECT 'entry ' || id FROM ledger_entry
+            WHERE typeof(occurred_at) <> 'integer'
+        """,
+        "recurring storage class" to """
+            SELECT 'schedule ' || id FROM recurring_schedule
+            WHERE typeof(amount_minor) <> 'integer'
+               OR typeof(start_date) <> 'integer'
+               OR typeof(interval_count) <> 'integer'
+               OR (end_date IS NOT NULL AND typeof(end_date) <> 'integer')
+               OR (next_date IS NOT NULL AND typeof(next_date) <> 'integer')
         """,
     )
 }

@@ -504,5 +504,92 @@
     <string name="action_statistics">Statistics</string>
     <string name="action_analyze">Analyze</string>
 
+    <!-- Data & Backup/Restore -->
+    <string name="settings_data">Data</string>
+    <string name="settings_data_subtitle">Backup, restore, and CSV export</string>
+    <string name="data_title">Data</string>
+    <string name="data_summary_title">Your data</string>
+    <string name="data_accounts">Accounts</string>
+    <string name="data_transactions">Transactions</string>
+    <string name="data_transfers">Transfers</string>
+    <string name="data_categories">Categories</string>
+    <string name="data_tags">Tags</string>
+    <string name="data_schedules">Recurring schedules</string>
+    <string name="data_period">Period</string>
+    <string name="data_period_empty">No transactions</string>
+    <string name="data_database_size">Database size</string>
+    <string name="data_schema_version">Schema version</string>
+    <string name="data_app_version">App version</string>
+    <string name="data_backup_title">Create backup</string>
+    <string name="data_backup_button">Back up now</string>
+    <string name="data_backup_exporting">Creating backup…</string>
+    <string name="data_backup_done_title">Backup created</string>
+    <string name="data_backup_notice">This file is not encrypted. Anyone who has it can read all your financial data. Keep it somewhere private.</string>
+    <string name="data_backup_failed">Backup failed: %1$s</string>
+    <string name="data_restore_title">Restore from backup</string>
+    <string name="data_restore_button">Choose file</string>
+    <string name="data_restore_validating">Checking backup…</string>
+    <string name="data_restore_step_copying">Copying file</string>
+    <string name="data_restore_step_checking_structure">Checking structure</string>
+    <string name="data_restore_step_upgrading">Upgrading database</string>
+    <string name="data_restore_step_checking_data">Checking data</string>
+    <string name="data_restore_restarting">Restoring…</string>
+    <string name="data_restore_restarting_note">Finora will restart to finish restoring your data.</string>
+    <string name="data_restore_preview_title">Restore backup</string>
+    <string name="data_restore_preview_warning">This replaces all data in Finora with the contents of this file. It cannot be undone.</string>
+    <string name="data_restore_preview_upgrade_note">The file is from an older version of Finora and will be upgraded.</string>
+    <string name="data_restore_preview_current_col">Current</string>
+    <string name="data_restore_preview_backup_col">Backup file</string>
+    <string name="data_restore_action_replace">Replace my data</string>
+    <string name="data_restore_action_backup_first">Back up current data first</string>
+    <string name="data_restore_action_backed_up">Backed up</string>
+    <string name="data_restore_reject_title">Cannot restore this file</string>
+    <string name="data_restore_reject_close">Close</string>
+    <string name="data_restore_reject_choose_another">Choose another file</string>
+    <string name="data_restore_outcome_success">Backup restored: %1$s, %2$s.</string>
+    <plurals name="data_restore_outcome_accounts">
+        <item quantity="one">%d account</item>
+        <item quantity="other">%d accounts</item>
+    </plurals>
+    <plurals name="data_restore_outcome_transactions">
+        <item quantity="one">%d transaction</item>
+        <item quantity="other">%d transactions</item>
+    </plurals>
+    <string name="data_restore_outcome_failed">The backup could not be restored. Your data was not changed.</string>
 
+    <string name="import_failure_unreadable">The file could not be read.</string>
+    <string name="import_failure_too_large">The file is larger than the 512 MB limit.</string>
+    <string name="import_failure_not_enough_space">There is not enough free storage space.</string>
+    <string name="import_failure_not_sqlite">This file is not a SQLite database.</string>
+    <string name="import_failure_not_finora">This file was not created by Finora.</string>
+    <string name="import_failure_newer_version">This backup was created by a newer version of Finora. Update the app to restore it.</string>
+    <string name="import_failure_unknown_schema">The database format is unrecognized or was modified.</string>
+    <string name="import_failure_unsafe_objects">The file contains unsupported database objects (triggers or views).</string>
+    <string name="import_failure_corrupt">The database file is damaged or corrupted.</string>
+    <string name="import_failure_foreign_key_violations">The database has broken relations between records.</string>
+    <string name="import_failure_migration_failed">Upgrading the older database version failed.</string>
+    <string name="import_failure_unexpected_objects">The database structure does not match Finora.</string>
+    <string name="import_failure_currency_mismatch">The currencies in the file do not match the currency registry.</string>
+    <string name="import_failure_balance_overflow">Account balances in the file exceed the maximum supported amount.</string>
+    <string name="import_failure_invariant_violations">The file contains invalid data.</string>
+
+    <!-- CSV Export -->
+    <string name="data_export_csv_title">Export transactions (CSV)</string>
+    <string name="data_export_csv_button">Export as CSV</string>
+    <string name="csv_export_title">Export as CSV</string>
+    <string name="csv_export_filter_section">Filters</string>
+    <plurals name="csv_export_count_preview">
+        <item quantity="one">%d transaction will be exported</item>
+        <item quantity="other">%d transactions will be exported</item>
+    </plurals>
+    <string name="csv_export_count_zero">No transactions match the selected filter</string>
+    <string name="csv_export_initial_balance_notice">Initial balances are not included.</string>
+    <string name="csv_export_button">Export CSV</string>
+    <string name="csv_export_exporting">Exporting…</string>
+    <plurals name="csv_export_success">
+        <item quantity="one">Exported %d transaction</item>
+        <item quantity="other">Exported %d transactions</item>
+    </plurals>
+    <string name="csv_export_failed">Export failed: %1$s</string>
+    <string name="transactions_export_csv">Export as CSV</string>
 </resources>

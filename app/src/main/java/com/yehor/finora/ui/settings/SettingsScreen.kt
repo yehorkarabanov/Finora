@@ -42,11 +42,16 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.model.ThemeMode
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onOpenData: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     SettingsContent(
         state = state,
         onBack = onBack,
+        onOpenData = onOpenData,
         onThemeSelected = viewModel::onThemeSelected,
         onCurrencySelected = viewModel::onDisplayCurrencySelected,
     )
@@ -57,6 +62,7 @@ fun SettingsScreen(onBack: () -> Unit, viewModel: SettingsViewModel = hiltViewMo
 private fun SettingsContent(
     state: SettingsUiState,
     onBack: () -> Unit,
+    onOpenData: () -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
     onCurrencySelected: (com.yehor.finora.domain.money.Currency) -> Unit,
 ) {
@@ -101,6 +107,11 @@ private fun SettingsContent(
                     )
                 },
                 modifier = Modifier.clickable { showCurrencyDialog = true },
+            )
+            ListItem(
+                overlineContent = { Text(stringResource(R.string.settings_data)) },
+                headlineContent = { Text(stringResource(R.string.settings_data_subtitle)) },
+                modifier = Modifier.clickable { onOpenData() },
             )
         }
     }

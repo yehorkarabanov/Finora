@@ -1,6 +1,12 @@
 package com.yehor.finora.ui.navigation
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.res.pluralStringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -49,14 +55,34 @@ import com.yehor.finora.ui.recurring.RecurringEditScreen
 import com.yehor.finora.ui.recurring.RecurringScreen
 import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
+import com.yehor.finora.ui.data.CsvExportScreen
+import com.yehor.finora.ui.data.DataScreen
 
 @Composable
-fun FinoraShell() {
+fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val outcome = shellViewModel.restoreOutcome
+    val accounts = outcome?.summary?.accounts ?: 0
+    val transactions = outcome?.summary?.transactions ?: 0
+    val outcomeMessage = when {
+        outcome == null -> null
+        outcome.success -> stringResource(
+            R.string.data_restore_outcome_success,
+            pluralStringResource(R.plurals.data_restore_outcome_accounts, accounts, accounts),
+            pluralStringResource(R.plurals.data_restore_outcome_transactions, transactions, transactions),
+        )
+        else -> stringResource(R.string.data_restore_outcome_failed)
+    }
+    LaunchedEffect(outcomeMessage) {
+        if (outcomeMessage != null) snackbarHostState.showSnackbar(outcomeMessage)
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         // Each screen has its own Scaffold and handles the top inset itself.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
@@ -118,6 +144,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             TransactionsScreen(
                 onAdd = { navController.navigate(Routes.transactionNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
+                onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
             )
         }
         // More -> Transfers: the same history screen, preset to TRANSFER operations.
@@ -128,6 +155,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             TransactionsScreen(
                 onAdd = { navController.navigate(Routes.transactionNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
+                onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
             )
         }
         composable(Routes.ACCOUNTS) {
@@ -325,7 +353,22 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             )
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenData = { navController.navigate(Routes.DATA) },
+            )
+        }
+        composable(Routes.DATA) {
+            DataScreen(
+                onBack = { navController.popBackStack() },
+                onOpenCsvExport = { navController.navigate(Routes.dataCsv()) },
+            )
+        }
+        composable(
+            Routes.DATA_CSV,
+            arguments = listOf(navArgument("filter") { type = NavType.StringType; defaultValue = "" }),
+        ) {
+            CsvExportScreen(onBack = { navController.popBackStack() })
         }
     }
 }

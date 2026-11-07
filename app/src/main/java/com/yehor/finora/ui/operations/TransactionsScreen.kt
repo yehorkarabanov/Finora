@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Card
@@ -69,11 +70,13 @@ import java.time.format.FormatStyle
 fun TransactionsScreen(
     onAdd: () -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
+    onExportCsv: (TransactionFilter) -> Unit = {},
     viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pagedItems = viewModel.pagedTransactions.collectAsLazyPagingItems()
     var sortMenuOpen by remember { mutableStateOf(false) }
+    var overflowMenuOpen by remember { mutableStateOf(false) }
     var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
     var searchOpen by rememberSaveable { mutableStateOf(false) }
     var searchInput by rememberSaveable { mutableStateOf("") }
@@ -153,6 +156,20 @@ fun TransactionsScreen(
                                     },
                                 )
                             }
+                        }
+                    }
+                    Box {
+                        IconButton(onClick = { overflowMenuOpen = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more_options))
+                        }
+                        DropdownMenu(expanded = overflowMenuOpen, onDismissRequest = { overflowMenuOpen = false }) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.transactions_export_csv)) },
+                                onClick = {
+                                    overflowMenuOpen = false
+                                    onExportCsv(state.filter)
+                                },
+                            )
                         }
                     }
                 },
