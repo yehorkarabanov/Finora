@@ -4,8 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -162,7 +160,7 @@ fun netColor(cell: Cell?): Color {
 
 // ---- Period and scope ----
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeriodSelector(
     state: PeriodState,
@@ -177,12 +175,22 @@ fun PeriodSelector(
     var showPicker by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             PeriodKind.entries.forEach { kind ->
                 FilterChip(
                     selected = state.kind == kind,
                     onClick = { if (kind == PeriodKind.CUSTOM) showPicker = true else onSelect(kind) },
-                    label = { Text(stringResource(kind.labelRes())) },
+                    label = {
+                        Text(
+                            stringResource(kind.labelRes()),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
