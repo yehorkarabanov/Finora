@@ -362,7 +362,8 @@ private fun ActiveFilterChips(
         }
         filter.categoryIds.forEach { id ->
             item(key = "category_$id") {
-                Chip(state.categories.find { it.id == id }?.name.orEmpty()) {
+                val name = state.categories.find { it.id == id }?.name.orEmpty()
+                Chip(if (filter.categoryExact) stringResource(R.string.filter_category_direct_only, name) else name) {
                     onFilterChange(filter.copy(categoryIds = filter.categoryIds - id))
                 }
             }

@@ -5,7 +5,6 @@ import com.yehor.finora.data.db.ExchangeRateEntity
 import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.rates.FetchedQuote
 import com.yehor.finora.data.rates.FrankfurterClient
-import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.rate.CurrencyPair
@@ -63,7 +62,7 @@ class RateRepository(
         this.scope = scope
         scope.launch {
             combine(db.accountDao().observeAll(), settings.displayCurrency) { accounts, display ->
-                requiredCurrencies(accounts.filter { it.status == AccountStatus.ACTIVE }.map { it.currencyCode }, display.currency)
+                requiredCurrencies(accounts.map { it.currencyCode }, display.currency)
             }
                 .distinctUntilChanged()
                 .collect { requestRefresh() }
@@ -81,10 +80,7 @@ class RateRepository(
 
         val accounts = db.accountDao().observeAll().first()
         val display = settings.displayCurrency.first().currency
-        val currencies = requiredCurrencies(
-            accounts.filter { it.status == AccountStatus.ACTIVE }.map { it.currencyCode },
-            display,
-        )
+        val currencies = requiredCurrencies(accounts.map { it.currencyCode }, display)
         val cached = db.rateDao().getAll().toTable()
 
         val due = currencies.flatMap { x -> currencies.filter { it != x }.map { y -> CurrencyPair(x, y) } }
@@ -115,8 +111,9 @@ class RateRepository(
         return now - at < RateFreshness.REFRESH_AFTER_MS
     }
 
-    private fun requiredCurrencies(activeAccountCodes: List<String>, display: Currency): Set<Currency> =
-        (activeAccountCodes.mapNotNull { CurrencyRegistry.findOrNull(it) } + display).toSet()
+    /** Currencies of all accounts, active and archived (historical reports include archived ones), plus the Display Currency. */
+    private fun requiredCurrencies(accountCodes: List<String>, display: Currency): Set<Currency> =
+        (accountCodes.mapNotNull { CurrencyRegistry.findOrNull(it) } + display).toSet()
 
     private fun FetchedQuote.toEntity(now: Long) = ExchangeRateEntity(
         baseCurrency = base,

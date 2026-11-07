@@ -71,16 +71,24 @@ class RateRepositoryTest {
     }
 
     @Test
-    fun requestsOnlyRequiredPairsGroupedByBase() = runBlocking {
+    fun requestsAllAccountCurrenciesIncludingArchivedGroupedByBase() = runBlocking {
         account("UAH"); account("USD"); account("EUR", AccountStatus.ARCHIVED)
         repo.settingsDisplay("PLN")
         repo.refreshIfNeeded()
         val calls = client.calls.associate { it.first to it.second }
-        assertEquals(mapOf("UAH" to setOf("PLN", "USD"), "USD" to setOf("PLN", "UAH"), "PLN" to setOf("UAH", "USD")), calls)
+        assertEquals(
+            mapOf(
+                "UAH" to setOf("PLN", "USD", "EUR"),
+                "USD" to setOf("PLN", "UAH", "EUR"),
+                "EUR" to setOf("PLN", "UAH", "USD"),
+                "PLN" to setOf("UAH", "USD", "EUR"),
+            ),
+            calls,
+        )
         val rows = db.rateDao().getAll()
-        assertEquals(6, rows.size)
+        assertEquals(12, rows.size)
         assertTrue(rows.all { it.source == "frankfurter" && it.fetchedAt == now })
-        assertEquals(6, repo.observeTable().first().quotes.size)
+        assertEquals(12, repo.observeTable().first().quotes.size)
     }
 
     @Test

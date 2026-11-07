@@ -1,0 +1,378 @@
+package com.yehor.finora.ui.analytics
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.yehor.finora.data.repo.AnalyticsRepository
+import com.yehor.finora.data.repo.TransactionRepository
+import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.analytics.AccountPeriodRow
+import com.yehor.finora.domain.analytics.Bucket
+import com.yehor.finora.domain.analytics.BucketPlan
+import com.yehor.finora.domain.analytics.Cell
+import com.yehor.finora.domain.analytics.CurrencyScope
+import com.yehor.finora.domain.analytics.Measure
+import com.yehor.finora.domain.analytics.PeriodCalculator
+import com.yehor.finora.domain.analytics.PeriodKind
+import com.yehor.finora.domain.analytics.ResolvedPeriod
+import com.yehor.finora.domain.analytics.Reports
+import com.yehor.finora.domain.analytics.ScopeConverter
+import com.yehor.finora.domain.money.Currency
+import com.yehor.finora.domain.operation.FilterCodec
+import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionItem
+import com.yehor.finora.domain.tag.TagMatchMode
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import java.time.LocalDate
+import javax.inject.Inject
+
+enum class StatsTab { EXPENSES, INCOME, TAGS, ACCOUNTS }
+
+/** What the user chose on the Statistics shell. Survives rotation and process death. */
+data class StatsControls(
+    val tab: StatsTab = StatsTab.EXPENSES,
+    /** Currency code of a native scope, or null for the Display Currency. */
+    val scopeCode: String? = null,
+    val compare: Boolean = false,
+    /** Entered categories from the root down. */
+    val path: List<Long> = emptyList(),
+    val trendYearly: Boolean = false,
+    /** Types, accounts, categories, tags and match mode of the Tags tab. Dates come from the period. */
+    val tagFilter: TransactionFilter = TransactionFilter(),
+    val tagMeasure: Measure = Measure.EXPENSE,
+)
+
+data class FlowTab(
+    val report: FlowReport,
+    /** The period filter the rows were counted with. */
+    val base: TransactionFilter,
+    /** The filter behind the trend, without dates. */
+    val trendBase: TransactionFilter,
+    val trendBuckets: List<Bucket>,
+)
+
+data class TagsTab(
+    /** The full filter, with period and scope, for hand-offs to Transactions (R15). */
+    val filter: TransactionFilter,
+    /** Null while no tag is selected: nothing is computed. */
+    val report: TagsReport?,
+    val recent: List<TransactionItem>,
+)
+
+data class AccountPeriodView(val account: Account, val row: AccountPeriodRow)
+
+sealed interface StatsContent {
+    data class Flows(val tab: FlowTab) : StatsContent
+    data class Tags(val tab: TagsTab) : StatsContent
+    data class Accounts(val rows: List<AccountPeriodView>) : StatsContent
+}
+
+data class StatisticsUiState(
+    val loading: Boolean = true,
+    val env: AnalyticsEnv? = null,
+    val controls: StatsControls = StatsControls(),
+    val scope: CurrencyScope? = null,
+    val nativeCurrencies: List<Currency> = emptyList(),
+    val conversion: ConversionInfo = ConversionInfo.NONE,
+    val content: StatsContent? = null,
+    /** The previous period of the same kind, for the Compare label. */
+    val previousPeriod: ResolvedPeriod? = null,
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+class StatisticsViewModel @Inject constructor(
+    private val savedState: SavedStateHandle,
+    private val environment: AnalyticsEnvironment,
+    private val analytics: AnalyticsRepository,
+    private val transactions: TransactionRepository,
+) : ViewModel() {
+
+    private val _controls = MutableStateFlow(restore())
+
+    private fun restore(): StatsControls {
+        val tab = savedState.get<String>(KEY_TAB)?.let { name -> StatsTab.entries.firstOrNull { it.name == name } }
+            ?: StatsTab.EXPENSES
+        val savedFilter = savedState.get<String>(KEY_TAG_FILTER)
+        val argTag = savedState.get<Long>("tagId")?.takeIf { it > 0 }
+        val tagFilter = when {
+            savedFilter != null -> FilterCodec.decode(savedFilter)
+            argTag != null -> TransactionFilter(tagIds = setOf(argTag))
+            else -> TransactionFilter()
+        }
+        return StatsControls(
+            tab = tab,
+            scopeCode = savedState.get<String>(KEY_SCOPE)?.takeIf { it.isNotEmpty() },
+            compare = savedState.get<Boolean>(KEY_COMPARE) ?: false,
+            path = savedState.get<String>(KEY_PATH).orEmpty().split(',').mapNotNull { it.toLongOrNull() },
+            trendYearly = savedState.get<Boolean>(KEY_YEARLY) ?: false,
+            tagFilter = tagFilter,
+            tagMeasure = savedState.get<String>(KEY_TAG_MEASURE)
+                ?.let { name -> Measure.entries.firstOrNull { it.name == name } } ?: Measure.EXPENSE,
+        )
+    }
+
+    private fun change(block: (StatsControls) -> StatsControls) {
+        _controls.update(block)
+        val c = _controls.value
+        savedState[KEY_TAB] = c.tab.name
+        savedState[KEY_SCOPE] = c.scopeCode.orEmpty()
+        savedState[KEY_COMPARE] = c.compare
+        savedState[KEY_PATH] = c.path.joinToString(",")
+        savedState[KEY_YEARLY] = c.trendYearly
+        savedState[KEY_TAG_FILTER] = FilterCodec.encode(c.tagFilter)
+        savedState[KEY_TAG_MEASURE] = c.tagMeasure.name
+    }
+
+    val state: StateFlow<StatisticsUiState> = combine(environment.observe(), _controls) { env, controls -> env to controls }
+        .flatMapLatest { (env, controls) -> content(env, controls) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatisticsUiState())
+
+    // ---- Controls ----
+
+    /** Changing tab clears the drill-down path. */
+    fun selectTab(tab: StatsTab) = change { it.copy(tab = tab, path = emptyList()) }
+
+    fun selectScope(scope: CurrencyScope) = change {
+        it.copy(scopeCode = (scope as? CurrencyScope.Native)?.currency?.code, path = emptyList())
+    }
+
+    fun setCompare(on: Boolean) = change { it.copy(compare = on) }
+
+    fun setTrendYearly(yearly: Boolean) = change { it.copy(trendYearly = yearly) }
+
+    fun enter(categoryId: Long) = change { it.copy(path = it.path + categoryId) }
+
+    /** Goes up one level, or to [depth] entered categories when it is given. */
+    fun back(depth: Int = _controls.value.path.size - 1) =
+        change { it.copy(path = it.path.take(depth.coerceAtLeast(0))) }
+
+    fun selectPeriod(kind: PeriodKind) {
+        environment.selectPeriod(kind)
+        change { it.copy(path = emptyList()) }
+    }
+
+    fun setCustomPeriod(start: LocalDate, end: LocalDate) {
+        environment.setCustomPeriod(start, end)
+        change { it.copy(path = emptyList()) }
+    }
+
+    fun shiftPeriod(steps: Int) {
+        environment.shiftPeriod(steps)
+        change { it.copy(path = emptyList()) }
+    }
+
+    fun toggleTag(tagId: Long) = changeTags { f ->
+        f.copy(tagIds = if (tagId in f.tagIds) f.tagIds - tagId else f.tagIds + tagId)
+    }
+
+    fun setTagMode(mode: TagMatchMode) = changeTags { it.copy(tagMode = mode) }
+
+    fun setTagMeasure(measure: Measure) = change { it.copy(tagMeasure = measure, path = emptyList()) }
+
+    /**
+     * Applies the filter sheet. The sheet's date range becomes the shared period (as a Custom
+     * range); everything else is kept in the Tags filter. The tags themselves are picked on screen.
+     */
+    fun applyTagSheet(filter: TransactionFilter, period: ResolvedPeriod) {
+        val from = filter.from?.let { dateOf(it) }
+        val to = filter.toExclusive?.let { dateOf(it - 1) }
+        if (from != null || to != null) {
+            val start = from ?: period.fromDate
+            val end = to ?: period.toDateInclusive
+            environment.setCustomPeriod(start, if (end.isBefore(start)) start else end)
+        }
+        changeTags {
+            it.copy(
+                types = filter.types,
+                accountIds = filter.accountIds,
+                categoryIds = filter.categoryIds,
+                includeUncategorized = filter.includeUncategorized,
+            )
+        }
+    }
+
+    private fun changeTags(block: (TransactionFilter) -> TransactionFilter) =
+        change { it.copy(tagFilter = block(it.tagFilter), path = emptyList()) }
+
+    private fun dateOf(millis: Long): LocalDate =
+        java.time.Instant.ofEpochMilli(millis).atZone(environment.zone()).toLocalDate()
+
+    // ---- Content ----
+
+    private fun content(env: AnalyticsEnv, controls: StatsControls): Flow<StatisticsUiState> {
+        val nativeCurrencies = env.allAccounts.map { it.currency }.distinct().sortedBy { it.code }
+        val nativeScope = controls.scopeCode
+            ?.let { code -> nativeCurrencies.firstOrNull { it.code == code } }
+            ?.let { CurrencyScope.Native(it) }
+        val scope: CurrencyScope = nativeScope ?: CurrencyScope.Display(env.display)
+        val previous = if (controls.compare && controls.tab != StatsTab.ACCOUNTS) {
+            PeriodCalculator.resolve(PeriodCalculator.previous(env.period.period), env.zone, env.firstDayOfWeek)
+        } else {
+            null
+        }
+        val tabContent: Flow<Pair<StatsContent, Collection<Cell>>> = when (controls.tab) {
+            StatsTab.EXPENSES -> flows(env, controls, scope, Measure.EXPENSE, previous)
+            StatsTab.INCOME -> flows(env, controls, scope, Measure.INCOME, previous)
+            StatsTab.TAGS -> tags(env, controls, scope, previous)
+            StatsTab.ACCOUNTS -> accounts(env)
+        }
+        return tabContent.map { (content, cells) ->
+            StatisticsUiState(
+                loading = false,
+                env = env,
+                controls = controls,
+                scope = scope,
+                nativeCurrencies = nativeCurrencies,
+                conversion = conversionInfo(cells),
+                content = content,
+                previousPeriod = previous,
+            )
+        }
+    }
+
+    private fun flows(
+        env: AnalyticsEnv,
+        controls: StatsControls,
+        scope: CurrencyScope,
+        measure: Measure,
+        previous: ResolvedPeriod?,
+    ): Flow<Pair<StatsContent, Collection<Cell>>> {
+        val base = AnalyticsFilters.base(env.period, scope, env.allAccounts)
+        val previousBase = previous?.let { AnalyticsFilters.base(it, scope, env.allAccounts) }
+        val path = controls.path
+        val trendEnd = minOf(env.period.toDateInclusive, env.today)
+        val buckets = if (controls.trendYearly) {
+            BucketPlan.years(trendEnd, 5, env.zone)
+        } else {
+            BucketPlan.months(trendEnd, 12, env.zone)
+        }
+        val trendBase = AnalyticsFilters.base(env.period, scope, env.allAccounts).copy(
+            from = null,
+            toExclusive = null,
+            categoryIds = path.lastOrNull()?.let { setOf(it) } ?: emptySet(),
+        )
+        val current = analytics.observeByCategory(base, measure).asRows()
+        val before = previousBase?.let { analytics.observeByCategory(it, measure).asRows() } ?: flowOf(null)
+        return combine(
+            current,
+            before,
+            analytics.observeByAccount(base, measure).asRows(),
+            analytics.observeByTag(base, measure).asRows(),
+            analytics.observeByBucket(trendBase, measure, buckets).asRows(),
+        ) { cur, prev, byAccount, byTag, trend ->
+            val report = ReportBuilder.flow(
+                env, scope, measure, cur, prev, byAccount, byTag, trend, buckets, controls.trendYearly, path,
+            )
+            val tab = FlowTab(report, base, trendBase, buckets)
+            StatsContent.Flows(tab) to cellsOf(report)
+        }
+    }
+
+    private fun tags(
+        env: AnalyticsEnv,
+        controls: StatsControls,
+        scope: CurrencyScope,
+        previous: ResolvedPeriod?,
+    ): Flow<Pair<StatsContent, Collection<Cell>>> {
+        val chosen = controls.tagFilter
+        val filter = AnalyticsFilters.scoped(
+            chosen.copy(from = env.period.from, toExclusive = env.period.toExclusive),
+            scope,
+            env.allAccounts,
+        )
+        if (filter.tagIds.isEmpty()) {
+            return flowOf(StatsContent.Tags(TagsTab(filter, null, emptyList())) to emptyList())
+        }
+        val measure = chosen.types.singleOrNull()?.let { type ->
+            Measure.entries.firstOrNull { it.operationType() == type }
+        } ?: controls.tagMeasure
+        val previousFilter = previous?.let { filter.copy(from = it.from, toExclusive = it.toExclusive) }
+        val (unit, buckets) = BucketPlan.auto(env.period, env.zone)
+
+        fun totals(f: TransactionFilter) = combine(
+            analytics.observeByCategory(f, Measure.INCOME).asRows(),
+            analytics.observeByCategory(f, Measure.EXPENSE).asRows(),
+            analytics.observeByCategory(f, Measure.TRANSFER).asRows(),
+        ) { income, expense, transfer -> Triple(income, expense, transfer) }
+
+        val currentTotals = totals(filter)
+        val previousTotals = previousFilter?.let { totals(it) } ?: flowOf(null)
+        val measureRows = analytics.observeByCategory(filter, measure).asRows()
+        val previousMeasureRows = previousFilter?.let { analytics.observeByCategory(it, measure).asRows() } ?: flowOf(null)
+        val byAccount = analytics.observeByAccount(filter, measure).asRows()
+        val byDate = analytics.observeByBucket(filter, measure, buckets).asRows()
+        val recent = transactions.observeRecent(filter, TAG_RECENT)
+
+        val reports = combine(currentTotals, previousTotals, measureRows, previousMeasureRows) { t, pt, rows, prevRows ->
+            TagParts(t, pt, rows, prevRows)
+        }
+        return combine(reports, byAccount, byDate, recent) { parts, accountRows, dateRows, items ->
+            val types = filter.types
+            val figures = ReportBuilder.figures(env, scope, types, parts.totals.first, parts.totals.second, parts.totals.third)
+            val previousFigures = parts.previousTotals?.let {
+                ReportBuilder.figures(env, scope, types, it.first, it.second, it.third)
+            }
+            val category = ReportBuilder.category(env, scope, measure, parts.rows, parts.previousRows, controls.path)
+            val converter = ScopeConverter(scope, env.table, env.now)
+            val report = TagsReport(
+                figures = figures,
+                previous = previousFigures,
+                measure = measure,
+                category = category,
+                byAccount = ReportBuilder.breakdown(accountRows, converter, category.total),
+                byDate = Reports.trend(buckets, dateRows.list(), converter),
+                dateUnit = unit,
+            )
+            val cells = listOfNotNull(figures.income, figures.expense, figures.net, figures.transferred) +
+                category.lines.map { it.row.cell } + report.byAccount.map { it.cell } + report.byDate.map { it.cell }
+            StatsContent.Tags(TagsTab(filter, report, items)) to cells
+        }
+    }
+
+    private class TagParts(
+        val totals: Triple<Rows, Rows, Rows>,
+        val previousTotals: Triple<Rows, Rows, Rows>?,
+        val rows: Rows,
+        val previousRows: Rows?,
+    )
+
+    private fun accounts(env: AnalyticsEnv): Flow<Pair<StatsContent, Collection<Cell>>> =
+        analytics.observeAccountsOverview(env.period).map { rows ->
+            val byId = rows.associateBy { it.accountId }
+            val views = env.accounts
+                .map { it.account }
+                .sortedWith(compareBy({ it.status }, { it.name.lowercase() }))
+                .mapNotNull { account -> byId[account.id]?.let { AccountPeriodView(account, it) } }
+            StatsContent.Accounts(views) to emptyList()
+        }
+
+    private fun cellsOf(report: FlowReport): List<Cell> =
+        listOf(report.category.total) +
+            report.category.lines.map { it.row.cell } +
+            report.byAccount.map { it.cell } +
+            report.byTag.map { it.cell } +
+            report.trend.map { it.cell }
+
+    companion object {
+        private const val KEY_TAB = "tab"
+        private const val KEY_SCOPE = "stats_scope"
+        private const val KEY_COMPARE = "stats_compare"
+        private const val KEY_PATH = "stats_path"
+        private const val KEY_YEARLY = "stats_yearly"
+        private const val KEY_TAG_FILTER = "stats_tag_filter"
+        private const val KEY_TAG_MEASURE = "stats_tag_measure"
+        private const val TAG_RECENT = 5
+    }
+}

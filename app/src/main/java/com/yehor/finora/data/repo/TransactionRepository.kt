@@ -16,6 +16,7 @@ import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.CurrencySummary
+import com.yehor.finora.domain.operation.FilterScope
 import com.yehor.finora.domain.operation.TransactionDraft
 import com.yehor.finora.domain.operation.TransactionEntryView
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -76,7 +77,9 @@ class TransactionRepository @Inject constructor(
                 val tree = CategoryTree(cats)
                 val accountMap = accounts.associateBy { it.id }
                 val catMap = cats.associateBy { it.id }
-                val query = TransactionQuery.build(filter, TransactionSort.DATE_DESC, categoryClosure(filter, tree))
+                val query = TransactionQuery.build(
+                    filter, TransactionSort.DATE_DESC, categoryClosure(filter, tree), limit = limit,
+                )
                 db.operationDao().listWithDetails(query).map { list ->
                     list.take(limit).map { mapToItem(it, accountMap, catMap, tree) }
                 }
@@ -161,9 +164,8 @@ class TransactionRepository @Inject constructor(
 
     suspend fun delete(id: Long) = operationRepository.deleteOperation(id)
 
-    /** Selected categories plus all their descendants. */
     private fun categoryClosure(filter: TransactionFilter, tree: CategoryTree): Set<Long> =
-        filter.categoryIds.flatMap { tree.descendantIds(it) + it }.toSet()
+        FilterScope.categoryClosure(filter, tree)
 
     private fun mapToItem(
         details: OperationWithDetails,

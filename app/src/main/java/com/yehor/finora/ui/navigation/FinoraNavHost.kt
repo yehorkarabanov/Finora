@@ -1,18 +1,12 @@
 package com.yehor.finora.ui.navigation
 
-import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -21,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.clickable
@@ -38,6 +31,12 @@ import com.yehor.finora.R
 import com.yehor.finora.ui.accounts.AccountDetailScreen
 import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
+import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.ui.analytics.AccountAnalyticsScreen
+import com.yehor.finora.ui.analytics.DashboardActions
+import com.yehor.finora.ui.analytics.DashboardScreen
+import com.yehor.finora.ui.analytics.StatisticsActions
+import com.yehor.finora.ui.analytics.StatisticsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
 import com.yehor.finora.domain.model.OperationType
@@ -91,7 +90,21 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
         startDestination = Routes.DASHBOARD,
         modifier = Modifier.padding(padding).consumeWindowInsets(padding),
     ) {
-        composable(Routes.DASHBOARD) { PlaceholderScreen(R.string.nav_dashboard) }
+        composable(Routes.DASHBOARD) {
+            DashboardScreen(
+                DashboardActions(
+                    onAddTransaction = { navController.navigate(Routes.transactionNew()) },
+                    onAddAccount = { navController.navigate(Routes.ACCOUNT_NEW) },
+                    onOpenAccounts = { navController.navigate(Routes.ACCOUNTS) },
+                    onOpenAccountHistory = { navController.navigate(Routes.accountDetail(it)) },
+                    onOpenTransactions = { navController.openTransactions(it) },
+                    onOpenStatistics = { navController.navigate(Routes.statisticsTab("EXPENSES")) },
+                    onOpenTransaction = { navController.navigate(openRoute(it)) },
+                    onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
+                    onOpenRecurring = { navController.navigate(Routes.RECURRING) },
+                ),
+            )
+        }
         composable(
             Routes.TRANSACTIONS_PRESET,
             arguments = listOf(
@@ -99,6 +112,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("categoryId") { type = NavType.LongType; defaultValue = -1L },
                 navArgument("types") { type = NavType.StringType; defaultValue = "" },
+                navArgument("filter") { type = NavType.StringType; defaultValue = "" },
             ),
         ) {
             TransactionsScreen(
@@ -135,6 +149,7 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
                 onTransfer = { navController.navigate(Routes.transferNew(sourceAccountId = it)) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
+                onOpenStatistics = { navController.navigate(Routes.accountAnalytics(it)) },
                 onShowAllTransactions = { accountId ->
                     navController.navigate(Routes.transactionsForAccount(accountId)) {
                         launchSingleTop = true
@@ -203,7 +218,31 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 },
             )
         }
-        composable(Routes.STATISTICS) { PlaceholderScreen(R.string.nav_statistics) }
+        composable(
+            Routes.STATISTICS_PRESET,
+            arguments = listOf(
+                navArgument("tab") { type = NavType.StringType; defaultValue = "EXPENSES" },
+                navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
+            ),
+        ) {
+            StatisticsScreen(
+                StatisticsActions(
+                    onOpenTransactions = { navController.openTransactions(it) },
+                    onOpenAccountAnalytics = { navController.navigate(Routes.accountAnalytics(it)) },
+                    onOpenTransaction = { navController.navigate(openRoute(it)) },
+                ),
+            )
+        }
+        composable(
+            Routes.ACCOUNT_ANALYTICS,
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+        ) {
+            AccountAnalyticsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenTransaction = { navController.navigate(openRoute(it)) },
+                onShowAll = { navController.openTransactions(it) },
+            )
+        }
         composable(Routes.MORE) {
             MoreScreen(onNavigate = { navController.navigate(it) })
         }
@@ -240,6 +279,12 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onBack = { navController.popBackStack() },
                 onShowTransactions = { tagId ->
                     navController.navigate(Routes.transactionsForTag(tagId)) {
+                        launchSingleTop = true
+                        restoreState = false
+                    }
+                },
+                onAnalyze = { tagId ->
+                    navController.navigate(Routes.statisticsTab("TAGS", tagId)) {
                         launchSingleTop = true
                         restoreState = false
                     }
@@ -285,34 +330,15 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
     }
 }
 
-private fun openRoute(item: TransactionItem): String =
-    if (item.type == OperationType.TRANSFER) Routes.transferEdit(item.id) else Routes.transactionEdit(item.id)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PlaceholderScreen(@StringRes title: Int, onBack: (() -> Unit)? = null) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(title)) },
-                navigationIcon = {
-                    if (onBack != null) {
-                        IconButton(onClick = onBack) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.navigate_back),
-                            )
-                        }
-                    }
-                },
-            )
-        },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.placeholder_coming_soon))
-        }
+private fun NavHostController.openTransactions(filter: TransactionFilter) {
+    navigate(Routes.transactions(filter)) {
+        launchSingleTop = true
+        restoreState = false
     }
 }
+
+private fun openRoute(item: TransactionItem): String =
+    if (item.type == OperationType.TRANSFER) Routes.transferEdit(item.id) else Routes.transactionEdit(item.id)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

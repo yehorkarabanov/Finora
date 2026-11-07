@@ -13,7 +13,6 @@
     <string name="more_transfers">Transfers</string>
     <string name="more_settings">Settings</string>
 
-    <string name="placeholder_coming_soon">Coming soon</string>
     <string name="navigate_back">Back</string>
 
     <string name="settings_title">Settings</string>
@@ -256,6 +255,8 @@
 
     <string name="filter_clear_all">Clear all</string>
     <string name="filter_clear_date">Clear</string>
+    <string name="filter_category_direct_only">%1$s (direct only)</string>
+
     <string name="filter_amount_dropped">Amount range removed: the selected accounts use different currencies.</string>
     <string name="filter_chip_amount">%1$s – %2$s</string>
     <string name="filter_chip_amount_min">From %1$s</string>
@@ -414,5 +415,94 @@
     <string name="recurring_past_body">Dated %1$s.</string>
     <string name="recurring_past_confirm">Create</string>
     <string name="recurring_opening_order_body">These transactions are dated before the initial balance of the account. Move the initial balance back so it is not later than the first of them? The current balance does not change.</string>
+    <!-- Periods -->
+    <string name="period_today">Today</string>
+    <string name="period_week">Week</string>
+    <string name="period_month">Month</string>
+    <string name="period_year">Year</string>
+    <string name="period_custom">Custom</string>
+
+    <!-- Analytics, shared -->
+    <string name="analytics_none">—</string>
+    <string name="analytics_delta_new">New</string>
+    <string name="analytics_range">%1$s – %2$s</string>
+    <string name="analytics_partial_warning">Some amounts could not be converted</string>
+    <string name="analytics_period_previous">Previous period</string>
+    <string name="analytics_period_next">Next period</string>
+    <string name="analytics_scope_display">%1$s (all)</string>
+    <string name="analytics_scope_native">%1$s only</string>
+    <string name="analytics_note_native">Only %1$s accounts, shown without conversion.</string>
+    <string name="analytics_note_converted">Converted at today\'s rates, updated %1$s.</string>
+    <string name="analytics_note_overflow">Some amounts are too large to add up.</string>
+    <string name="analytics_direct_suffix">%1$s (direct)</string>
+    <string name="analytics_other">Other</string>
+    <plurals name="analytics_operations">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
+
+    <!-- Dashboard -->
+    <string name="dashboard_first_account_title">Add your first account to see your finances here</string>
+    <string name="dashboard_net">Net</string>
+    <string name="dashboard_by_currency">By currency</string>
+    <string name="dashboard_manage_accounts">Accounts</string>
+    <string name="dashboard_distribution">Expenses by category</string>
+    <string name="dashboard_no_expenses">No expenses in this period</string>
+    <string name="dashboard_details">Details</string>
+    <string name="dashboard_recent">Recent transactions</string>
+    <string name="dashboard_see_all">See all</string>
+    <string name="dashboard_upcoming">Upcoming</string>
+    <string name="dashboard_upcoming_none">No upcoming recurring transactions</string>
+    <plurals name="dashboard_schedules_attention">
+        <item quantity="one">%1$d schedule needs attention</item>
+        <item quantity="other">%1$d schedules need attention</item>
+    </plurals>
+
+    <!-- Statistics -->
+    <string name="stats_tab_expenses">Expenses</string>
+    <string name="stats_tab_income">Income</string>
+    <string name="stats_tab_tags">Tags</string>
+    <string name="stats_tab_accounts">Accounts</string>
+    <string name="stats_compare">Compare with previous period</string>
+    <string name="stats_compare_previous">vs. %1$s</string>
+    <string name="stats_all_categories">All categories</string>
+    <string name="stats_back">Up one level</string>
+    <string name="stats_by_account">By account</string>
+    <string name="stats_by_tag">By tag</string>
+    <string name="stats_by_tag_note">A transaction with several tags is counted under each of them, so these rows can add up to more than the total.</string>
+    <string name="stats_trend">Trend</string>
+    <string name="stats_trend_monthly">Monthly</string>
+    <string name="stats_trend_yearly">Yearly</string>
+    <string name="stats_show_transactions">Show transactions</string>
+    <string name="stats_no_data">Nothing in this period</string>
+    <string name="stats_tags_hint">Choose one or more tags to analyze</string>
+    <string name="stats_no_tag">No tag</string>
+    <string name="stats_filter">Filter</string>
+    <string name="stats_measure_expense">Expenses</string>
+    <string name="stats_measure_income">Income</string>
+    <string name="stats_measure_transfer">Transfers</string>
+    <string name="stats_total_income">Income</string>
+    <string name="stats_total_expense">Expenses</string>
+    <string name="stats_total_net">Net</string>
+    <string name="stats_total_transferred">Transferred</string>
+    <string name="stats_by_date">By date</string>
+    <string name="stats_recent">Recent transactions</string>
+    <string name="stats_show_all">Show all %1$d</string>
+    <string name="stats_account_income">Income</string>
+    <string name="stats_account_expense">Expenses</string>
+    <string name="stats_account_net">Net</string>
+    <string name="stats_accounts_empty">No accounts yet</string>
+    <string name="stats_account_title">Account statistics</string>
+    <string name="stats_account_current_balance">Current balance</string>
+    <string name="stats_account_initial_balance">Initial balance</string>
+    <string name="stats_account_transfers_in">Incoming transfers</string>
+    <string name="stats_account_transfers_out">Outgoing transfers</string>
+    <string name="stats_account_balance_start">Balance at start</string>
+    <string name="stats_account_balance_end">Balance at end</string>
+    <string name="stats_account_balance_over_time">Balance over time</string>
+    <string name="stats_account_archived">This account is archived</string>
+    <string name="action_statistics">Statistics</string>
+    <string name="action_analyze">Analyze</string>
+
 
 </resources>

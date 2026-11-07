@@ -53,6 +53,7 @@ import com.yehor.finora.ui.common.ColorPicker
 fun TagsScreen(
     onBack: () -> Unit,
     onShowTransactions: (Long) -> Unit,
+    onAnalyze: (Long) -> Unit,
     viewModel: TagsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -90,6 +91,7 @@ fun TagsScreen(
                         onEdit = { viewModel.onEdit(item.tag) },
                         onDelete = { viewModel.onDeleteRequest(item) },
                         onShowTransactions = { onShowTransactions(item.tag.id) },
+                    onAnalyze = { onAnalyze(item.tag.id) },
                     )
                 }
             }
@@ -120,6 +122,7 @@ private fun TagRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onShowTransactions: () -> Unit,
+    onAnalyze: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
 
@@ -146,6 +149,10 @@ private fun TagRow(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_show_transactions)) },
                         onClick = { menuOpen = false; onShowTransactions() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_analyze)) },
+                        onClick = { menuOpen = false; onAnalyze() },
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_delete)) },

@@ -1,6 +1,7 @@
 package com.yehor.finora.domain.operation
 
 import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.Currency
 
@@ -57,6 +58,14 @@ object FilterScope {
         )
     }
 
+    /** Selected categories plus all their descendants, or only the selected ones when [TransactionFilter.categoryExact]. */
+    fun categoryClosure(filter: TransactionFilter, tree: CategoryTree): Set<Long> =
+        if (filter.categoryExact) {
+            filter.categoryIds
+        } else {
+            filter.categoryIds.flatMap { tree.descendantIds(it) + it }.toSet()
+        }
+
     fun scopeCurrency(filter: TransactionFilter, accounts: List<Account>): Currency? {
         val relevant = if (filter.accountIds.isEmpty()) {
             accounts
@@ -72,9 +81,14 @@ object FilterScope {
         existingAccountIds: Set<Long>,
         existingCategoryIds: Set<Long>,
         existingTagIds: Set<Long>,
-    ): TransactionFilter = filter.copy(
-        accountIds = filter.accountIds.filter { it in existingAccountIds }.toSet(),
-        categoryIds = filter.categoryIds.filter { it in existingCategoryIds }.toSet(),
-        tagIds = filter.tagIds.filter { it in existingTagIds }.toSet(),
-    )
+    ): TransactionFilter {
+        val categoryIds = filter.categoryIds.filter { it in existingCategoryIds }.toSet()
+        return filter.copy(
+            accountIds = filter.accountIds.filter { it in existingAccountIds }.toSet(),
+            categoryIds = categoryIds,
+            // "Direct only" means nothing without a category.
+            categoryExact = filter.categoryExact && categoryIds.isNotEmpty(),
+            tagIds = filter.tagIds.filter { it in existingTagIds }.toSet(),
+        )
+    }
 }

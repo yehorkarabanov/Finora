@@ -61,6 +61,7 @@ fun AccountDetailScreen(
     onTransfer: (Long) -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
     onShowAllTransactions: (Long) -> Unit,
+    onOpenStatistics: (Long) -> Unit,
     viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -161,6 +162,9 @@ fun AccountDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Button(onClick = { onEdit(account.id) }) { Text(stringResource(R.string.action_edit)) }
+                FilledTonalButton(onClick = { onOpenStatistics(account.id) }) {
+                    Text(stringResource(R.string.action_statistics))
+                }
                 if (!archived) {
                     FilledTonalButton(onClick = { onTransfer(account.id) }) {
                         Text(stringResource(R.string.account_detail_transfer))

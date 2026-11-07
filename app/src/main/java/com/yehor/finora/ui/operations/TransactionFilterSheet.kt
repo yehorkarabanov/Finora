@@ -63,6 +63,9 @@ internal fun endExclusiveMillis(date: LocalDate, zone: ZoneId = ZoneId.systemDef
 internal fun dateOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalDate =
     Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
 
+/** The parts of the filter sheet a caller can show. */
+enum class FilterSection { TYPE, ACCOUNT, CATEGORY, TAG, DATE, AMOUNT, TEXT }
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TransactionFilterSheet(
@@ -72,6 +75,7 @@ fun TransactionFilterSheet(
     tags: List<Tag>,
     onApply: (TransactionFilter) -> Unit,
     onDismiss: () -> Unit,
+    sections: Set<FilterSection> = FilterSection.entries.toSet(),
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var current by remember { mutableStateOf(filter) }
@@ -88,107 +92,119 @@ fun TransactionFilterSheet(
         ) {
             Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge)
 
-            Text(stringResource(R.string.filter_type), style = MaterialTheme.typography.labelLarge)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf(OperationType.EXPENSE, OperationType.INCOME, OperationType.TRANSFER).forEach { type ->
-                    val selected = type in current.types
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            current = current.copy(types = if (selected) current.types - type else current.types + type)
-                        },
-                        label = {
-                            Text(
-                                stringResource(
-                                    when (type) {
-                                        OperationType.INCOME -> R.string.transaction_kind_income
-                                        OperationType.TRANSFER -> R.string.transaction_kind_transfer
-                                        else -> R.string.transaction_kind_expense
-                                    },
-                                ),
-                            )
-                        },
-                    )
+            if (FilterSection.TYPE in sections) {
+                Text(stringResource(R.string.filter_type), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(OperationType.EXPENSE, OperationType.INCOME, OperationType.TRANSFER).forEach { type ->
+                        val selected = type in current.types
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                current = current.copy(types = if (selected) current.types - type else current.types + type)
+                            },
+                            label = {
+                                Text(
+                                    stringResource(
+                                        when (type) {
+                                            OperationType.INCOME -> R.string.transaction_kind_income
+                                            OperationType.TRANSFER -> R.string.transaction_kind_transfer
+                                            else -> R.string.transaction_kind_expense
+                                        },
+                                    ),
+                                )
+                            },
+                        )
+                    }
                 }
             }
 
-            Text(stringResource(R.string.filter_accounts), style = MaterialTheme.typography.labelLarge)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                accounts.forEach { account ->
-                    val selected = account.id in current.accountIds
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            current = current.copy(
-                                accountIds = if (selected) current.accountIds - account.id else current.accountIds + account.id,
-                            )
-                        },
-                        label = { Text(account.name) },
-                    )
+            if (FilterSection.ACCOUNT in sections) {
+                Text(stringResource(R.string.filter_accounts), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    accounts.forEach { account ->
+                        val selected = account.id in current.accountIds
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                current = current.copy(
+                                    accountIds = if (selected) current.accountIds - account.id else current.accountIds + account.id,
+                                )
+                            },
+                            label = { Text(account.name) },
+                        )
+                    }
                 }
             }
 
-            CategoryFilter(
-                categories = categories,
-                selectedIds = current.categoryIds,
-                includeUncategorized = current.includeUncategorized,
-                onToggle = { id ->
-                    current = current.copy(
-                        categoryIds = if (id in current.categoryIds) current.categoryIds - id else current.categoryIds + id,
-                    )
-                },
-                onToggleUncategorized = { current = current.copy(includeUncategorized = !current.includeUncategorized) },
-            )
-
-            Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
-            TagFilterPicker(
-                allTags = tags,
-                selectedTagIds = current.tagIds,
-                tagMode = current.tagMode,
-                onToggleTag = { id ->
-                    current = current.copy(
-                        tagIds = if (id in current.tagIds) current.tagIds - id else current.tagIds + id,
-                    )
-                },
-                onModeChange = { current = current.copy(tagMode = it) },
-            )
-
-            Text(stringResource(R.string.filter_date), style = MaterialTheme.typography.labelLarge)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                DateField(
-                    date = current.from?.let { dateOf(it) },
-                    onDateChange = { current = current.copy(from = startOfDayMillis(it)) },
-                    maxDate = today,
-                    label = stringResource(R.string.filter_date_from),
-                    modifier = Modifier.weight(1f),
-                )
-                DateField(
-                    date = current.toExclusive?.let { dateOf(it - 1) },
-                    onDateChange = { current = current.copy(toExclusive = endExclusiveMillis(it)) },
-                    maxDate = today,
-                    label = stringResource(R.string.filter_date_to),
-                    modifier = Modifier.weight(1f),
+            if (FilterSection.CATEGORY in sections) {
+                CategoryFilter(
+                    categories = categories,
+                    selectedIds = current.categoryIds,
+                    includeUncategorized = current.includeUncategorized,
+                    onToggle = { id ->
+                        current = current.copy(
+                            categoryIds = if (id in current.categoryIds) current.categoryIds - id else current.categoryIds + id,
+                        )
+                    },
+                    onToggleUncategorized = { current = current.copy(includeUncategorized = !current.includeUncategorized) },
                 )
             }
-            if (current.from != null || current.toExclusive != null) {
-                TextButton(onClick = { current = current.copy(from = null, toExclusive = null) }) {
-                    Text(stringResource(R.string.filter_clear_date))
+
+            if (FilterSection.TAG in sections) {
+                Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
+                TagFilterPicker(
+                    allTags = tags,
+                    selectedTagIds = current.tagIds,
+                    tagMode = current.tagMode,
+                    onToggleTag = { id ->
+                        current = current.copy(
+                            tagIds = if (id in current.tagIds) current.tagIds - id else current.tagIds + id,
+                        )
+                    },
+                    onModeChange = { current = current.copy(tagMode = it) },
+                )
+            }
+
+            if (FilterSection.DATE in sections) {
+                Text(stringResource(R.string.filter_date), style = MaterialTheme.typography.labelLarge)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    DateField(
+                        date = current.from?.let { dateOf(it) },
+                        onDateChange = { current = current.copy(from = startOfDayMillis(it)) },
+                        maxDate = today,
+                        label = stringResource(R.string.filter_date_from),
+                        modifier = Modifier.weight(1f),
+                    )
+                    DateField(
+                        date = current.toExclusive?.let { dateOf(it - 1) },
+                        onDateChange = { current = current.copy(toExclusive = endExclusiveMillis(it)) },
+                        maxDate = today,
+                        label = stringResource(R.string.filter_date_to),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (current.from != null || current.toExclusive != null) {
+                    TextButton(onClick = { current = current.copy(from = null, toExclusive = null) }) {
+                        Text(stringResource(R.string.filter_clear_date))
+                    }
                 }
             }
 
-            Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
-            if (scopeCurrency != null) {
-                AmountRangeFields(
-                    currency = scopeCurrency,
-                    range = current.amount,
-                    onChange = { current = current.copy(amount = it) },
-                )
-            } else {
-                Text(
-                    stringResource(R.string.filter_amount_disabled_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            if (FilterSection.AMOUNT in sections) {
+                Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
+                if (scopeCurrency != null) {
+                    AmountRangeFields(
+                        currency = scopeCurrency,
+                        range = current.amount,
+                        onChange = { current = current.copy(amount = it) },
+                    )
+                } else {
+                    Text(
+                        stringResource(R.string.filter_amount_disabled_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {

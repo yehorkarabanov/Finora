@@ -20,6 +20,7 @@ import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.operation.CurrencySummary
 import com.yehor.finora.domain.operation.DayGroup
 import com.yehor.finora.domain.operation.DayGrouping
+import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.FilterScope
 import com.yehor.finora.domain.operation.NormalizedFilter
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -84,16 +85,19 @@ class TransactionsViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
-    private val initialFilter = FilterScope.preset(
-        accountId = savedStateHandle.get<Long>("accountId")?.takeIf { it > 0 },
-        tagId = savedStateHandle.get<Long>("tagId")?.takeIf { it > 0 },
-        categoryId = savedStateHandle.get<Long>("categoryId")?.takeIf { it > 0 },
-        types = if (savedStateHandle.get<String>("types") == OperationType.TRANSFER.name) {
-            setOf(OperationType.TRANSFER)
-        } else {
-            emptySet()
-        },
-    )
+    private val initialFilter = savedStateHandle.get<String>("filter")
+        ?.takeIf { it.isNotBlank() }
+        ?.let { FilterCodec.decode(it) }
+        ?: FilterScope.preset(
+            accountId = savedStateHandle.get<Long>("accountId")?.takeIf { it > 0 },
+            tagId = savedStateHandle.get<Long>("tagId")?.takeIf { it > 0 },
+            categoryId = savedStateHandle.get<Long>("categoryId")?.takeIf { it > 0 },
+            types = if (savedStateHandle.get<String>("types") == OperationType.TRANSFER.name) {
+                setOf(OperationType.TRANSFER)
+            } else {
+                emptySet()
+            },
+        )
 
     private val _filter = MutableStateFlow(initialFilter)
     private val _sort = MutableStateFlow(TransactionSort.DATE_DESC)

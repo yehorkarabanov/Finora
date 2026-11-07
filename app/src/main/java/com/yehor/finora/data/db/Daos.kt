@@ -211,6 +211,21 @@ interface OperationDao {
     @RawQuery
     suspend fun summarize(query: SupportSQLiteQuery): List<SummaryRow>
 
+    @RawQuery
+    suspend fun aggregates(query: SupportSQLiteQuery): List<AggregateRow>
+
+    @RawQuery
+    suspend fun figures(query: SupportSQLiteQuery): List<FigureRow>
+
+    @RawQuery
+    suspend fun overview(query: SupportSQLiteQuery): List<OverviewRow>
+
+    @RawQuery
+    suspend fun deltas(query: SupportSQLiteQuery): List<DeltaRow>
+
+    @RawQuery
+    suspend fun longValue(query: SupportSQLiteQuery): List<LongRow>
+
     @Transaction
     @Query("SELECT * FROM operation WHERE id = :id")
     fun observeWithDetails(id: Long): Flow<OperationWithDetails?>

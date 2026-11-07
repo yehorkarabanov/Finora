@@ -13,6 +13,7 @@ object TransactionQuery {
         sort: TransactionSort,
         categoryClosure: Set<Long>,
         scopeCurrency: String? = filter.amount?.currency?.code,
+        limit: Int? = null,
     ): SimpleSQLiteQuery {
         val args = mutableListOf<Any>()
         val whereClauses = buildWhereClauses(filter, categoryClosure, scopeCurrency, args)
@@ -36,7 +37,13 @@ object TransactionQuery {
             }
         }
 
-        val sql = "SELECT o.* FROM operation o $whereSql $orderSql"
+        val limitSql = if (limit != null) {
+            args.add(limit)
+            " LIMIT ?"
+        } else {
+            ""
+        }
+        val sql = "SELECT o.* FROM operation o $whereSql $orderSql$limitSql"
         return SimpleSQLiteQuery(sql, args.toTypedArray())
     }
 
@@ -62,7 +69,7 @@ object TransactionQuery {
         return SimpleSQLiteQuery(sql, args.toTypedArray())
     }
 
-    private fun buildWhereClauses(
+    internal fun buildWhereClauses(
         filter: TransactionFilter,
         categoryClosure: Set<Long>,
         scopeCurrency: String?,

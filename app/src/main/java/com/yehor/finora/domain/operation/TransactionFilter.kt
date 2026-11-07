@@ -13,7 +13,8 @@ data class AmountRange(
 data class TransactionFilter(
     val types: Set<OperationType> = emptySet(), // subset of INCOME, EXPENSE, TRANSFER. Empty = all.
     val accountIds: Set<Long> = emptySet(),
-    val categoryIds: Set<Long> = emptySet(), // includes descendants
+    val categoryIds: Set<Long> = emptySet(), // includes descendants unless [categoryExact]
+    val categoryExact: Boolean = false, // true: [categoryIds] match only their own operations
     val includeUncategorized: Boolean = false,
     val tagIds: Set<Long> = emptySet(),
     val tagMode: TagMatchMode = TagMatchMode.ANY,
@@ -26,6 +27,7 @@ data class TransactionFilter(
         get() = types.isNotEmpty() ||
             accountIds.isNotEmpty() ||
             categoryIds.isNotEmpty() ||
+            categoryExact ||
             includeUncategorized ||
             tagIds.isNotEmpty() ||
             from != null ||

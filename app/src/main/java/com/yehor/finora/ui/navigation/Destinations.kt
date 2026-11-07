@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.navigation
 
+import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
@@ -9,16 +10,21 @@ import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yehor.finora.R
+import com.yehor.finora.domain.operation.FilterCodec
+import com.yehor.finora.domain.operation.TransactionFilter
 
 object Routes {
     const val DASHBOARD = "dashboard"
     const val TRANSACTIONS = "transactions"
-    const val TRANSACTIONS_PRESET = "transactions?accountId={accountId}&tagId={tagId}&categoryId={categoryId}&types={types}"
+    const val TRANSACTIONS_PRESET =
+        "transactions?accountId={accountId}&tagId={tagId}&categoryId={categoryId}&types={types}&filter={filter}"
     const val ACCOUNTS = "accounts"
     const val ACCOUNT_NEW = "accounts/new"
     const val ACCOUNT_DETAIL = "accounts/{accountId}"
     const val ACCOUNT_EDIT = "accounts/{accountId}/edit"
     const val STATISTICS = "statistics"
+    const val STATISTICS_PRESET = "statistics?tab={tab}&tagId={tagId}"
+    const val ACCOUNT_ANALYTICS = "statistics/accounts/{accountId}"
     const val MORE = "more"
     const val CATEGORIES = "more/categories"
     const val CATEGORY_NEW = "more/categories/new?type={type}&parentId={parentId}"
@@ -44,6 +50,13 @@ object Routes {
     fun transactionsForTag(tagId: Long) = "transactions?tagId=$tagId"
     fun transactionsForAccount(accountId: Long) = "transactions?accountId=$accountId"
     fun transactionsForCategory(categoryId: Long) = "transactions?categoryId=$categoryId"
+
+    /** History preset from an analytics row. An empty filter opens the plain list. */
+    fun transactions(filter: TransactionFilter): String =
+        "transactions?filter=" + Uri.encode(FilterCodec.encode(filter))
+    fun statisticsTab(tab: String, tagId: Long? = null) =
+        "statistics?tab=$tab" + (tagId?.let { "&tagId=$it" } ?: "")
+    fun accountAnalytics(accountId: Long) = "statistics/accounts/$accountId"
     fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null) =
         "transactions/new?kind=$kind" + (duplicateOf?.let { "&duplicateOf=$it" } ?: "")
     fun transactionEdit(id: Long) = "transactions/$id"
