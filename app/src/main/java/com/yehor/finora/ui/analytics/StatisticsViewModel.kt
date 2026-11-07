@@ -17,7 +17,6 @@ import com.yehor.finora.domain.analytics.PeriodKind
 import com.yehor.finora.domain.analytics.ResolvedPeriod
 import com.yehor.finora.domain.analytics.Reports
 import com.yehor.finora.domain.analytics.ScopeConverter
-import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
@@ -42,8 +41,7 @@ enum class StatsTab { EXPENSES, INCOME, TAGS, ACCOUNTS }
 /** What the user chose on the Statistics shell. Survives rotation and process death. */
 data class StatsControls(
     val tab: StatsTab = StatsTab.EXPENSES,
-    /** Currency code of a native scope, or null for the Display Currency. */
-    val scopeCode: String? = null,
+    val selectedAccountIds: Set<Long> = emptySet(),
     val compare: Boolean = false,
     /** Entered categories from the root down. */
     val path: List<Long> = emptyList(),
@@ -83,7 +81,6 @@ data class StatisticsUiState(
     val env: AnalyticsEnv? = null,
     val controls: StatsControls = StatsControls(),
     val scope: CurrencyScope? = null,
-    val nativeCurrencies: List<Currency> = emptyList(),
     val conversion: ConversionInfo = ConversionInfo.NONE,
     val content: StatsContent? = null,
     /** The previous period of the same kind, for the Compare label. */
@@ -111,9 +108,10 @@ class StatisticsViewModel @Inject constructor(
             argTag != null -> TransactionFilter(tagIds = setOf(argTag))
             else -> TransactionFilter()
         }
+        val accounts = savedState.get<String>(KEY_ACCOUNTS).orEmpty().split(',').mapNotNull { it.toLongOrNull() }.toSet()
         return StatsControls(
             tab = tab,
-            scopeCode = savedState.get<String>(KEY_SCOPE)?.takeIf { it.isNotEmpty() },
+            selectedAccountIds = accounts,
             compare = savedState.get<Boolean>(KEY_COMPARE) ?: false,
             path = savedState.get<String>(KEY_PATH).orEmpty().split(',').mapNotNull { it.toLongOrNull() },
             trendYearly = savedState.get<Boolean>(KEY_YEARLY) ?: false,
@@ -127,7 +125,7 @@ class StatisticsViewModel @Inject constructor(
         _controls.update(block)
         val c = _controls.value
         savedState[KEY_TAB] = c.tab.name
-        savedState[KEY_SCOPE] = c.scopeCode.orEmpty()
+        savedState[KEY_ACCOUNTS] = c.selectedAccountIds.joinToString(",")
         savedState[KEY_COMPARE] = c.compare
         savedState[KEY_PATH] = c.path.joinToString(",")
         savedState[KEY_YEARLY] = c.trendYearly
@@ -144,8 +142,15 @@ class StatisticsViewModel @Inject constructor(
     /** Changing tab clears the drill-down path. */
     fun selectTab(tab: StatsTab) = change { it.copy(tab = tab, path = emptyList()) }
 
-    fun selectScope(scope: CurrencyScope) = change {
-        it.copy(scopeCode = (scope as? CurrencyScope.Native)?.currency?.code, path = emptyList())
+    fun toggleAccount(accountId: Long) = change { c ->
+        c.copy(
+            selectedAccountIds = if (accountId in c.selectedAccountIds) c.selectedAccountIds - accountId else c.selectedAccountIds + accountId,
+            path = emptyList(),
+        )
+    }
+
+    fun clearAccounts() = change {
+        it.copy(selectedAccountIds = emptySet(), path = emptyList())
     }
 
     fun setCompare(on: Boolean) = change { it.copy(compare = on) }
@@ -212,11 +217,7 @@ class StatisticsViewModel @Inject constructor(
     // ---- Content ----
 
     private fun content(env: AnalyticsEnv, controls: StatsControls): Flow<StatisticsUiState> {
-        val nativeCurrencies = env.allAccounts.map { it.currency }.distinct().sortedBy { it.code }
-        val nativeScope = controls.scopeCode
-            ?.let { code -> nativeCurrencies.firstOrNull { it.code == code } }
-            ?.let { CurrencyScope.Native(it) }
-        val scope: CurrencyScope = nativeScope ?: CurrencyScope.Display(env.display)
+        val scope: CurrencyScope = resolveScope(controls.selectedAccountIds, env.allAccounts, env.display)
         val previous = if (controls.compare && controls.tab != StatsTab.ACCOUNTS) {
             PeriodCalculator.resolve(PeriodCalculator.previous(env.period.period), env.zone, env.firstDayOfWeek)
         } else {
@@ -226,7 +227,7 @@ class StatisticsViewModel @Inject constructor(
             StatsTab.EXPENSES -> flows(env, controls, scope, Measure.EXPENSE, previous)
             StatsTab.INCOME -> flows(env, controls, scope, Measure.INCOME, previous)
             StatsTab.TAGS -> tags(env, controls, scope, previous)
-            StatsTab.ACCOUNTS -> accounts(env)
+            StatsTab.ACCOUNTS -> accounts(env, controls)
         }
         return tabContent.map { (content, cells) ->
             StatisticsUiState(
@@ -234,7 +235,6 @@ class StatisticsViewModel @Inject constructor(
                 env = env,
                 controls = controls,
                 scope = scope,
-                nativeCurrencies = nativeCurrencies,
                 conversion = conversionInfo(cells),
                 content = content,
                 previousPeriod = previous,
@@ -249,8 +249,14 @@ class StatisticsViewModel @Inject constructor(
         measure: Measure,
         previous: ResolvedPeriod?,
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
-        val base = AnalyticsFilters.base(env.period, scope, env.allAccounts)
-        val previousBase = previous?.let { AnalyticsFilters.base(it, scope, env.allAccounts) }
+        val base = TransactionFilter(
+            from = env.period.from,
+            toExclusive = env.period.toExclusive,
+            accountIds = controls.selectedAccountIds,
+        )
+        val previousBase = previous?.let {
+            TransactionFilter(from = it.from, toExclusive = it.toExclusive, accountIds = controls.selectedAccountIds)
+        }
         val path = controls.path
         val trendEnd = minOf(env.period.toDateInclusive, env.today)
         val buckets = if (controls.trendYearly) {
@@ -258,7 +264,7 @@ class StatisticsViewModel @Inject constructor(
         } else {
             BucketPlan.months(trendEnd, 12, env.zone)
         }
-        val trendBase = AnalyticsFilters.base(env.period, scope, env.allAccounts).copy(
+        val trendBase = base.copy(
             from = null,
             toExclusive = null,
             categoryIds = path.lastOrNull()?.let { setOf(it) } ?: emptySet(),
@@ -287,10 +293,11 @@ class StatisticsViewModel @Inject constructor(
         previous: ResolvedPeriod?,
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
         val chosen = controls.tagFilter
-        val filter = AnalyticsFilters.scoped(
-            chosen.copy(from = env.period.from, toExclusive = env.period.toExclusive),
-            scope,
-            env.allAccounts,
+        val effectiveAccountIds = if (chosen.accountIds.isNotEmpty()) chosen.accountIds else controls.selectedAccountIds
+        val filter = chosen.copy(
+            from = env.period.from,
+            toExclusive = env.period.toExclusive,
+            accountIds = effectiveAccountIds,
         )
         if (filter.tagIds.isEmpty()) {
             return flowOf(StatsContent.Tags(TagsTab(filter, null, emptyList())) to emptyList())
@@ -348,10 +355,15 @@ class StatisticsViewModel @Inject constructor(
         val previousRows: Rows?,
     )
 
-    private fun accounts(env: AnalyticsEnv): Flow<Pair<StatsContent, Collection<Cell>>> =
+    private fun accounts(env: AnalyticsEnv, controls: StatsControls): Flow<Pair<StatsContent, Collection<Cell>>> =
         analytics.observeAccountsOverview(env.period).map { rows ->
             val byId = rows.associateBy { it.accountId }
-            val views = env.accounts
+            val filteredAccounts = if (controls.selectedAccountIds.isEmpty()) {
+                env.accounts
+            } else {
+                env.accounts.filter { it.account.id in controls.selectedAccountIds }
+            }
+            val views = filteredAccounts
                 .map { it.account }
                 .sortedWith(compareBy({ it.status }, { it.name.lowercase() }))
                 .mapNotNull { account -> byId[account.id]?.let { AccountPeriodView(account, it) } }
@@ -367,7 +379,7 @@ class StatisticsViewModel @Inject constructor(
 
     companion object {
         private const val KEY_TAB = "tab"
-        private const val KEY_SCOPE = "stats_scope"
+        private const val KEY_ACCOUNTS = "stats_accounts"
         private const val KEY_COMPARE = "stats_compare"
         private const val KEY_PATH = "stats_path"
         private const val KEY_YEARLY = "stats_yearly"

@@ -30,6 +30,22 @@ fun CurrencyScope.currency(): Currency = when (this) {
     is CurrencyScope.Native -> currency
 }
 
+/**
+ * Resolves the display currency scope for analytics based on account selection.
+ * If all selected accounts (or all accounts when none are selected) share the same currency,
+ * that currency is used. If multiple currencies are present, the system display currency is used.
+ */
+fun resolveScope(
+    selectedAccountIds: Set<Long>,
+    accounts: List<Account>,
+    displayCurrency: Currency,
+): CurrencyScope {
+    val effective = if (selectedAccountIds.isEmpty()) accounts else accounts.filter { it.id in selectedAccountIds }
+    val currencies = effective.map { it.currency }.distinct()
+    val currency = if (currencies.size == 1) currencies.single() else displayCurrency
+    return CurrencyScope.Display(currency)
+}
+
 /** Native rows of one aggregate, or the fact that a SUM did not fit in a Long (R13). */
 sealed interface Rows {
     data class Ok(val rows: List<NativeRow>) : Rows

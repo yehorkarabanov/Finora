@@ -2,6 +2,7 @@ package com.yehor.finora.ui.analytics
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -14,15 +15,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
@@ -38,8 +46,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Delta
@@ -47,7 +57,6 @@ import com.yehor.finora.domain.analytics.PeriodKind
 import com.yehor.finora.domain.analytics.PeriodState
 import com.yehor.finora.domain.analytics.ResolvedPeriod
 import com.yehor.finora.domain.analytics.Share
-import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.Estimate
 import com.yehor.finora.ui.accounts.NotIncludedLine
 import com.yehor.finora.ui.accounts.formatDate
@@ -236,27 +245,119 @@ private fun utcMillis(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC)
 
 private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ScopeSelector(
-    scope: CurrencyScope,
-    display: Currency,
-    currencies: List<Currency>,
-    onSelect: (CurrencyScope) -> Unit,
+fun AccountSelector(
+    accounts: List<Account>,
+    selectedAccountIds: Set<Long>,
+    onToggleAccount: (Long) -> Unit,
+    onClearSelection: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(
-            selected = scope is CurrencyScope.Display,
-            onClick = { onSelect(CurrencyScope.Display(display)) },
-            label = { Text(stringResource(R.string.analytics_scope_display, display.code)) },
-        )
-        currencies.forEach { currency ->
-            FilterChip(
-                selected = (scope as? CurrencyScope.Native)?.currency == currency,
-                onClick = { onSelect(CurrencyScope.Native(currency)) },
-                label = { Text(stringResource(R.string.analytics_scope_native, currency.code)) },
+    if (accounts.isEmpty()) return
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val labelText = when {
+        selectedAccountIds.isEmpty() -> stringResource(R.string.filter_all_accounts_selected)
+        selectedAccountIds.size == 1 -> accounts.firstOrNull { it.id == selectedAccountIds.single() }?.name
+            ?: stringResource(R.string.filter_all_accounts_selected)
+        else -> pluralStringResource(R.plurals.analytics_accounts_selected, selectedAccountIds.size, selectedAccountIds.size)
+    }
+
+    Box(modifier = modifier) {
+        OutlinedCard(
+            onClick = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    if (selectedAccountIds.size == 1) {
+                        val singleAccount = accounts.firstOrNull { it.id == selectedAccountIds.single() }
+                        if (singleAccount != null) {
+                            IconBadge(
+                                icon = singleAccount.icon,
+                                color = singleAccount.color,
+                                fallbackColor = ColorPalette.ACCOUNT_DEFAULT,
+                                size = 28,
+                            )
+                        }
+                    }
+                    Column {
+                        Text(
+                            text = stringResource(R.string.filter_accounts),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = labelText,
+                            style = MaterialTheme.typography.bodyLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Icon(
+                    if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                    contentDescription = null,
+                )
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.9f),
+        ) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.filter_all_accounts_selected)) },
+                onClick = { onClearSelection() },
+                leadingIcon = {
+                    Checkbox(
+                        checked = selectedAccountIds.isEmpty(),
+                        onCheckedChange = null,
+                    )
+                },
             )
+            HorizontalDivider()
+            accounts.forEach { account ->
+                val isSelected = account.id in selectedAccountIds
+                DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(account.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(
+                                account.currency.code,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    },
+                    onClick = { onToggleAccount(account.id) },
+                    leadingIcon = {
+                        Checkbox(
+                            checked = isSelected,
+                            onCheckedChange = null,
+                        )
+                    },
+                    trailingIcon = {
+                        IconBadge(
+                            icon = account.icon,
+                            color = account.color,
+                            fallbackColor = ColorPalette.ACCOUNT_DEFAULT,
+                            size = 24,
+                        )
+                    },
+                )
+            }
         }
     }
 }

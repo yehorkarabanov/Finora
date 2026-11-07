@@ -233,6 +233,8 @@
     <!-- Filters and Sorting -->
     <string name="filter_title">Filters</string>
     <string name="filter_type">Type</string>
+    <string name="filter_all_accounts">All</string>
+    <string name="filter_all_accounts_selected">All accounts</string>
     <string name="filter_accounts">Accounts</string>
     <string name="filter_categories">Categories</string>
     <string name="filter_tags">Tags</string>
@@ -439,6 +441,10 @@
     <plurals name="analytics_operations">
         <item quantity="one">%1$d transaction</item>
         <item quantity="other">%1$d transactions</item>
+    </plurals>
+    <plurals name="analytics_accounts_selected">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
     </plurals>
 
     <!-- Dashboard -->

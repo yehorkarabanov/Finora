@@ -17,17 +17,12 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -37,14 +32,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.domain.analytics.Cell
-import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.account.AccountWithBalance
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.accounts.BalanceText
-import com.yehor.finora.ui.accounts.ValuationCard
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
@@ -68,7 +61,14 @@ data class DashboardActions(
 @Composable
 fun DashboardScreen(actions: DashboardActions, viewModel: DashboardViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    DashboardContent(state, actions, viewModel::selectPeriod, viewModel::setCustomPeriod)
+    DashboardContent(
+        state = state,
+        actions = actions,
+        onSelectPeriod = viewModel::selectPeriod,
+        onCustomPeriod = viewModel::setCustomPeriod,
+        onToggleAccount = viewModel::toggleAccount,
+        onClearAccountSelection = viewModel::clearAccountSelection,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,8 +78,9 @@ fun DashboardContent(
     actions: DashboardActions,
     onSelectPeriod: (com.yehor.finora.domain.analytics.PeriodKind) -> Unit,
     onCustomPeriod: (java.time.LocalDate, java.time.LocalDate) -> Unit,
+    onToggleAccount: (Long) -> Unit,
+    onClearAccountSelection: () -> Unit,
 ) {
-    var currencySheet by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_dashboard)) }) },
         floatingActionButton = {
@@ -102,23 +103,25 @@ fun DashboardContent(
                 item(key = "period") {
                     PeriodSelector(state.periodState, period, onSelectPeriod, onCustomPeriod)
                 }
-                state.valuation?.let { valuation ->
-                    item(key = "valuation") {
-                        ValuationCard(valuation, Modifier.clickable(onClick = actions.onOpenAccounts))
+                if (state.activeAccounts.isNotEmpty()) {
+                    item(key = "accounts_selector") {
+                        AccountSelector(
+                            accounts = state.activeAccounts.map { it.account },
+                            selectedAccountIds = state.selectedAccountIds,
+                            onToggleAccount = onToggleAccount,
+                            onClearSelection = onClearAccountSelection,
+                        )
                     }
                 }
-                item(key = "flows") { FlowCards(state, period, actions) { currencySheet = true } }
+                item(key = "flows") { FlowCards(state, period, actions) }
                 item(key = "accounts") { AccountsSection(state.activeAccounts, actions) }
                 item(key = "distribution") { DistributionSection(state, actions) }
-                item(key = "recent") { RecentSection(state.recent, actions) }
+                item(key = "recent") { RecentSection(state.recent, state.selectedAccountIds, actions) }
                 if (state.upcoming.hasActiveSchedules) {
                     item(key = "upcoming") { UpcomingSection(state.upcoming, actions) }
                 }
             }
         }
-    }
-    if (currencySheet) {
-        CurrencyFlowSheet(state.currencyFlows) { currencySheet = false }
     }
 }
 
@@ -141,11 +144,14 @@ private fun FlowCards(
     state: DashboardUiState,
     period: com.yehor.finora.domain.analytics.ResolvedPeriod,
     actions: DashboardActions,
-    onByCurrency: () -> Unit,
 ) {
     val display = state.display ?: return
-    val scope = CurrencyScope.Display(display)
-    val base = AnalyticsFilters.base(period, scope, emptyList())
+    val scope = resolveScope(state.selectedAccountIds, state.activeAccounts.map { it.account }, display)
+    val base = TransactionFilter(
+        from = period.from,
+        toExclusive = period.toExclusive,
+        accountIds = state.selectedAccountIds,
+    )
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FlowCard(
@@ -162,9 +168,6 @@ private fun FlowCards(
             onClick = { actions.onOpenTransactions(base.copy(types = setOf(OperationType.INCOME, OperationType.EXPENSE))) },
         )
         ConversionNote(state.conversion, scope)
-        if (state.currencyFlows.size > 1 || state.conversion.converted) {
-            TextButton(onClick = onByCurrency) { Text(stringResource(R.string.dashboard_by_currency)) }
-        }
     }
 }
 
@@ -189,33 +192,6 @@ private fun FlowCard(
                 color = if (signed) netColor(cell) else androidx.compose.ui.graphics.Color.Unspecified,
                 signed = signed,
             )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CurrencyFlowSheet(flows: List<CurrencyFlow>, onDismiss: () -> Unit) {
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(stringResource(R.string.dashboard_by_currency), style = MaterialTheme.typography.titleLarge)
-            flows.forEach { flow ->
-                Column {
-                    Text(flow.currency.code, style = MaterialTheme.typography.titleSmall)
-                    Text(
-                        stringResource(R.string.valuation_converted_income, flow.income?.format() ?: stringResource(R.string.valuation_unavailable)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        stringResource(R.string.valuation_converted_expense, flow.expense?.format() ?: stringResource(R.string.valuation_unavailable)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        stringResource(R.string.valuation_converted_net, flow.net?.format() ?: stringResource(R.string.valuation_unavailable)),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-            }
         }
     }
 }
@@ -265,7 +241,7 @@ private fun DistributionSection(state: DashboardUiState, actions: DashboardActio
 }
 
 @Composable
-private fun RecentSection(recent: List<TransactionItem>, actions: DashboardActions) {
+private fun RecentSection(recent: List<TransactionItem>, selectedAccountIds: Set<Long>, actions: DashboardActions) {
     Column {
         SectionTitle(stringResource(R.string.dashboard_recent))
         if (recent.isEmpty()) {
@@ -276,7 +252,7 @@ private fun RecentSection(recent: List<TransactionItem>, actions: DashboardActio
             )
         } else {
             recent.forEach { item -> TransactionRow(item, onClick = { actions.onOpenTransaction(item) }) }
-            TextButton(onClick = { actions.onOpenTransactions(TransactionFilter()) }) {
+            TextButton(onClick = { actions.onOpenTransactions(TransactionFilter(accountIds = selectedAccountIds)) }) {
                 Text(stringResource(R.string.dashboard_see_all))
             }
         }

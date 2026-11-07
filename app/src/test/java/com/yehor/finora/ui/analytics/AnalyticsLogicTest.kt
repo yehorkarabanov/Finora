@@ -238,4 +238,43 @@ class AnalyticsLogicTest {
     fun percentOfTheSmallestIntDoesNotOverflow() {
         assertEquals("-214748364.8%", formatPercentTimesTen(Int.MIN_VALUE))
     }
+
+    // ---- resolveScope ----
+
+    @Test
+    fun resolveScopeWithNoSelectionUsesSameCurrencyWhenAllAccountsMatch() {
+        val sameAccounts = listOf(account(1, pln), account(3, pln))
+        val scope = resolveScope(emptySet(), sameAccounts, usd)
+        assertEquals(CurrencyScope.Display(pln), scope)
+    }
+
+    @Test
+    fun resolveScopeWithNoSelectionUsesDisplayCurrencyWhenAccountsDiffer() {
+        val scope = resolveScope(emptySet(), accounts, usd)
+        assertEquals(CurrencyScope.Display(usd), scope)
+    }
+
+    @Test
+    fun resolveScopeWithSingleAccountSelectionUsesAccountCurrency() {
+        val scope = resolveScope(setOf(2L), accounts, pln)
+        assertEquals(CurrencyScope.Display(usd), scope)
+    }
+
+    @Test
+    fun resolveScopeWithMultipleAccountsOfSameCurrencyUsesTheirCurrency() {
+        val scope = resolveScope(setOf(1L, 3L), accounts, usd)
+        assertEquals(CurrencyScope.Display(pln), scope)
+    }
+
+    @Test
+    fun resolveScopeWithMultipleAccountsOfDifferentCurrenciesUsesDisplayCurrency() {
+        val scope = resolveScope(setOf(1L, 2L), accounts, eur)
+        assertEquals(CurrencyScope.Display(eur), scope)
+    }
+
+    @Test
+    fun resolveScopeWithEmptyAccountsListUsesDisplayCurrency() {
+        val scope = resolveScope(emptySet(), emptyList(), pln)
+        assertEquals(CurrencyScope.Display(pln), scope)
+    }
 }

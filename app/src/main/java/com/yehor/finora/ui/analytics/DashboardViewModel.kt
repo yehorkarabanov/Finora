@@ -7,7 +7,6 @@ import com.yehor.finora.data.repo.RecurringRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.AccountWithBalance
 import com.yehor.finora.domain.analytics.Cell
-import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Measure
 import com.yehor.finora.domain.analytics.PeriodKind
 import com.yehor.finora.domain.analytics.PeriodState
@@ -19,11 +18,10 @@ import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.recurring.ScheduleStatus
-import com.yehor.finora.ui.accounts.ValuationCardLogic
-import com.yehor.finora.ui.accounts.ValuationCardState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -31,6 +29,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -51,13 +50,12 @@ data class DashboardUiState(
     val period: ResolvedPeriod? = null,
     val today: LocalDate? = null,
     val display: Currency? = null,
-    val valuation: ValuationCardState? = null,
     val income: Cell? = null,
     val expense: Cell? = null,
     val net: Cell? = null,
     val conversion: ConversionInfo = ConversionInfo.NONE,
-    val currencyFlows: List<CurrencyFlow> = emptyList(),
     val activeAccounts: List<AccountWithBalance> = emptyList(),
+    val selectedAccountIds: Set<Long> = emptySet(),
     val distribution: CategoryReport? = null,
     val recent: List<TransactionItem> = emptyList(),
     val upcoming: UpcomingState = UpcomingState(),
@@ -74,13 +72,17 @@ class DashboardViewModel @Inject constructor(
 
     private class PeriodRows(val income: Rows, val expense: Rows)
 
+    private val _selectedAccountIds = MutableStateFlow<Set<Long>>(emptySet())
+
     private val env: Flow<AnalyticsEnv> = environment.observe()
 
-    private val periodRows: Flow<PeriodRows> = env
-        .map { it.period.from to it.period.toExclusive }
-        .distinctUntilChanged()
-        .flatMapLatest { (from, to) ->
-            val filter = TransactionFilter(from = from, toExclusive = to)
+    private val periodRows: Flow<PeriodRows> = combine(
+        env.map { it.period.from to it.period.toExclusive }.distinctUntilChanged(),
+        _selectedAccountIds,
+    ) { (from, to), accountIds -> from to to to accountIds }
+        .flatMapLatest { (dates, accountIds) ->
+            val (from, to) = dates
+            val filter = TransactionFilter(from = from, toExclusive = to, accountIds = accountIds)
             combine(
                 analytics.observeByCategory(filter, Measure.INCOME).asRows(),
                 analytics.observeByCategory(filter, Measure.EXPENSE).asRows(),
@@ -97,17 +99,30 @@ class DashboardViewModel @Inject constructor(
         UpcomingState(items, attentionCount = issues.size, hasActiveSchedules = active)
     }
 
+    private val recent: Flow<List<TransactionItem>> = _selectedAccountIds.flatMapLatest { accountIds ->
+        transactions.observeRecent(TransactionFilter(accountIds = accountIds), RECENT_LIMIT)
+    }
+
     val state: StateFlow<DashboardUiState> = combine(
         env,
+        _selectedAccountIds,
         periodRows,
-        transactions.observeRecent(TransactionFilter(), RECENT_LIMIT),
+        recent,
         upcoming,
-    ) { env, rows, recent, upcoming -> build(env, rows, recent, upcoming) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardUiState())
+    ) { env, selectedAccounts, rows, recent, upcoming ->
+        build(env, selectedAccounts, rows, recent, upcoming)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardUiState())
 
-    private fun build(env: AnalyticsEnv, rows: PeriodRows, recent: List<TransactionItem>, upcoming: UpcomingState): DashboardUiState {
-        val scope = CurrencyScope.Display(env.display)
+    private fun build(
+        env: AnalyticsEnv,
+        selectedAccountIds: Set<Long>,
+        rows: PeriodRows,
+        recent: List<TransactionItem>,
+        upcoming: UpcomingState,
+    ): DashboardUiState {
         val active = env.accounts.filter { it.account.status == AccountStatus.ACTIVE }
+        val activeAccountsList = active.map { it.account }
+        val scope = resolveScope(selectedAccountIds, activeAccountsList, env.display)
         val figures = ReportBuilder.figures(env, scope, emptySet(), rows.income, rows.expense, Rows.Ok(emptyList()))
         val distribution = ReportBuilder.category(env, scope, Measure.EXPENSE, rows.expense, previous = null, path = emptyList())
         val cells = listOfNotNull(figures.income, figures.expense, figures.net, distribution.total) +
@@ -119,17 +134,24 @@ class DashboardViewModel @Inject constructor(
             period = env.period,
             today = env.today,
             display = env.display,
-            valuation = ValuationCardLogic.build(active, env.display, env.table, env.now),
             income = figures.income,
             expense = figures.expense,
             net = figures.net,
             conversion = conversionInfo(cells),
-            currencyFlows = currencyFlows(rows.income.list(), rows.expense.list()),
             activeAccounts = active,
+            selectedAccountIds = selectedAccountIds,
             distribution = distribution,
             recent = recent,
             upcoming = upcoming,
         )
+    }
+
+    fun toggleAccount(accountId: Long) {
+        _selectedAccountIds.update { if (accountId in it) it - accountId else it + accountId }
+    }
+
+    fun clearAccountSelection() {
+        _selectedAccountIds.value = emptySet()
     }
 
     fun selectPeriod(kind: PeriodKind) = environment.selectPeriod(kind)

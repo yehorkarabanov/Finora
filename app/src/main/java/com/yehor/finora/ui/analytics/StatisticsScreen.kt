@@ -119,8 +119,13 @@ private fun StatisticsBody(state: StatisticsUiState, vm: StatisticsViewModel, ac
                 )
             }
             if (controls.tab != StatsTab.ACCOUNTS) {
-                item(key = "scope") {
-                    ScopeSelector(scope, env.display, state.nativeCurrencies, vm::selectScope)
+                item(key = "accounts_selector") {
+                    AccountSelector(
+                        accounts = env.allAccounts,
+                        selectedAccountIds = controls.selectedAccountIds,
+                        onToggleAccount = vm::toggleAccount,
+                        onClearSelection = vm::clearAccounts,
+                    )
                 }
                 item(key = "compare") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
