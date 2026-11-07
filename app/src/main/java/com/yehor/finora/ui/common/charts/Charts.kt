@@ -66,14 +66,18 @@ fun DonutChart(
             }
         }
         if (centerText != null) {
-            Text(
-                centerText,
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = TextAlign.Center,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis,
+            Box(
                 modifier = Modifier.size(96.dp),
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    centerText,
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
