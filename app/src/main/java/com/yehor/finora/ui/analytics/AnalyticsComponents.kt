@@ -64,7 +64,7 @@ private val IncomeGreen = Color(0xFF2E7D32)
 
 // ---- Text helpers ----
 
-/** "+12.00 zł", "−5.00 zł", with "≈" when converted. The sign is explicit for any non-zero value. */
+/** "+12.00 zł", "−5.00 zł". The sign is explicit for any non-zero value. */
 fun signedText(estimate: Estimate): String {
     val value = BigDecimal.valueOf(estimate.amountMinor, estimate.currency.scale)
     val sign = when {
@@ -72,8 +72,7 @@ fun signedText(estimate: Estimate): String {
         estimate.amountMinor < 0 -> "−"
         else -> ""
     }
-    val text = "$sign${value.abs().toPlainString()} ${estimate.currency.symbol}"
-    return if (estimate.basis.usesConversion) "≈ $text" else text
+    return "$sign${value.abs().toPlainString()} ${estimate.currency.symbol}"
 }
 
 /** "12.4%" from permille. */

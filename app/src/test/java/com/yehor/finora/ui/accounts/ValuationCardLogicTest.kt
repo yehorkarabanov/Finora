@@ -102,6 +102,6 @@ class ValuationCardLogicTest {
         assertEquals(1400L, converted.income!!.amountMinor)
         assertEquals(400L, converted.expense!!.amountMinor)
         assertEquals(1000L, converted.net!!.amountMinor)
-        assertTrue(converted.income!!.format().startsWith("≈"))
+        assertFalse(converted.income!!.format().startsWith("≈"))
     }
 }

@@ -35,11 +35,8 @@ data class Estimate(
 
     fun toPlainString(): String = BigDecimal.valueOf(amountMinor, currency.scale).toPlainString()
 
-    /** "≈ 3912.60 zł" when a conversion was used, otherwise the plain amount with its symbol. */
-    fun format(): String {
-        val text = "${toPlainString()} ${currency.symbol}"
-        return if (basis.usesConversion) "≈ $text" else text
-    }
+    /** "3912.60 zł": the plain amount with its symbol. */
+    fun format(): String = "${toPlainString()} ${currency.symbol}"
 
     companion object {
         fun zero(currency: Currency): Estimate = Estimate(0L, currency, EstimateBasis.NATIVE)

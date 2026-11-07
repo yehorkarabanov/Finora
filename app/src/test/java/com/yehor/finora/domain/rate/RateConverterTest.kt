@@ -39,7 +39,7 @@ class RateConverterTest {
     fun directPair() {
         val e = convert(table(rate(usd, pln, "3.9126")), Money(100_000, usd), pln)
         assertEquals(391_260L, e.amountMinor)
-        assertEquals("≈ 3912.60 zł".replace("zł", pln.symbol), e.format())
+        assertEquals("3912.60 zł".replace("zł", pln.symbol), e.format())
     }
 
     @Test

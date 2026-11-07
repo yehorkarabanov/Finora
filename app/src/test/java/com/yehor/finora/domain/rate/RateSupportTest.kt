@@ -55,7 +55,7 @@ class EstimateTest {
 
     @Test
     fun formatShowsApproximationOnlyWhenConverted() {
-        assertTrue(Estimate(391_260, pln, EstimateBasis(true, false)).format().startsWith("≈ 3912.60"))
+        assertTrue(Estimate(391_260, pln, EstimateBasis(true, false)).format().startsWith("3912.60"))
         assertEquals("3912.60 ${pln.symbol}", Estimate(391_260, pln, EstimateBasis.NATIVE).format())
     }
 
