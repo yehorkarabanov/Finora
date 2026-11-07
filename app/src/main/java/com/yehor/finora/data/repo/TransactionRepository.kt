@@ -62,7 +62,13 @@ class TransactionRepository @Inject constructor(
                 val tree = CategoryTree(cats)
                 val accountMap = accounts.associateBy { it.id }
                 val catMap = cats.associateBy { it.id }
-                val query = TransactionQuery.build(filter, sort, categoryClosure(filter, tree))
+                val scopeCurrency = FilterScope.scopeCurrency(filter, accounts)
+                val query = TransactionQuery.build(
+                    filter = filter,
+                    sort = sort,
+                    categoryClosure = categoryClosure(filter, tree),
+                    scopeCurrency = scopeCurrency?.code,
+                )
                 Pager(
                     config = PagingConfig(pageSize = 50, enablePlaceholders = false),
                     pagingSourceFactory = { db.operationDao().page(query) },
@@ -77,8 +83,13 @@ class TransactionRepository @Inject constructor(
                 val tree = CategoryTree(cats)
                 val accountMap = accounts.associateBy { it.id }
                 val catMap = cats.associateBy { it.id }
+                val scopeCurrency = FilterScope.scopeCurrency(filter, accounts)
                 val query = TransactionQuery.build(
-                    filter, TransactionSort.DATE_DESC, categoryClosure(filter, tree), limit = limit,
+                    filter = filter,
+                    sort = TransactionSort.DATE_DESC,
+                    categoryClosure = categoryClosure(filter, tree),
+                    scopeCurrency = scopeCurrency?.code,
+                    limit = limit,
                 )
                 db.operationDao().listWithDetails(query).map { list ->
                     list.take(limit).map { mapToItem(it, accountMap, catMap, tree) }

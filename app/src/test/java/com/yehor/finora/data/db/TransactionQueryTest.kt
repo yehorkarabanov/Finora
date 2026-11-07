@@ -67,6 +67,26 @@ class TransactionQueryTest {
             scopeCurrency = "USD",
         )
         assertTrue(query.sql.contains("MAX(ABS(e.amount_minor))"))
+        assertTrue(query.sql.contains("e.currency_code = ?"))
+    }
+
+    @Test
+    fun amountSortWithoutScopeCurrency() {
+        val descQuery = TransactionQuery.build(
+            TransactionFilter(),
+            TransactionSort.AMOUNT_DESC,
+            emptySet(),
+            scopeCurrency = null,
+        )
+        assertTrue(descQuery.sql.contains("ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) DESC"))
+
+        val ascQuery = TransactionQuery.build(
+            TransactionFilter(),
+            TransactionSort.AMOUNT_ASC,
+            emptySet(),
+            scopeCurrency = null,
+        )
+        assertTrue(ascQuery.sql.contains("ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) ASC"))
     }
 
     @Test

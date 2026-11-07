@@ -20,6 +20,7 @@ object FilterCodec {
         if (types.isNotEmpty()) parts += "t=" + types.joinToString(",") { it.name }
         if (filter.accountIds.isNotEmpty()) parts += "a=" + filter.accountIds.sorted().joinToString(",")
         if (filter.categoryIds.isNotEmpty()) parts += "c=" + filter.categoryIds.sorted().joinToString(",")
+        if (filter.exactCategoryIds.isNotEmpty()) parts += "xe=" + filter.exactCategoryIds.sorted().joinToString(",")
         if (filter.categoryExact) parts += "x=1"
         if (filter.includeUncategorized) parts += "u=1"
         if (filter.tagIds.isNotEmpty()) parts += "g=" + filter.tagIds.sorted().joinToString(",")
@@ -41,6 +42,7 @@ object FilterCodec {
                 "t" -> filter.copy(types = value.split(',').mapNotNull(::parseType).toSet())
                 "a" -> filter.copy(accountIds = parseIds(value))
                 "c" -> filter.copy(categoryIds = parseIds(value))
+                "xe" -> filter.copy(exactCategoryIds = parseIds(value))
                 "x" -> filter.copy(categoryExact = value == "1")
                 "u" -> filter.copy(includeUncategorized = value == "1")
                 "g" -> filter.copy(tagIds = parseIds(value))

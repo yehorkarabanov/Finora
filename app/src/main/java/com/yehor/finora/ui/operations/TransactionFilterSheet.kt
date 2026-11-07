@@ -2,7 +2,6 @@ package com.yehor.finora.ui.operations
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
@@ -66,7 +67,7 @@ internal fun dateOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalD
 /** The parts of the filter sheet a caller can show. */
 enum class FilterSection { TYPE, ACCOUNT, CATEGORY, TAG, DATE, AMOUNT, TEXT }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFilterSheet(
     filter: TransactionFilter,
@@ -140,11 +141,50 @@ fun TransactionFilterSheet(
                 CategoryFilter(
                     categories = categories,
                     selectedIds = current.categoryIds,
+                    exactIds = current.exactCategoryIds,
+                    isGlobalExact = current.categoryExact,
                     includeUncategorized = current.includeUncategorized,
-                    onToggle = { id ->
-                        current = current.copy(
-                            categoryIds = if (id in current.categoryIds) current.categoryIds - id else current.categoryIds + id,
-                        )
+                    onCycleCategory = { id, hasChildren ->
+                        val isSelected = id in current.categoryIds
+                        val isExact = isSelected && (id in current.exactCategoryIds || current.categoryExact)
+                        current = if (!hasChildren) {
+                            if (isSelected) {
+                                current.copy(
+                                    categoryIds = current.categoryIds - id,
+                                    exactCategoryIds = current.exactCategoryIds - id,
+                                )
+                            } else {
+                                current.copy(
+                                    categoryIds = current.categoryIds + id,
+                                    exactCategoryIds = current.exactCategoryIds - id,
+                                )
+                            }
+                        } else {
+                            when {
+                                !isSelected -> {
+                                    // Stage 1: Select direct only
+                                    current.copy(
+                                        categoryIds = current.categoryIds + id,
+                                        exactCategoryIds = current.exactCategoryIds + id,
+                                    )
+                                }
+                                isExact -> {
+                                    // Stage 2: Select direct and all descendants
+                                    current.copy(
+                                        categoryIds = current.categoryIds,
+                                        exactCategoryIds = current.exactCategoryIds - id,
+                                        categoryExact = false,
+                                    )
+                                }
+                                else -> {
+                                    // Stage 3: Deselect all
+                                    current.copy(
+                                        categoryIds = current.categoryIds - id,
+                                        exactCategoryIds = current.exactCategoryIds - id,
+                                    )
+                                }
+                            }
+                        }
                     },
                     onToggleUncategorized = { current = current.copy(includeUncategorized = !current.includeUncategorized) },
                 )
@@ -269,34 +309,44 @@ private fun AmountRangeFields(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CategoryFilter(
     categories: List<Category>,
     selectedIds: Set<Long>,
+    exactIds: Set<Long>,
+    isGlobalExact: Boolean,
     includeUncategorized: Boolean,
-    onToggle: (Long) -> Unit,
+    onCycleCategory: (id: Long, hasChildren: Boolean) -> Unit,
     onToggleUncategorized: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    val totalCount = selectedIds.size + if (includeUncategorized) 1 else 0
+    var expanded by remember { mutableStateOf(totalCount > 0) }
     val tree = remember(categories) { CategoryTree(categories) }
-    val count = selectedIds.size
 
     TextButton(onClick = { expanded = !expanded }) {
         Text(
-            if (count > 0) stringResource(R.string.filter_categories_count, count)
+            if (totalCount > 0) stringResource(R.string.filter_categories_count, totalCount)
             else stringResource(R.string.filter_categories),
         )
     }
-    FilterChip(
-        selected = includeUncategorized,
-        onClick = onToggleUncategorized,
-        label = { Text(stringResource(R.string.picker_uncategorized)) },
-    )
     if (expanded) {
         Column {
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.picker_uncategorized)) },
+                trailingContent = { Checkbox(checked = includeUncategorized, onCheckedChange = null) },
+                modifier = Modifier.clickable { onToggleUncategorized() },
+            )
             listOf(CategoryType.EXPENSE, CategoryType.INCOME).forEach { type ->
-                tree.rootsOf(type).forEach { node -> CategoryCheckRow(node, 0, selectedIds, onToggle) }
+                tree.rootsOf(type).forEach { node ->
+                    CategoryCheckRow(
+                        node = node,
+                        level = 0,
+                        selectedIds = selectedIds,
+                        exactIds = exactIds,
+                        isGlobalExact = isGlobalExact,
+                        onCycleCategory = onCycleCategory,
+                    )
+                }
             }
         }
     }
@@ -307,15 +357,50 @@ private fun CategoryCheckRow(
     node: CategoryNode,
     level: Int,
     selectedIds: Set<Long>,
-    onToggle: (Long) -> Unit,
+    exactIds: Set<Long>,
+    isGlobalExact: Boolean,
+    onCycleCategory: (id: Long, hasChildren: Boolean) -> Unit,
 ) {
     val id = node.category.id
+    val hasChildren = node.children.isNotEmpty()
+    val isSelected = id in selectedIds
+    val isExact = isSelected && (isGlobalExact || id in exactIds)
+
+    val checkboxState = when {
+        !isSelected -> ToggleableState.Off
+        hasChildren && isExact -> ToggleableState.Indeterminate
+        else -> ToggleableState.On
+    }
+
+    val supportingText = if (hasChildren && isSelected) {
+        if (isExact) stringResource(R.string.filter_category_stage_direct)
+        else stringResource(R.string.filter_category_stage_recursive)
+    } else null
+
     ListItem(
         headlineContent = { Text(node.category.name) },
-        trailingContent = { Checkbox(checked = id in selectedIds, onCheckedChange = null) },
+        supportingContent = supportingText?.let { text ->
+            { Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary) }
+        },
+        trailingContent = {
+            if (hasChildren) {
+                TriStateCheckbox(state = checkboxState, onClick = null)
+            } else {
+                Checkbox(checked = isSelected, onCheckedChange = null)
+            }
+        },
         modifier = Modifier
             .padding(start = (level * 16).dp)
-            .clickable { onToggle(id) },
+            .clickable { onCycleCategory(id, hasChildren) },
     )
-    node.children.forEach { CategoryCheckRow(it, level + 1, selectedIds, onToggle) }
+    node.children.forEach {
+        CategoryCheckRow(
+            node = it,
+            level = level + 1,
+            selectedIds = selectedIds,
+            exactIds = exactIds,
+            isGlobalExact = isGlobalExact,
+            onCycleCategory = onCycleCategory,
+        )
+    }
 }

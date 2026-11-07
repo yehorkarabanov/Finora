@@ -258,6 +258,8 @@
     <string name="filter_clear_all">Clear all</string>
     <string name="filter_clear_date">Clear</string>
     <string name="filter_category_direct_only">%1$s (direct only)</string>
+    <string name="filter_category_stage_direct">Direct only</string>
+    <string name="filter_category_stage_recursive">Including subcategories</string>
 
     <string name="filter_amount_dropped">Amount range removed: the selected accounts use different currencies.</string>
     <string name="filter_chip_amount">%1$s – %2$s</string>

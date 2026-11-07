@@ -30,8 +30,8 @@ object FilterScope {
     )
 
     /**
-     * Prunes ids of deleted entities, drops an amount range that has no matching scope currency,
-     * and falls back from an amount sort to newest first when no scope currency exists. Idempotent.
+     * Prunes ids of deleted entities and drops an amount range that has no matching scope currency.
+     * Idempotent.
      */
     fun normalize(
         filter: TransactionFilter,
@@ -49,21 +49,26 @@ object FilterScope {
         val scope = scopeCurrency(pruned, accounts)
         val amount = pruned.amount
         val dropAmount = amount != null && amount.currency.code != scope?.code
-        val isAmountSort = sort == TransactionSort.AMOUNT_DESC || sort == TransactionSort.AMOUNT_ASC
         return NormalizedFilter(
             filter = if (dropAmount) pruned.copy(amount = null) else pruned,
-            sort = if (isAmountSort && scope == null) TransactionSort.DATE_DESC else sort,
+            sort = sort,
             scopeCurrency = scope,
             amountRangeDropped = dropAmount,
         )
     }
 
-    /** Selected categories plus all their descendants, or only the selected ones when [TransactionFilter.categoryExact]. */
+    /** Selected categories plus all their descendants, or only the selected ones when [TransactionFilter.categoryExact] or in [TransactionFilter.exactCategoryIds]. */
     fun categoryClosure(filter: TransactionFilter, tree: CategoryTree): Set<Long> =
         if (filter.categoryExact) {
             filter.categoryIds
         } else {
-            filter.categoryIds.flatMap { tree.descendantIds(it) + it }.toSet()
+            filter.categoryIds.flatMap { id ->
+                if (id in filter.exactCategoryIds) {
+                    setOf(id)
+                } else {
+                    tree.descendantIds(id) + id
+                }
+            }.toSet()
         }
 
     fun scopeCurrency(filter: TransactionFilter, accounts: List<Account>): Currency? {
@@ -83,9 +88,11 @@ object FilterScope {
         existingTagIds: Set<Long>,
     ): TransactionFilter {
         val categoryIds = filter.categoryIds.filter { it in existingCategoryIds }.toSet()
+        val exactCategoryIds = filter.exactCategoryIds.filter { it in categoryIds }.toSet()
         return filter.copy(
             accountIds = filter.accountIds.filter { it in existingAccountIds }.toSet(),
             categoryIds = categoryIds,
+            exactCategoryIds = exactCategoryIds,
             // "Direct only" means nothing without a category.
             categoryExact = filter.categoryExact && categoryIds.isNotEmpty(),
             tagIds = filter.tagIds.filter { it in existingTagIds }.toSet(),

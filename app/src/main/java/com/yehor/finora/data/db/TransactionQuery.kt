@@ -26,14 +26,20 @@ object TransactionQuery {
             TransactionSort.DATE_DESC -> "ORDER BY o.occurred_at DESC, o.id DESC"
             TransactionSort.DATE_ASC -> "ORDER BY o.occurred_at ASC, o.id ASC"
             TransactionSort.AMOUNT_DESC -> {
-                requireNotNull(scopeCurrency) { "Scope currency required for amount sort" }
-                args.add(scopeCurrency)
-                "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ?) DESC, o.occurred_at DESC, o.id DESC"
+                if (scopeCurrency != null) {
+                    args.add(scopeCurrency)
+                    "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ?) DESC, o.occurred_at DESC, o.id DESC"
+                } else {
+                    "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) DESC, o.occurred_at DESC, o.id DESC"
+                }
             }
             TransactionSort.AMOUNT_ASC -> {
-                requireNotNull(scopeCurrency) { "Scope currency required for amount sort" }
-                args.add(scopeCurrency)
-                "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ?) ASC, o.occurred_at ASC, o.id ASC"
+                if (scopeCurrency != null) {
+                    args.add(scopeCurrency)
+                    "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ?) ASC, o.occurred_at ASC, o.id ASC"
+                } else {
+                    "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) ASC, o.occurred_at ASC, o.id ASC"
+                }
             }
         }
 

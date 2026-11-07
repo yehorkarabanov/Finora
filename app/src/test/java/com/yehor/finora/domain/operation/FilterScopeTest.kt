@@ -62,12 +62,12 @@ class FilterScopeTest {
     }
 
     @Test
-    fun normalizeDropsAmountRangeAndAmountSortWhenScopeBecomesMultiCurrency() {
+    fun normalizeDropsAmountRangeAndKeepsAmountSortWhenScopeBecomesMultiCurrency() {
         val accounts = listOf(acc(1, usd), acc(2, eur))
         val filter = TransactionFilter(amount = AmountRange(usd, 100, null))
         val n = FilterScope.normalize(filter, TransactionSort.AMOUNT_ASC, accounts, emptySet(), emptySet())
         assertNull(n.filter.amount)
-        assertEquals(TransactionSort.DATE_DESC, n.sort)
+        assertEquals(TransactionSort.AMOUNT_ASC, n.sort)
         assertNull(n.scopeCurrency)
         assertEquals(true, n.amountRangeDropped)
     }
@@ -85,10 +85,11 @@ class FilterScopeTest {
     @Test
     fun normalizeIsIdempotentAndPrunesStaleIds() {
         val accounts = listOf(acc(1, usd))
-        val filter = TransactionFilter(accountIds = setOf(1, 9), categoryIds = setOf(3, 4), tagIds = setOf(8))
+        val filter = TransactionFilter(accountIds = setOf(1, 9), categoryIds = setOf(3, 4), exactCategoryIds = setOf(3, 4), tagIds = setOf(8))
         val once = FilterScope.normalize(filter, TransactionSort.DATE_DESC, accounts, setOf(3), emptySet())
         assertEquals(setOf(1L), once.filter.accountIds)
         assertEquals(setOf(3L), once.filter.categoryIds)
+        assertEquals(setOf(3L), once.filter.exactCategoryIds)
         assertEquals(emptySet<Long>(), once.filter.tagIds)
         val twice = FilterScope.normalize(once.filter, once.sort, accounts, setOf(3), emptySet())
         assertEquals(once, twice)
@@ -99,6 +100,7 @@ class FilterScopeTest {
         val filter = TransactionFilter(
             accountIds = setOf(1, 99),
             categoryIds = setOf(10, 88),
+            exactCategoryIds = setOf(10, 88),
             tagIds = setOf(100, 200),
         )
         val pruned = FilterScope.pruneMissing(
@@ -109,6 +111,34 @@ class FilterScopeTest {
         )
         assertEquals(setOf(1L), pruned.accountIds)
         assertEquals(setOf(10L), pruned.categoryIds)
+        assertEquals(setOf(10L), pruned.exactCategoryIds)
         assertEquals(setOf(100L), pruned.tagIds)
+    }
+
+    @Test
+    fun categoryClosureHonorsExactCategoryIds() {
+        val tree = com.yehor.finora.domain.category.CategoryTree(
+            listOf(
+                com.yehor.finora.domain.category.Category(1, "Food", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, null, 0L),
+                com.yehor.finora.domain.category.Category(2, "Groceries", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, 1, 0L),
+                com.yehor.finora.domain.category.Category(3, "Transport", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, null, 0L),
+                com.yehor.finora.domain.category.Category(4, "Bus", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, 3, 0L),
+            ),
+        )
+        // Stage 1 (Direct only): exactCategoryIds = {1}
+        val directFilter = TransactionFilter(categoryIds = setOf(1), exactCategoryIds = setOf(1))
+        assertEquals(setOf(1L), FilterScope.categoryClosure(directFilter, tree))
+
+        // Stage 2 (Direct + Children): exactCategoryIds = empty
+        val recursiveFilter = TransactionFilter(categoryIds = setOf(1), exactCategoryIds = emptySet())
+        assertEquals(setOf(1L, 2L), FilterScope.categoryClosure(recursiveFilter, tree))
+
+        // Mixed: 1 is direct only, 3 is recursive
+        val mixedFilter = TransactionFilter(categoryIds = setOf(1, 3), exactCategoryIds = setOf(1))
+        assertEquals(setOf(1L, 3L, 4L), FilterScope.categoryClosure(mixedFilter, tree))
+
+        // Global exact overrides everything
+        val globalExact = TransactionFilter(categoryIds = setOf(1, 3), categoryExact = true)
+        assertEquals(setOf(1L, 3L), FilterScope.categoryClosure(globalExact, tree))
     }
 }

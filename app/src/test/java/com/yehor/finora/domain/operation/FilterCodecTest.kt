@@ -11,7 +11,8 @@ class FilterCodecTest {
     private val full = TransactionFilter(
         types = setOf(OperationType.EXPENSE, OperationType.TRANSFER),
         accountIds = setOf(1, 2),
-        categoryIds = setOf(7),
+        categoryIds = setOf(7, 8),
+        exactCategoryIds = setOf(7),
         categoryExact = true,
         includeUncategorized = true,
         tagIds = setOf(4, 5),
@@ -44,6 +45,18 @@ class FilterCodecTest {
             toExclusive = 1_733_011_200_000,
         )
         assertEquals("t=EXPENSE;a=1,2;c=7;x=1;g=4,5;m=ALL;f=1730419200000;e=1733011200000", FilterCodec.encode(filter))
+    }
+
+    @Test
+    fun exactCategoryIdsFormat() {
+        val filter = TransactionFilter(
+            categoryIds = setOf(1, 2),
+            exactCategoryIds = setOf(1),
+        )
+        val encoded = FilterCodec.encode(filter)
+        assertEquals("c=1,2;xe=1", encoded)
+        val decoded = FilterCodec.decode(encoded)
+        assertEquals(filter, decoded)
     }
 
     @Test

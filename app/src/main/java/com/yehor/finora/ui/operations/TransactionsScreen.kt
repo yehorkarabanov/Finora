@@ -134,7 +134,6 @@ fun TransactionsScreen(
                         }
                         DropdownMenu(expanded = sortMenuOpen, onDismissRequest = { sortMenuOpen = false }) {
                             TransactionSort.entries.forEach { sort ->
-                                val isAmountSort = sort == TransactionSort.AMOUNT_DESC || sort == TransactionSort.AMOUNT_ASC
                                 DropdownMenuItem(
                                     text = {
                                         Text(
@@ -149,7 +148,6 @@ fun TransactionsScreen(
                                             fontWeight = if (sort == state.sort) FontWeight.Bold else null,
                                         )
                                     },
-                                    enabled = !isAmountSort || state.scopeCurrency != null,
                                     onClick = {
                                         viewModel.onSortChange(sort)
                                         sortMenuOpen = false
@@ -380,8 +378,14 @@ private fun ActiveFilterChips(
         filter.categoryIds.forEach { id ->
             item(key = "category_$id") {
                 val name = state.categories.find { it.id == id }?.name.orEmpty()
-                Chip(if (filter.categoryExact) stringResource(R.string.filter_category_direct_only, name) else name) {
-                    onFilterChange(filter.copy(categoryIds = filter.categoryIds - id))
+                val isDirectOnly = filter.categoryExact || id in filter.exactCategoryIds
+                Chip(if (isDirectOnly) stringResource(R.string.filter_category_direct_only, name) else name) {
+                    onFilterChange(
+                        filter.copy(
+                            categoryIds = filter.categoryIds - id,
+                            exactCategoryIds = filter.exactCategoryIds - id,
+                        ),
+                    )
                 }
             }
         }

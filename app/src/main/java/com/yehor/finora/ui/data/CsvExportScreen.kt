@@ -140,8 +140,14 @@ fun CsvExportScreen(
                 }
                 filter.categoryIds.forEach { id ->
                     val name = state.categories.find { it.id == id }?.name.orEmpty()
-                    Chip(if (filter.categoryExact) stringResource(R.string.filter_category_direct_only, name) else name) {
-                        viewModel.onFilterChange(filter.copy(categoryIds = filter.categoryIds - id))
+                    val isDirectOnly = filter.categoryExact || id in filter.exactCategoryIds
+                    Chip(if (isDirectOnly) stringResource(R.string.filter_category_direct_only, name) else name) {
+                        viewModel.onFilterChange(
+                            filter.copy(
+                                categoryIds = filter.categoryIds - id,
+                                exactCategoryIds = filter.exactCategoryIds - id,
+                            ),
+                        )
                     }
                 }
                 if (filter.includeUncategorized) {
