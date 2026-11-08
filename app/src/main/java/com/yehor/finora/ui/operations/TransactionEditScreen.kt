@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -65,6 +64,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,7 +80,9 @@ import com.yehor.finora.domain.operation.TransactionDraftError
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.AccountPickerContent
 import com.yehor.finora.ui.common.CategoryTreePickerContent
+import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateTimeField
+import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.TagPicker
 import java.math.BigDecimal
@@ -214,7 +217,7 @@ fun TransactionEditScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             val scheduleId = state.recurringScheduleId
             val scheduleName = state.recurringScheduleName
@@ -273,10 +276,17 @@ fun TransactionEditScreen(
                 onAccountClick = { pickAccount = true },
                 onAmountChange = viewModel::onAmountChange,
             )
+            Spacer(Modifier.height(10.dp))
 
             // Account card
             SelectorCard(
-                icon = { LetterIcon(selectedAccount?.name, MaterialTheme.colorScheme.secondaryContainer) },
+                icon = {
+                    IconBadge(
+                        selectedAccount?.icon,
+                        selectedAccount?.color,
+                        ColorPalette.ACCOUNT_DEFAULT,
+                    )
+                },
                 title = selectedAccount?.name ?: stringResource(R.string.transaction_form_account),
                 subtitle = if (selectedAccount?.status == AccountStatus.ARCHIVED) {
                     stringResource(R.string.account_detail_archived_banner)
@@ -285,6 +295,7 @@ fun TransactionEditScreen(
                 },
                 badge = selectedAccount?.currency?.code,
                 onClick = { pickAccount = true },
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             )
 
             // Category card with recent chips
@@ -294,7 +305,13 @@ fun TransactionEditScreen(
             val showCategoryError = TransactionDraftError.CATEGORY_MISSING in state.errors && state.amountText.isNotBlank()
             val parentName = category?.parentId?.let { tree.category(it)?.name }
             SelectorCard(
-                icon = { LetterIcon(categoryName, MaterialTheme.colorScheme.primaryContainer) },
+                icon = {
+                    IconBadge(
+                        category?.icon,
+                        category?.color,
+                        ColorPalette.defaultFor(categoryType),
+                    )
+                },
                 title = categoryName ?: stringResource(R.string.transaction_form_category),
                 subtitle = when {
                     showCategoryError -> stringResource(R.string.transaction_form_error_category_missing)
@@ -331,7 +348,7 @@ fun TransactionEditScreen(
             // Date & time
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -356,7 +373,7 @@ fun TransactionEditScreen(
             // Merchant & description (bound to the existing description field)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 OutlinedTextField(
@@ -379,7 +396,7 @@ fun TransactionEditScreen(
             // Labels & tags
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -403,7 +420,7 @@ fun TransactionEditScreen(
             // Recurring / split toggles (UI only until the ViewModel supports them)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
                 color = MaterialTheme.colorScheme.surfaceContainer,
             ) {
                 Column {
@@ -656,11 +673,12 @@ private fun SelectorCard(
     subtitleIsError: Boolean = false,
     badge: String? = null,
     footer: (@Composable () -> Unit)? = null,
+    shape: Shape = RectangleShape,
 ) {
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -694,19 +712,6 @@ private fun SelectorCard(
             }
             footer?.invoke()
         }
-    }
-}
-
-@Composable
-private fun LetterIcon(name: String?, color: Color) {
-    Box(
-        Modifier.size(40.dp).clip(CircleShape).background(color),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            name?.firstOrNull()?.uppercase() ?: "?",
-            style = MaterialTheme.typography.titleMedium,
-        )
     }
 }
 
