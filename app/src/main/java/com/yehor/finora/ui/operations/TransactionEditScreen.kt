@@ -388,7 +388,7 @@ fun TransactionEditScreen(
                             Text("${state.description.length}/500")
                         }
                     },
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RectangleShape,
                     modifier = Modifier.fillMaxWidth().padding(8.dp),
                 )
             }
