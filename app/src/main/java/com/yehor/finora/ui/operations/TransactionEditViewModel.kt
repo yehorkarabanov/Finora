@@ -154,6 +154,10 @@ class TransactionEditViewModel @Inject constructor(
                     }
                 }
             }
+        } else {
+            transactionRepository.defaultAccountId()?.let { accountId ->
+                _state.value = _state.value.copy(selectedAccountId = accountId)
+            }
         }
         loadRecentCategories(_state.value.kind)
     }

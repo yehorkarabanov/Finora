@@ -246,7 +246,8 @@ interface OperationDao {
     @Query("""
         SELECT e.account_id FROM operation o
         JOIN ledger_entry e ON e.operation_id = o.id
-        WHERE o.type IN ('INCOME', 'EXPENSE')
+        JOIN account a ON a.id = e.account_id
+        WHERE o.type IN ('INCOME', 'EXPENSE') AND a.status = 'ACTIVE'
         ORDER BY o.occurred_at DESC, o.id DESC LIMIT 1
     """)
     suspend fun latestAccountId(): Long?
