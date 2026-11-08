@@ -1,27 +1,46 @@
 package com.yehor.finora.ui.operations
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.CallSplit
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -30,6 +49,8 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -40,9 +61,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -57,6 +82,7 @@ import com.yehor.finora.ui.common.CategoryTreePickerContent
 import com.yehor.finora.ui.common.DateTimeField
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.TagPicker
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val AMOUNT_ERRORS = setOf(
@@ -74,6 +100,8 @@ fun TransactionEditScreen(
     onDuplicate: ((Long) -> Unit)? = null,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
     onOpenSchedule: ((Long) -> Unit)? = null,
+    // Not in the ViewModel yet: the button is shown only when this is provided.
+    onSaveAndCreateAnother: (() -> Unit)? = null,
     viewModel: TransactionEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -85,9 +113,19 @@ fun TransactionEditScreen(
     var pickAccount by rememberSaveable { mutableStateOf(false) }
     var pickCategory by rememberSaveable { mutableStateOf(false) }
 
+    // UI-only for now: wire these to the ViewModel when recurring/split are implemented.
+    var isRecurring by rememberSaveable { mutableStateOf(false) }
+    var isSplit by rememberSaveable { mutableStateOf(false) }
+
     val categoryType = if (state.kind == TransactionKind.INCOME) CategoryType.INCOME else CategoryType.EXPENSE
     val tree = remember(state.categories) { CategoryTree(state.categories) }
     val hasCategoriesOfKind = remember(tree, categoryType) { tree.rootsOf(categoryType).isNotEmpty() }
+
+    val selectedAccount = state.selectedAccount
+    val currencySymbol = selectedAccount?.currency?.symbol.orEmpty()
+    val amountError = state.isOverflow || state.errors.any { it in AMOUNT_ERRORS }
+    val isIncome = state.kind == TransactionKind.INCOME
+    val formattedAmount = "$currencySymbol${state.amountText.ifEmpty { "0" }}"
 
     Scaffold(
         topBar = {
@@ -130,11 +168,44 @@ fun TransactionEditScreen(
                             }
                         }
                     }
-                    TextButton(onClick = { viewModel.save() }, enabled = state.canSave) {
-                        Text(stringResource(R.string.action_save))
-                    }
                 },
             )
+        },
+        bottomBar = {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    val ctaLabel = stringResource(
+                        when {
+                            state.isEdit -> R.string.transaction_form_cta_save
+                            isIncome -> R.string.transaction_form_cta_add_income
+                            else -> R.string.transaction_form_cta_add_expense
+                        },
+                    )
+                    Button(
+                        onClick = { viewModel.save() },
+                        enabled = state.canSave,
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(26.dp),
+                    ) {
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("$ctaLabel — $formattedAmount", fontWeight = FontWeight.SemiBold)
+                    }
+                    if (!state.isEdit && onSaveAndCreateAnother != null) {
+                        TextButton(onClick = onSaveAndCreateAnother, enabled = state.canSave) {
+                            Icon(Icons.Default.AddCircleOutline, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.transaction_form_save_and_another))
+                        }
+                    }
+                }
+            }
         },
     ) { padding ->
         Column(
@@ -142,8 +213,8 @@ fun TransactionEditScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val scheduleId = state.recurringScheduleId
             val scheduleName = state.recurringScheduleName
@@ -153,6 +224,8 @@ fun TransactionEditScreen(
                     Text(stringResource(R.string.transaction_form_created_by_schedule, scheduleName))
                 }
             }
+
+            // Kind switcher
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 val segmentCount = if (onSelectTransfer != null) 3 else 2
                 SegmentedButton(
@@ -177,129 +250,181 @@ fun TransactionEditScreen(
                 }
             }
 
-            val amountError = state.isOverflow || state.errors.any { it in AMOUNT_ERRORS }
-            val amountLabel = stringResource(R.string.transaction_form_amount)
-            OutlinedTextField(
-                value = state.amountText,
-                onValueChange = viewModel::onAmountChange,
-                label = {
-                    // The currency is only known once an account is selected.
-                    Text(
-                        state.selectedAccount?.currency
-                            ?.let { "$amountLabel (${it.symbol} ${it.code})" }
-                            ?: amountLabel,
-                    )
+            // Amount hero + keypad
+            AmountCard(
+                amountText = state.amountText,
+                isIncome = isIncome,
+                currencySymbol = currencySymbol,
+                accountLabel = selectedAccount?.let { acc ->
+                    "${acc.currency.code} (${acc.currency.symbol}) • ${acc.name}"
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                singleLine = true,
                 isError = amountError,
-                supportingText = {
-                    when {
-                        state.isOverflow || TransactionDraftError.AMOUNT_OUT_OF_RANGE in state.errors ->
-                            Text(stringResource(R.string.transaction_form_error_amount_range))
-                        TransactionDraftError.AMOUNT_INVALID in state.errors ->
-                            Text(stringResource(R.string.transaction_form_error_amount_invalid))
-                        TransactionDraftError.AMOUNT_TOO_PRECISE in state.errors ->
-                            Text(stringResource(R.string.transaction_form_error_amount_precise))
-                        TransactionDraftError.AMOUNT_NOT_POSITIVE in state.errors ->
-                            Text(stringResource(R.string.transaction_form_error_amount_positive))
-                    }
+                errorText = when {
+                    state.isOverflow || TransactionDraftError.AMOUNT_OUT_OF_RANGE in state.errors ->
+                        stringResource(R.string.transaction_form_error_amount_range)
+                    TransactionDraftError.AMOUNT_INVALID in state.errors ->
+                        stringResource(R.string.transaction_form_error_amount_invalid)
+                    TransactionDraftError.AMOUNT_TOO_PRECISE in state.errors ->
+                        stringResource(R.string.transaction_form_error_amount_precise)
+                    TransactionDraftError.AMOUNT_NOT_POSITIVE in state.errors ->
+                        stringResource(R.string.transaction_form_error_amount_positive)
+                    else -> null
                 },
-                modifier = Modifier.fillMaxWidth(),
+                onAccountClick = { pickAccount = true },
+                onAmountChange = viewModel::onAmountChange,
             )
 
-            val selectedAccount = state.selectedAccount
-            Box {
-                OutlinedTextField(
-                    value = selectedAccount?.name.orEmpty(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(stringResource(R.string.transaction_form_account)) },
-                    supportingText = if (selectedAccount?.status == AccountStatus.ARCHIVED) {
-                        { Text(stringResource(R.string.account_detail_archived_banner)) }
-                    } else null,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Box(Modifier.matchParentSize().clickable { pickAccount = true })
-            }
+            // Account card
+            SelectorCard(
+                icon = { LetterIcon(selectedAccount?.name, MaterialTheme.colorScheme.secondaryContainer) },
+                title = selectedAccount?.name ?: stringResource(R.string.transaction_form_account),
+                subtitle = if (selectedAccount?.status == AccountStatus.ARCHIVED) {
+                    stringResource(R.string.account_detail_archived_banner)
+                } else {
+                    selectedAccount?.currency?.code
+                },
+                badge = selectedAccount?.currency?.code,
+                onClick = { pickAccount = true },
+            )
 
-            val categoryName = state.selectedCategoryId?.let { tree.category(it)?.name }
-                ?: if (state.isEdit && !state.hadCategoryBefore) stringResource(R.string.picker_uncategorized) else ""
+            // Category card with recent chips
+            val category = state.selectedCategoryId?.let { tree.category(it) }
+            val categoryName = category?.name
+                ?: if (state.isEdit && !state.hadCategoryBefore) stringResource(R.string.picker_uncategorized) else null
             val showCategoryError = TransactionDraftError.CATEGORY_MISSING in state.errors && state.amountText.isNotBlank()
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Box {
-                    OutlinedTextField(
-                        value = categoryName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(stringResource(R.string.transaction_form_category)) },
-                        isError = showCategoryError,
-                        supportingText = if (showCategoryError) {
-                            { Text(stringResource(R.string.transaction_form_error_category_missing)) }
-                        } else null,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Box(Modifier.matchParentSize().clickable { pickCategory = true })
-                }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    state.recentCategoryIds
-                        .mapNotNull { tree.category(it) }
-                        .take(5)
-                        .forEach { category ->
+            val parentName = category?.parentId?.let { tree.category(it)?.name }
+            SelectorCard(
+                icon = { LetterIcon(categoryName, MaterialTheme.colorScheme.primaryContainer) },
+                title = categoryName ?: stringResource(R.string.transaction_form_category),
+                subtitle = when {
+                    showCategoryError -> stringResource(R.string.transaction_form_error_category_missing)
+                    parentName != null -> stringResource(R.string.transaction_form_parent_category, parentName)
+                    else -> null
+                },
+                subtitleIsError = showCategoryError,
+                badge = if (parentName != null) stringResource(R.string.transaction_form_sub_badge) else null,
+                onClick = { pickCategory = true },
+                footer = {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        state.recentCategoryIds
+                            .mapNotNull { tree.category(it) }
+                            .take(5)
+                            .forEach { recent ->
+                                SuggestionChip(
+                                    onClick = { viewModel.onCategoryChange(recent.id) },
+                                    label = { Text(recent.name) },
+                                )
+                            }
+                        if (!hasCategoriesOfKind && onNavigateCreateCategory != null) {
                             SuggestionChip(
-                                onClick = { viewModel.onCategoryChange(category.id) },
-                                label = { Text(category.name) },
+                                onClick = { onNavigateCreateCategory(categoryType.name) },
+                                label = { Text(stringResource(R.string.transaction_form_create_category)) },
                             )
                         }
-                    if (!hasCategoriesOfKind && onNavigateCreateCategory != null) {
-                        SuggestionChip(
-                            onClick = { onNavigateCreateCategory(categoryType.name) },
-                            label = { Text(stringResource(R.string.transaction_form_create_category)) },
+                    }
+                },
+            )
+
+            // Date & time
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    DateTimeField(
+                        date = state.date,
+                        time = state.time,
+                        onDateChange = viewModel::onDateChange,
+                        onTimeChange = viewModel::onTimeChange,
+                        maxDate = LocalDate.now(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    if (TransactionDraftError.DATE_IN_FUTURE in state.errors) {
+                        Text(
+                            stringResource(R.string.transaction_form_error_future_date),
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
                         )
                     }
                 }
             }
 
-            DateTimeField(
-                date = state.date,
-                time = state.time,
-                onDateChange = viewModel::onDateChange,
-                onTimeChange = viewModel::onTimeChange,
-                maxDate = LocalDate.now(),
+            // Merchant & description (bound to the existing description field)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-            )
-            if (TransactionDraftError.DATE_IN_FUTURE in state.errors) {
-                Text(
-                    stringResource(R.string.transaction_form_error_future_date),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                OutlinedTextField(
+                    value = state.description,
+                    onValueChange = viewModel::onDescriptionChange,
+                    label = { Text(stringResource(R.string.transaction_form_merchant_description)) },
+                    isError = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors,
+                    supportingText = {
+                        if (TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors) {
+                            Text(stringResource(R.string.transaction_form_error_description_long))
+                        } else {
+                            Text("${state.description.length}/500")
+                        }
+                    },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
                 )
             }
 
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                label = { Text(stringResource(R.string.transaction_form_description)) },
-                isError = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors,
-                supportingText = {
-                    if (TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors) {
-                        Text(stringResource(R.string.transaction_form_error_description_long))
-                    } else {
-                        Text("${state.description.length}/500")
-                    }
-                },
+            // Labels & tags
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-            )
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        stringResource(R.string.transaction_form_labels_tags),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    TagPicker(
+                        allTags = state.allTags,
+                        selectedTagIds = state.selectedTagIds,
+                        pendingTagNames = state.pendingTagNames,
+                        onToggleTag = viewModel::onToggleTag,
+                        onAddPendingTag = viewModel::onAddPendingTag,
+                        onRemovePendingTag = viewModel::onRemovePendingTag,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
 
-            TagPicker(
-                allTags = state.allTags,
-                selectedTagIds = state.selectedTagIds,
-                pendingTagNames = state.pendingTagNames,
-                onToggleTag = viewModel::onToggleTag,
-                onAddPendingTag = viewModel::onAddPendingTag,
-                onRemovePendingTag = viewModel::onRemovePendingTag,
+            // Recurring / split toggles (UI only until the ViewModel supports them)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-            )
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+            ) {
+                Column {
+                    ToggleRow(
+                        icon = Icons.Default.Repeat,
+                        title = stringResource(R.string.transaction_form_recurring),
+                        subtitle = stringResource(R.string.transaction_form_recurring_subtitle, state.date.dayOfMonth),
+                        checked = isRecurring,
+                        onChange = { isRecurring = it },
+                    )
+                    ToggleRow(
+                        icon = Icons.AutoMirrored.Filled.CallSplit,
+                        title = stringResource(R.string.transaction_form_split),
+                        subtitle = stringResource(R.string.transaction_form_split_subtitle),
+                        checked = isSplit,
+                        onChange = { isSplit = it },
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
         }
 
         if (pickAccount) {
@@ -410,4 +535,194 @@ fun TransactionEditScreen(
             )
         }
     }
+}
+
+// ---------------------------------------------------------------------------
+// Amount hero + keypad
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun AmountCard(
+    amountText: String,
+    isIncome: Boolean,
+    currencySymbol: String,
+    accountLabel: String?,
+    isError: Boolean,
+    errorText: String?,
+    onAccountClick: () -> Unit,
+    onAmountChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column(
+            Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            TextButton(onClick = onAccountClick) {
+                Text(
+                    accountLabel ?: stringResource(R.string.transaction_form_account),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(16.dp))
+            }
+
+            val amountColor = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (isIncome) "+" else "-",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = if (isIncome) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
+                )
+                Text(
+                    text = currencySymbol + amountText.ifEmpty { "0" },
+                    style = MaterialTheme.typography.displayMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = amountColor,
+                )
+            }
+            if (errorText != null) {
+                Text(errorText, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(10, 25, 50).forEach { inc ->
+                    AssistChip(
+                        onClick = { onAmountChange(addToAmount(amountText, inc)) },
+                        label = { Text("+$inc") },
+                    )
+                }
+                AssistChip(
+                    onClick = { onAmountChange("") },
+                    label = { Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(14.dp)) },
+                )
+            }
+
+            NumberPad(onKey = { onAmountChange(applyKey(amountText, it)) })
+        }
+    }
+}
+
+@Composable
+private fun NumberPad(onKey: (String) -> Unit) {
+    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "0", "⌫")
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        keys.chunked(3).forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { key ->
+                    FilledTonalButton(
+                        onClick = { onKey(key) },
+                        modifier = Modifier.weight(1f).height(52.dp),
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        if (key == "⌫") {
+                            Icon(Icons.AutoMirrored.Filled.Backspace, contentDescription = null)
+                        } else {
+                            Text(key, style = MaterialTheme.typography.titleLarge)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun applyKey(current: String, key: String): String = when (key) {
+    "⌫" -> current.dropLast(1)
+    "." -> if ('.' in current) current else current.ifEmpty { "0" } + "."
+    else -> if (current == "0") key else current + key
+}
+
+private fun addToAmount(current: String, inc: Int): String =
+    ((current.toBigDecimalOrNull() ?: BigDecimal.ZERO) + inc.toBigDecimal())
+        .stripTrailingZeros()
+        .toPlainString()
+
+// ---------------------------------------------------------------------------
+// Reusable pieces
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun SelectorCard(
+    icon: @Composable () -> Unit,
+    title: String,
+    subtitle: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    subtitleIsError: Boolean = false,
+    badge: String? = null,
+    footer: (@Composable () -> Unit)? = null,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+    ) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                icon()
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.titleMedium)
+                    if (subtitle != null) {
+                        Text(
+                            subtitle,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (subtitleIsError) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                if (badge != null) {
+                    Text(
+                        badge,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    )
+                }
+                Icon(Icons.Default.ChevronRight, contentDescription = null)
+            }
+            footer?.invoke()
+        }
+    }
+}
+
+@Composable
+private fun LetterIcon(name: String?, color: Color) {
+    Box(
+        Modifier.size(40.dp).clip(CircleShape).background(color),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            name?.firstOrNull()?.uppercase() ?: "?",
+            style = MaterialTheme.typography.titleMedium,
+        )
+    }
+}
+
+@Composable
+private fun ToggleRow(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onChange: (Boolean) -> Unit,
+) {
+    ListItem(
+        leadingContent = { Icon(icon, contentDescription = null) },
+        headlineContent = { Text(title) },
+        supportingContent = { Text(subtitle) },
+        trailingContent = { Switch(checked = checked, onCheckedChange = onChange) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+    )
 }
