@@ -81,9 +81,9 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.recurring.formatScheduleDate
+import com.yehor.finora.ui.theme.finance
 import java.time.LocalDate
 
-private val IncomeGreen = Color(0xFF2E7D32)
 private val SectionShape = RoundedCornerShape(24.dp)
 private val TileShape = RoundedCornerShape(16.dp)
 
@@ -110,6 +110,7 @@ fun DashboardScreen(actions: DashboardActions, viewModel: DashboardViewModel = h
         actions = actions,
         onSelectPeriod = viewModel::selectPeriod,
         onCustomPeriod = viewModel::setCustomPeriod,
+        onShiftPeriod = viewModel::shiftPeriod,
         onToggleAccount = viewModel::toggleAccount,
         onClearAccountSelection = viewModel::clearAccountSelection,
     )
@@ -122,6 +123,7 @@ fun DashboardContent(
     actions: DashboardActions,
     onSelectPeriod: (PeriodKind) -> Unit,
     onCustomPeriod: (LocalDate, LocalDate) -> Unit,
+    onShiftPeriod: (Int) -> Unit,
     onToggleAccount: (Long) -> Unit,
     onClearAccountSelection: () -> Unit,
 ) {
@@ -154,9 +156,19 @@ fun DashboardContent(
             ) {
                 item(key = "quick") { QuickActions(state.canTransfer, actions) }
                 item(key = "accounts") { AccountsCarousel(state.activeAccounts, actions) }
+                // One compact row that scopes everything below it.
                 item(key = "period") {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        PeriodSelector(state.periodState, period, onSelectPeriod, onCustomPeriod)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PeriodSelector(
+                            state = state.periodState,
+                            period = period,
+                            onSelect = onSelectPeriod,
+                            onCustom = onCustomPeriod,
+                            modifier = Modifier.weight(1f),
+                            arrows = true,
+                            canShiftForward = state.canShiftForward,
+                            onShift = onShiftPeriod,
+                        )
                         if (state.activeAccounts.size > 1) {
                             AccountSelector(
                                 accounts = state.activeAccounts.map { it.account },
@@ -230,22 +242,27 @@ private fun FirstAccountCard(onAdd: () -> Unit, modifier: Modifier = Modifier) {
 @Composable
 private fun QuickActions(canTransfer: Boolean, actions: DashboardActions) {
     val scheme = MaterialTheme.colorScheme
+    val finance = MaterialTheme.finance
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         QuickAction(
             stringResource(R.string.transaction_kind_expense), Icons.Filled.Remove,
-            tint = scheme.error, Modifier.weight(1f), onClick = actions.onAddTransaction,
+            tint = finance.expense, container = finance.expenseContainer, Modifier.weight(1f),
+            onClick = actions.onAddTransaction,
         )
         QuickAction(
             stringResource(R.string.transaction_kind_income), Icons.Filled.Add,
-            tint = IncomeGreen, Modifier.weight(1f), onClick = actions.onAddIncome,
+            tint = finance.income, container = finance.incomeContainer, Modifier.weight(1f),
+            onClick = actions.onAddIncome,
         )
         QuickAction(
             stringResource(R.string.transaction_kind_transfer), Icons.Filled.SwapHoriz,
-            tint = scheme.primary, Modifier.weight(1f), enabled = canTransfer, onClick = actions.onAddTransfer,
+            tint = scheme.onPrimaryContainer, container = scheme.primaryContainer, Modifier.weight(1f),
+            enabled = canTransfer, onClick = actions.onAddTransfer,
         )
         QuickAction(
             stringResource(R.string.nav_accounts), Icons.Outlined.AccountBalanceWallet,
-            tint = scheme.tertiary, Modifier.weight(1f), onClick = actions.onOpenAccounts,
+            tint = scheme.onTertiaryContainer, container = scheme.tertiaryContainer, Modifier.weight(1f),
+            onClick = actions.onOpenAccounts,
         )
     }
 }
@@ -255,6 +272,7 @@ private fun QuickAction(
     label: String,
     icon: ImageVector,
     tint: Color,
+    container: Color,
     modifier: Modifier,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -273,7 +291,7 @@ private fun QuickAction(
         ) {
             val alpha = if (enabled) 1f else 0.38f
             Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(tint.copy(alpha = 0.15f * alpha)),
+                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(container.copy(alpha = alpha)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(icon, contentDescription = null, tint = tint.copy(alpha = alpha))
@@ -396,12 +414,12 @@ private fun CashFlowCard(state: DashboardUiState, period: ResolvedPeriod, action
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FlowTile(
                     stringResource(R.string.transaction_kind_income), state.income, Icons.Filled.ArrowDownward,
-                    IncomeGreen, Modifier.weight(1f),
+                    MaterialTheme.finance.income, MaterialTheme.finance.incomeContainer, Modifier.weight(1f),
                     onClick = { actions.onOpenTransactions(base.copy(types = setOf(OperationType.INCOME))) },
                 )
                 FlowTile(
                     stringResource(R.string.transaction_kind_expense), state.expense, Icons.Filled.ArrowUpward,
-                    MaterialTheme.colorScheme.error, Modifier.weight(1f),
+                    MaterialTheme.finance.expense, MaterialTheme.finance.expenseContainer, Modifier.weight(1f),
                     onClick = { actions.onOpenTransactions(base.copy(types = setOf(OperationType.EXPENSE))) },
                 )
             }
@@ -420,6 +438,7 @@ private fun FlowTile(
     cell: Cell?,
     icon: ImageVector,
     tint: Color,
+    container: Color,
     modifier: Modifier,
     onClick: () -> Unit,
 ) {
@@ -427,12 +446,12 @@ private fun FlowTile(
         onClick = onClick,
         modifier = modifier,
         shape = TileShape,
-        color = tint.copy(alpha = 0.10f),
+        color = container,
     ) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
-                    Modifier.size(24.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)),
+                    Modifier.size(24.dp).clip(CircleShape).background(tint.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(14.dp))
@@ -484,8 +503,9 @@ private fun FlowBar(income: Cell?, expense: Cell?) {
         Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        if (incomeWeight > 0f) Box(Modifier.weight(incomeWeight).fillMaxSize().background(IncomeGreen))
-        if (incomeWeight < 1f) Box(Modifier.weight(1f - incomeWeight).fillMaxSize().background(MaterialTheme.colorScheme.error))
+        val finance = MaterialTheme.finance
+        if (incomeWeight > 0f) Box(Modifier.weight(incomeWeight).fillMaxSize().background(finance.income))
+        if (incomeWeight < 1f) Box(Modifier.weight(1f - incomeWeight).fillMaxSize().background(finance.expense))
     }
 }
 
@@ -505,14 +525,11 @@ private fun DistributionSection(state: DashboardUiState, actions: DashboardActio
             if (entries.isEmpty()) {
                 EmptyLine(stringResource(R.string.dashboard_no_expenses))
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    CategoryDonut(
-                        title = stringResource(R.string.transaction_kind_expense),
-                        entries = entries,
-                        centerText = cellText(report.total),
-                    )
-                    DonutLegend(entries, Modifier.weight(1f))
-                }
+                CategoryBreakdown(
+                    title = stringResource(R.string.dashboard_spent),
+                    entries = entries,
+                    total = report.total,
+                )
             }
         }
     }
@@ -573,7 +590,7 @@ private fun UpcomingRow(item: UpcomingItem, onOpen: (Long) -> Unit) {
                 amount,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = if (income) IncomeGreen else MaterialTheme.colorScheme.onSurface,
+                color = if (income) MaterialTheme.finance.income else MaterialTheme.colorScheme.onSurface,
             )
         },
     )
@@ -623,7 +640,7 @@ private fun DashboardCard(content: @Composable () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = SectionShape,
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         content = content,
     )
 }
@@ -652,7 +669,14 @@ private fun SectionHeader(
 
 @androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 1400)
 @Composable
-private fun DashboardPreview() {
+private fun DashboardPreview() = DashboardPreviewContent(dark = false)
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 1400, backgroundColor = 0xFF101411)
+@Composable
+private fun DashboardDarkPreview() = DashboardPreviewContent(dark = true)
+
+@Composable
+private fun DashboardPreviewContent(dark: Boolean) {
     val usd = com.yehor.finora.domain.money.CurrencyRegistry.get("USD")
     val pln = com.yehor.finora.domain.money.CurrencyRegistry.get("PLN")
     fun acc(id: Long, name: String, minor: Long, currency: com.yehor.finora.domain.money.Currency) = AccountWithBalance(
@@ -669,7 +693,7 @@ private fun DashboardPreview() {
     val today = LocalDate.of(2026, 11, 9)
     val periodState = com.yehor.finora.domain.analytics.PeriodState()
     val accounts = listOf(acc(1, "Santander", 500_000, pln), acc(2, "IBKR", 200_000, usd), acc(3, "Cash", -3_000, pln))
-    MaterialTheme {
+    com.yehor.finora.ui.theme.PreviewTheme(dark) {
         DashboardContent(
             state = DashboardUiState(
                 loading = false,
@@ -684,7 +708,7 @@ private fun DashboardPreview() {
                 activeAccounts = accounts,
             ),
             actions = DashboardActions({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}),
-            onSelectPeriod = {}, onCustomPeriod = { _, _ -> }, onToggleAccount = {}, onClearAccountSelection = {},
+            onSelectPeriod = {}, onCustomPeriod = { _, _ -> }, onShiftPeriod = {}, onToggleAccount = {}, onClearAccountSelection = {},
         )
     }
 }

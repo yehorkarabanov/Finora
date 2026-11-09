@@ -108,25 +108,28 @@ private fun StatisticsBody(state: StatisticsUiState, vm: StatisticsViewModel, ac
                 }
             }
             item(key = "period") {
-                PeriodSelector(
-                    state = env.periodState,
-                    period = env.period,
-                    onSelect = vm::selectPeriod,
-                    onCustom = vm::setCustomPeriod,
-                    arrows = true,
-                    canShiftForward = env.canShiftForward,
-                    onShift = vm::shiftPeriod,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    PeriodSelector(
+                        state = env.periodState,
+                        period = env.period,
+                        onSelect = vm::selectPeriod,
+                        onCustom = vm::setCustomPeriod,
+                        modifier = Modifier.weight(1f),
+                        arrows = true,
+                        canShiftForward = env.canShiftForward,
+                        onShift = vm::shiftPeriod,
+                    )
+                    if (controls.tab != StatsTab.ACCOUNTS) {
+                        AccountSelector(
+                            accounts = env.allAccounts,
+                            selectedAccountIds = controls.selectedAccountIds,
+                            onToggleAccount = vm::toggleAccount,
+                            onClearSelection = vm::clearAccounts,
+                        )
+                    }
+                }
             }
             if (controls.tab != StatsTab.ACCOUNTS) {
-                item(key = "accounts_selector") {
-                    AccountSelector(
-                        accounts = env.allAccounts,
-                        selectedAccountIds = controls.selectedAccountIds,
-                        onToggleAccount = vm::toggleAccount,
-                        onClearSelection = vm::clearAccounts,
-                    )
-                }
                 item(key = "compare") {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
@@ -334,18 +337,12 @@ private fun CategorySection(
         }
         val entries = donutEntries(report, measure.categoryType)
         if (entries.isNotEmpty()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            CategoryBreakdown(
+                title = stringResource(measure.labelRes()),
+                entries = entries,
+                total = report.levelTotal,
                 modifier = Modifier.padding(vertical = 8.dp),
-            ) {
-                CategoryDonut(
-                    title = stringResource(measure.labelRes()),
-                    entries = entries,
-                    centerText = cellText(report.levelTotal),
-                )
-                DonutLegend(entries, Modifier.weight(1f))
-            }
+            )
         }
         report.lines.forEach { line ->
             val row = line.row

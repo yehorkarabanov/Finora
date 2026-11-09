@@ -444,6 +444,12 @@
     <string name="period_month">Month</string>
     <string name="period_year">Year</string>
     <string name="period_custom">Custom</string>
+    <string name="period_sheet_title">Period</string>
+    <string name="period_this_week">This week</string>
+    <string name="period_this_month">This month</string>
+    <string name="period_this_year">This year</string>
+    <string name="period_custom_range">Custom range…</string>
+    <string name="selector_done">Done</string>
 
     <!-- Analytics, shared -->
     <string name="analytics_none">—</string>
@@ -482,6 +488,7 @@
     <string name="dashboard_upcoming_none">No upcoming recurring transactions</string>
     <string name="dashboard_first_account_action">Add account</string>
     <string name="dashboard_cash_flow">Cash flow</string>
+    <string name="dashboard_spent">Spent</string>
     <string name="dashboard_net_cash_flow">Net cash flow</string>
     <string name="dashboard_add_account">New account</string>
     <string name="dashboard_manage">Manage</string>

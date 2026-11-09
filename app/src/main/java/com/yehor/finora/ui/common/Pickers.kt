@@ -27,11 +27,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.ui.theme.finance
 
 /** A round colored badge with an icon, used for accounts and categories. */
 @Composable
 fun IconBadge(icon: String?, color: Long?, fallbackColor: Long, modifier: Modifier = Modifier, size: Int = 40) {
-    val tint = Color(ColorPalette.resolve(color, fallbackColor))
+    val tint = MaterialTheme.finance.accent(ColorPalette.resolve(color, fallbackColor))
     Box(
         modifier.size(size.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center,

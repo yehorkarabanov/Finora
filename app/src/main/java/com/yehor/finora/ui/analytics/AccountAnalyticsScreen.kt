@@ -134,6 +134,7 @@ private fun AccountAnalyticsContent(
                 period = env.period,
                 onSelect = vm::selectPeriod,
                 onCustom = vm::setCustomPeriod,
+                modifier = Modifier.fillMaxWidth(),
                 arrows = true,
                 canShiftForward = env.canShiftForward,
                 onShift = vm::shiftPeriod,

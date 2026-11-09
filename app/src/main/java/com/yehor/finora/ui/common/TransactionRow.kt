@@ -20,16 +20,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.ui.theme.finance
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionItem
-
-private val IncomeGreen = Color(0xFF2E7D32)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -124,8 +122,8 @@ fun TransactionRow(
                     val minor = entry.money.amountMinor
                     val amountText = if (minor > 0) "+${entry.money.format()}" else entry.money.format()
                     val color = when {
-                        minor > 0 -> IncomeGreen
-                        minor < 0 -> MaterialTheme.colorScheme.error
+                        minor > 0 -> MaterialTheme.finance.income
+                        minor < 0 -> MaterialTheme.finance.expense
                         else -> MaterialTheme.colorScheme.onSurface
                     }
                     Text(

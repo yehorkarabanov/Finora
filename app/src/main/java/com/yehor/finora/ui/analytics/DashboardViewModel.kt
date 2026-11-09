@@ -48,6 +48,7 @@ data class DashboardUiState(
     val hasAccounts: Boolean = false,
     val periodState: PeriodState = PeriodState(),
     val period: ResolvedPeriod? = null,
+    val canShiftForward: Boolean = false,
     val today: LocalDate? = null,
     val display: Currency? = null,
     val income: Cell? = null,
@@ -135,6 +136,7 @@ class DashboardViewModel @Inject constructor(
             hasAccounts = env.accounts.isNotEmpty(),
             periodState = env.periodState,
             period = env.period,
+            canShiftForward = env.canShiftForward,
             today = env.today,
             display = env.display,
             income = figures.income,
@@ -160,4 +162,6 @@ class DashboardViewModel @Inject constructor(
     fun selectPeriod(kind: PeriodKind) = environment.selectPeriod(kind)
 
     fun setCustomPeriod(start: LocalDate, end: LocalDate) = environment.setCustomPeriod(start, end)
+
+    fun shiftPeriod(steps: Int) = environment.shiftPeriod(steps)
 }
