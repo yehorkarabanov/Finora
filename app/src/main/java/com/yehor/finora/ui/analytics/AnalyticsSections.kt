@@ -51,8 +51,8 @@ fun rowLabel(row: DrillRow): String {
 /** One legend or donut entry. */
 data class DonutEntry(val label: String, val cell: Cell, val color: Color, val share: Share?)
 
-private const val OTHER_COLOR = 0xFF9E9E9EL
-private const val UNCATEGORIZED_COLOR = 0xFF757575L
+private const val OTHER_COLOR = 0xFF71717AL
+private const val UNCATEGORIZED_COLOR = 0xFF52525BL
 
 /** Top rows, "Other" and Uncategorized of a report, each with a color and a share of what the donut shows. */
 @Composable
@@ -76,7 +76,7 @@ fun donutEntries(report: CategoryReport, type: CategoryType): List<DonutEntry> {
 /** The category's own color, else the type default for the first slice and distinct palette colors after it. */
 private fun sliceColor(row: DrillRow, index: Int, type: CategoryType): Long =
     row.category?.color
-        ?: if (index == 0) ColorPalette.defaultFor(type) else ColorPalette.colors[(index * 3) % ColorPalette.colors.size]
+        ?: if (index == 0) ColorPalette.defaultFor(type) else ColorPalette.colors[(index * 11) % ColorPalette.colors.size]
 
 private fun rowLabelPlain(row: DrillRow): String = row.category?.name.orEmpty()
 
@@ -200,7 +200,7 @@ private fun LegendRow(entry: DonutEntry, selected: Boolean, dimmed: Boolean, onC
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF101411)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF0F1412)
 @Composable
 private fun CategoryBreakdownDarkPreview() {
     val pln = com.yehor.finora.domain.money.CurrencyRegistry.get("PLN")
@@ -211,10 +211,10 @@ private fun CategoryBreakdownDarkPreview() {
     com.yehor.finora.ui.theme.PreviewTheme(dark = true) {
         val f = MaterialTheme.finance
         val raw = listOf(
-            "Food" to (70_000L to 0xFFE53935L),
-            "Housing" to (45_000L to 0xFF3949ABL),
-            "Transport" to (12_000L to 0xFF00897BL),
-            "Entertainment" to (8_000L to 0xFF8E24AAL),
+            "Food" to (70_000L to 0xFFDC2626L),
+            "Housing" to (45_000L to 0xFF4F46E5L),
+            "Transport" to (12_000L to 0xFF0D9488L),
+            "Entertainment" to (8_000L to 0xFF9C3FE0L),
             "Other" to (3_000L to OTHER_COLOR),
         )
         val total = raw.sumOf { it.second.first }

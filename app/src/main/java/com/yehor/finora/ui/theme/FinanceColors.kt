@@ -9,8 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 
 /**
- * Money colors that follow the light/dark theme. Dynamic color does not cover income/expense
- * semantics, and the light-theme greens and 600-shade palette colors are too dark on black.
+ * Money colors that follow the light/dark theme. Income is the green (mint) family and expense the
+ * red/coral family, both distinct from the indigo primary. Each text color keeps >= 4.5:1 on the
+ * surface steps and on its own container; the 600-shade palette colors are lifted by [accent] on dark.
  */
 @Immutable
 data class FinanceColors(
@@ -31,10 +32,10 @@ data class FinanceColors(
 }
 
 val LightFinanceColors = FinanceColors(
-    income = Color(0xFF2E7D32),
-    incomeContainer = Color(0xFFDCEFDD),
-    expense = Color(0xFFC62828),
-    expenseContainer = Color(0xFFFBE0E0),
+    income = Color(0xFF006C4F),
+    incomeContainer = Color(0xFFCDEFE0),
+    expense = Color(0xFFBA1A1A),
+    expenseContainer = Color(0xFFFFDAD6),
     isDark = false,
 )
 

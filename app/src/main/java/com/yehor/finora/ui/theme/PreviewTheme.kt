@@ -1,15 +1,13 @@
 package com.yehor.finora.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 
-/** Static light/dark theme for @Preview, where dynamic color is unavailable. */
+/** Light/dark theme for @Preview: exactly the app's brand schemes ([FinoraLightColorScheme] / [FinoraDarkColorScheme]) plus the finance colors. */
 @Composable
 fun PreviewTheme(dark: Boolean, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalFinanceColors provides if (dark) DarkFinanceColors else LightFinanceColors) {
-        MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme(), content = content)
+        MaterialTheme(colorScheme = if (dark) FinoraDarkColorScheme else FinoraLightColorScheme, content = content)
     }
 }

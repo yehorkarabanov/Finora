@@ -24,23 +24,37 @@ When a screen is touched, bring it in line with this document. Don't redesign sc
 ## 2. Color
 
 ### Theme
-- `FinoraTheme` (`ui/theme/Theme.kt`) uses **dynamic color** (minSdk 33) plus `LocalFinanceColors`.
-- Previews use `PreviewTheme(dark)` (`ui/theme/PreviewTheme.kt`), a static M3 scheme with the same finance colors.
+- `FinoraTheme(themeMode, dynamicColor = false)` (`ui/theme/Theme.kt`) uses the **fixed indigo brand scheme** from `ui/theme/Color.kt` (`FinoraLightColorScheme` / `FinoraDarkColorScheme`, every M3 role set explicitly, seed `#6B5CE7`). `dynamicColor = true` switches to wallpaper colors; it is opt-in, off by default and has no settings UI. `LocalFinanceColors` is always provided.
+- `PreviewTheme(dark)` (`ui/theme/PreviewTheme.kt`) uses exactly the same two schemes. Dark previews sit on `#0F1412`.
+- Dark follows Stitch (`DESIGN.md`); light is the tonal counterpart. All `on*` roles are >= 4.5:1 on their pair.
+
+| Role | Light | Dark |
+|---|---|---|
+| `primary` / `onPrimary` | `#5847D0` / `#FFFFFF` | `#C8BFFF` / `#2E138E` |
+| `primaryContainer` / `onPrimaryContainer` | `#E3DEFF` / `#190064` | `#7565D7` / `#FFFEFF` |
+| `secondaryContainer` | `#E6E0F7` | `#463795` |
+| `tertiary` (mint) | `#006C4F` | `#5CDDAB` |
+| `error` | `#BA1A1A` | `#FFB4AB` |
+| `background` = `surface` | `#FCF8FF` | `#0F1412` |
+| `surfaceContainer` Lowest / Low / base / High / Highest | `#FFFFFF` / `#F6F2FD` / `#F0ECF7` / `#EAE6F1` / `#E4E0EB` | `#0A0F0C` / `#181D1A` / `#1C211E` / `#262B28` / `#313632` |
+| `onSurface` / `onSurfaceVariant` | `#1B1B21` / `#47454F` | `#DFE4DE` / `#C9C4D5` |
 
 ### Finance colors: `MaterialTheme.finance` (`ui/theme/FinanceColors.kt`)
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `income` | `#2E7D32` | `#5CDDAB` | positive amounts, income icons, net > 0, income bar |
-| `incomeContainer` | `#DCEFDD` | `#123B2D` | income tile/icon background |
-| `expense` | `#C62828` | `#FFB4AB` | expense amounts/icons, net < 0, expense bar |
-| `expenseContainer` | `#FBE0E0` | `#4A1E1C` | expense tile/icon background |
+| `income` | `#006C4F` | `#5CDDAB` | positive amounts, income icons, net > 0, income bar |
+| `incomeContainer` | `#CDEFE0` | `#123B2D` | income tile/icon background |
+| `expense` | `#BA1A1A` | `#FFB4AB` | expense amounts/icons, net < 0, expense bar |
+| `expenseContainer` | `#FFDAD6` | `#4A1E1C` | expense tile/icon background |
 
-- **Never** write `Color(0xFF2E7D32)` or use `colorScheme.error`/`tertiary` to mean income or expense. Use `MaterialTheme.finance.*`.
+- **Never** write `Color(0xFF006C4F)` or use `colorScheme.error`/`tertiary` to mean income or expense. Use `MaterialTheme.finance.*`.
 - `colorScheme.error` is for **errors** only (validation, outdated rates, overflow). A negative account balance still uses `error` (current `BalanceText` behavior).
 - Transfer uses `primary` / `primaryContainer`.
 
 ### User colors (categories, accounts, tags)
-- Draw stored ARGB through `MaterialTheme.finance.accent(argb)`. It lifts the color 25% toward white in dark theme. Stored values never change.
+- The palette is `ColorPalette.colors` (`ui/common/ColorPalette.kt`): 28 colors ordered by hue (reds, oranges/yellows, greens, teals/cyans, blues, indigos/violets, purples/pinks, browns, neutrals), each >= 3:1 against a white check mark. Defaults: account blue `#2563EB`, expense red `#DC2626`, income green `#16A34A`, transfer slate `#64748B`.
+- Seeded categories (`DefaultCategories`) use palette literals; keep them in sync. A null stored color falls back to the default; an out-of-palette value renders unchanged (`ColorPalette.resolve`).
+- Draw stored ARGB through `MaterialTheme.finance.accent(argb)`. It lifts the color 25% toward white in dark theme (>= 4:1 on `surfaceContainer` for every palette entry). Stored values never change.
 - `IconBadge` already does this: a circle filled with the tint at 18% alpha, with the icon in the tint.
 
 ### Surfaces (tonal hierarchy)

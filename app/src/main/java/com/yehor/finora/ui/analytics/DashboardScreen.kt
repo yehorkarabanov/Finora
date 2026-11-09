@@ -708,7 +708,7 @@ private fun SectionHeader(
 @Composable
 private fun DashboardPreview() = DashboardPreviewContent(dark = false)
 
-@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 1400, backgroundColor = 0xFF101411)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 1400, backgroundColor = 0xFF0F1412)
 @Composable
 private fun DashboardDarkPreview() = DashboardPreviewContent(dark = true)
 

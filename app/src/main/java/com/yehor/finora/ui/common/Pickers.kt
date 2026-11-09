@@ -243,7 +243,7 @@ private fun IconOption(key: String, label: String, isSelected: Boolean, tint: Co
     }
 }
 
-/** Grid of the 16 palette colors. A [selected] color outside the palette selects none. */
+/** Grid of the palette colors. A [selected] color outside the palette selects none. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColorPicker(
@@ -274,7 +274,7 @@ fun ColorPicker(
 @Composable
 private fun IconRowPreviewLight() = IconRowPreview(dark = false)
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000, name = "Icon row dark")
+@Preview(showBackground = true, backgroundColor = 0xFF0F1412, name = "Icon row dark")
 @Composable
 private fun IconRowPreviewDark() = IconRowPreview(dark = true)
 
@@ -283,9 +283,9 @@ private fun IconRowPreview(dark: Boolean) {
     PreviewTheme(dark) {
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                IconPickerRow("restaurant", 0xFFFB8C00L, ColorPalette.ACCOUNT_DEFAULT, {})
+                IconPickerRow("restaurant", 0xFFEA6A0CL, ColorPalette.ACCOUNT_DEFAULT, {})
                 IconPickerRow("legacy-garbage", null, ColorPalette.ACCOUNT_DEFAULT, {})
-                ColorPicker(0xFFFB8C00L, {})
+                ColorPicker(0xFFEA6A0CL, {})
             }
         }
     }
@@ -295,7 +295,7 @@ private fun IconRowPreview(dark: Boolean) {
 @Composable
 private fun IconSheetPreviewLight() = IconSheetPreview(dark = false)
 
-@Preview(showBackground = true, backgroundColor = 0xFF000000, heightDp = 640, name = "Icon sheet dark")
+@Preview(showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 640, name = "Icon sheet dark")
 @Composable
 private fun IconSheetPreviewDark() = IconSheetPreview(dark = true)
 
@@ -306,7 +306,7 @@ private fun IconSheetPreview(dark: Boolean) {
             IconPickerSheetContent(
                 groups = IconKeys.categoryGroups,
                 selected = "coffee",
-                color = 0xFFFB8C00L,
+                color = 0xFFEA6A0CL,
                 fallbackColor = ColorPalette.ACCOUNT_DEFAULT,
                 onSelect = {},
                 modifier = Modifier.fillMaxHeight(),

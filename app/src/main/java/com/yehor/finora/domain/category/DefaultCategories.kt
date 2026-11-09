@@ -17,17 +17,18 @@ data class DefaultCategory(
  */
 object DefaultCategories {
 
-    private const val RED = 0xFFE53935L
-    private const val ORANGE = 0xFFFB8C00L
-    private const val AMBER = 0xFFFFB300L
-    private const val GREEN = 0xFF43A047L
-    private const val TEAL = 0xFF00897BL
-    private const val BLUE = 0xFF1E88E5L
-    private const val INDIGO = 0xFF3949ABL
-    private const val PURPLE = 0xFF8E24AAL
-    private const val PINK = 0xFFD81B60L
-    private const val BROWN = 0xFF6D4C41L
-    private const val GREY = 0xFF757575L
+    // Must be entries of the UI color palette (ui/common/ColorPalette.kt); domain cannot depend on ui.
+    private const val RED = 0xFFDC2626L
+    private const val ORANGE = 0xFFEA6A0CL
+    private const val AMBER = 0xFFD97706L
+    private const val GREEN = 0xFF16A34AL
+    private const val TEAL = 0xFF0D9488L
+    private const val BLUE = 0xFF2563EBL
+    private const val INDIGO = 0xFF4F46E5L
+    private const val PURPLE = 0xFF9C3FE0L
+    private const val PINK = 0xFFDB2777L
+    private const val BROWN = 0xFF8D5B3AL
+    private const val GREY = 0xFF71717AL
 
     val expense: List<DefaultCategory> = listOf(
         DefaultCategory(

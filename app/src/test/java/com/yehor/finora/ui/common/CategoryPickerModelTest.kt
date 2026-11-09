@@ -117,7 +117,7 @@ class CategoryPickerModelTest {
         assertEquals("restaurant", IconKeys.resolve("restaurant"))
         assertEquals(ColorPalette.ACCOUNT_DEFAULT, ColorPalette.resolve(null, ColorPalette.ACCOUNT_DEFAULT))
         assertEquals(0xFF123456L, ColorPalette.resolve(0xFF123456L, ColorPalette.ACCOUNT_DEFAULT))
-        assertEquals(16, ColorPalette.colors.size)
-        assertEquals(16, ColorPalette.colors.toSet().size)
+        assertEquals(28, ColorPalette.colors.size)
+        assertEquals(28, ColorPalette.colors.toSet().size)
     }
 }
