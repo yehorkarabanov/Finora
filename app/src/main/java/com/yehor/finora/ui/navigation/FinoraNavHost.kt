@@ -120,6 +120,8 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             DashboardScreen(
                 DashboardActions(
                     onAddTransaction = { navController.navigate(Routes.transactionNew()) },
+                    onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME")) },
+                    onAddTransfer = { navController.navigate(Routes.transferNew()) },
                     onAddAccount = { navController.navigate(Routes.ACCOUNT_NEW) },
                     onOpenAccounts = { navController.navigate(Routes.ACCOUNTS) },
                     onOpenAccountHistory = { navController.navigate(Routes.accountDetail(it)) },

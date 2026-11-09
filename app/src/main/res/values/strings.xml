@@ -480,6 +480,12 @@
     <string name="dashboard_see_all">See all</string>
     <string name="dashboard_upcoming">Upcoming</string>
     <string name="dashboard_upcoming_none">No upcoming recurring transactions</string>
+    <string name="dashboard_first_account_action">Add account</string>
+    <string name="dashboard_cash_flow">Cash flow</string>
+    <string name="dashboard_net_cash_flow">Net cash flow</string>
+    <string name="dashboard_add_account">New account</string>
+    <string name="dashboard_manage">Manage</string>
+    <string name="dashboard_no_recent">No transactions yet. Tap Expense or Income to add one.</string>
     <plurals name="dashboard_schedules_attention">
         <item quantity="one">%1$d schedule needs attention</item>
         <item quantity="other">%1$d schedules need attention</item>

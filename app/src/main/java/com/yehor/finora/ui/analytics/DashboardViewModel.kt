@@ -59,7 +59,10 @@ data class DashboardUiState(
     val distribution: CategoryReport? = null,
     val recent: List<TransactionItem> = emptyList(),
     val upcoming: UpcomingState = UpcomingState(),
-)
+) {
+    /** A transfer needs two different active accounts. */
+    val canTransfer: Boolean get() = activeAccounts.size >= 2
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel

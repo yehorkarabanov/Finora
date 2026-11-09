@@ -13,6 +13,8 @@ import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemColors
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +37,7 @@ fun TransactionRow(
     item: TransactionItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    colors: ListItemColors = ListItemDefaults.colors(),
 ) {
     val isTransfer = item.type == OperationType.TRANSFER
     val uncategorized = stringResource(R.string.picker_uncategorized)
@@ -51,6 +54,7 @@ fun TransactionRow(
 
     ListItem(
         modifier = modifier.clickable(onClick = onClick),
+        colors = colors,
         leadingContent = {
             if (isTransfer) {
                 Icon(
