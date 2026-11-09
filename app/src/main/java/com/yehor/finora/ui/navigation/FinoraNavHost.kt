@@ -10,20 +10,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.clickable
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -49,7 +44,6 @@ import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.operations.TransactionsScreen
-import com.yehor.finora.ui.operations.TransferEditScreen
 import com.yehor.finora.ui.recurring.RecurringDetailScreen
 import com.yehor.finora.ui.recurring.RecurringEditScreen
 import com.yehor.finora.ui.recurring.RecurringScreen
@@ -62,8 +56,6 @@ import com.yehor.finora.ui.data.DataScreen
 private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
     Routes.TRANSACTION_NEW,
     Routes.TRANSACTION_EDIT,
-    Routes.TRANSFER_NEW,
-    Routes.TRANSFER_EDIT,
 )
 
 @Composable
@@ -159,17 +151,6 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
             )
         }
-        // More -> Transfers: the same history screen, preset to TRANSFER operations.
-        composable(
-            Routes.TRANSFERS_PRESET,
-            arguments = listOf(navArgument("types") { type = NavType.StringType; defaultValue = "TRANSFER" }),
-        ) {
-            TransactionsScreen(
-                onAdd = { navController.navigate(Routes.transactionNew()) },
-                onOpenTransaction = { navController.navigate(openRoute(it)) },
-                onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
-            )
-        }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onOpen = { navController.navigate(Routes.accountDetail(it)) },
@@ -209,53 +190,30 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             arguments = listOf(
                 navArgument("kind") { type = NavType.StringType; defaultValue = "EXPENSE" },
                 navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
             ),
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
-                onSelectTransfer = {
-                    navController.navigate(Routes.transferNew()) {
-                        popUpTo(Routes.TRANSACTION_NEW) { inclusive = true }
-                    }
-                },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
             )
         }
         composable(
             Routes.TRANSACTION_EDIT,
-            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
+            arguments = listOf(
+                navArgument("operationId") { type = NavType.LongType },
+                navArgument("kind") { type = NavType.StringType; defaultValue = "" },
+            ),
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
-                onDuplicate = { id ->
-                    navController.navigate(Routes.transactionNew(duplicateOf = id)) {
+                onDuplicate = { id, mode ->
+                    navController.navigate(Routes.transactionNew(kind = mode.arg, duplicateOf = id)) {
                         popUpTo(Routes.TRANSACTION_EDIT) { inclusive = true }
                     }
                 },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
                 onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
-            )
-        }
-        composable(
-            Routes.TRANSFER_NEW,
-            arguments = listOf(
-                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
-            ),
-        ) {
-            TransferEditScreen(onBack = { navController.popBackStack() })
-        }
-        composable(
-            Routes.TRANSFER_EDIT,
-            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
-        ) {
-            TransferEditScreen(
-                onBack = { navController.popBackStack() },
-                onDuplicate = { id ->
-                    navController.navigate(Routes.transferNew(duplicateOf = id)) {
-                        popUpTo(Routes.TRANSFER_EDIT) { inclusive = true }
-                    }
-                },
             )
         }
         composable(
@@ -393,27 +351,4 @@ private fun NavHostController.openTransactions(filter: TransactionFilter) {
 }
 
 private fun openRoute(item: TransactionItem): String =
-    if (item.type == OperationType.TRANSFER) Routes.transferEdit(item.id) else Routes.transactionEdit(item.id)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MoreScreen(onNavigate: (String) -> Unit) {
-    val items = listOf(
-        R.string.more_categories to Routes.CATEGORIES,
-        R.string.more_tags to Routes.TAGS,
-        R.string.more_recurring to Routes.RECURRING,
-        R.string.more_transfers to Routes.TRANSFERS,
-        R.string.more_settings to Routes.SETTINGS,
-    )
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_more)) }) }) { padding ->
-        LazyColumn(Modifier.padding(padding)) {
-            items(items.size) { index ->
-                val (label, route) = items[index]
-                ListItem(
-                    headlineContent = { Text(stringResource(label)) },
-                    modifier = Modifier.clickable { onNavigate(route) },
-                )
-            }
-        }
-    }
-}
+    if (item.type == OperationType.TRANSFER) Routes.transactionEdit(item.id, kind = "TRANSFER") else Routes.transactionEdit(item.id)

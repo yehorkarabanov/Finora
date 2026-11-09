@@ -58,6 +58,8 @@ data class TransactionEditUiState(
     val hadCategoryBefore: Boolean = true,
     val date: LocalDate = LocalDate.now(),
     val time: LocalTime = LocalTime.now().withSecond(0).withNano(0),
+    /** True once the user picked a date or time, so tab switches know it is worth carrying over. */
+    val dateTouched: Boolean = false,
     val description: String = "",
     val selectedTagIds: Set<Long> = emptySet(),
     val pendingTagNames: List<String> = emptyList(),
@@ -103,10 +105,17 @@ class TransactionEditViewModel @Inject constructor(
     tagRepository: TagRepository,
 ) : ViewModel() {
 
-    private val operationId: Long? = savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 }
-    private val duplicateOf: Long? = savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 }
+    // This VM is created for every mode of the unified editor; in Transfer mode it is a fresh Expense draft.
+    private val mode = EditorMode.fromArg(savedStateHandle.get<String>("kind"))
+
+    /** The tab the route asked for; Expense/Income of an existing operation is only known once it loads. */
+    val initialMode: EditorMode get() = mode
+    private val operationId: Long? =
+        savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
+    private val duplicateOf: Long? =
+        savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
     private val initialKind: TransactionKind =
-        if (savedStateHandle.get<String>("kind") == "INCOME") TransactionKind.INCOME else TransactionKind.EXPENSE
+        if (mode == EditorMode.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE
 
     private val _state = MutableStateFlow(
         TransactionEditUiState(
@@ -224,11 +233,26 @@ class TransactionEditViewModel @Inject constructor(
     }
 
     fun onDateChange(date: LocalDate) {
-        _state.value = _state.value.copy(date = date)
+        _state.value = _state.value.copy(date = date, dateTouched = true)
     }
 
     fun onTimeChange(time: LocalTime) {
-        _state.value = _state.value.copy(time = time)
+        _state.value = _state.value.copy(time = time, dateTouched = true)
+    }
+
+    /**
+     * Carries over what was typed on the Transfer tab. The amount and description only fill empty fields; the
+     * account replaces the default one, and a date/time is passed only when the user deliberately picked it there.
+     */
+    fun prefill(amountText: String, accountId: Long?, date: LocalDate?, time: LocalTime?, description: String) {
+        val s = _state.value
+        _state.value = s.copy(
+            amountText = if (s.amountText.isEmpty()) amountText else s.amountText,
+            selectedAccountId = accountId ?: s.selectedAccountId,
+            date = date ?: s.date,
+            time = time ?: s.time,
+            description = if (s.description.isEmpty()) description else s.description,
+        )
     }
 
     fun onDescriptionChange(description: String) {

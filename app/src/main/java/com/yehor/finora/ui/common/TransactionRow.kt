@@ -1,14 +1,18 @@
 package com.yehor.finora.ui.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
@@ -52,12 +56,18 @@ fun TransactionRow(
         colors = colors,
         leadingContent = {
             if (isTransfer) {
-                Icon(
-                    AppIcons.Transfer,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                // Transfer uses primary / primaryContainer (design system §2).
+                Box(
+                    Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        AppIcons.Transfer,
+                        contentDescription = null,
+                        modifier = Modifier.size(IconSize.Default),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             } else {
                 val category = item.category
                 IconBadge(

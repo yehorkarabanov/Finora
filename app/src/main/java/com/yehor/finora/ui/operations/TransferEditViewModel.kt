@@ -11,6 +11,7 @@ import com.yehor.finora.data.repo.OpeningBalanceOrderException
 import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransferRepository
 import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
@@ -50,14 +51,20 @@ data class TransferEditUiState(
     val originalReceivedMoney: Money? = null,
     val sentText: String = "",
     val receivedText: String = "",
+    /** While true the received amount follows the sent amount (same currency) or waits for input (other currency). */
+    val receivedLinked: Boolean = true,
     val selectedCategoryId: Long? = null,
     val hadCategoryBefore: Boolean = true,
     val date: LocalDate = LocalDate.now(),
     val time: LocalTime = LocalTime.now().withSecond(0).withNano(0),
+    /** True once the user picked a date or time, so tab switches know it is worth carrying over. */
+    val dateTouched: Boolean = false,
     val description: String = "",
     val selectedTagIds: Set<Long> = emptySet(),
     val pendingTagNames: List<String> = emptyList(),
     val allAccounts: List<Account> = emptyList(),
+    /** Current balance per account id; absent when the balance overflows. */
+    val balances: Map<Long, Money> = emptyMap(),
     val sourceChoices: List<PickableAccount> = emptyList(),
     val destChoices: List<PickableAccount> = emptyList(),
     val categories: List<Category> = emptyList(),
@@ -88,8 +95,12 @@ class TransferEditViewModel @Inject constructor(
     tagRepository: TagRepository,
 ) : ViewModel() {
 
-    private val operationId: Long? = savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 }
-    private val duplicateOf: Long? = savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 }
+    // The transfer VM is created for every mode of the unified editor; it only edits or duplicates in Transfer mode.
+    private val isTransferMode = EditorMode.fromArg(savedStateHandle.get<String>("kind")) == EditorMode.TRANSFER
+    private val operationId: Long? =
+        savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 && isTransferMode }
+    private val duplicateOf: Long? =
+        savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 && isTransferMode }
     private val presetSourceId: Long? = savedStateHandle.get<Long>("sourceAccountId")?.takeIf { it > 0 }
 
     private val _state = MutableStateFlow(
@@ -111,6 +122,9 @@ class TransferEditViewModel @Inject constructor(
         val destCurrency = accounts.find { it.id == current.destAccountId }?.currency
         current.copy(
             allAccounts = accounts,
+            balances = accountsWithBalance.mapNotNull { row ->
+                (row.balance as? Balance.Value)?.let { row.account.id to it.money }
+            }.toMap(),
             sourceChoices = choices(current.originalSourceId),
             destChoices = choices(current.originalDestId),
             categories = categories,
@@ -148,8 +162,8 @@ class TransferEditViewModel @Inject constructor(
                     .firstOrNull { it.id == id && it.status == AccountStatus.ACTIVE }
             }
             _state.value = _state.value.copy(
-                sourceAccountId = presetSource?.id,
-                selectedCategoryId = recent.firstOrNull(),
+                sourceAccountId = presetSource?.id ?: _state.value.sourceAccountId,
+                selectedCategoryId = _state.value.selectedCategoryId ?: recent.firstOrNull(),
             )
         }
         _state.value = _state.value.copy(recentCategoryIds = recent)
@@ -162,6 +176,7 @@ class TransferEditViewModel @Inject constructor(
             selectedCategoryId = item.category?.id,
             description = item.description.orEmpty(),
             selectedTagIds = item.tags.map { it.id }.toSet(),
+            receivedLinked = TransferFormLogic.isLinked(item.sentMoney, item.receivedMoney),
         )
         _state.value = if (operationId != null) {
             val split = TransactionDateTime.split(item.occurredAt, ZoneId.systemDefault())
@@ -187,36 +202,70 @@ class TransferEditViewModel @Inject constructor(
         }
     }
 
-    fun onSentChange(text: String) {
-        _state.value = _state.value.copy(sentText = text, isOverflow = false)
+    private fun currencyOf(accountId: Long?): Currency? =
+        accountId?.let { id -> state.value.allAccounts.find { it.id == id }?.currency }
+
+    /** Applies [update], then re-syncs the received text with the (possibly new) sent text and accounts. */
+    private fun update(update: (TransferEditUiState) -> TransferEditUiState) {
+        val next = update(_state.value)
+        _state.value = next.copy(
+            receivedText = TransferFormLogic.syncReceived(
+                sentText = next.sentText,
+                receivedText = next.receivedText,
+                linked = next.receivedLinked,
+                sourceCurrency = currencyOf(next.sourceAccountId),
+                destCurrency = currencyOf(next.destAccountId),
+            ),
+        )
     }
 
-    fun onReceivedChange(text: String) {
-        _state.value = _state.value.copy(receivedText = text, isOverflow = false)
-    }
+    fun onSentChange(text: String) = update { it.copy(sentText = text, isOverflow = false) }
 
-    fun onSourceChange(accountId: Long) {
-        _state.value = _state.value.copy(sourceAccountId = accountId, isOverflow = false)
-    }
+    /** Editing the received amount by hand unlinks it from the sent amount. */
+    fun onReceivedChange(text: String) = update { it.copy(receivedText = text, receivedLinked = false, isOverflow = false) }
 
-    fun onDestChange(accountId: Long) {
-        _state.value = _state.value.copy(destAccountId = accountId, isOverflow = false)
-    }
+    /** "Same amount": the received amount follows the sent amount again (same-currency transfers only). */
+    fun onRelinkReceived() = update { it.copy(receivedLinked = true, isOverflow = false) }
+
+    fun onSourceChange(accountId: Long) = update { it.copy(sourceAccountId = accountId, isOverflow = false) }
+
+    fun onDestChange(accountId: Long) = update { it.copy(destAccountId = accountId, isOverflow = false) }
 
     fun onSwap() {
-        val current = state.value
+        val current = _state.value
         val swapped = TransferFormLogic.swap(
             TransferSides(current.sourceAccountId, current.destAccountId, current.sentText, current.receivedText),
-            current.sourceAccount?.currency,
-            current.destAccount?.currency,
+            currencyOf(current.sourceAccountId),
+            currencyOf(current.destAccountId),
+            current.receivedLinked,
         )
-        _state.value = _state.value.copy(
-            sourceAccountId = swapped.sourceAccountId,
-            destAccountId = swapped.destAccountId,
-            sentText = swapped.sentText,
-            receivedText = swapped.receivedText,
-            isOverflow = false,
-        )
+        update {
+            it.copy(
+                sourceAccountId = swapped.sourceAccountId,
+                destAccountId = swapped.destAccountId,
+                sentText = swapped.sentText,
+                receivedText = swapped.receivedText,
+                isOverflow = false,
+            )
+        }
+    }
+
+    /**
+     * Carries over what was typed on the Expense/Income tab. The amount and description only fill empty fields;
+     * the account becomes From, and a date/time is passed only when the user deliberately picked it there.
+     */
+    fun prefill(amountText: String, accountId: Long?, date: LocalDate?, time: LocalTime?, description: String) {
+        update { s ->
+            s.copy(
+                sentText = if (s.sentText.isEmpty()) amountText else s.sentText,
+                sourceAccountId = accountId ?: s.sourceAccountId,
+                destAccountId = if (accountId != null && accountId == s.destAccountId) null else s.destAccountId,
+                // The screen only passes a date/time the user deliberately picked on the other tab.
+                date = date ?: s.date,
+                time = time ?: s.time,
+                description = if (s.description.isEmpty()) description else s.description,
+            )
+        }
     }
 
     fun onCategoryChange(categoryId: Long?) {
@@ -224,11 +273,11 @@ class TransferEditViewModel @Inject constructor(
     }
 
     fun onDateChange(date: LocalDate) {
-        _state.value = _state.value.copy(date = date)
+        _state.value = _state.value.copy(date = date, dateTouched = true)
     }
 
     fun onTimeChange(time: LocalTime) {
-        _state.value = _state.value.copy(time = time)
+        _state.value = _state.value.copy(time = time, dateTouched = true)
     }
 
     fun onDescriptionChange(description: String) {

@@ -139,6 +139,20 @@ class RecurringListLogicTest {
     }
 
     @Test
+    fun blockedCountCountsOnlyActiveSchedulesWithAnIssue() {
+        val sections = RecurringListLogic.sections(
+            listOf(
+                schedule(1),
+                schedule(2),
+                schedule(3, status = ScheduleStatus.PAUSED),
+            ),
+            mapOf(1L to GenerationIssue.ACCOUNT_ARCHIVED, 3L to GenerationIssue.BALANCE_OVERFLOW),
+        )
+        assertEquals(1, RecurringListLogic.blockedCount(sections))
+        assertEquals(0, RecurringListLogic.blockedCount(RecurringSections()))
+    }
+
+    @Test
     fun signedAmountUsesPlusForIncomeAndMinusForExpense() {
         val money = Money(12_50, USD)
         assertEquals("+" + money.format(), RecurringListLogic.signedAmount(TransactionKind.INCOME, money))

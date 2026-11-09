@@ -10,7 +10,14 @@
     <string name="more_categories">Categories</string>
     <string name="more_tags">Tags</string>
     <string name="more_recurring">Recurring</string>
-    <string name="more_transfers">Transfers</string>
+    <string name="more_section_organize">Organize</string>
+    <string name="more_section_app">App</string>
+    <string name="more_categories_subtitle">Group your expenses and income</string>
+    <string name="more_tags_subtitle">Label transactions and analyze by tag</string>
+    <string name="more_recurring_subtitle">Repeating payments and income</string>
+    <string name="more_settings_subtitle">Theme, display currency, about</string>
+    <string name="more_data">Data</string>
+    <string name="more_data_subtitle">Backup, restore, and CSV export</string>
     <string name="more_settings">Settings</string>
 
     <string name="navigate_back">Back</string>
@@ -24,6 +31,15 @@
     <string name="settings_display_currency_automatic">%1$s (automatic)</string>
     <string name="settings_display_currency_choose">Choose display currency</string>
     <string name="settings_close">Close</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_currency">Currency</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_automatic">Automatic</string>
+    <string name="settings_display_currency_help">Used for totals and converted estimates across your accounts. Amounts in their own currency are never changed.</string>
+    <string name="settings_currency_no_results">No currencies found</string>
+    <string name="settings_data_title">Backup &amp; restore</string>
+    <string name="settings_app_version">App version</string>
 
     <!-- Common -->
     <string name="action_save">Save</string>
@@ -175,6 +191,16 @@
     <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
     <string name="accounts_archived_section">Archived (%1$d)</string>
     <string name="accounts_balance_overflow">Balance is out of range</string>
+    <plurals name="account_list_active_count">
+        <item quantity="one">%1$d active account</item>
+        <item quantity="other">%1$d active accounts</item>
+    </plurals>
+    <string name="account_list_section_title">Accounts</string>
+    <string name="account_list_no_active_hint">No active accounts. Add one to record new transactions.</string>
+    <string name="account_status_archived">Archived</string>
+    <string name="account_detail_recent_title">Recent transactions</string>
+    <string name="account_list_archived_expanded">Expanded</string>
+    <string name="account_list_archived_collapsed">Collapsed</string>
     <string name="valuation_title_native">Total balance</string>
     <string name="valuation_title_estimate">Total valuation (estimate)</string>
     <string name="valuation_unavailable">Unavailable</string>
@@ -226,6 +252,19 @@
     <string name="account_form_error_amount_range">Amount is out of range</string>
     <string name="account_form_error_date_order">The initial balance must be dated on or before the earliest transaction.</string>
     <string name="account_form_error_generic">Could not save. Try again.</string>
+    <string name="account_form_name_placeholder">Account name</string>
+    <string name="account_form_currency_choose">Choose currency</string>
+    <string name="account_form_sign_toggle">Switch between positive and negative</string>
+    <string name="account_form_cta_create">Create account</string>
+    <string name="account_form_cta_save">Save changes</string>
+    <string name="account_form_cta_saving">Saving…</string>
+    <string name="account_form_cta_loading">Loading…</string>
+    <string name="account_form_blocker_name">Enter a name</string>
+    <string name="account_form_blocker_name_long">Shorten the name</string>
+    <string name="account_form_blocker_currency">Choose a currency</string>
+    <string name="account_form_blocker_amount">Fix the initial balance</string>
+    <string name="account_form_blocker_description">Shorten the description</string>
+    <string name="account_form_blocker_date">Choose an earlier date</string>
 
     <!-- Categories -->
     <string name="categories_title">Categories</string>
@@ -260,6 +299,14 @@
     <string name="category_delete_target">Move transactions to</string>
     <string name="category_delete_choose_other">Choose another category…</string>
     <string name="category_delete_target_chosen">Category: %1$s</string>
+    <string name="category_empty_hint">Add a category to organize your transactions.</string>
+    <string name="category_form_parent_title">Parent category</string>
+    <string name="category_form_name_counter">%1$d/%2$d</string>
+    <string name="category_cta_create">Create category</string>
+    <string name="category_cta_name_missing">Enter a name</string>
+    <string name="category_cta_name_long">Name is too long</string>
+    <string name="category_cta_parent_invalid">Choose a valid parent</string>
+    <string name="category_delete_confirm_hint">This cannot be undone.</string>
 
     <!-- Tags -->
     <string name="tags_title">Tags</string>
@@ -283,6 +330,17 @@
         <item quantity="other">Used in %1$d transactions. They stay, and lose this tag.</item>
     </plurals>
     <string name="tag_delete_body_unused">The tag will be deleted.</string>
+    <string name="tag_delete_title_named">Delete “%1$s”?</string>
+    <plurals name="tag_count">
+        <item quantity="one">%1$d tag</item>
+        <item quantity="other">%1$d tags</item>
+    </plurals>
+    <string name="tag_search_hint">Search tags</string>
+    <string name="tag_no_results">No tags match “%1$s”</string>
+    <string name="tag_sort_most_used">Most used</string>
+    <string name="tag_sort_name">A–Z</string>
+    <string name="tag_form_create">Create tag</string>
+    <string name="tag_form_preview_placeholder">Tag name</string>
     <string name="action_show_transactions">Show transactions</string>
     <string name="action_remove">Remove</string>
     <string name="tag_picker_create">+ Create \"%1$s\"</string>
@@ -332,6 +390,21 @@
     <string name="transaction_form_tags_note">Optional · never affects balances</string>
     <string name="transaction_form_time_hint">%1$s · Tap to adjust</string>
     <string name="transaction_form_saved_another">Saved. Ready for the next one.</string>
+    <!-- Transfer mode of the unified editor -->
+    <string name="txn_transfer_sent_from">Sent from %1$s</string>
+    <string name="txn_transfer_sent">Sent</string>
+    <string name="txn_transfer_received_in">Received in %1$s</string>
+    <string name="txn_transfer_received">Received</string>
+    <string name="txn_transfer_received_same">Received: same amount · Change</string>
+    <string name="txn_transfer_received_enter">Received in %1$s: tap to enter</string>
+    <string name="txn_transfer_received_line">Received in %1$s: %2$s</string>
+    <string name="txn_transfer_sent_line">Sent from %1$s: %2$s</string>
+    <string name="txn_transfer_same_amount">Same amount</string>
+    <string name="txn_transfer_cta">Transfer</string>
+    <string name="txn_transfer_note_hint">e.g. Move savings, cash withdrawal</string>
+    <string name="txn_error_from_missing">Choose the account to send from</string>
+    <string name="txn_error_to_missing">Choose the account to send to</string>
+    <string name="txn_error_received_empty">Enter the received amount</string>
     <string name="transaction_form_clear_amount">Clear amount</string>
     <string name="transaction_form_backspace">Delete last digit</string>
     <string name="transaction_form_change_account">Change account</string>
@@ -508,6 +581,18 @@
     <string name="recurring_detail_category">Category: %1$s</string>
     <string name="recurring_detail_ends">Ends on %1$s</string>
     <string name="recurring_detail_no_end">No end date</string>
+    <string name="recurring_empty_cta">Add recurring</string>
+    <string name="recurring_section_with_count">%1$s · %2$d</string>
+    <plurals name="recurring_attention_banner">
+        <item quantity="one">%d schedule needs attention</item>
+        <item quantity="other">%d schedules need attention</item>
+    </plurals>
+    <string name="recurring_detail_more">More options</string>
+    <string name="recurring_label_account">Account</string>
+    <string name="recurring_label_category">Category</string>
+    <string name="recurring_label_repeats">Repeats</string>
+    <string name="recurring_label_ends">Ends</string>
+    <string name="recurring_label_tags">Tags</string>
     <string name="recurring_detail_upcoming">Upcoming</string>
     <string name="recurring_detail_upcoming_paused">Not active while the schedule is paused.</string>
     <string name="recurring_detail_upcoming_none">No more occurrences.</string>
@@ -563,6 +648,21 @@
     <string name="recurring_form_ends_on">Ends on (optional)</string>
     <string name="recurring_form_clear_end">Clear end date</string>
     <string name="recurring_form_preview_next">Next: %1$s</string>
+    <string name="recurring_form_schedule_section">Schedule</string>
+    <string name="recurring_form_repeats">Repeats</string>
+    <string name="recurring_form_end_never">Never</string>
+    <string name="recurring_form_name_hint">e.g. Rent, Netflix</string>
+    <string name="recurring_form_interval_decrease">Decrease interval</string>
+    <string name="recurring_form_interval_increase">Increase interval</string>
+    <string name="recurring_form_cta_save">Save schedule</string>
+    <string name="recurring_form_cta_add_expense">Add recurring expense</string>
+    <string name="recurring_form_cta_add_income">Add recurring income</string>
+    <string name="recurring_form_cta_enter_amount">Enter an amount</string>
+    <string name="recurring_form_cta_enter_name">Enter a name</string>
+    <string name="recurring_form_cta_choose_account">Choose an account</string>
+    <string name="recurring_form_cta_choose_category">Choose a category</string>
+    <string name="recurring_form_cta_fix_errors">Fix the highlighted fields</string>
+    <string name="recurring_form_cta_loading">Loading…</string>
     <plurals name="recurring_form_preview_due">
         <item quantity="one">%1$d transaction dated %2$s will be created now.</item>
         <item quantity="other">%1$d transactions dated %2$s will be created now.</item>

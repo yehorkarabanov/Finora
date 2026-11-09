@@ -25,6 +25,29 @@ object CategoryFormLogic {
     /** Category type from a navigation argument; unknown or missing means EXPENSE. */
     fun typeFromArg(arg: String?): CategoryType =
         CategoryType.entries.firstOrNull { it.name == arg } ?: CategoryType.EXPENSE
+
+    /** What the bottom button of the form says; the blockers explain why it is disabled. */
+    enum class CtaState { CREATE, SAVE, NAME_MISSING, NAME_TOO_LONG, PARENT_INVALID }
+
+    fun ctaState(isEdit: Boolean, nameError: NameError?, parentCheck: CategoryRules.ParentCheck): CtaState = when {
+        nameError == NameError.EMPTY -> CtaState.NAME_MISSING
+        nameError == NameError.TOO_LONG -> CtaState.NAME_TOO_LONG
+        parentCheck != CategoryRules.ParentCheck.OK -> CtaState.PARENT_INVALID
+        isEdit -> CtaState.SAVE
+        else -> CtaState.CREATE
+    }
+}
+
+object CategoryListLogic {
+
+    /** Splits the flat visible rows into one group per top-level category with its visible subtree. */
+    fun groups(rows: List<com.yehor.finora.ui.common.PickerRow>): List<List<com.yehor.finora.ui.common.PickerRow>> {
+        val out = ArrayList<MutableList<com.yehor.finora.ui.common.PickerRow>>()
+        for (row in rows) {
+            if (row.level == 0 || out.isEmpty()) out += mutableListOf(row) else out.last() += row
+        }
+        return out
+    }
 }
 
 /** State of the delete dialog (design 5.6). Names are resolved by the ViewModel from the current tree. */
@@ -37,6 +60,8 @@ data class DeleteDialogState(
     val suggestedName: String?,
     val targetName: String?,
     val failed: Boolean = false,
+    val icon: String? = null,
+    val color: Long? = null,
 )
 
 enum class DeleteTargetOption { SUGGESTED, UNCATEGORIZED, OTHER }

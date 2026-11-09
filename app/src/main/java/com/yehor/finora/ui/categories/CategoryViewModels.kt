@@ -72,6 +72,8 @@ class CategoriesViewModel @Inject constructor(
                 categoryId = id,
                 categoryName = category.name,
                 type = category.type,
+                icon = category.icon,
+                color = category.color,
                 impact = impact,
                 target = target,
                 suggestedName = impact.suggestedTarget?.let { tree.category(it)?.name },

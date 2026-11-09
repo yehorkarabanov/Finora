@@ -29,15 +29,12 @@ object Routes {
     const val RECURRING_NEW = "more/recurring/new"
     const val RECURRING_DETAIL = "more/recurring/{scheduleId}"
     const val RECURRING_EDIT = "more/recurring/{scheduleId}/edit"
-    const val TRANSFERS = "more/transfers"
-    const val TRANSFERS_PRESET = "more/transfers?types={types}"
     const val SETTINGS = "more/settings"
     const val DATA = "more/settings/data"
     const val DATA_CSV = "more/settings/data/csv?filter={filter}"
-    const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}"
-    const val TRANSACTION_EDIT = "transactions/{operationId}"
-    const val TRANSFER_NEW = "transfers/new?duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
-    const val TRANSFER_EDIT = "transfers/{operationId}"
+    // One unified editor (Expense / Income / Transfer); `kind` picks the tab.
+    const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
+    const val TRANSACTION_EDIT = "transactions/{operationId}?kind={kind}"
 
     fun accountDetail(id: Long) = "accounts/$id"
     fun accountEdit(id: Long) = "accounts/$id/edit"
@@ -54,17 +51,15 @@ object Routes {
     fun statisticsTab(tab: String, tagId: Long? = null) =
         "statistics?tab=$tab" + (tagId?.let { "&tagId=$it" } ?: "")
     fun accountAnalytics(accountId: Long) = "statistics/accounts/$accountId"
-    fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null) =
-        "transactions/new?kind=$kind" + (duplicateOf?.let { "&duplicateOf=$it" } ?: "")
-    fun transactionEdit(id: Long) = "transactions/$id"
-    fun transferNew(duplicateOf: Long? = null, sourceAccountId: Long? = null): String {
-        val params = listOfNotNull(
-            duplicateOf?.let { "duplicateOf=$it" },
-            sourceAccountId?.let { "sourceAccountId=$it" },
-        )
-        return "transfers/new" + if (params.isEmpty()) "" else params.joinToString("&", prefix = "?")
-    }
-    fun transferEdit(id: Long) = "transfers/$id"
+    fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null, sourceAccountId: Long? = null) =
+        "transactions/new?kind=$kind" +
+            (duplicateOf?.let { "&duplicateOf=$it" } ?: "") +
+            (sourceAccountId?.let { "&sourceAccountId=$it" } ?: "")
+    fun transactionEdit(id: Long, kind: String? = null) =
+        "transactions/$id" + (kind?.let { "?kind=$it" } ?: "")
+    fun transferNew(duplicateOf: Long? = null, sourceAccountId: Long? = null) =
+        transactionNew(kind = "TRANSFER", duplicateOf = duplicateOf, sourceAccountId = sourceAccountId)
+    fun transferEdit(id: Long) = transactionEdit(id, kind = "TRANSFER")
     fun recurringDetail(id: Long) = "more/recurring/$id"
     fun recurringEdit(id: Long) = "more/recurring/$id/edit"
     fun dataCsv(filter: TransactionFilter = TransactionFilter()): String =

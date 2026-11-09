@@ -37,7 +37,11 @@ import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Receipt
+import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material.icons.outlined.Pause
+import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material.icons.outlined.Repeat
+import androidx.compose.material.icons.outlined.SkipNext
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SearchOff
@@ -46,6 +50,14 @@ import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.SwapVert
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.CurrencyExchange
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -61,6 +73,7 @@ object AppIcons {
     val Back: ImageVector get() = Icons.AutoMirrored.Outlined.ArrowBack
     val Close: ImageVector get() = Icons.Outlined.Close
     val Add: ImageVector get() = Icons.Outlined.Add
+    val Remove: ImageVector get() = Icons.Outlined.Remove
     val AddCircle: ImageVector get() = Icons.Outlined.AddCircleOutline
     val Edit: ImageVector get() = Icons.Outlined.Edit
     val Delete: ImageVector get() = Icons.Outlined.Delete
@@ -88,6 +101,9 @@ object AppIcons {
     val Expense: ImageVector get() = Icons.Outlined.ArrowUpward
     val Transfer: ImageVector get() = Icons.Outlined.SwapHoriz
     val Recurring: ImageVector get() = Icons.Outlined.Repeat
+    val Pause: ImageVector get() = Icons.Outlined.Pause
+    val Resume: ImageVector get() = Icons.Outlined.PlayArrow
+    val SkipNext: ImageVector get() = Icons.Outlined.SkipNext
 
     // Disclosure
     val Expand: ImageVector get() = Icons.Outlined.ExpandMore
@@ -104,6 +120,16 @@ object AppIcons {
     val Help: ImageVector get() = Icons.AutoMirrored.Outlined.HelpOutline
     val Lock: ImageVector get() = Icons.Outlined.Lock
     val Unlock: ImageVector get() = Icons.Outlined.LockOpen
+
+    // Settings
+    val Theme: ImageVector get() = Icons.Outlined.Palette
+    val ThemeSystem: ImageVector get() = Icons.Outlined.BrightnessAuto
+    val ThemeLight: ImageVector get() = Icons.Outlined.LightMode
+    val ThemeDark: ImageVector get() = Icons.Outlined.DarkMode
+    val Currency: ImageVector get() = Icons.Outlined.CurrencyExchange
+    val Settings: ImageVector get() = Icons.Outlined.Settings
+    val Data: ImageVector get() = Icons.Outlined.Storage
+    val Info: ImageVector get() = Icons.Outlined.Info
 
     // Bottom navigation: unselected Outlined, selected Filled
     val NavDashboard: ImageVector get() = Icons.Outlined.Dashboard
