@@ -2,6 +2,7 @@ package com.yehor.finora.ui.analytics
 
 import com.yehor.finora.ui.common.AppIcons
 import com.yehor.finora.ui.common.IconSize
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +45,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
@@ -146,9 +150,7 @@ fun DashboardContent(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item(key = "quick") { QuickActions(state.canTransfer, actions) }
-                item(key = "accounts") { AccountsCarousel(state.activeAccounts, actions) }
-                // One compact row that scopes everything below it.
+                // One compact row that scopes the cash flow and the sections below the quick actions.
                 item(key = "period") {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         PeriodSelector(
@@ -172,6 +174,8 @@ fun DashboardContent(
                     }
                 }
                 item(key = "flows") { CashFlowCard(state, period, actions) }
+                item(key = "accounts") { AccountsCarousel(state.activeAccounts, actions) }
+                item(key = "quick") { QuickActions(state.canTransfer, actions) }
                 item(key = "distribution") { DistributionSection(state, actions) }
                 if (state.upcoming.hasActiveSchedules) {
                     item(key = "upcoming") { UpcomingSection(state.upcoming, actions) }
@@ -463,9 +467,9 @@ private fun FlowTile(
 /** Net = income − expense, transfers excluded (PRD 11.5). The bar shows how much of the income was spent. */
 @Composable
 private fun NetRow(net: Cell?, income: Cell?, expense: Cell?, onClick: () -> Unit) {
-    Surface(onClick = onClick, shape = TileShape, color = Color.Transparent) {
-        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Surface(onClick = onClick, shape = TileShape, color = Color.Transparent) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     stringResource(R.string.dashboard_net_cash_flow),
                     style = MaterialTheme.typography.bodyMedium,
@@ -479,8 +483,8 @@ private fun NetRow(net: Cell?, income: Cell?, expense: Cell?, onClick: () -> Uni
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            FlowBar(income, expense)
         }
+        FlowBar(income, expense)
     }
 }
 
@@ -491,13 +495,54 @@ private fun FlowBar(income: Cell?, expense: Cell?) {
     val total = incomeMinor.toDouble() + expenseMinor.toDouble()
     if (incomeMinor < 0 || expenseMinor < 0 || total <= 0.0) return
     val incomeWeight = (incomeMinor / total).toFloat()
-    Row(
-        Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
-    ) {
-        val finance = MaterialTheme.finance
-        if (incomeWeight > 0f) Box(Modifier.weight(incomeWeight).fillMaxSize().background(finance.income))
-        if (incomeWeight < 1f) Box(Modifier.weight(1f - incomeWeight).fillMaxSize().background(finance.expense))
+    val incomeColor = MaterialTheme.finance.income
+    val expenseColor = MaterialTheme.finance.expense
+    Canvas(Modifier.fillMaxWidth().height(10.dp)) {
+        val r = size.height / 2f
+        val gap = 2.dp.toPx()
+        if (incomeWeight <= 0f || incomeWeight >= 1f) {
+            drawRoundRect(
+                color = if (incomeWeight >= 1f) incomeColor else expenseColor,
+                size = size,
+                cornerRadius = CornerRadius(r, r),
+            )
+        } else {
+            val incomeWidth = (size.width - gap) * incomeWeight
+            val expenseLeft = incomeWidth + gap
+            val expenseWidth = size.width - expenseLeft
+            val incomeRadius = CornerRadius(minOf(r, incomeWidth))
+            val expenseRadius = CornerRadius(minOf(r, expenseWidth))
+            val incomePath = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        left = 0f,
+                        top = 0f,
+                        right = incomeWidth,
+                        bottom = size.height,
+                        topLeftCornerRadius = incomeRadius,
+                        bottomLeftCornerRadius = incomeRadius,
+                        topRightCornerRadius = CornerRadius.Zero,
+                        bottomRightCornerRadius = CornerRadius.Zero,
+                    ),
+                )
+            }
+            val expensePath = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        left = expenseLeft,
+                        top = 0f,
+                        right = size.width,
+                        bottom = size.height,
+                        topLeftCornerRadius = CornerRadius.Zero,
+                        bottomLeftCornerRadius = CornerRadius.Zero,
+                        topRightCornerRadius = expenseRadius,
+                        bottomRightCornerRadius = expenseRadius,
+                    ),
+                )
+            }
+            drawPath(incomePath, incomeColor)
+            drawPath(expensePath, expenseColor)
+        }
     }
 }
 

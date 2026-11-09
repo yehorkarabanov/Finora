@@ -66,7 +66,7 @@ internal fun compactRangeLabel(from: LocalDate, to: LocalDate, locale: Locale = 
 /** Inclusive number of days between two dates. */
 internal fun inclusiveDays(from: LocalDate, to: LocalDate): Int = (ChronoUnit.DAYS.between(from, to) + 1).toInt()
 
-private val MIN_YEAR = 2000
+internal const val MIN_YEAR = 2000
 
 /**
  * Full-screen date range picker (M3 guidance for ranges: a month list needs the whole screen).
@@ -103,7 +103,7 @@ fun DateRangePickerDialog(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-private class UpToDate(private val maxDate: LocalDate) : SelectableDates {
+internal class UpToDate(private val maxDate: LocalDate) : SelectableDates {
     override fun isSelectableDate(utcTimeMillis: Long): Boolean = !utcDate(utcTimeMillis).isAfter(maxDate)
     override fun isSelectableYear(year: Int): Boolean = year <= maxDate.year
 }

@@ -106,6 +106,7 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateTimePickerFlow
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.PickerMode
+import com.yehor.finora.ui.common.rememberTimeFormatter
 import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.TagPicker
 import java.text.DecimalFormatSymbols
@@ -174,8 +175,7 @@ fun TransactionEditScreen(
     val isIncome = state.kind == TransactionKind.INCOME
     val kindColor = if (isIncome) MaterialTheme.finance.income else MaterialTheme.finance.expense
     val symbols = remember { DecimalFormatSymbols.getInstance() }
-    val amountDisplay = currency.symbol +
-        AmountKeypad.format(state.amountText, symbols.groupingSeparator, symbols.decimalSeparator)
+    val amountDisplay = AmountKeypad.format(state.amountText, symbols.groupingSeparator, symbols.decimalSeparator) + " " + currency.symbol;
 
     val parsedMinor = (AmountParser.parse(state.amountText, currency) as? AmountParseResult.Value)?.minor
     val balance = selectedAccount?.let { state.balances[it.id] }
@@ -240,7 +240,7 @@ fun TransactionEditScreen(
                     Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = if (state.isEdit) 12.dp else 0.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     // A disabled button says what is missing instead of just greying out.
@@ -468,7 +468,7 @@ fun TransactionEditScreen(
                             } else {
                                 stringResource(
                                     R.string.transaction_form_time_hint,
-                                    state.time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                                    state.time.format(rememberTimeFormatter()),
                                 )
                             },
                             style = MaterialTheme.typography.bodySmall,

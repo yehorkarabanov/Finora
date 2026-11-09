@@ -4,7 +4,6 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -12,17 +11,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.yehor.finora.R
@@ -33,6 +29,17 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+
+/** Short time formatter that follows the system 12/24-hour setting, not just the locale. */
+@Composable
+fun rememberTimeFormatter(): DateTimeFormatter {
+    val context = LocalContext.current
+    val locale = LocalConfiguration.current.locales[0]
+    val is24 = DateFormat.is24HourFormat(context)
+    return remember(locale, is24) {
+        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, if (is24) "Hm" else "hm"), locale)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -111,7 +118,7 @@ fun DateTimeField(
     Box(modifier = modifier) {
         OutlinedTextField(
             value = "${date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))}, " +
-                time.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)),
+                time.format(rememberTimeFormatter()),
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.transaction_form_date_time)) },
@@ -138,11 +145,7 @@ fun DateTimeField(
     )
 }
 
-/**
- * Date picker followed by a time picker. Nothing is reported until both are confirmed;
- * [onPicked] receives the chosen date and time together.
- */
-@OptIn(ExperimentalMaterial3Api::class)
+/** Full-screen date and time picker; [onPicked] receives the chosen date and time together. */
 @Composable
 fun DateTimePickerFlow(
     open: Boolean,
@@ -152,82 +155,5 @@ fun DateTimePickerFlow(
     onDismiss: () -> Unit,
     onPicked: (LocalDate, LocalTime) -> Unit,
 ) {
-    // 0 = closed, 1 = picking the date, 2 = picking the time.
-    var step by remember { mutableIntStateOf(0) }
-    var pendingDate by remember { mutableStateOf(date) }
-    LaunchedEffect(open) {
-        if (open) {
-            pendingDate = date
-            step = 1
-        } else {
-            step = 0
-        }
-    }
-    val close = {
-        step = 0
-        onDismiss()
-    }
-
-    if (step == 1) {
-        val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date),
-            selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= maxUtcMidnight
-            },
-        )
-        DatePickerDialog(
-            onDismissRequest = close,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val picked = datePickerState.selectedDateMillis
-                        if (picked != null) {
-                            pendingDate = Instant.ofEpochMilli(picked).atZone(ZoneId.of("UTC")).toLocalDate()
-                            step = 2
-                        } else {
-                            close()
-                        }
-                    },
-                ) {
-                    Text(stringResource(R.string.action_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = close) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-
-    if (step == 2) {
-        val timePickerState = rememberTimePickerState(
-            initialHour = time.hour,
-            initialMinute = time.minute,
-            is24Hour = DateFormat.is24HourFormat(LocalContext.current),
-        )
-        AlertDialog(
-            onDismissRequest = close,
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        step = 0
-                        onPicked(pendingDate, LocalTime.of(timePickerState.hour, timePickerState.minute))
-                        // The caller closes the flow from onPicked.
-                    },
-                ) {
-                    Text(stringResource(R.string.action_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = close) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-            text = { TimePicker(state = timePickerState) },
-        )
-    }
+    if (open) DateTimePickerDialog(date, time, maxDate, onDismiss, onConfirm = onPicked)
 }

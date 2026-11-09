@@ -58,12 +58,21 @@ import com.yehor.finora.ui.settings.SettingsScreen
 import com.yehor.finora.ui.data.CsvExportScreen
 import com.yehor.finora.ui.data.DataScreen
 
+// Full-screen forms with their own bottom CTA.
+private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
+    Routes.TRANSACTION_NEW,
+    Routes.TRANSACTION_EDIT,
+    Routes.TRANSFER_NEW,
+    Routes.TRANSFER_EDIT,
+)
+
 @Composable
 fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     val snackbarHostState = remember { SnackbarHostState() }
+    val showBottomBar = currentDestination?.route !in ROUTES_WITHOUT_BOTTOM_BAR
 
     val outcome = shellViewModel.restoreOutcome
     val accounts = outcome?.summary?.accounts ?: 0
@@ -86,7 +95,7 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
         // Each screen has its own Scaffold and handles the top inset itself.
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            NavigationBar {
+            if (showBottomBar) NavigationBar {
                 TopLevelDestination.entries.forEach { dest ->
                     val selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true
                     NavigationBarItem(
