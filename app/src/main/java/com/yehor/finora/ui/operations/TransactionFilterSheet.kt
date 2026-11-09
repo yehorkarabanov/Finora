@@ -67,6 +67,34 @@ internal fun dateOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalD
 /** The parts of the filter sheet a caller can show. */
 enum class FilterSection { TYPE, ACCOUNT, CATEGORY, TAG, DATE, AMOUNT, TEXT }
 
+/** Clears only the dimensions the sheet shows, so a one-section sheet never wipes the other filters. */
+internal fun TransactionFilter.resetSections(sections: Set<FilterSection>): TransactionFilter {
+    val default = TransactionFilter()
+    return copy(
+        types = if (FilterSection.TYPE in sections) default.types else types,
+        accountIds = if (FilterSection.ACCOUNT in sections) default.accountIds else accountIds,
+        categoryIds = if (FilterSection.CATEGORY in sections) default.categoryIds else categoryIds,
+        exactCategoryIds = if (FilterSection.CATEGORY in sections) default.exactCategoryIds else exactCategoryIds,
+        categoryExact = if (FilterSection.CATEGORY in sections) default.categoryExact else categoryExact,
+        includeUncategorized = if (FilterSection.CATEGORY in sections) default.includeUncategorized else includeUncategorized,
+        tagIds = if (FilterSection.TAG in sections) default.tagIds else tagIds,
+        tagMode = if (FilterSection.TAG in sections) default.tagMode else tagMode,
+        from = if (FilterSection.DATE in sections) default.from else from,
+        toExclusive = if (FilterSection.DATE in sections) default.toExclusive else toExclusive,
+        amount = if (FilterSection.AMOUNT in sections) default.amount else amount,
+    )
+}
+
+private fun FilterSection.titleRes(): Int = when (this) {
+    FilterSection.TYPE -> R.string.filter_type
+    FilterSection.ACCOUNT -> R.string.filter_accounts
+    FilterSection.CATEGORY -> R.string.filter_categories
+    FilterSection.TAG -> R.string.filter_tags
+    FilterSection.DATE -> R.string.filter_date
+    FilterSection.AMOUNT -> R.string.filter_amount
+    FilterSection.TEXT -> R.string.filter_title
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFilterSheet(
@@ -91,7 +119,11 @@ fun TransactionFilterSheet(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge)
+            val single = sections.singleOrNull()
+            Text(
+                stringResource(single?.titleRes() ?: R.string.filter_title),
+                style = MaterialTheme.typography.titleLarge,
+            )
 
             if (FilterSection.TYPE in sections) {
                 Text(stringResource(R.string.filter_type), style = MaterialTheme.typography.labelLarge)
@@ -187,11 +219,12 @@ fun TransactionFilterSheet(
                         }
                     },
                     onToggleUncategorized = { current = current.copy(includeUncategorized = !current.includeUncategorized) },
+                    initiallyExpanded = single == FilterSection.CATEGORY,
                 )
             }
 
             if (FilterSection.TAG in sections) {
-                Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
+                if (single == null) Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
                 TagFilterPicker(
                     allTags = tags,
                     selectedTagIds = current.tagIds,
@@ -231,7 +264,7 @@ fun TransactionFilterSheet(
             }
 
             if (FilterSection.AMOUNT in sections) {
-                Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
+                if (single == null) Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
                 if (scopeCurrency != null) {
                     AmountRangeFields(
                         currency = scopeCurrency,
@@ -249,7 +282,7 @@ fun TransactionFilterSheet(
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedButton(
-                    onClick = { current = TransactionFilter(text = current.text) },
+                    onClick = { current = current.resetSections(sections) },
                     modifier = Modifier.weight(1f),
                 ) { Text(stringResource(R.string.filter_reset)) }
                 Button(
@@ -318,9 +351,10 @@ private fun CategoryFilter(
     includeUncategorized: Boolean,
     onCycleCategory: (id: Long, hasChildren: Boolean) -> Unit,
     onToggleUncategorized: () -> Unit,
+    initiallyExpanded: Boolean = false,
 ) {
     val totalCount = selectedIds.size + if (includeUncategorized) 1 else 0
-    var expanded by remember { mutableStateOf(totalCount > 0) }
+    var expanded by remember { mutableStateOf(initiallyExpanded || totalCount > 0) }
     val tree = remember(categories) { CategoryTree(categories) }
 
     TextButton(onClick = { expanded = !expanded }) {

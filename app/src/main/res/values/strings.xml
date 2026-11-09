@@ -290,6 +290,32 @@
     <string name="filter_chip_search">“%1$s”</string>
     <string name="filter_categories_count">Categories (%1$d)</string>
     <string name="filter_categories_choose">Choose categories</string>
+    <string name="filter_type_all">All</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_categories_search">Search categories</string>
+    <string name="filter_tags_search">Search tags</string>
+    <string name="filter_tag_mode_any_short">Any tag</string>
+    <string name="filter_tag_mode_all_short">All tags</string>
+    <string name="filter_tag_mode_any_hint">Transactions with at least one of the selected tags</string>
+    <string name="filter_tag_mode_all_hint">Only transactions that have every selected tag</string>
+    <string name="filter_tags_pill_all">All: %1$s</string>
+    <string name="filter_categories_expand">Show subcategories</string>
+    <string name="filter_categories_collapse">Hide subcategories</string>
+    <plurals name="filter_subcategories_count">
+        <item quantity="one">%1$d subcategory</item>
+        <item quantity="other">%1$d subcategories</item>
+    </plurals>
+    <string name="filter_type_expenses">Expenses</string>
+    <string name="filter_type_income">Income</string>
+    <string name="filter_type_transfers">Transfers</string>
+    <string name="filter_date_any">Any time</string>
+    <string name="filter_date_last_month">Last month</string>
+    <string name="filter_date_last_30_days">Last 30 days</string>
+    <string name="filter_amount_short">Amount</string>
+    <string name="filter_more">%1$s +%2$d</string>
+    <string name="transactions_search_hint">Search descriptions</string>
+    <string name="transactions_summary_income_label">Income</string>
+    <string name="transactions_summary_expense_label">Expenses</string>
 
     <!-- Category Delete Review -->
     <string name="category_delete_review_transactions">Review transactions</string>
