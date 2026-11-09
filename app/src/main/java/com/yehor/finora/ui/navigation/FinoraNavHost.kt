@@ -88,8 +88,9 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
         bottomBar = {
             NavigationBar {
                 TopLevelDestination.entries.forEach { dest ->
+                    val selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true
                     NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true,
+                        selected = selected,
                         onClick = {
                             // Always open the tab's root screen. Sub-screens opened earlier in the tab
                             // are discarded, not saved and restored.
@@ -98,7 +99,7 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
                                 launchSingleTop = true
                             }
                         },
-                        icon = { Icon(dest.icon, contentDescription = null) },
+                        icon = { Icon(if (selected) dest.selectedIcon else dest.icon, contentDescription = null) },
                         label = { Text(stringResource(dest.label)) },
                     )
                 }

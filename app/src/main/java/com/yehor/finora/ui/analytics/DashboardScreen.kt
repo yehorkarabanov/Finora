@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.analytics
 
+import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.ui.common.IconSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,16 +22,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -139,7 +131,7 @@ fun DashboardContent(
         floatingActionButton = {
             if (state.hasAccounts) {
                 FloatingActionButton(onClick = actions.onAddTransaction) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.transactions_add))
+                    Icon(AppIcons.Add, contentDescription = stringResource(R.string.transactions_add))
                 }
             }
         },
@@ -210,7 +202,7 @@ private fun FirstAccountCard(onAdd: () -> Unit, modifier: Modifier = Modifier) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.Outlined.AccountBalanceWallet,
+                    AppIcons.Account,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                     tint = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -229,7 +221,7 @@ private fun FirstAccountCard(onAdd: () -> Unit, modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
             )
             Button(onClick = onAdd) {
-                Icon(Icons.Filled.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small))
                 Spacer(Modifier.width(8.dp))
                 Text(stringResource(R.string.dashboard_first_account_action))
             }
@@ -245,22 +237,22 @@ private fun QuickActions(canTransfer: Boolean, actions: DashboardActions) {
     val finance = MaterialTheme.finance
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         QuickAction(
-            stringResource(R.string.transaction_kind_expense), Icons.Filled.Remove,
+            stringResource(R.string.transaction_kind_expense), AppIcons.Expense,
             tint = finance.expense, container = finance.expenseContainer, Modifier.weight(1f),
             onClick = actions.onAddTransaction,
         )
         QuickAction(
-            stringResource(R.string.transaction_kind_income), Icons.Filled.Add,
+            stringResource(R.string.transaction_kind_income), AppIcons.Income,
             tint = finance.income, container = finance.incomeContainer, Modifier.weight(1f),
             onClick = actions.onAddIncome,
         )
         QuickAction(
-            stringResource(R.string.transaction_kind_transfer), Icons.Filled.SwapHoriz,
+            stringResource(R.string.transaction_kind_transfer), AppIcons.Transfer,
             tint = scheme.onPrimaryContainer, container = scheme.primaryContainer, Modifier.weight(1f),
             enabled = canTransfer, onClick = actions.onAddTransfer,
         )
         QuickAction(
-            stringResource(R.string.nav_accounts), Icons.Outlined.AccountBalanceWallet,
+            stringResource(R.string.nav_accounts), AppIcons.Account,
             tint = scheme.onTertiaryContainer, container = scheme.tertiaryContainer, Modifier.weight(1f),
             onClick = actions.onOpenAccounts,
         )
@@ -382,7 +374,7 @@ private fun AddAccountTile(onAdd: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
         ) {
-            Icon(Icons.Filled.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(AppIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
             Text(
                 stringResource(R.string.dashboard_add_account),
                 style = MaterialTheme.typography.labelMedium,
@@ -413,12 +405,12 @@ private fun CashFlowCard(state: DashboardUiState, period: ResolvedPeriod, action
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FlowTile(
-                    stringResource(R.string.transaction_kind_income), state.income, Icons.Filled.ArrowDownward,
+                    stringResource(R.string.transaction_kind_income), state.income, AppIcons.Income,
                     MaterialTheme.finance.income, MaterialTheme.finance.incomeContainer, Modifier.weight(1f),
                     onClick = { actions.onOpenTransactions(base.copy(types = setOf(OperationType.INCOME))) },
                 )
                 FlowTile(
-                    stringResource(R.string.transaction_kind_expense), state.expense, Icons.Filled.ArrowUpward,
+                    stringResource(R.string.transaction_kind_expense), state.expense, AppIcons.Expense,
                     MaterialTheme.finance.expense, MaterialTheme.finance.expenseContainer, Modifier.weight(1f),
                     onClick = { actions.onOpenTransactions(base.copy(types = setOf(OperationType.EXPENSE))) },
                 )
@@ -482,7 +474,7 @@ private fun NetRow(net: Cell?, income: Cell?, expense: Cell?, onClick: () -> Uni
                 )
                 AmountText(net, style = MaterialTheme.typography.titleMedium, color = netColor(net), signed = true)
                 Icon(
-                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    AppIcons.Next,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -555,7 +547,7 @@ private fun UpcomingSection(upcoming: UpcomingState, actions: DashboardActions) 
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+                        Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
                         Text(
                             pluralStringResource(R.plurals.dashboard_schedules_attention, upcoming.attentionCount, upcoming.attentionCount),
                             style = MaterialTheme.typography.bodyMedium,
@@ -614,7 +606,7 @@ private fun RecentSection(recent: List<TransactionItem>, selectedAccountIds: Set
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        Icons.AutoMirrored.Outlined.ReceiptLong,
+                        AppIcons.Receipt,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -661,7 +653,7 @@ private fun SectionHeader(
         if (actionLabel != null) {
             TextButton(onClick = onAction, contentPadding = PaddingValues(start = 12.dp, end = 4.dp)) {
                 Text(actionLabel)
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(AppIcons.Next, contentDescription = null, modifier = Modifier.size(IconSize.Small))
             }
         }
     }

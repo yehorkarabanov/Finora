@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.data
 
+import com.yehor.finora.ui.common.AppIcons
 import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,11 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -112,7 +108,7 @@ fun DataScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.Back,
                             contentDescription = stringResource(R.string.navigate_back),
                         )
                     }
@@ -162,7 +158,7 @@ fun DataScreen(
                         is ExportState.Done -> {
                             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                                    Icon(AppIcons.Success, null, tint = MaterialTheme.colorScheme.primary)
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         stringResource(R.string.data_backup_done_title) + " (${exp.fileName})",
@@ -178,7 +174,7 @@ fun DataScreen(
                         }
                         is ExportState.Failed -> {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                                Icon(AppIcons.Error, null, tint = MaterialTheme.colorScheme.error)
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     stringResource(R.string.data_backup_failed, exp.message),
@@ -365,7 +361,7 @@ fun DataScreen(
 
                         if (res.backedUpFirst) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                                Icon(AppIcons.Success, null, tint = MaterialTheme.colorScheme.primary)
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     stringResource(R.string.data_restore_action_backed_up),

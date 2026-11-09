@@ -13,7 +13,7 @@ data class DefaultCategory(
 /**
  * The category set created inside database creation (design 5.4). Names are English user data,
  * editable and deletable like any other category. Icon keys must exist in `IconCatalog`
- * and are never renamed because they are stored in user data.
+ * and may change during development; unknown keys render as the default icon.
  */
 object DefaultCategories {
 
@@ -31,10 +31,10 @@ object DefaultCategories {
 
     val expense: List<DefaultCategory> = listOf(
         DefaultCategory(
-            "Food", "food", ORANGE,
+            "Food", "restaurant", ORANGE,
             listOf(
-                DefaultCategory("Groceries", "cart", ORANGE),
-                DefaultCategory("Restaurants & Cafes", "restaurant", ORANGE),
+                DefaultCategory("Groceries", "groceries", ORANGE),
+                DefaultCategory("Restaurants & Cafes", "coffee", ORANGE),
             ),
         ),
         DefaultCategory("Housing", "home", BROWN),
@@ -42,25 +42,25 @@ object DefaultCategories {
         DefaultCategory("Shopping", "shopping", PINK),
         DefaultCategory("Entertainment", "entertainment", PURPLE),
         DefaultCategory("Health", "health", RED),
-        DefaultCategory("Subscriptions", "subscription", INDIGO),
-        DefaultCategory("Fees & Charges", "fee", GREY),
+        DefaultCategory("Subscriptions", "subscriptions", INDIGO),
+        DefaultCategory("Fees & Charges", "fees", GREY),
         DefaultCategory("Other", "other", GREY),
     )
 
     val income: List<DefaultCategory> = listOf(
-        DefaultCategory("Salary", "work", GREEN),
-        DefaultCategory("Freelance", "laptop", TEAL),
-        DefaultCategory("Investment Income", "trending_up", GREEN),
+        DefaultCategory("Salary", "salary", GREEN),
+        DefaultCategory("Freelance", "freelance", TEAL),
+        DefaultCategory("Investment Income", "dividends", GREEN),
         DefaultCategory("Gifts", "gift", PINK),
         DefaultCategory("Refunds", "refund", AMBER),
         DefaultCategory("Other", "other", GREY),
     )
 
     val transfer: List<DefaultCategory> = listOf(
-        DefaultCategory("Own Account Transfer", "swap", BLUE),
+        DefaultCategory("Own Account Transfer", "transfer", BLUE),
         DefaultCategory("Currency Exchange", "exchange", TEAL),
         DefaultCategory("Savings Transfer", "savings", GREEN),
-        DefaultCategory("Investment Deposit", "trending_up", INDIGO),
+        DefaultCategory("Investment Deposit", "investments", INDIGO),
         DefaultCategory("Other", "other", GREY),
     )
 

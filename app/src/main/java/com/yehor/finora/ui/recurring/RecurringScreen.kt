@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.recurring
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -7,11 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -59,14 +55,14 @@ fun RecurringContent(
                 title = { Text(stringResource(R.string.more_recurring)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.recurring_add))
+                Icon(AppIcons.Add, contentDescription = stringResource(R.string.recurring_add))
             }
         },
     ) { padding ->
@@ -121,7 +117,7 @@ private fun RecurringListRow(row: RecurringRow, onOpen: (Long) -> Unit) {
         modifier = Modifier.clickable { onOpen(schedule.id) },
         leadingContent = {
             Icon(
-                if (schedule.kind == TransactionKind.INCOME) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
+                if (schedule.kind == TransactionKind.INCOME) AppIcons.Income else AppIcons.Expense,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )

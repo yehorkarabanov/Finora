@@ -114,7 +114,7 @@ class CategoryPickerModelTest {
     fun unknownIconAndNullColorFallBackWithoutThrowing() {
         assertEquals(IconKeys.DEFAULT, IconKeys.resolve("no-such-icon"))
         assertEquals(IconKeys.DEFAULT, IconKeys.resolve(null))
-        assertEquals("food", IconKeys.resolve("food"))
+        assertEquals("restaurant", IconKeys.resolve("restaurant"))
         assertEquals(ColorPalette.ACCOUNT_DEFAULT, ColorPalette.resolve(null, ColorPalette.ACCOUNT_DEFAULT))
         assertEquals(0xFF123456L, ColorPalette.resolve(0xFF123456L, ColorPalette.ACCOUNT_DEFAULT))
         assertEquals(16, ColorPalette.colors.size)

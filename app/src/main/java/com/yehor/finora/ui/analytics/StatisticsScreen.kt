@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.analytics
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -316,7 +315,7 @@ private fun CategorySection(
         if (report.breadcrumb.isNotEmpty()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onBack(report.breadcrumb.size - 1) }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.stats_back))
+                    Icon(AppIcons.Back, contentDescription = stringResource(R.string.stats_back))
                 }
                 FlowRow {
                     TextButton(onClick = { onBack(0) }) { Text(stringResource(R.string.stats_all_categories)) }

@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.analytics
 
+import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.ui.common.IconSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -17,16 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,7 +31,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -69,12 +61,12 @@ import com.yehor.finora.domain.money.Estimate
 import com.yehor.finora.ui.accounts.NotIncludedLine
 import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.common.ColorPalette
+import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.IconBadge
+import com.yehor.finora.ui.common.compactRangeLabel
 import com.yehor.finora.ui.theme.finance
 import java.math.BigDecimal
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -133,7 +125,7 @@ fun rangeLabel(period: ResolvedPeriod): String {
 /** Short human label: "Today", "3 – 9 Nov", "November 2026", "2026", or a custom range. */
 @Composable
 fun periodTitle(state: PeriodState, period: ResolvedPeriod): String {
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     val from = period.fromDate
     val to = period.toDateInclusive
     val dayMonth = DateTimeFormatter.ofPattern("d MMM", locale)
@@ -145,9 +137,7 @@ fun periodTitle(state: PeriodState, period: ResolvedPeriod): String {
         PeriodKind.MONTH -> from.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
         PeriodKind.YEAR -> from.year.toString()
-        PeriodKind.CUSTOM ->
-            if (from == to) from.format(full)
-            else "${from.format(if (from.year == to.year) dayMonth else full)} – ${to.format(full)}"
+        PeriodKind.CUSTOM -> compactRangeLabel(from, to, locale)
     }
 }
 
@@ -167,7 +157,7 @@ fun AmountText(
         Text(text, style = style, color = color, fontWeight = FontWeight.SemiBold)
         if (cell != null && cell.partial) {
             Icon(
-                Icons.Filled.Warning,
+                AppIcons.Warning,
                 contentDescription = stringResource(R.string.analytics_partial_warning),
                 tint = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(start = 4.dp).size(16.dp),
@@ -218,7 +208,7 @@ fun PeriodSelector(
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (arrows) {
                 IconButton(onClick = { onShift(-1) }, modifier = Modifier.size(44.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.analytics_period_previous))
+                    Icon(AppIcons.Previous, contentDescription = stringResource(R.string.analytics_period_previous))
                 }
             }
             Row(
@@ -237,11 +227,11 @@ fun PeriodSelector(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
-                Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
             }
             if (arrows) {
                 IconButton(onClick = { onShift(1) }, enabled = canShiftForward, modifier = Modifier.size(44.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.analytics_period_next))
+                    Icon(AppIcons.Next, contentDescription = stringResource(R.string.analytics_period_next))
                 }
             }
         }
@@ -278,29 +268,19 @@ fun PeriodSelector(
     }
 
     if (showPicker) {
-        val pickerState = rememberDateRangePickerState(
-            initialSelectedStartDateMillis = utcMillis(period.fromDate),
-            initialSelectedEndDateMillis = utcMillis(period.toDateInclusive),
+        DateRangePickerDialog(
+            initialStart = period.fromDate,
+            initialEnd = period.toDateInclusive,
+            // Cancelling goes back to the period list, like in the Transactions date sheet.
+            onDismiss = {
+                showPicker = false
+                showSheet = true
+            },
+            onConfirm = { start, end ->
+                showPicker = false
+                onCustom(start, end)
+            },
         )
-        DatePickerDialog(
-            onDismissRequest = { showPicker = false },
-            confirmButton = {
-                TextButton(
-                    enabled = pickerState.selectedStartDateMillis != null,
-                    onClick = {
-                        val start = pickerState.selectedStartDateMillis?.let(::utcDate)
-                        val end = pickerState.selectedEndDateMillis?.let(::utcDate) ?: start
-                        if (start != null && end != null) onCustom(start, end)
-                        showPicker = false
-                    },
-                ) { Text(stringResource(R.string.action_confirm)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPicker = false }) { Text(stringResource(R.string.action_cancel)) }
-            },
-        ) {
-            DateRangePicker(state = pickerState, modifier = Modifier.height(480.dp))
-        }
     }
 }
 
@@ -311,10 +291,6 @@ private fun PeriodKind.sheetLabelRes(): Int = when (this) {
     PeriodKind.YEAR -> R.string.period_this_year
     PeriodKind.CUSTOM -> R.string.period_custom_range
 }
-
-private fun utcMillis(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-
-private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
 /** A compact pill with the selected accounts' icons; tapping it opens a multi-select sheet. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -348,7 +324,7 @@ fun AccountSelector(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selected.isEmpty()) {
-                Icon(Icons.Outlined.AccountBalanceWallet, contentDescription = null, modifier = Modifier.size(20.dp))
+                Icon(AppIcons.Account, contentDescription = null, modifier = Modifier.size(IconSize.Small))
             } else {
                 StackedBadges(selected)
             }
@@ -359,7 +335,7 @@ fun AccountSelector(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 8.dp).widthIn(max = 104.dp),
             )
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
         }
     }
 
@@ -383,7 +359,7 @@ fun AccountSelector(
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                         leadingContent = {
                             Box(Modifier.size(36.dp), contentAlignment = Alignment.Center) {
-                                Icon(Icons.Outlined.AccountBalanceWallet, contentDescription = null)
+                                Icon(AppIcons.Account, contentDescription = null)
                             }
                         },
                         headlineContent = { Text(stringResource(R.string.filter_all_accounts_selected)) },
@@ -505,7 +481,7 @@ fun AnalyticsRow(
         trailingContent = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 AmountText(if (previousOnly) null else cell, style = MaterialTheme.typography.bodyLarge)
-                if (chevron) Icon(Icons.Filled.ChevronRight, contentDescription = null)
+                if (chevron) Icon(AppIcons.Next, contentDescription = null)
             }
         },
     )

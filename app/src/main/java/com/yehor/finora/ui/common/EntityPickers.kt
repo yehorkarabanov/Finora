@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -192,7 +189,7 @@ fun CategoryTreePickerContent(
                                     expanded = if (row.expanded) expanded - c.id else expanded + c.id
                                 }) {
                                     Icon(
-                                        if (row.expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                        if (row.expanded) AppIcons.Collapse else AppIcons.Expand,
                                         contentDescription = stringResource(
                                             if (row.expanded) R.string.action_collapse else R.string.action_expand,
                                         ),

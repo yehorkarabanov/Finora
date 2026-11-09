@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.accounts
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -52,6 +50,7 @@ import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.ui.common.ColorPicker
+import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconKeys
 import com.yehor.finora.ui.common.IconPicker
 
@@ -82,7 +81,7 @@ fun AccountEditScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
                 actions = {
@@ -149,10 +148,7 @@ fun AccountEditScreen(
                 }
             }
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.picker_icon), style = MaterialTheme.typography.labelMedium)
-                IconPicker(IconKeys.account, state.icon, state.color, viewModel::onIcon)
-            }
+            IconPicker(IconKeys.accountGroups, state.icon, state.color, ColorPalette.ACCOUNT_DEFAULT, viewModel::onIcon)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.picker_color), style = MaterialTheme.typography.labelMedium)
                 ColorPicker(state.color, viewModel::onColor)
@@ -218,7 +214,7 @@ fun AccountEditScreen(
                         label = { Text(stringResource(R.string.account_form_initial_date)) },
                         trailingIcon = {
                             IconButton(onClick = { showDatePicker = true }) {
-                                Icon(Icons.Filled.CalendarMonth, contentDescription = stringResource(R.string.account_form_pick_date))
+                                Icon(AppIcons.Calendar, contentDescription = stringResource(R.string.account_form_pick_date))
                             }
                         },
                         isError = dateTooLate || state.dateOrderRejected,

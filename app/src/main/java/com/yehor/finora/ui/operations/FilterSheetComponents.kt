@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -9,9 +10,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,9 +76,9 @@ internal fun FilterSearchField(
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         placeholder = { Text(placeholder) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
         trailingIcon = if (value.isNotEmpty()) {
-            { IconButton(onClick = { onValueChange("") }) { Icon(Icons.Filled.Close, stringResource(R.string.action_remove)) } }
+            { IconButton(onClick = { onValueChange("") }) { Icon(AppIcons.Close, stringResource(R.string.action_remove)) } }
         } else {
             null
         },

@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.ui.common.IconSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,21 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
-import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Category
-import androidx.compose.material.icons.outlined.Sell
 import androidx.compose.material3.Button
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,7 +47,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -101,11 +88,11 @@ import com.yehor.finora.domain.tag.TagMatchMode
 import com.yehor.finora.ui.accounts.NotIncludedLine
 import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.analytics.AccountSelector
+import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.TransactionRow
+import com.yehor.finora.ui.common.compactRangeLabel
 import com.yehor.finora.ui.theme.finance
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.TemporalAdjusters
@@ -164,7 +151,7 @@ fun TransactionsScreen(
                     // Filters and sort live in the pill row under the search field; only rare actions stay here.
                     Box {
                         IconButton(onClick = { overflowMenuOpen = true }) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more_options))
+                            Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
                         }
                         DropdownMenu(expanded = overflowMenuOpen, onDismissRequest = { overflowMenuOpen = false }) {
                             DropdownMenuItem(
@@ -181,7 +168,7 @@ fun TransactionsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.transactions_add))
+                Icon(AppIcons.Add, contentDescription = stringResource(R.string.transactions_add))
             }
         },
     ) { padding ->
@@ -372,11 +359,11 @@ private fun SearchField(value: String, onValueChange: (String) -> Unit, modifier
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         placeholder = { Text(stringResource(R.string.transactions_search_hint)) },
-        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+        leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
         trailingIcon = if (value.isNotEmpty()) {
             {
                 IconButton(onClick = { onValueChange("") }) {
-                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_remove))
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
                 }
             }
         } else {
@@ -450,7 +437,7 @@ private fun FilterBar(
             FilterPill(
                 label = dateLabel(filter) ?: stringResource(R.string.filter_date_any),
                 active = filter.from != null || filter.toExclusive != null,
-                icon = Icons.Outlined.CalendarMonth,
+                icon = AppIcons.Calendar,
                 onClick = onOpenDate,
             )
         }
@@ -475,7 +462,7 @@ private fun FilterBar(
             FilterPill(
                 label = summarize(names) ?: stringResource(R.string.filter_categories),
                 active = names.isNotEmpty(),
-                icon = Icons.Outlined.Category,
+                icon = AppIcons.Category,
                 onClick = onOpenCategories,
             )
         }
@@ -491,7 +478,7 @@ private fun FilterBar(
                         else -> summary
                     },
                     active = names.isNotEmpty(),
-                    icon = Icons.Outlined.Sell,
+                    icon = AppIcons.Tag,
                     onClick = onOpenTags,
                 )
             }
@@ -508,7 +495,7 @@ private fun FilterBar(
             FilterPill(
                 label = stringResource(state.sort.labelRes()),
                 active = false,
-                icon = Icons.AutoMirrored.Filled.Sort,
+                icon = AppIcons.Sort,
                 onClick = onOpenSort,
             )
         }
@@ -534,10 +521,13 @@ private fun dateLabel(filter: TransactionFilter): String? {
     val preset = DatePreset.entries.firstOrNull { it.range(LocalDate.now()) == (filter.from to filter.toExclusive) }
     if (preset != null) return stringResource(preset.labelRes)
     val format = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-    val from = filter.from?.let { dateOf(it).format(format) }
-    val to = filter.toExclusive?.let { dateOf(it - 1).format(format) }
+    val fromDate = filter.from?.let { dateOf(it) }
+    val toDate = filter.toExclusive?.let { dateOf(it - 1) }
+    val from = fromDate?.format(format)
+    val to = toDate?.format(format)
     return when {
-        from != null && to != null -> stringResource(R.string.filter_chip_date_range, from, to)
+        // Same compact format as the period pill on the analytics screens.
+        fromDate != null && toDate != null -> compactRangeLabel(fromDate, toDate)
         from != null -> stringResource(R.string.filter_chip_date_from, from)
         else -> stringResource(R.string.filter_chip_date_to, to.orEmpty())
     }
@@ -590,7 +580,7 @@ private fun FilterPill(label: String, active: Boolean, onClick: () -> Unit, icon
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
-                Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(icon, contentDescription = null, modifier = Modifier.size(IconSize.Small))
             }
             Text(
                 label,
@@ -599,7 +589,7 @@ private fun FilterPill(label: String, active: Boolean, onClick: () -> Unit, icon
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = if (icon != null) 8.dp else 0.dp).widthIn(max = 160.dp),
             )
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
         }
     }
 }
@@ -678,29 +668,18 @@ private fun DateFilterSheet(
             }
         }
     } else {
-        val pickerState = rememberDateRangePickerState(
-            initialSelectedStartDateMillis = filter.from?.let { utcMillis(dateOf(it)) },
-            initialSelectedEndDateMillis = filter.toExclusive?.let { utcMillis(dateOf(it - 1)) },
+        // Local day <-> filter instants: `from` is the start of the first day, `toExclusive` the start of the day
+        // after the last one, so the inclusive end day is dateOf(toExclusive - 1).
+        DateRangePickerDialog(
+            initialStart = filter.from?.let { dateOf(it) },
+            initialEnd = filter.toExclusive?.let { dateOf(it - 1) },
+            // Cancelling goes back to the list of quick ranges.
+            onDismiss = { showPicker = false },
+            onConfirm = { start, end ->
+                onApply(startOfDayMillis(start), endExclusiveMillis(end))
+                onDismiss()
+            },
         )
-        DatePickerDialog(
-            onDismissRequest = onDismiss,
-            confirmButton = {
-                TextButton(
-                    enabled = pickerState.selectedStartDateMillis != null,
-                    onClick = {
-                        val start = pickerState.selectedStartDateMillis?.let(::utcDate)
-                        val end = pickerState.selectedEndDateMillis?.let(::utcDate) ?: start
-                        if (start != null && end != null) onApply(startOfDayMillis(start), endExclusiveMillis(end))
-                        onDismiss()
-                    },
-                ) { Text(stringResource(R.string.action_confirm)) }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-            },
-        ) {
-            DateRangePicker(state = pickerState, modifier = Modifier.height(480.dp))
-        }
     }
 }
 
@@ -714,10 +693,6 @@ private fun DateOption(label: String, selected: Boolean, supporting: String? = n
         supportingContent = supporting?.let { { Text(it, color = MaterialTheme.colorScheme.onSurfaceVariant) } },
     )
 }
-
-private fun utcMillis(date: LocalDate): Long = date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
-
-private fun utcDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
 
 // ---- List ----
 
@@ -845,7 +820,7 @@ private fun EmptyState(filtered: Boolean, onClearFilters: () -> Unit, onAdd: () 
             Surface(shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.size(64.dp)) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(
-                        if (filtered) Icons.Filled.SearchOff else Icons.AutoMirrored.Outlined.ReceiptLong,
+                        if (filtered) AppIcons.SearchEmpty else AppIcons.Receipt,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(28.dp),

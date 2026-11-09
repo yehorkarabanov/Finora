@@ -365,11 +365,6 @@ private fun CategoryFilter(
     }
     if (expanded) {
         Column {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.picker_uncategorized)) },
-                trailingContent = { Checkbox(checked = includeUncategorized, onCheckedChange = null) },
-                modifier = Modifier.clickable { onToggleUncategorized() },
-            )
             listOf(CategoryType.EXPENSE, CategoryType.INCOME).forEach { type ->
                 tree.rootsOf(type).forEach { node ->
                     CategoryCheckRow(
@@ -382,6 +377,11 @@ private fun CategoryFilter(
                     )
                 }
             }
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.picker_uncategorized)) },
+                trailingContent = { Checkbox(checked = includeUncategorized, onCheckedChange = null) },
+                modifier = Modifier.clickable { onToggleUncategorized() },
+            )
         }
     }
 }

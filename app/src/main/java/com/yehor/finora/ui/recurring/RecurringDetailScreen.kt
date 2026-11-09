@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.recurring
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -66,7 +64,7 @@ fun RecurringDetailScreen(
                 title = { Text(stringResource(R.string.recurring_detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
             )
@@ -240,7 +238,7 @@ private fun HistoryItem(row: HistoryRow, onOpenTransaction: (Long) -> Unit) {
     when (row) {
         is HistoryRow.Generated -> ListItem(
             modifier = Modifier.fillMaxWidth().clickable { onOpenTransaction(row.operationId) },
-            leadingContent = { Icon(Icons.Filled.Repeat, contentDescription = stringResource(R.string.recurring_marker)) },
+            leadingContent = { Icon(AppIcons.Recurring, contentDescription = stringResource(R.string.recurring_marker)) },
             headlineContent = { Text(formatScheduleDate(row.date)) },
             trailingContent = { row.money?.let { Text(it.format(), style = MaterialTheme.typography.bodyLarge) } },
         )

@@ -107,7 +107,7 @@ Row(verticalAlignment = CenterVertically, horizontalArrangement = spacedBy(8.dp)
     AccountSelector(...)            // omit when ≤ 1 account or not applicable
 }
 ```
-- Period pill: `‹ November 2026 ▾ ›`. The label comes from `periodTitle()` ("Today", "3 – 9 Nov", "November 2026", "2026", custom range). Tapping the label opens a `ModalBottomSheet` with a radio list (Today / This week / This month / This year / Custom range…). Custom opens `DateRangePicker`.
+- Period pill: `‹ November 2026 ▾ ›`. The label comes from `periodTitle()` ("Today", "3 – 9 Nov", "November 2026", "2026", custom range). Tapping the label opens a `ModalBottomSheet` with a radio list (Today / This week / This month / This year / Custom range…). Custom opens the shared full-screen `DateRangePickerDialog` (`ui/common/DateRangePickerDialog.kt`): X + "Clear" on top, the range picker, and a bottom bar with the selected range, day count and a 56dp "Apply · 3 – 9 Nov" button. Dates after today are not selectable; cancelling returns to the period sheet.
 - Account pill: wallet icon + "All", or stacked badges (≤ 3) + name/count. Uses `secondaryContainer` when a filter is active. Sheet: "All accounts" + a checklist (badge, name, currency, **no balances**) and a "Done" button.
 - Don't bring back the 5-chip row or the full-width dropdown card.
 
@@ -137,6 +137,25 @@ Row(verticalAlignment = CenterVertically, horizontalArrangement = spacedBy(8.dp)
 - Category sheet (`CategoryFilterSheet.kt`): Expense/Income segmented tabs with selected counts, an "Uncategorized" card, then one connected group of rows (badge, name, checkbox, expand chevron). Selecting a parent includes its subcategories (shown checked and dimmed); a "With subcategories ▾ / Direct only ▾" pill on the selected parent switches the match. Search appears above 10 categories. Changes apply immediately; "Done" closes.
 - The filtered summary (income / expenses / net per currency) is the first list item, only while a filter is active.
 
+### 5.7 Icons (`ui/common/AppIcons.kt`, `IconCatalog.kt`, `IconKeys.kt`)
+- **UI chrome:** `AppIcons` is the only source. Call sites never import `androidx.compose.material.icons.*`. The family is **Outlined**; directional icons are `AutoMirrored`. Add a new named property there before using a new glyph.
+- **One concept, one icon:**
+
+| Concept | `AppIcons` | Concept | `AppIcons` |
+|---|---|---|---|
+| Back / Close / Add / More | `Back` / `Close` / `Add` / `More` | Income (money in) | `Income` ↓ |
+| Edit / Delete / Export | `Edit` / `Delete` / `Export` | Expense (money out) | `Expense` ↑ |
+| Search / no results / Sort | `Search` / `SearchEmpty` / `Sort` | Transfer | `Transfer` ⇄ |
+| Date | `Calendar` | Recurring | `Recurring` |
+| Account | `Account` (wallet) | Category / Tag / Merchant | `Category` / `Tag` / `Merchant` |
+| Opens detail / period prev, next | `Next` / `Previous` | Expand / collapse | `Expand` / `Collapse` |
+| Dropdown caret | `Dropdown` | Success / Warning / Error / Help | `Success` / `Warning` / `Error` / `Help` |
+
+  Quick actions, kind tabs, flow tiles, the recurring list and transaction rows all use the same Income/Expense/Transfer glyphs.
+- **Bottom navigation:** unselected `Nav*` is Outlined, the selected tab shows the Filled `Nav*Selected` (`TopLevelDestination.selectedIcon`). This is the only place Filled is used for chrome.
+- **Sizes (`IconSize`):** `Default` 24dp (IconButtons, list leading icons), `Medium` 20dp (trailing dropdown carets in selector pills), `Small` 18dp (inside pills, chips and small buttons). Sizes fixed by a component above stay: `IconBadge` icon = 55% of the badge, 44dp tile icon boxes, the 64dp empty-state circle, 14dp in the flow tile circle.
+- **User-content icons** (categories, accounts) come from `IconCatalog` (key → `IconEntry(vector, label)`) in the **Rounded** family. Keys live in `IconKeys` (plain Kotlin, grouped as `IconGroup`). Keys are the stored identifier but may change during development; unknown or null keys render `other`. A key appears once per list (`category` / `account`, flattened from `categoryGroups` / `accountGroups`) but may be offered to both. Every key needs `icon_<key>` in `strings.xml` (search and TalkBack read it, never the raw key) and a group label `icon_group_<id>`.
+- **Icon picker (`IconPicker`):** in the account and category forms it is one row (44dp `IconBadge` in the chosen color, "Icon" + the icon's name, `Next` chevron). Tapping it opens a `ModalBottomSheet` (`skipPartiallyExpanded`) with a search field and one `titleSmall` header per group above a grid of 48dp circles (`surfaceContainerHigh`; selected = tint at 20% plus a 2dp tint border). Picking an icon closes the sheet.
 ---
 
 ## 6. Interaction rules
@@ -155,8 +174,6 @@ Row(verticalAlignment = CenterVertically, horizontalArrangement = spacedBy(8.dp)
 - The Dashboard top bar shows the app name ("Finora"). No greeting, avatar, notifications or "live sync" (local-only app).
 
 ## 9. Known inconsistencies to fix when touching these files
-- `TransactionEditScreen` still uses `colorScheme.tertiary` (income) and `colorScheme.error` (expense) for kind colors. Switch to `MaterialTheme.finance.income/expense`.
-- Arrow direction differs: kind tabs use ↓ Expense / ↑ Income; dashboard flow tiles use ↓ Income / ↑ Expense. Pick one convention app-wide (suggested: Income ↓ "money in", Expense ↑ "money out", as on the dashboard).
 - Money formatting differs: the form uses `symbol + grouped digits` ("zł5,000.00"), while `Money.format()` / `Estimate.format()` use "5000.00 zł". Unify on one locale-aware formatter.
 - Statistics, Accounts, Recurring, Categories, Tags and Settings screens still use plain `ListItem`/`Card` layouts. Migrate them to `DashboardCard` + `SectionHeader` + grouped `SectionCard` when they are next edited.
 - `DashboardCard`, `SectionHeader`, `SectionCard`, `SmallPill` and `LeadingIcon` are private. Move them to `ui/common/` the first time a second screen needs them.

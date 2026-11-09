@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.ui.common.IconSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -170,15 +168,6 @@ fun CategoryFilterSheet(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
-                if (query.isBlank()) {
-                    item(key = "uncategorized") {
-                        UncategorizedRow(
-                            checked = filter.includeUncategorized,
-                            onToggle = { onFilterChange(filter.copy(includeUncategorized = !filter.includeUncategorized)) },
-                        )
-                    }
-                    item(key = "gap") { Box(Modifier.height(10.dp)) }
-                }
                 rows.forEachIndexed { index, row ->
                     item(key = row.node.category.id) {
                         val id = row.node.category.id
@@ -203,6 +192,16 @@ fun CategoryFilterSheet(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(16.dp),
+                        )
+                    }
+                }
+                // Uncategorized is not tied to a type and always comes last.
+                if (query.isBlank()) {
+                    item(key = "gap") { Box(Modifier.height(10.dp)) }
+                    item(key = "uncategorized") {
+                        UncategorizedRow(
+                            checked = filter.includeUncategorized,
+                            onToggle = { onFilterChange(filter.copy(includeUncategorized = !filter.includeUncategorized)) },
                         )
                     }
                 }
@@ -267,7 +266,7 @@ private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
-                    Icons.AutoMirrored.Outlined.HelpOutline,
+                    AppIcons.Help,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp),
@@ -338,7 +337,7 @@ private fun CategoryRow(
             if (hasChildren && row.parentName == null) {
                 IconButton(onClick = onToggleExpanded, modifier = Modifier.size(44.dp)) {
                     Icon(
-                        if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                        if (expanded) AppIcons.Collapse else AppIcons.Expand,
                         contentDescription = stringResource(
                             if (expanded) R.string.filter_categories_collapse else R.string.filter_categories_expand,
                         ),
@@ -371,7 +370,7 @@ private fun ScopePill(directOnly: Boolean, onClick: () -> Unit) {
                 stringResource(if (directOnly) R.string.filter_category_stage_direct else R.string.filter_category_stage_recursive),
                 style = MaterialTheme.typography.labelMedium,
             )
-            Icon(Icons.Filled.ExpandMore, contentDescription = null, modifier = Modifier.size(16.dp))
+            Icon(AppIcons.Expand, contentDescription = null, modifier = Modifier.size(IconSize.Small))
         }
     }
 }

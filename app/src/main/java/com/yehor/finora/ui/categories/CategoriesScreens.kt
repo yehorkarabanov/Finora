@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.categories
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,12 +14,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -92,14 +87,14 @@ fun CategoriesScreen(
                 title = { Text(stringResource(R.string.categories_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { onAdd(state.type, null) }) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.categories_add))
+                Icon(AppIcons.Add, contentDescription = stringResource(R.string.categories_add))
             }
         },
     ) { padding ->
@@ -181,13 +176,13 @@ private fun CategoryRow(
                 if (row.hasChildren) {
                     IconButton(onClick = onToggle) {
                         Icon(
-                            if (row.expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            if (row.expanded) AppIcons.Collapse else AppIcons.Expand,
                             contentDescription = stringResource(if (row.expanded) R.string.action_collapse else R.string.action_expand),
                         )
                     }
                 }
                 IconButton(onClick = { menu = true }) {
-                    Icon(Icons.Filled.MoreVert, contentDescription = stringResource(R.string.action_more_options))
+                    Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     if (CategoryFormLogic.canAddSubcategory(row.level)) {
@@ -320,7 +315,7 @@ fun CategoryEditScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
                 actions = {
@@ -381,10 +376,7 @@ fun CategoryEditScreen(
                 modifier = Modifier.fillMaxWidth().clickable { pickParent = true },
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.picker_icon), style = MaterialTheme.typography.labelMedium)
-                IconPicker(IconKeys.category, state.icon, state.color, viewModel::onIcon)
-            }
+            IconPicker(IconKeys.categoryGroups, state.icon, state.color, ColorPalette.defaultFor(state.type), viewModel::onIcon)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.picker_color), style = MaterialTheme.typography.labelMedium)
                 ColorPicker(state.color, viewModel::onColor)

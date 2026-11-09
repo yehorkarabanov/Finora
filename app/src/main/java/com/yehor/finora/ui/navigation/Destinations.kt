@@ -2,13 +2,8 @@ package com.yehor.finora.ui.navigation
 
 import android.net.Uri
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBalanceWallet
-import androidx.compose.material.icons.outlined.BarChart
-import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.Receipt
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.yehor.finora.ui.common.AppIcons
 import com.yehor.finora.R
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -80,12 +75,13 @@ enum class TopLevelDestination(
     val route: String,
     @StringRes val label: Int,
     val icon: ImageVector,
+    val selectedIcon: ImageVector,
 ) {
-    DASHBOARD(Routes.DASHBOARD, R.string.nav_dashboard, Icons.Outlined.Dashboard),
-    TRANSACTIONS(Routes.TRANSACTIONS, R.string.nav_transactions, Icons.Outlined.Receipt),
-    ACCOUNTS(Routes.ACCOUNTS, R.string.nav_accounts, Icons.Outlined.AccountBalanceWallet),
-    STATISTICS(Routes.STATISTICS, R.string.nav_statistics, Icons.Outlined.BarChart),
-    MORE(Routes.MORE, R.string.nav_more, Icons.Outlined.MoreHoriz),
+    DASHBOARD(Routes.DASHBOARD, R.string.nav_dashboard, AppIcons.NavDashboard, AppIcons.NavDashboardSelected),
+    TRANSACTIONS(Routes.TRANSACTIONS, R.string.nav_transactions, AppIcons.NavTransactions, AppIcons.NavTransactionsSelected),
+    ACCOUNTS(Routes.ACCOUNTS, R.string.nav_accounts, AppIcons.NavAccounts, AppIcons.NavAccountsSelected),
+    STATISTICS(Routes.STATISTICS, R.string.nav_statistics, AppIcons.NavStatistics, AppIcons.NavStatisticsSelected),
+    MORE(Routes.MORE, R.string.nav_more, AppIcons.NavMore, AppIcons.NavMoreSelected),
 }
 
 /**

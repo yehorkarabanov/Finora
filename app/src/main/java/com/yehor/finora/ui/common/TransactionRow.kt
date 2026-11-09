@@ -8,9 +8,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
@@ -56,7 +53,7 @@ fun TransactionRow(
         leadingContent = {
             if (isTransfer) {
                 Icon(
-                    Icons.Default.SwapHoriz,
+                    AppIcons.Transfer,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -81,7 +78,7 @@ fun TransactionRow(
                 )
                 if (item.recurringScheduleId != null) {
                     Icon(
-                        Icons.Default.Repeat,
+                        AppIcons.Recurring,
                         contentDescription = stringResource(R.string.recurring_marker),
                         modifier = Modifier.padding(start = 6.dp).size(16.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,

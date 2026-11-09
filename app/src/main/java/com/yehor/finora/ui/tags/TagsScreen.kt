@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.tags
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,10 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -64,14 +61,14 @@ fun TagsScreen(
                 title = { Text(stringResource(R.string.tags_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
             )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = viewModel::onAdd) {
-                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.tags_add))
+                Icon(AppIcons.Add, contentDescription = stringResource(R.string.tags_add))
             }
         },
     ) { padding ->
@@ -139,7 +136,7 @@ private fun TagRow(
         trailingContent = {
             Box {
                 IconButton(onClick = { menuOpen = true }) {
-                    Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more_options))
+                    Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
                 }
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     DropdownMenuItem(

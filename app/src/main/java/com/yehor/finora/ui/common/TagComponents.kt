@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -51,7 +49,7 @@ fun TagChip(tag: Tag, onRemove: (() -> Unit)? = null) {
         trailingIcon = onRemove?.let {
             {
                 IconButton(onClick = it, modifier = Modifier.size(16.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_remove))
+                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
                 }
             }
         },
@@ -98,7 +96,7 @@ fun TagPicker(
                         label = { Text(stringResource(R.string.tag_picker_new_suffix, name)) },
                         trailingIcon = {
                             IconButton(onClick = { onRemovePendingTag(name) }, modifier = Modifier.size(16.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_remove))
+                                Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
                             }
                         },
                     )

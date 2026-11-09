@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.data
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -81,7 +77,7 @@ fun CsvExportScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            AppIcons.Back,
                             contentDescription = stringResource(R.string.navigate_back),
                         )
                     }
@@ -115,7 +111,7 @@ fun CsvExportScreen(
                         label = { Text(label) },
                         trailingIcon = {
                             Icon(
-                                Icons.Default.Close,
+                                AppIcons.Close,
                                 contentDescription = stringResource(R.string.action_remove),
                                 modifier = Modifier.size(18.dp),
                             )
@@ -210,7 +206,7 @@ fun CsvExportScreen(
             }
             state.exportResult?.let { result ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
+                    Icon(AppIcons.Success, null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(8.dp))
                     Column {
                         Text(pluralStringResource(R.plurals.csv_export_success, result.count, result.count))
@@ -220,7 +216,7 @@ fun CsvExportScreen(
             }
             state.errorMessage?.let { message ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                    Icon(AppIcons.Error, null, tint = MaterialTheme.colorScheme.error)
                     Spacer(Modifier.width(8.dp))
                     Text(stringResource(R.string.csv_export_failed, message), color = MaterialTheme.colorScheme.error)
                 }

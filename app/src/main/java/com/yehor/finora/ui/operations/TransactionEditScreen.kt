@@ -1,5 +1,8 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.ui.theme.finance
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -35,23 +38,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.outlined.Backspace
-import androidx.compose.material.icons.automirrored.outlined.Label
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AddCircleOutline
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.SyncAlt
-import androidx.compose.material.icons.outlined.CalendarToday
-import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -186,7 +172,7 @@ fun TransactionEditScreen(
     val selectedAccount = state.selectedAccount
     val currency = state.currency
     val isIncome = state.kind == TransactionKind.INCOME
-    val kindColor = if (isIncome) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
+    val kindColor = if (isIncome) MaterialTheme.finance.income else MaterialTheme.finance.expense
     val symbols = remember { DecimalFormatSymbols.getInstance() }
     val amountDisplay = currency.symbol +
         AmountKeypad.format(state.amountText, symbols.groupingSeparator, symbols.decimalSeparator)
@@ -216,14 +202,14 @@ fun TransactionEditScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
+                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
                 },
                 actions = {
                     if (state.isEdit) {
                         Box {
                             IconButton(onClick = { menuOpen = true }) {
-                                Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.action_more_options))
+                                Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
                             }
                             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                                 if (onDuplicate != null) {
@@ -279,14 +265,14 @@ fun TransactionEditScreen(
                         shape = RoundedCornerShape(28.dp),
                     ) {
                         if (blocker == null) {
-                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(20.dp))
+                            Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(IconSize.Small))
                             Spacer(Modifier.width(8.dp))
                         }
                         Text(ctaLabel, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                     if (!state.isEdit) {
                         TextButton(onClick = { viewModel.save(createAnother = true) }, enabled = state.canSave) {
-                            Icon(Icons.Default.AddCircleOutline, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(AppIcons.AddCircle, contentDescription = null, modifier = Modifier.size(IconSize.Small))
                             Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.transaction_form_save_and_another))
                         }
@@ -307,7 +293,7 @@ fun TransactionEditScreen(
             val scheduleName = state.recurringScheduleName
             if (scheduleId != null && scheduleName != null && onOpenSchedule != null) {
                 TextButton(onClick = { onOpenSchedule(scheduleId) }) {
-                    Icon(Icons.Default.Repeat, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                    Icon(AppIcons.Recurring, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                     Text(stringResource(R.string.transaction_form_created_by_schedule, scheduleName))
                 }
             }
@@ -387,7 +373,7 @@ fun TransactionEditScreen(
                             )
                         }
                     }
-                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
@@ -433,7 +419,7 @@ fun TransactionEditScreen(
                             )
                         }
                     }
-                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (recents.isNotEmpty() || (!hasCategoriesOfKind && onNavigateCreateCategory != null)) {
                     Spacer(Modifier.height(10.dp))
@@ -461,7 +447,7 @@ fun TransactionEditScreen(
                                 selected = false,
                                 onClick = { onNavigateCreateCategory(categoryType.name) },
                                 label = { Text(stringResource(R.string.transaction_form_create_category)) },
-                                leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                                leadingIcon = { Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small)) },
                             )
                         }
                     }
@@ -473,7 +459,7 @@ fun TransactionEditScreen(
             val futureDate = TransactionDraftError.DATE_IN_FUTURE in state.errors
             SectionCard(shape = GroupMiddleShape, onClick = { pickDateTime = true }, isError = futureDate) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LeadingIcon(Icons.Outlined.CalendarToday)
+                    LeadingIcon(AppIcons.Calendar)
                     Column(Modifier.weight(1f)) {
                         Text(dateLabel(state.date, today), style = MaterialTheme.typography.titleMedium)
                         Text(
@@ -489,7 +475,7 @@ fun TransactionEditScreen(
                             color = if (futureDate) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Spacer(Modifier.height(10.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -516,7 +502,7 @@ fun TransactionEditScreen(
             val descriptionTooLong = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors
             SectionCard(shape = GroupMiddleShape, isError = descriptionTooLong) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LeadingIcon(Icons.Outlined.Storefront)
+                    LeadingIcon(AppIcons.Merchant)
                     Column(Modifier.weight(1f)) {
                         Text(
                             stringResource(R.string.transaction_form_merchant_description),
@@ -714,16 +700,16 @@ private fun KindTabs(
         Row(Modifier.padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             KindTab(
                 label = stringResource(R.string.transaction_kind_expense),
-                icon = Icons.Default.ArrowDownward,
-                color = MaterialTheme.colorScheme.error,
+                icon = AppIcons.Income,
+                color = MaterialTheme.finance.expense,
                 selected = kind == TransactionKind.EXPENSE,
                 enabled = enabled,
                 onClick = { onKindChange(TransactionKind.EXPENSE) },
             )
             KindTab(
                 label = stringResource(R.string.transaction_kind_income),
-                icon = Icons.Default.ArrowUpward,
-                color = MaterialTheme.colorScheme.tertiary,
+                icon = AppIcons.Expense,
+                color = MaterialTheme.finance.income,
                 selected = kind == TransactionKind.INCOME,
                 enabled = enabled,
                 onClick = { onKindChange(TransactionKind.INCOME) },
@@ -731,7 +717,7 @@ private fun KindTabs(
             if (onSelectTransfer != null) {
                 KindTab(
                     label = stringResource(R.string.transaction_kind_transfer),
-                    icon = Icons.Default.SyncAlt,
+                    icon = AppIcons.Transfer,
                     color = MaterialTheme.colorScheme.primary,
                     selected = false,
                     enabled = enabled,
@@ -769,7 +755,7 @@ private fun RowScope.KindTab(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(IconSize.Small))
             Spacer(Modifier.width(6.dp))
             Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
         }
@@ -824,7 +810,7 @@ private fun AmountCard(
                         modifier = Modifier.weight(1f, fill = false),
                     )
                     Icon(
-                        Icons.Default.KeyboardArrowDown,
+                        AppIcons.Dropdown,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp),
@@ -850,7 +836,7 @@ private fun AmountCard(
                 if (amountText.isNotEmpty()) {
                     val clear = stringResource(R.string.transaction_form_clear_amount)
                     SmallPill(onClick = { onAmountChange("") }, modifier = Modifier.semantics { contentDescription = clear }) {
-                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(AppIcons.Close, contentDescription = null, modifier = Modifier.size(IconSize.Small))
                     }
                 }
             }
@@ -957,7 +943,7 @@ private fun NumberPad(
                             .semantics { if (isBackspace) contentDescription = backspaceLabel },
                     ) {
                         when {
-                            isBackspace -> Icon(Icons.AutoMirrored.Outlined.Backspace, contentDescription = null)
+                            isBackspace -> Icon(AppIcons.Backspace, contentDescription = null)
                             isDecimal && !decimalEnabled -> Unit
                             else -> Text(
                                 if (isDecimal) decimalLabel else key,
@@ -988,7 +974,7 @@ private fun TagsCard(
     SectionCard(shape = GroupBottomShape) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                Icons.AutoMirrored.Outlined.Label,
+                AppIcons.Tag,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(20.dp),
@@ -1035,7 +1021,7 @@ private fun TagsCard(
                         label = { Text(stringResource(R.string.tag_picker_new_suffix, name)) },
                         trailingIcon = {
                             IconButton(onClick = { onRemovePendingTag(name) }, modifier = Modifier.size(16.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = stringResource(R.string.action_remove))
+                                Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
                             }
                         },
                     )
@@ -1044,7 +1030,7 @@ private fun TagsCard(
                     selected = false,
                     onClick = { editing = true },
                     label = { Text(stringResource(R.string.transaction_form_add_tag)) },
-                    leadingIcon = { Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    leadingIcon = { Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small)) },
                 )
             }
         }
@@ -1082,7 +1068,7 @@ private fun LeadingIcon(icon: ImageVector) {
         Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(22.dp))
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Default))
     }
 }
 

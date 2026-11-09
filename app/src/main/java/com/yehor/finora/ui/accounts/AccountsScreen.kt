@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.accounts
 
+import com.yehor.finora.ui.common.AppIcons
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,11 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -106,11 +102,11 @@ fun AccountsContent(state: AccountsUiState, onOpen: (Long) -> Unit, onAdd: () ->
                 // A transfer needs two different active accounts.
                 if (state.active.size >= 2) {
                     SmallFloatingActionButton(onClick = onAddTransfer) {
-                        Icon(Icons.Filled.SwapHoriz, contentDescription = stringResource(R.string.accounts_add_transfer))
+                        Icon(AppIcons.Transfer, contentDescription = stringResource(R.string.accounts_add_transfer))
                     }
                 }
                 FloatingActionButton(onClick = onAdd) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.accounts_add))
+                    Icon(AppIcons.Add, contentDescription = stringResource(R.string.accounts_add))
                 }
             }
         },
@@ -151,7 +147,7 @@ fun AccountsContent(state: AccountsUiState, onOpen: (Long) -> Unit, onAdd: () ->
                                 modifier = Modifier.weight(1f),
                             )
                             Icon(
-                                if (archivedExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                                if (archivedExpanded) AppIcons.Collapse else AppIcons.Expand,
                                 contentDescription = stringResource(
                                     if (archivedExpanded) R.string.action_collapse else R.string.action_expand,
                                 ),
