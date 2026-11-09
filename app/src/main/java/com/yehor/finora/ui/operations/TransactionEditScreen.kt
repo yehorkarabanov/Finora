@@ -82,6 +82,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -134,7 +135,18 @@ private val AMOUNT_ERRORS = setOf(
     TransactionDraftError.AMOUNT_OUT_OF_RANGE,
 )
 
-private val CardShape = RoundedCornerShape(20.dp)
+// Account → tags are one connected group: only its outer corners are rounded.
+private val GroupRadius = 20.dp
+private val GroupInnerRadius = 4.dp
+private val GroupTopShape = RoundedCornerShape(
+    topStart = GroupRadius, topEnd = GroupRadius,
+    bottomStart = GroupInnerRadius, bottomEnd = GroupInnerRadius,
+)
+private val GroupMiddleShape = RoundedCornerShape(GroupInnerRadius)
+private val GroupBottomShape = RoundedCornerShape(
+    topStart = GroupInnerRadius, topEnd = GroupInnerRadius,
+    bottomStart = GroupRadius, bottomEnd = GroupRadius,
+)
 private const val MINUS = "−"
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -331,8 +343,9 @@ fun TransactionEditScreen(
                 onAmountChange = viewModel::onAmountChange,
             )
 
-            // Account
-            SectionCard(onClick = { pickAccount = true }) {
+            // Account → tags: one connected group with a thin divider gap between rows.
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            SectionCard(shape = GroupTopShape, onClick = { pickAccount = true }) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     IconBadge(selectedAccount?.icon, selectedAccount?.color, ColorPalette.ACCOUNT_DEFAULT, size = 44)
                     Column(Modifier.weight(1f)) {
@@ -394,7 +407,7 @@ fun TransactionEditScreen(
                     .ifEmpty { null }
             }
             val recents = state.recentCategoryIds.mapNotNull { tree.category(it) }.take(6)
-            SectionCard(onClick = { pickCategory = true }, isError = showCategoryError) {
+            SectionCard(shape = GroupMiddleShape, onClick = { pickCategory = true }, isError = showCategoryError) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     IconBadge(category?.icon, category?.color, ColorPalette.defaultFor(categoryType), size = 44)
                     Column(Modifier.weight(1f)) {
@@ -458,7 +471,7 @@ fun TransactionEditScreen(
             // Date & time
             val today = LocalDate.now()
             val futureDate = TransactionDraftError.DATE_IN_FUTURE in state.errors
-            SectionCard(onClick = { pickDateTime = true }, isError = futureDate) {
+            SectionCard(shape = GroupMiddleShape, onClick = { pickDateTime = true }, isError = futureDate) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     LeadingIcon(Icons.Outlined.CalendarToday)
                     Column(Modifier.weight(1f)) {
@@ -501,7 +514,7 @@ fun TransactionEditScreen(
 
             // Merchant & description
             val descriptionTooLong = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors
-            SectionCard(isError = descriptionTooLong) {
+            SectionCard(shape = GroupMiddleShape, isError = descriptionTooLong) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     LeadingIcon(Icons.Outlined.Storefront)
                     Column(Modifier.weight(1f)) {
@@ -559,6 +572,7 @@ fun TransactionEditScreen(
                 onAddPendingTag = viewModel::onAddPendingTag,
                 onRemovePendingTag = viewModel::onRemovePendingTag,
             )
+            }
 
             Spacer(Modifier.height(4.dp))
         }
@@ -971,7 +985,7 @@ private fun TagsCard(
     onRemovePendingTag: (String) -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
-    SectionCard {
+    SectionCard(shape = GroupBottomShape) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 Icons.AutoMirrored.Outlined.Label,
@@ -1043,6 +1057,7 @@ private fun TagsCard(
 
 @Composable
 private fun SectionCard(
+    shape: Shape,
     onClick: (() -> Unit)? = null,
     isError: Boolean = false,
     content: @Composable () -> Unit,
@@ -1052,7 +1067,7 @@ private fun SectionCard(
     val errorColor = MaterialTheme.colorScheme.error
     val clickModifier = if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier
     Surface(
-        shape = CardShape,
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainer,
         border = if (isError) BorderStroke(1.dp, errorColor) else null,
         modifier = Modifier.fillMaxWidth(),
