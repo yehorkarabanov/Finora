@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.common
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,12 +16,14 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.yehor.finora.R
 import com.yehor.finora.domain.operation.TransactionDateTime
@@ -103,9 +106,7 @@ fun DateTimeField(
     maxDate: LocalDate,
     modifier: Modifier = Modifier,
 ) {
-    // 0 = closed, 1 = picking the date, 2 = picking the time.
-    var step by remember { mutableIntStateOf(0) }
-    var pendingDate by remember { mutableStateOf(date) }
+    var open by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         OutlinedTextField(
@@ -119,11 +120,52 @@ fun DateTimeField(
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .clickable {
-                    pendingDate = date
-                    step = 1
-                },
+                .clickable { open = true },
         )
+    }
+
+    DateTimePickerFlow(
+        open = open,
+        date = date,
+        time = time,
+        maxDate = maxDate,
+        onDismiss = { open = false },
+        onPicked = { pickedDate, pickedTime ->
+            onDateChange(pickedDate)
+            onTimeChange(pickedTime)
+            open = false
+        },
+    )
+}
+
+/**
+ * Date picker followed by a time picker. Nothing is reported until both are confirmed;
+ * [onPicked] receives the chosen date and time together.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DateTimePickerFlow(
+    open: Boolean,
+    date: LocalDate,
+    time: LocalTime,
+    maxDate: LocalDate,
+    onDismiss: () -> Unit,
+    onPicked: (LocalDate, LocalTime) -> Unit,
+) {
+    // 0 = closed, 1 = picking the date, 2 = picking the time.
+    var step by remember { mutableIntStateOf(0) }
+    var pendingDate by remember { mutableStateOf(date) }
+    LaunchedEffect(open) {
+        if (open) {
+            pendingDate = date
+            step = 1
+        } else {
+            step = 0
+        }
+    }
+    val close = {
+        step = 0
+        onDismiss()
     }
 
     if (step == 1) {
@@ -135,7 +177,7 @@ fun DateTimeField(
             },
         )
         DatePickerDialog(
-            onDismissRequest = { step = 0 },
+            onDismissRequest = close,
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -144,7 +186,7 @@ fun DateTimeField(
                             pendingDate = Instant.ofEpochMilli(picked).atZone(ZoneId.of("UTC")).toLocalDate()
                             step = 2
                         } else {
-                            step = 0
+                            close()
                         }
                     },
                 ) {
@@ -152,7 +194,7 @@ fun DateTimeField(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { step = 0 }) {
+                TextButton(onClick = close) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },
@@ -165,23 +207,23 @@ fun DateTimeField(
         val timePickerState = rememberTimePickerState(
             initialHour = time.hour,
             initialMinute = time.minute,
-            is24Hour = true,
+            is24Hour = DateFormat.is24HourFormat(LocalContext.current),
         )
         AlertDialog(
-            onDismissRequest = { step = 0 },
+            onDismissRequest = close,
             confirmButton = {
                 TextButton(
                     onClick = {
-                        onDateChange(pendingDate)
-                        onTimeChange(LocalTime.of(timePickerState.hour, timePickerState.minute))
                         step = 0
+                        onPicked(pendingDate, LocalTime.of(timePickerState.hour, timePickerState.minute))
+                        // The caller closes the flow from onPicked.
                     },
                 ) {
                     Text(stringResource(R.string.action_confirm))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { step = 0 }) {
+                TextButton(onClick = close) {
                     Text(stringResource(R.string.action_cancel))
                 }
             },

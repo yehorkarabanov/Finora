@@ -12,6 +12,7 @@ import com.yehor.finora.data.repo.RecurringRepository
 import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
@@ -75,6 +76,12 @@ data class TransactionEditUiState(
     /** The schedule that created this transaction, while it still exists. Only set when editing. */
     val recurringScheduleId: Long? = null,
     val recurringScheduleName: String? = null,
+    /** Current balance per account id; absent when the balance overflows. */
+    val balances: Map<Long, Money> = emptyMap(),
+    /** True while a "save and create another" request is in flight (including its confirmation dialogs). */
+    val createAnother: Boolean = false,
+    /** Incremented each time "save and create another" succeeds; the screen shows a confirmation. */
+    val savedAnotherCount: Int = 0,
 ) {
     val selectedAccount: Account?
         get() = accounts.find { it.account.id == selectedAccountId }?.account
@@ -123,6 +130,9 @@ class TransactionEditViewModel @Inject constructor(
             accounts = pickable,
             categories = categories,
             allTags = tagsWithUsage.map { it.tag },
+            balances = accountsWithBalance.mapNotNull { row ->
+                (row.balance as? Balance.Value)?.let { row.account.id to it.money }
+            }.toMap(),
         )
         withAccounts.copy(
             errors = TransactionDraftValidator.validate(
@@ -245,7 +255,22 @@ class TransactionEditViewModel @Inject constructor(
         _state.value = _state.value.copy(pendingTagNames = _state.value.pendingTagNames - name)
     }
 
-    fun save(confirmCurrencyChange: Boolean = false, moveOpeningBalanceBack: Boolean = false) {
+    /** Saves the form. With [createAnother] (new transactions only) the form is reset for the next entry instead of closing. */
+    fun save(createAnother: Boolean = false) {
+        _state.value = _state.value.copy(createAnother = createAnother && !_state.value.isEdit)
+        submit()
+    }
+
+    fun onConfirmCurrencyChange() = submit(confirmCurrencyChange = true)
+
+    fun onConfirmOpeningOrder() {
+        onDismissOpeningOrder()
+        // The currency check runs before the opening-order check, so a currency
+        // change has already been confirmed when this dialog appears.
+        submit(confirmCurrencyChange = true, moveOpeningBalanceBack = true)
+    }
+
+    private fun submit(confirmCurrencyChange: Boolean = false, moveOpeningBalanceBack: Boolean = false) {
         val current = state.value
         if (!current.canSave) return
         val account = current.selectedAccount ?: return
@@ -274,7 +299,11 @@ class TransactionEditViewModel @Inject constructor(
                 } else {
                     transactionRepository.create(draft, moveOpeningBalanceBack)
                 }
-                _state.value = _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                if (current.createAnother) {
+                    resetForNextEntry()
+                } else {
+                    _state.value = _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                }
             } catch (_: CurrencyChangeNotConfirmedException) {
                 val oldMoney = current.originalMoney ?: return@launch
                 _state.value = _state.value.copy(
@@ -294,6 +323,24 @@ class TransactionEditViewModel @Inject constructor(
                 // The form validator rejects future dates; this only happens when the clock passes the chosen minute.
             }
         }
+    }
+
+    /** Keeps kind, account and date (batch entry usually shares them) and clears the rest. */
+    private suspend fun resetForNextEntry() {
+        _state.value = _state.value.copy(
+            amountText = "",
+            selectedCategoryId = null,
+            description = "",
+            selectedTagIds = emptySet(),
+            pendingTagNames = emptyList(),
+            time = LocalTime.now().withSecond(0).withNano(0),
+            isOverflow = false,
+            reassignmentInfo = null,
+            showOpeningOrderDialog = false,
+            createAnother = false,
+            savedAnotherCount = _state.value.savedAnotherCount + 1,
+        )
+        loadRecentCategories(_state.value.kind)
     }
 
     fun onDismissReassignment() {
