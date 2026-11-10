@@ -15,6 +15,9 @@ import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
+import kotlinx.coroutines.flow.filterNotNull
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.money.MoneyOverflowException
@@ -148,6 +151,19 @@ class TransferEditViewModel @Inject constructor(
 
     init {
         viewModelScope.launch { loadInitialData() }
+        // Category created from the picker: select it once it shows up in the categories flow.
+        viewModelScope.launch {
+            combine(
+                savedStateHandle.getStateFlow<Long?>(CREATED_CATEGORY_ID_KEY, null),
+                categoryRepository.observeAll(),
+            ) { id, categories -> categories.firstOrNull { it.id == id } }
+                .filterNotNull()
+                .collect { created ->
+                    if (created.type != CategoryType.TRANSFER) return@collect // the transaction VM handles it
+                    onCategoryChange(created.id)
+                    savedStateHandle.remove<Long>(CREATED_CATEGORY_ID_KEY)
+                }
+        }
     }
 
     private suspend fun loadInitialData() {

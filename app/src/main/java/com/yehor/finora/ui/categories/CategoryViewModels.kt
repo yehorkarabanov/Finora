@@ -126,6 +126,7 @@ data class CategoryFormState(
     val tree: CategoryTree = CategoryTree(emptyList()),
     val saving: Boolean = false,
     val saved: Boolean = false,
+    val createdCategoryId: Long? = null,
     val parentRejected: ParentCheck? = null,
     val saveFailed: Boolean = false,
 ) {
@@ -192,14 +193,15 @@ class CategoryEditViewModel @Inject constructor(
         viewModelScope.launch {
             val name = s.name.trim()
             try {
+                var createdId: Long? = null
                 if (categoryId == null) {
-                    repository.create(name, s.type, s.parentId, s.icon, s.color)
+                    createdId = repository.create(name, s.type, s.parentId, s.icon, s.color)
                 } else {
                     val currentParent = s.tree.ancestorsOf(categoryId).lastOrNull()?.id
                     repository.update(categoryId, name, s.icon, s.color)
                     if (currentParent != s.parentId) repository.move(categoryId, s.parentId)
                 }
-                _state.update { it.copy(saving = false, saved = true) }
+                _state.update { it.copy(saving = false, saved = true, createdCategoryId = createdId) }
             } catch (e: InvalidCategoryParentException) {
                 _state.update { it.copy(saving = false, parentRejected = e.reason) }
             } catch (e: Exception) {

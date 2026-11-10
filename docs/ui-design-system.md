@@ -142,6 +142,7 @@ Row(verticalAlignment = CenterVertically, horizontalArrangement = spacedBy(8.dp)
 
 ### 5.5 Lists
 - `TransactionRow` inside a card: pass `colors = ListItemDefaults.colors(containerColor = Color.Transparent)`.
+- `TransactionRow` subtitle: transfers show `From → To` as two single-line ellipsized names around a 14dp `TransferDirection` arrow (`onSurfaceVariant`). Other rows show `Category · Account` only when the title is the description; when the title is the category, the subtitle is just the account.
 - Amount colors: `finance.income` for > 0, `finance.expense` for < 0.
 - Long lists (`TransactionsScreen.kt`): each day is one connected group of `surfaceContainer` rows (Top/Middle/Bottom shapes from §5.3, 2dp gaps) under a sticky `labelLarge` SemiBold day header ("Today · 9 Nov 2026").
 

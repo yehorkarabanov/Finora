@@ -8,6 +8,9 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter
 
+/** SavedStateHandle key (on the editor back-stack entry) carrying the id of a category created from the picker. */
+const val CREATED_CATEGORY_ID_KEY = "created_category_id"
+
 object Routes {
     const val DASHBOARD = "dashboard"
     const val TRANSACTIONS = "transactions"

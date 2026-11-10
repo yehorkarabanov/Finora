@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.ui.theme.finance
@@ -45,11 +46,18 @@ fun TransactionRow(
         ?: item.category?.name
         ?: if (isTransfer) stringResource(R.string.transaction_kind_transfer) else uncategorized
 
-    val subtitle = if (isTransfer && item.entries.size == 2) {
-        "${item.entries[0].account.name} → ${item.entries[1].account.name}"
+    // A transfer has two entries; the source is the negative one, whatever order they are stored in.
+    val transferSides = if (isTransfer && item.entries.size == 2) {
+        val (a, b) = item.entries
+        if (a.money.amountMinor <= b.money.amountMinor) a to b else b to a
     } else {
-        "${item.category?.name ?: uncategorized} · ${item.entries.firstOrNull()?.account?.name.orEmpty()}"
+        null
     }
+
+    // When there is no description the title already is the category, so don't repeat it.
+    val hasDescription = !item.description.isNullOrBlank()
+    val accountName = item.entries.firstOrNull()?.account?.name.orEmpty()
+    val subtitle = if (hasDescription) "${item.category?.name ?: uncategorized} · $accountName" else accountName
 
     ListItem(
         modifier = modifier.clickable(onClick = onClick),
@@ -84,6 +92,8 @@ fun TransactionRow(
                     title,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 if (item.recurringScheduleId != null) {
@@ -98,11 +108,41 @@ fun TransactionRow(
         },
         supportingContent = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                if (transferSides != null) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            transferSides.first.account.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        // Not weighted: always measured, never hidden by long names.
+                        Icon(
+                            AppIcons.TransferDirection,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 4.dp).size(20.dp),
+                        )
+                        Text(
+                            transferSides.second.account.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                    }
+                } else if (subtitle.isNotBlank()) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 if (item.tags.isNotEmpty()) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         item.tags.take(2).forEach { tag ->
@@ -125,6 +165,33 @@ fun TransactionRow(
         },
         trailingContent = {
             Column(horizontalAlignment = Alignment.End) {
+                if (transferSides != null) {
+                    // A transfer is neither income nor expense: neutral colors, source first.
+                    val sent = transferSides.first.money
+                    val received = transferSides.second.money
+                    if (sent.currency.code == received.currency.code && -sent.amountMinor == received.amountMinor) {
+                        Text(
+                            received.format(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    } else {
+                        Text(
+                            "−" + sent.format().removePrefix("-"),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            "+" + received.format(),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    return@Column
+                }
                 item.entries.forEach { entry ->
                     val minor = entry.money.amountMinor
                     val amountText = if (minor > 0) "+${entry.money.format()}" else entry.money.format()

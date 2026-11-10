@@ -30,6 +30,11 @@
     <string name="settings_display_currency">Display currency</string>
     <string name="settings_display_currency_automatic">%1$s (automatic)</string>
     <string name="settings_display_currency_choose">Choose display currency</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_choose">Choose language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_language_russian" translatable="false">Русский</string>
     <string name="settings_close">Close</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_section_currency">Currency</string>
@@ -391,14 +396,6 @@
     <string name="transaction_form_time_hint">%1$s · Tap to adjust</string>
     <string name="transaction_form_saved_another">Saved. Ready for the next one.</string>
     <!-- Transfer mode of the unified editor -->
-    <string name="txn_transfer_sent_from">Sent from %1$s</string>
-    <string name="txn_transfer_sent">Sent</string>
-    <string name="txn_transfer_received_in">Received in %1$s</string>
-    <string name="txn_transfer_received">Received</string>
-    <string name="txn_transfer_received_same">Received: same amount · Change</string>
-    <string name="txn_transfer_received_enter">Received in %1$s: tap to enter</string>
-    <string name="txn_transfer_received_line">Received in %1$s: %2$s</string>
-    <string name="txn_transfer_sent_line">Sent from %1$s: %2$s</string>
     <string name="txn_transfer_same_amount">Same amount</string>
     <string name="txn_transfer_cta">Transfer</string>
     <string name="txn_transfer_note_hint">e.g. Move savings, cash withdrawal</string>
@@ -430,8 +427,10 @@
     <string name="transfer_form_swap">Swap accounts</string>
     <string name="transfer_form_amount_sent">Amount sent</string>
     <string name="transfer_form_amount_received">Amount received</string>
-    <string name="transfer_form_rate">%1$s · %2$s</string>
     <string name="transfer_form_error_same_accounts">Choose two different accounts</string>
+    <string name="transfer_form_same_as_sent">Same as sent</string>
+    <string name="transfer_form_enter_received">Enter the amount received in %1$s</string>
+    <string name="transfer_form_cta_amounts">Transfer · %1$s → %2$s</string>
     <string name="transfer_form_delete_title">Delete transfer?</string>
     <string name="transfer_form_delete_body">The transfer will be deleted. %1$s returns to the source account and %2$s is removed from the destination account.</string>
     <string name="transfer_form_opening_order_body">This transfer is dated before the initial balance of one of its accounts. Move the initial balances back so they are not later than this transfer?</string>

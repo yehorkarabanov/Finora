@@ -1,6 +1,11 @@
 package com.yehor.finora.ui.common
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +28,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -141,6 +147,7 @@ fun CategoryTreePickerContent(
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier,
     selectedId: Long? = null,
+    onCreate: (() -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(emptyList<Long>()) }
@@ -175,14 +182,12 @@ fun CategoryTreePickerContent(
             }
             items(rows, key = { it.category.id }) { row ->
                 val c = row.category
-                ListItem(
-                    leadingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconBadge(c.icon, c.color, ColorPalette.defaultFor(c.type), size = 32)
-                        }
+                CategoryPickerRow(
+                    leading = {
+                        IconBadge(c.icon, c.color, ColorPalette.defaultFor(c.type), size = PICKER_ICON_SIZE)
                     },
-                    headlineContent = { Text(if (query.isBlank()) c.name else row.path) },
-                    trailingContent = {
+                    headline = if (query.isBlank()) c.name else row.path,
+                    trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (row.hasChildren && query.isBlank()) {
                                 IconButton(onClick = {
@@ -204,6 +209,48 @@ fun CategoryTreePickerContent(
                         .clickable(enabled = row.selectable) { onSelect(c.id) },
                 )
             }
+            if (onCreate != null) {
+                item(key = "create-category") {
+                    val primary = MaterialTheme.colorScheme.primary
+                    CategoryPickerRow(
+                        leading = {
+                            Box(
+                                modifier = Modifier.size(PICKER_ICON_SIZE.dp).clip(CircleShape)
+                                    .background(primary.copy(alpha = 0.18f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    AppIcons.Add,
+                                    contentDescription = null,
+                                    tint = primary,
+                                    modifier = Modifier.size((PICKER_ICON_SIZE * 0.55f).dp),
+                                )
+                            }
+                        },
+                        headline = stringResource(R.string.transaction_form_create_category),
+                        headlineColor = primary,
+                        modifier = Modifier.clickable { onCreate() },
+                    )
+                }
+            }
         }
     }
+}
+
+private const val PICKER_ICON_SIZE = 32
+
+@Composable
+private fun CategoryPickerRow(
+    leading: @Composable () -> Unit,
+    headline: String,
+    modifier: Modifier = Modifier,
+    headlineColor: Color = Color.Unspecified,
+    trailing: (@Composable () -> Unit)? = null,
+) {
+    ListItem(
+        leadingContent = { Row(verticalAlignment = Alignment.CenterVertically) { leading() } },
+        headlineContent = { Text(headline, color = headlineColor) },
+        trailingContent = trailing,
+        modifier = modifier,
+    )
 }

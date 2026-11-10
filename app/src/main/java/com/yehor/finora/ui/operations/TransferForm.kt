@@ -1,20 +1,32 @@
 package com.yehor.finora.ui.operations
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
@@ -28,14 +40,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.yehor.finora.R
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.account.PickableAccount
@@ -46,6 +64,7 @@ import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
+import com.yehor.finora.domain.operation.TransferAmountParser
 import com.yehor.finora.domain.operation.TransferDraftError
 import com.yehor.finora.ui.common.AccountPickerContent
 import com.yehor.finora.ui.common.AppIcons
@@ -53,6 +72,7 @@ import com.yehor.finora.ui.common.CategoryTreePickerContent
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateTimePickerFlow
 import com.yehor.finora.ui.common.IconBadge
+import com.yehor.finora.ui.common.IconSize
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.theme.PreviewTheme
 import java.text.DecimalFormatSymbols
@@ -138,46 +158,18 @@ internal fun TransferFormContent(
     val tree = remember(state.categories) { CategoryTree(state.categories) }
     val symbols = remember { DecimalFormatSymbols.getInstance() }
 
-    TransferAmountCard(state, target, onTargetChange, actions, symbols)
+    TransferAmountCard(
+        state = state,
+        target = target,
+        onTargetChange = onTargetChange,
+        actions = actions,
+        symbols = symbols,
+        onPickSide = { pickSide = it.name },
+    )
 
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        val sameAccounts = TransferDraftError.SAME_ACCOUNTS in state.errors
-        Box {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                TransferAccountRow(
-                    shape = FormGroupTopShape,
-                    label = stringResource(R.string.transfer_form_from),
-                    account = state.sourceAccount,
-                    balance = state.sourceAccount?.let { state.balances[it.id] },
-                    isError = sameAccounts,
-                    errorText = null,
-                    symbols = symbols,
-                    onClick = { pickSide = AccountSide.SOURCE.name },
-                )
-                TransferAccountRow(
-                    shape = FormGroupMiddleShape,
-                    label = stringResource(R.string.transfer_form_to),
-                    account = state.destAccount,
-                    balance = state.destAccount?.let { state.balances[it.id] },
-                    isError = sameAccounts,
-                    errorText = if (sameAccounts) stringResource(R.string.transfer_form_error_same_accounts) else null,
-                    symbols = symbols,
-                    onClick = { pickSide = AccountSide.DEST.name },
-                )
-            }
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
-            ) {
-                IconButton(onClick = actions.onSwap, modifier = Modifier.size(44.dp)) {
-                    Icon(AppIcons.SwapVertical, contentDescription = stringResource(R.string.transfer_form_swap))
-                }
-            }
-        }
-
         CategoryCard(
-            shape = FormGroupMiddleShape,
+            shape = FormGroupTopShape,
             tree = tree,
             categoryType = CategoryType.TRANSFER,
             selectedCategoryId = state.selectedCategoryId,
@@ -253,6 +245,7 @@ internal fun TransferFormContent(
                 type = CategoryType.TRANSFER,
                 mode = PickerMode.Assign(),
                 selectedId = state.selectedCategoryId,
+                onCreate = onNavigateCreateCategory?.let { nav -> { pickCategory = false; nav(CategoryType.TRANSFER.name) } },
                 onSelect = {
                     actions.onCategoryChange(it)
                     pickCategory = false
@@ -274,6 +267,7 @@ private fun TransferAmountCard(
     onTargetChange: (TransferTarget) -> Unit,
     actions: TransferFormActions,
     symbols: DecimalFormatSymbols,
+    onPickSide: (AccountSide) -> Unit,
 ) {
     val source = state.sourceAccount
     val dest = state.destAccount
@@ -284,41 +278,65 @@ private fun TransferAmountCard(
     val activeText = if (editingSent) state.sentText else state.receivedText
     val onActiveChange = if (editingSent) actions.onSentChange else actions.onReceivedChange
 
-    val sentFailed = state.errors.any { it in SENT_ERRORS }
-    val receivedFailed = state.errors.any { it in RECEIVED_ERRORS }
-    val activeFailed = if (editingSent) sentFailed else receivedFailed
-    val otherFailed = if (editingSent) receivedFailed else sentFailed
+    val sameAccounts = TransferDraftError.SAME_ACCOUNTS in state.errors
+    val sentFailed = state.errors.any { it in SENT_ERRORS } || (state.isOverflow && editingSent)
+    val receivedFailed = state.errors.any { it in RECEIVED_ERRORS } || (state.isOverflow && !editingSent)
 
-    val errorText: String? = if (state.isOverflow || activeFailed) {
+    fun amountError(sent: Boolean, failed: Boolean): String? {
+        if (!failed) return null
         val e = state.errors
-        val range: Boolean
-        val invalid: Boolean
-        val precise: Boolean
-        if (editingSent) {
-            range = TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE in e
-            invalid = TransferDraftError.SENT_AMOUNT_INVALID in e
-            precise = TransferDraftError.SENT_AMOUNT_TOO_PRECISE in e
-        } else {
-            range = TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE in e
-            invalid = TransferDraftError.RECEIVED_AMOUNT_INVALID in e
-            precise = TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE in e
+        val range = if (sent) TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE in e else TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE in e
+        val invalid = if (sent) TransferDraftError.SENT_AMOUNT_INVALID in e else TransferDraftError.RECEIVED_AMOUNT_INVALID in e
+        val precise = if (sent) TransferDraftError.SENT_AMOUNT_TOO_PRECISE in e else TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE in e
+        return when {
+            state.isOverflow || range -> "range"
+            invalid -> "invalid"
+            precise -> "precise"
+            else -> "positive"
         }
+    }
+
+    @Composable
+    fun errorText(kind: String?): String? = kind?.let {
         stringResource(
-            when {
-                state.isOverflow || range -> R.string.transaction_form_error_amount_range
-                invalid -> R.string.transaction_form_error_amount_invalid
-                precise -> R.string.transaction_form_error_amount_precise
+            when (it) {
+                "range" -> R.string.transaction_form_error_amount_range
+                "invalid" -> R.string.transaction_form_error_amount_invalid
+                "precise" -> R.string.transaction_form_error_amount_precise
                 else -> R.string.transaction_form_error_amount_positive
             },
         )
+    }
+
+    val sentErrorText = errorText(if (editingSent) amountError(true, sentFailed) else null)
+    val receivedErrorText = errorText(if (!editingSent) amountError(false, receivedFailed) else null)
+
+    val sameCurrency = source != null && dest != null && source.currency.code == dest.currency.code
+    val currenciesKnownEqual = source == null || dest == null || sameCurrency
+
+    val sentMinor = (TransferAmountParser.parse(state.sentText, sentCurrency) as? TransferAmountParser.Result.Value)?.minor
+    val receivedMinor = (TransferAmountParser.parse(state.receivedText, receivedCurrency) as? TransferAmountParser.Result.Value)?.minor
+    val sourceBalance = source?.let { state.balances[it.id] }
+    val destBalance = dest?.let { state.balances[it.id] }
+    val sourceAfter = if (!state.isEdit && sourceBalance != null && sentMinor != null) {
+        runCatching { Money(Math.subtractExact(sourceBalance.amountMinor, sentMinor), sourceBalance.currency) }.getOrNull()
+    } else {
+        null
+    }
+    val destAfter = if (!state.isEdit && destBalance != null && receivedMinor != null) {
+        runCatching { Money(Math.addExact(destBalance.amountMinor, receivedMinor), destBalance.currency) }.getOrNull()
     } else {
         null
     }
 
-    val sameCurrency = source != null && dest != null && source.currency.code == dest.currency.code
-    val currenciesKnownEqual = source == null || dest == null || sameCurrency
-    val sourceName = source?.name ?: stringResource(R.string.transfer_form_from)
-    val destName = dest?.name ?: stringResource(R.string.transfer_form_to)
+    val receivedHint: String? = when {
+        receivedErrorText != null -> null
+        currenciesKnownEqual && state.receivedLinked -> stringResource(R.string.transfer_form_same_as_sent)
+        !currenciesKnownEqual && state.receivedText.isEmpty() ->
+            stringResource(R.string.transfer_form_enter_received, receivedCurrency.code)
+        else -> null
+    }
+    val showRelink = !state.receivedLinked && currenciesKnownEqual && state.sentText.isNotEmpty()
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -330,81 +348,102 @@ private fun TransferAmountCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(
-                text = if (editingSent) {
-                    source?.let { stringResource(R.string.txn_transfer_sent_from, it.name) }
-                        ?: stringResource(R.string.txn_transfer_sent)
-                } else {
-                    dest?.let { stringResource(R.string.txn_transfer_received_in, it.name) }
-                        ?: stringResource(R.string.txn_transfer_received)
-                },
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-
-            AmountDisplay(
-                sign = "",
-                signColor = MaterialTheme.colorScheme.primary,
-                amountDisplay = transferAmountDisplay(activeText, activeCurrency, symbols),
-                isError = errorText != null,
-                isEmpty = activeText.isEmpty(),
-            )
-            if (errorText != null) {
-                Text(errorText, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
-            state.effectiveRate?.let { rate ->
-                Text(
-                    stringResource(R.string.transfer_form_rate, rate.forward, rate.inverse),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+            val swapLabel = stringResource(R.string.transfer_form_swap)
+            Column(Modifier.fillMaxWidth()) {
+                TransferTile(
+                    label = stringResource(R.string.transfer_form_from),
+                    account = source,
+                    balance = sourceBalance,
+                    balanceAfter = sourceAfter,
+                    sign = FORM_MINUS,
+                    amountText = state.sentText,
+                    currency = sentCurrency,
+                    symbols = symbols,
+                    active = editingSent,
+                    isError = sameAccounts || sentFailed,
+                    amountFailed = sentFailed,
+                    note = sentErrorText,
+                    noteIsError = sentErrorText != null,
+                    showRelink = false,
+                    swapClearance = true,
+                    onRelink = {},
+                    onPickAccount = { onPickSide(AccountSide.SOURCE) },
+                    onActivate = { onTargetChange(TransferTarget.SENT) },
                 )
-            }
-
-            // The other amount: a tappable line that moves the keypad to it.
-            val otherLine = if (editingSent) {
-                when {
-                    state.receivedLinked && currenciesKnownEqual -> stringResource(R.string.txn_transfer_received_same)
-                    state.receivedText.isEmpty() -> stringResource(R.string.txn_transfer_received_enter, destName)
-                    else -> stringResource(
-                        R.string.txn_transfer_received_line,
-                        destName,
-                        transferAmountDisplay(state.receivedText, receivedCurrency, symbols),
-                    )
-                }
-            } else {
-                stringResource(
-                    R.string.txn_transfer_sent_line,
-                    sourceName,
-                    if (state.sentText.isEmpty()) "—" else transferAmountDisplay(state.sentText, sentCurrency, symbols),
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    onClick = { onTargetChange(if (editingSent) TransferTarget.RECEIVED else TransferTarget.SENT) },
-                    shape = RoundedCornerShape(50),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    modifier = Modifier.weight(1f, fill = false),
+                // The 8dp gap between the tiles; the swap button overflows it symmetrically, so it stays
+                // centred on the gap whatever the tile heights are.
+                Box(
+                    Modifier.fillMaxWidth().height(8.dp).zIndex(1f),
+                    contentAlignment = Alignment.CenterEnd,
                 ) {
-                    Text(
-                        otherLine,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (otherFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                    )
+                    Surface(
+                        onClick = actions.onSwap,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        border = BorderStroke(3.dp, MaterialTheme.colorScheme.surfaceContainer),
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                            .requiredSize(50.dp)
+                            .semantics { contentDescription = swapLabel },
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                AppIcons.SwapVertical,
+                                contentDescription = null,
+                                modifier = Modifier.size(IconSize.Default),
+                            )
+                        }
+                    }
                 }
-                // A hand-edited received amount can be handed back to the sent amount again.
-                if (!editingSent && !state.receivedLinked && currenciesKnownEqual && state.sentText.isNotEmpty()) {
-                    SmallPill(
-                        text = stringResource(R.string.txn_transfer_same_amount),
-                        onClick = {
-                            actions.onRelinkReceived()
-                            onTargetChange(TransferTarget.SENT)
-                        },
+                TransferTile(
+                    label = stringResource(R.string.transfer_form_to),
+                    account = dest,
+                    balance = destBalance,
+                    balanceAfter = destAfter,
+                    sign = "+",
+                    amountText = state.receivedText,
+                    currency = receivedCurrency,
+                    symbols = symbols,
+                    active = !editingSent,
+                    isError = sameAccounts || receivedFailed,
+                    amountFailed = receivedFailed,
+                    note = receivedErrorText ?: receivedHint,
+                    noteIsError = receivedErrorText != null,
+                    showRelink = showRelink,
+                    swapClearance = false,
+                    onRelink = {
+                        actions.onRelinkReceived()
+                        onTargetChange(TransferTarget.SENT)
+                    },
+                    onPickAccount = { onPickSide(AccountSide.DEST) },
+                    onActivate = { onTargetChange(TransferTarget.RECEIVED) },
+                )
+            }
+
+            if (sameAccounts) {
+                Text(
+                    stringResource(R.string.transfer_form_error_same_accounts),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+
+            // The rate is only meaningful across currencies and follows both typed amounts live.
+            val rate = state.effectiveRate
+            if (rate != null && !currenciesKnownEqual) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        trimRate(rate.forward, symbols),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center,
+                    )
+                    Text(
+                        trimRate(rate.inverse, symbols),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
@@ -421,65 +460,196 @@ private fun TransferAmountCard(
     }
 }
 
+/** "1 USD = 41.2500 UAH" shown as "1 USD = 41.25 UAH": trailing zeros trimmed, at least two decimals kept. */
+internal fun trimRate(rate: String, symbols: DecimalFormatSymbols): String =
+    Regex("""(\d+)\.(\d+)""").replace(rate) { m ->
+        val fraction = m.groupValues[2].trimEnd('0').padEnd(2, '0')
+        m.groupValues[1] + symbols.decimalSeparator + fraction
+    }
+
 // ---------------------------------------------------------------------------
-// Account rows
+// From / To tile
 // ---------------------------------------------------------------------------
 
+/**
+ * One side of the transfer: a label, the account selector with its balance, and the amount that side
+ * receives the keypad input for. The active tile has a 2dp primary border and the blinking caret.
+ */
 @Composable
-private fun TransferAccountRow(
-    shape: androidx.compose.ui.graphics.Shape,
+private fun TransferTile(
     label: String,
     account: Account?,
     balance: Money?,
-    isError: Boolean,
-    errorText: String?,
+    balanceAfter: Money?,
+    sign: String,
+    amountText: String,
+    currency: Currency,
     symbols: DecimalFormatSymbols,
-    onClick: () -> Unit,
+    active: Boolean,
+    isError: Boolean,
+    amountFailed: Boolean,
+    note: String?,
+    noteIsError: Boolean,
+    showRelink: Boolean,
+    swapClearance: Boolean,
+    onRelink: () -> Unit,
+    onPickAccount: () -> Unit,
+    onActivate: () -> Unit,
 ) {
-    SectionCard(shape = shape, onClick = onClick, isError = isError) {
-        Row(
-            // Leaves room for the swap control that floats over the right edge of both rows.
-            modifier = Modifier.padding(end = 56.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 44)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = colors.surfaceContainerHigh,
+        border = when {
+            isError -> BorderStroke(2.dp, colors.error)
+            active -> BorderStroke(2.dp, colors.primary)
+            else -> null
+        },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = colors.onSurfaceVariant)
+
+            Surface(
+                onClick = onPickAccount,
+                shape = RoundedCornerShape(50),
+                color = colors.surfaceContainerHighest,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp),
+            ) {
+                Row(
+                    Modifier.padding(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 32)
                     Text(
                         account?.name ?: stringResource(R.string.transaction_form_account),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (account == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.titleSmall,
+                        color = if (account == null) colors.onSurfaceVariant else colors.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false),
                     )
-                    account?.let {
-                        Spacer(Modifier.width(8.dp))
-                        Pill(it.currency.code)
-                    }
-                }
-                val subtitle = when {
-                    errorText != null -> errorText
-                    account?.status == AccountStatus.ARCHIVED -> stringResource(R.string.account_detail_archived_banner)
-                    balance != null -> stringResource(R.string.transaction_form_balance, formatMoney(balance, symbols))
-                    else -> null
-                }
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (errorText != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    account?.let { Pill(it.currency.code) }
+                    Spacer(Modifier.weight(1f))
+                    Icon(
+                        AppIcons.Dropdown,
+                        contentDescription = null,
+                        modifier = Modifier.size(IconSize.Medium),
+                        tint = colors.onSurfaceVariant,
                     )
                 }
             }
+
+            val subtitle = when {
+                account?.status == AccountStatus.ARCHIVED -> stringResource(R.string.account_detail_archived_banner)
+                balance != null && balanceAfter != null -> stringResource(
+                    R.string.transaction_form_balance_after,
+                    formatMoney(balance, symbols),
+                    formatMoney(balanceAfter, symbols),
+                )
+                balance != null -> stringResource(R.string.transaction_form_balance, formatMoney(balance, symbols))
+                else -> null
+            }
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (balanceAfter != null && balanceAfter.amountMinor < 0) colors.error else colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            TransferTileAmount(
+                sign = sign,
+                text = amountText,
+                currency = currency,
+                symbols = symbols,
+                active = active,
+                isError = amountFailed,
+                swapClearance = swapClearance,
+                onClick = onActivate,
+            )
+
+            if (note != null || showRelink) {
+                Row(
+                    // The From tile reserves room on the right for the swap button that overlaps its bottom edge.
+                    Modifier.padding(end = if (swapClearance) 56.dp else 0.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (note != null) {
+                        Text(
+                            note,
+                            style = if (noteIsError) MaterialTheme.typography.bodySmall else MaterialTheme.typography.labelSmall,
+                            color = if (noteIsError) colors.error else colors.onSurfaceVariant,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                    }
+                    if (showRelink) {
+                        SmallPill(text = stringResource(R.string.txn_transfer_same_amount), onClick = onRelink)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The signed amount of one tile. Tapping it makes this side the keypad target. */
+@Composable
+private fun TransferTileAmount(
+    sign: String,
+    text: String,
+    currency: Currency,
+    symbols: DecimalFormatSymbols,
+    active: Boolean,
+    isError: Boolean,
+    swapClearance: Boolean,
+    onClick: () -> Unit,
+) {
+    val colors = MaterialTheme.colorScheme
+    val color = when {
+        isError -> colors.error
+        text.isEmpty() -> colors.onSurfaceVariant.copy(alpha = 0.6f)
+        active -> colors.primary
+        else -> colors.onSurface
+    }
+    val caretAlpha by rememberInfiniteTransition(label = "tileCaret").animateFloat(
+        initialValue = 1f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(530), RepeatMode.Reverse),
+        label = "tileCaretAlpha",
+    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = if (swapClearance) 56.dp else 0.dp)
+            .clickable(role = Role.Button, onClick = onClick)
+            .then(if (active) Modifier.semantics { liveRegion = LiveRegionMode.Polite } else Modifier),
+    ) {
+        BasicText(
+            text = sign + transferAmountDisplay(text, currency, symbols),
+            maxLines = 1,
+            style = MaterialTheme.typography.displaySmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontFeatureSettings = "tnum",
+                letterSpacing = (-0.5).sp,
+                color = color,
+            ),
+            autoSize = TextAutoSize.StepBased(minFontSize = 20.sp, maxFontSize = 36.sp),
+            modifier = Modifier.weight(1f, fill = false),
+        )
+        if (active) {
+            Box(
+                Modifier
+                    .padding(start = 4.dp)
+                    .width(2.dp)
+                    .height(32.dp)
+                    .alpha(caretAlpha)
+                    .background(colors.primary),
+            )
         }
     }
 }
@@ -503,6 +673,11 @@ internal fun transferCtaLabel(state: TransferEditUiState, blocker: TransferBlock
             },
         )
         state.isEdit -> stringResource(R.string.transaction_form_cta_save)
+        state.sentCurrency().code != state.receivedCurrency().code && state.receivedText.isNotEmpty() -> stringResource(
+            R.string.transfer_form_cta_amounts,
+            transferAmountDisplay(state.sentText, state.sentCurrency(), symbols),
+            transferAmountDisplay(state.receivedText, state.receivedCurrency(), symbols),
+        )
         else -> stringResource(R.string.txn_transfer_cta) + " — " +
             transferAmountDisplay(state.sentText, state.sentCurrency(), symbols)
     }
@@ -590,31 +765,41 @@ internal fun TransferDialogs(state: TransferEditUiState, viewModel: TransferEdit
 
 @Preview(showBackground = true, heightDp = 1500)
 @Composable
-private fun TransferFormLightPreview() = TransferFormPreviewContent(dark = false)
+private fun TransferFormLightPreview() = TransferFormPreviewContent(dark = false, sameCurrency = false)
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 1500)
 @Composable
-private fun TransferFormDarkPreview() = TransferFormPreviewContent(dark = true)
+private fun TransferFormDarkPreview() = TransferFormPreviewContent(dark = true, sameCurrency = false)
+
+@Preview(showBackground = true, heightDp = 1500)
+@Composable
+private fun TransferFormSameCurrencyLightPreview() = TransferFormPreviewContent(dark = false, sameCurrency = true)
+
+@Preview(showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 1500)
+@Composable
+private fun TransferFormSameCurrencyDarkPreview() = TransferFormPreviewContent(dark = true, sameCurrency = true)
 
 @Composable
-private fun TransferFormPreviewContent(dark: Boolean) {
+private fun TransferFormPreviewContent(dark: Boolean, sameCurrency: Boolean) {
     val pln = Currency("PLN", 2, "zł", "Zloty")
     val usd = Currency("USD", 2, "$", "US Dollar")
     fun account(id: Long, name: String, currency: Currency) =
         Account(id, name, currency, AccountType.CASH, null, null, null, AccountStatus.ACTIVE, 0L)
     val cash = account(1, "Cash", pln)
-    val savings = account(2, "Savings", usd)
+    val destCurrency = if (sameCurrency) pln else usd
+    val savings = account(2, "Savings", destCurrency)
+    val received = if (sameCurrency) "100" else "25"
     val state = TransferEditUiState(
         sourceAccountId = 1,
         destAccountId = 2,
         sentText = "100",
-        receivedText = "25",
-        receivedLinked = false,
+        receivedText = received,
+        receivedLinked = sameCurrency,
         allAccounts = listOf(cash, savings),
         sourceChoices = listOf(PickableAccount(cash, false)),
         destChoices = listOf(PickableAccount(savings, false)),
-        balances = mapOf(1L to Money(250_000, pln), 2L to Money(80_000, usd)),
-        effectiveRate = TransferFormLogic.effectiveRate("100", "25", pln, usd),
+        balances = mapOf(1L to Money(250_000, pln), 2L to Money(80_000, destCurrency)),
+        effectiveRate = TransferFormLogic.effectiveRate("100", received, pln, destCurrency),
     )
     PreviewTheme(dark) {
         Column(
@@ -623,7 +808,7 @@ private fun TransferFormPreviewContent(dark: Boolean) {
         ) {
             TransferFormContent(
                 state = state,
-                target = TransferTarget.SENT,
+                target = if (sameCurrency) TransferTarget.SENT else TransferTarget.RECEIVED,
                 onTargetChange = {},
                 actions = TransferFormActions(),
             )

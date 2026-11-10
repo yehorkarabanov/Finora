@@ -61,6 +61,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.domain.model.ThemeMode
 import com.yehor.finora.domain.money.Currency
+import com.yehor.finora.data.settings.LocaleResolution
+import com.yehor.finora.domain.settings.AppLanguage
 import com.yehor.finora.ui.common.AppIcons
 import com.yehor.finora.ui.common.IconSize
 import com.yehor.finora.ui.theme.PreviewTheme
@@ -86,6 +88,7 @@ fun SettingsScreen(
         onOpenData = onOpenData,
         onThemeSelected = viewModel::onThemeSelected,
         onCurrencySelected = viewModel::onDisplayCurrencySelected,
+        onLanguageSelected = viewModel::onLanguageSelected,
     )
 }
 
@@ -106,7 +109,9 @@ internal fun SettingsContent(
     onOpenData: () -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
     onCurrencySelected: (Currency) -> Unit,
+    onLanguageSelected: (AppLanguage) -> Unit,
 ) {
+    var showLanguageSheet by rememberSaveable { mutableStateOf(false) }
     var showCurrencySheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -131,6 +136,19 @@ internal fun SettingsContent(
         ) {
             SettingsSection(R.string.settings_section_appearance) {
                 SettingsThemeCard(state.themeMode, onThemeSelected)
+                SettingsRow(
+                    icon = AppIcons.Language,
+                    title = stringResource(R.string.settings_language),
+                    value = if (state.language == AppLanguage.SYSTEM) {
+                        stringResource(R.string.settings_language_system) + " · " +
+                            stringResource(remember { LocaleResolution.resolvedSystemLanguage() }.labelRes())
+                    } else {
+                        stringResource(state.language.labelRes())
+                    },
+                    shape = SettingsSingleShape,
+                    onClick = { showLanguageSheet = true },
+                    trailing = { SettingsChevron() },
+                )
             }
 
             SettingsSection(R.string.settings_section_currency) {
@@ -172,6 +190,17 @@ internal fun SettingsContent(
                 )
             }
         }
+    }
+
+    if (showLanguageSheet) {
+        SettingsLanguageSheet(
+            selected = state.language,
+            onSelect = {
+                onLanguageSelected(it)
+                showLanguageSheet = false
+            },
+            onDismiss = { showLanguageSheet = false },
+        )
     }
 
     if (showCurrencySheet) {
@@ -440,18 +469,90 @@ private fun SettingsCurrencySheet(
     }
 }
 
+private fun AppLanguage.labelRes(): Int = when (this) {
+    AppLanguage.SYSTEM -> R.string.settings_language_system
+    AppLanguage.ENGLISH -> R.string.settings_language_english
+    AppLanguage.RUSSIAN -> R.string.settings_language_russian
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsLanguageSheet(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val resolvedSystem = remember { LocaleResolution.resolvedSystemLanguage() }
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    ) {
+        Column(Modifier.navigationBarsPadding()) {
+            Text(
+                stringResource(R.string.settings_language_choose),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .semantics { heading() },
+            )
+            Column(
+                Modifier
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .selectableGroup(),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                AppLanguage.entries.forEach { lang ->
+                    val isSelected = lang == selected
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.surfaceContainerHighest
+                                else MaterialTheme.colorScheme.surfaceContainer,
+                            )
+                            .selectable(selected = isSelected, onClick = { onSelect(lang) }, role = Role.RadioButton)
+                            .heightIn(min = 56.dp)
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                stringResource(lang.labelRes()),
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            if (lang == AppLanguage.SYSTEM) {
+                                Text(
+                                    stringResource(resolvedSystem.labelRes()),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                        if (isSelected) {
+                            Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun SettingsPreviewBody(dark: Boolean, mode: ThemeMode) {
     PreviewTheme(dark = dark) {
         Surface(color = MaterialTheme.colorScheme.background) {
             val inspection = LocalInspectionMode.current
             SettingsContent(
-                state = SettingsUiState(themeMode = mode),
+                state = SettingsUiState(themeMode = mode, language = if (dark) AppLanguage.RUSSIAN else AppLanguage.SYSTEM),
                 appVersion = if (inspection) "1.0" else "",
                 onBack = {},
                 onOpenData = {},
                 onThemeSelected = {},
                 onCurrencySelected = {},
+                onLanguageSelected = {},
             )
         }
     }

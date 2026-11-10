@@ -6,6 +6,7 @@ import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.rounded.ArrowRightAlt
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.filled.AccountBalanceWallet as FilledWallet
@@ -54,6 +55,7 @@ import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.CurrencyExchange
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Settings
@@ -100,6 +102,7 @@ object AppIcons {
     val Income: ImageVector get() = Icons.Outlined.ArrowDownward
     val Expense: ImageVector get() = Icons.Outlined.ArrowUpward
     val Transfer: ImageVector get() = Icons.Outlined.SwapHoriz
+    val TransferDirection: ImageVector get() = Icons.AutoMirrored.Rounded.ArrowRightAlt
     val Recurring: ImageVector get() = Icons.Outlined.Repeat
     val Pause: ImageVector get() = Icons.Outlined.Pause
     val Resume: ImageVector get() = Icons.Outlined.PlayArrow
@@ -126,6 +129,7 @@ object AppIcons {
     val ThemeSystem: ImageVector get() = Icons.Outlined.BrightnessAuto
     val ThemeLight: ImageVector get() = Icons.Outlined.LightMode
     val ThemeDark: ImageVector get() = Icons.Outlined.DarkMode
+    val Language: ImageVector get() = Icons.Outlined.Language
     val Currency: ImageVector get() = Icons.Outlined.CurrencyExchange
     val Settings: ImageVector get() = Icons.Outlined.Settings
     val Data: ImageVector get() = Icons.Outlined.Storage

@@ -69,10 +69,16 @@ import com.yehor.finora.ui.theme.PreviewTheme
 @Composable
 fun CategoryEditScreen(
     onBack: () -> Unit,
+    onCreated: ((Long) -> Unit)? = null,
     viewModel: CategoryEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    LaunchedEffect(state.saved) { if (state.saved) onBack() }
+    LaunchedEffect(state.saved) {
+        if (state.saved) {
+            val id = state.createdCategoryId
+            if (id != null && onCreated != null) onCreated(id) else onBack()
+        }
+    }
     var pickParent by rememberSaveable { mutableStateOf(false) }
 
     CategoryFormContent(

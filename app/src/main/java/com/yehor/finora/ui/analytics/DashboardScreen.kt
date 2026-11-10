@@ -37,9 +37,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,7 +47,6 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -123,15 +119,7 @@ fun DashboardContent(
     onToggleAccount: (Long) -> Unit,
     onClearAccountSelection: () -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name), fontWeight = FontWeight.SemiBold) },
-                scrollBehavior = scrollBehavior,
-            )
-        },
         floatingActionButton = {
             if (state.hasAccounts) {
                 FloatingActionButton(onClick = actions.onAddTransaction) {
@@ -150,6 +138,14 @@ fun DashboardContent(
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                item(key = "title") {
+                    Text(
+                        stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+                    )
+                }
                 // One compact row that scopes the cash flow and the sections below the quick actions.
                 item(key = "period") {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -174,8 +170,8 @@ fun DashboardContent(
                     }
                 }
                 item(key = "flows") { CashFlowCard(state, period, actions) }
-                item(key = "accounts") { AccountsCarousel(state.activeAccounts, actions) }
                 item(key = "quick") { QuickActions(state.canTransfer, actions) }
+                item(key = "accounts") { AccountsCarousel(state.activeAccounts, actions) }
                 item(key = "distribution") { DistributionSection(state, actions) }
                 if (state.upcoming.hasActiveSchedules) {
                     item(key = "upcoming") { UpcomingSection(state.upcoming, actions) }

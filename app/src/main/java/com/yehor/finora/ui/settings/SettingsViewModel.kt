@@ -6,6 +6,8 @@ import com.yehor.finora.data.repo.SettingsRepository
 import com.yehor.finora.domain.model.ThemeMode
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
+import com.yehor.finora.domain.settings.AppLanguage
+import com.yehor.finora.data.settings.AppLocaleController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,26 +21,34 @@ data class SettingsUiState(
     val displayCurrency: Currency = CurrencyRegistry.get("USD"),
     val displayCurrencyIsAutomatic: Boolean = true,
     val availableCurrencies: List<Currency> = CurrencyRegistry.all,
+    val language: AppLanguage = AppLanguage.SYSTEM,
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
+    private val localeController: AppLocaleController,
 ) : ViewModel() {
 
     val state: StateFlow<SettingsUiState> = combine(
         repository.themeMode,
         repository.displayCurrency,
-    ) { theme, display ->
+        localeController.language,
+    ) { theme, display, language ->
         SettingsUiState(
             themeMode = theme,
             displayCurrency = display.currency,
             displayCurrencyIsAutomatic = display.isAutomatic,
+            language = language,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun onThemeSelected(mode: ThemeMode) {
         viewModelScope.launch { repository.setThemeMode(mode) }
+    }
+
+    fun onLanguageSelected(lang: AppLanguage) {
+        localeController.setLanguage(lang)
     }
 
     fun onDisplayCurrencySelected(currency: Currency) {

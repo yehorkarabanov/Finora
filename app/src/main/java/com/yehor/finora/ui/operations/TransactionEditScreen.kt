@@ -475,6 +475,7 @@ private fun ExpenseIncomeContent(
                 type = categoryType,
                 mode = PickerMode.Assign(),
                 selectedId = state.selectedCategoryId,
+                onCreate = onNavigateCreateCategory?.let { nav -> { pickCategory = false; nav(categoryType.name) } },
                 onSelect = {
                     viewModel.onCategoryChange(it)
                     pickCategory = false

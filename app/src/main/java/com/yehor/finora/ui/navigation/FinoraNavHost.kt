@@ -264,7 +264,13 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 navArgument("parentId") { type = NavType.LongType; defaultValue = -1L },
             ),
         ) {
-            CategoryEditScreen(onBack = { navController.popBackStack() })
+            CategoryEditScreen(
+                onBack = { navController.popBackStack() },
+                onCreated = { id ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(CREATED_CATEGORY_ID_KEY, id)
+                    navController.popBackStack()
+                },
+            )
         }
         composable(
             Routes.CATEGORY_EDIT,
