@@ -238,7 +238,7 @@ fun WaveChart(
                         }
                     }
                     geometry.dots.forEach { p ->
-                        drawCircle(colorAt(p, splitY, lineColor, below), strokePx, Offset(p.x, p.y))
+                        drawCircle(colorAt(p.y, splitY, lineColor, below), strokePx, Offset(p.x, p.y))
                     }
                 }
                 if (zeroLine && zeroY != null && !sparkline) {
@@ -247,35 +247,46 @@ fun WaveChart(
                         Offset(0f, zeroY),
                         Offset(w, zeroY),
                         strokeWidth = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 5.dp.toPx())),
+                        pathEffect = paints.zeroDash,
                     )
                 }
-                val latest = geometry.latest
-                if (!sparkline && latest != null && geometry.latestIndex != selectedIndex) {
-                    val appear = ((progress.value - 0.85f) / 0.15f).coerceIn(0f, 1f)
-                    if (appear > 0f) {
-                        val t = pulse?.value ?: 0f
-                        val c = colorAt(latest, splitY, lineColor, below)
-                        val center = Offset(latest.x, latest.y)
-                        drawCircle(c.copy(alpha = (0.35f + (0.10f - 0.35f) * t) * appear), 8.dp.toPx() * (1f + 0.6f * t), center)
-                        drawCircle(surface.copy(alpha = appear), 6.dp.toPx(), center)
-                        drawCircle(c.copy(alpha = appear), 4.dp.toPx(), center)
+            }
+        }
+        // Per-frame animation (live-point pulse, selection springs) draws here, outside the offscreen
+        // layer above, so it never forces the fill, grain and blur glow to re-render.
+        if (!sparkline) {
+            // Own (non-offscreen) layer: redrawing it re-records only this node.
+            Canvas(Modifier.fillMaxSize().bleed(bleedPx.roundToInt()).graphicsLayer()) {
+                if (w <= 0f || h <= 0f) return@Canvas
+                translate(bleedPx, bleedPx) {
+                    val splitY = if (zeroLine) geometry.zeroY else null
+                    val latest = geometry.latest
+                    if (latest != null && geometry.latestIndex != selectedIndex) {
+                        val appear = ((progress.value - 0.85f) / 0.15f).coerceIn(0f, 1f)
+                        if (appear > 0f) {
+                            val t = pulse?.value ?: 0f
+                            val c = colorAt(latest.y, splitY, lineColor, below)
+                            val center = Offset(latest.x, latest.y)
+                            drawCircle(c.copy(alpha = (0.35f + (0.10f - 0.35f) * t) * appear), 8.dp.toPx() * (1f + 0.6f * t), center)
+                            drawCircle(surface.copy(alpha = appear), 6.dp.toPx(), center)
+                            drawCircle(c.copy(alpha = appear), 4.dp.toPx(), center)
+                        }
                     }
-                }
-                if (showSelection) {
-                    val x = markerX()
-                    val y = markerY()
-                    val c = colorAt(WavePoint(x, y), splitY, lineColor, below)
-                    drawLine(
-                        scheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        Offset(x, padTop),
-                        Offset(x, h),
-                        strokeWidth = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 3.dp.toPx())),
-                    )
-                    drawCircle(c.copy(alpha = 0.22f), 9.dp.toPx(), Offset(x, y))
-                    drawCircle(onSurface, 5.dp.toPx(), Offset(x, y))
-                    drawCircle(c, 5.dp.toPx(), Offset(x, y), style = paints.ring)
+                    if (showSelection) {
+                        val x = markerX()
+                        val y = markerY()
+                        val c = colorAt(y, splitY, lineColor, below)
+                        drawLine(
+                            scheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            Offset(x, padTop),
+                            Offset(x, h),
+                            strokeWidth = 1.dp.toPx(),
+                            pathEffect = paints.guideDash,
+                        )
+                        drawCircle(c.copy(alpha = 0.22f), 9.dp.toPx(), Offset(x, y))
+                        drawCircle(onSurface, 5.dp.toPx(), Offset(x, y))
+                        drawCircle(c, 5.dp.toPx(), Offset(x, y), style = paints.ring)
+                    }
                 }
             }
         }
@@ -407,6 +418,8 @@ private class WavePaints(
     val fillBelow: Brush = easedFade(below, g.troughY, g.zeroY ?: g.baseline)
     val stroke = Stroke(strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round)
     val ring = Stroke(2.5f * density)
+    val zeroDash = PathEffect.dashPathEffect(floatArrayOf(4f * density, 5f * density))
+    val guideDash = PathEffect.dashPathEffect(floatArrayOf(3f * density, 3f * density))
     val glowAbove = blurPaint(glow, strokePx * 2f, 10f * density)
     val glowBelow = blurPaint(below.copy(alpha = 0.3f), strokePx * 2f, 10f * density)
     val compareColor = variant.copy(alpha = 0.55f)
@@ -449,8 +462,8 @@ private inline fun DrawScope.sides(zeroY: Float?, w: Float, h: Float, b: Float, 
     }
 }
 
-private fun colorAt(p: WavePoint, zeroY: Float?, above: Color, below: Color): Color =
-    if (zeroY != null && p.y > zeroY) below else above
+private fun colorAt(y: Float, zeroY: Float?, above: Color, below: Color): Color =
+    if (zeroY != null && y > zeroY) below else above
 
 private fun nearestIndex(values: List<Long?>, x: Float, width: Float): Int? {
     if (values.isEmpty() || width <= 0f) return null
