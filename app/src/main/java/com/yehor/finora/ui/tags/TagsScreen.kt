@@ -68,6 +68,13 @@ import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.ui.common.OrganizeTopBar
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.yehor.finora.designsystem.theme.hairline
 import androidx.compose.ui.text.style.TextAlign
 import com.yehor.finora.ui.common.ColorPicker
 import com.yehor.finora.designsystem.theme.PreviewTheme
@@ -260,13 +267,26 @@ private fun TagSearchField(
 @Composable
 private fun SortPill(sortOrder: TagSortOrder, onSortChange: (TagSortOrder) -> Unit) {
     val next = if (sortOrder == TagSortOrder.MOST_USED) TagSortOrder.NAME else TagSortOrder.MOST_USED
-    FilterPill(
-        label = stringResource(
-            if (sortOrder == TagSortOrder.MOST_USED) R.string.tag_sort_most_used else R.string.tag_sort_name,
-        ),
-        active = false,
-        onClick = { onSortChange(next) },
-    )
+    val isDark = MaterialTheme.finance.isDark
+    Row(
+        Modifier
+            .heightIn(min = 48.dp)
+            .clip(PillShape)
+            .clickable(role = Role.Button) { onSortChange(next) }
+            .padding(vertical = 5.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainer, PillShape)
+            .border(hairline(isDark), PillShape)
+            .padding(horizontal = 12.dp, vertical = 7.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(AppIcons.Sort, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+        Text(
+            stringResource(if (sortOrder == TagSortOrder.MOST_USED) R.string.tag_sort_most_used else R.string.tag_sort_name),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable

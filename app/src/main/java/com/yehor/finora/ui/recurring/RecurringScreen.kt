@@ -56,10 +56,14 @@ import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.domain.analytics.UpcomingOccurrences
 import com.yehor.finora.ui.common.OrganizeTopBar
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Switch
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.yehor.finora.designsystem.theme.PillShape
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
 import java.time.temporal.ChronoUnit
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
@@ -123,12 +127,12 @@ fun RecurringContent(
                 }
                 if (sections.paused.isNotEmpty()) {
                     item(key = "paused") {
-                        RecurringGroup(R.string.recurring_section_paused, sections.paused, today, onOpen, Modifier.alpha(0.6f))
+                        RecurringGroup(R.string.recurring_section_paused, sections.paused, today, onOpen)
                     }
                 }
                 if (sections.ended.isNotEmpty()) {
                     item(key = "ended") {
-                        RecurringGroup(R.string.recurring_section_ended, sections.ended, today, onOpen, Modifier.alpha(0.6f))
+                        RecurringGroup(R.string.recurring_section_ended, sections.ended, today, onOpen)
                     }
                 }
             }
@@ -243,12 +247,18 @@ internal fun RecurringListRow(
     val isBlocked = line is StatusLine.Blocked
     val paused = row.state == ScheduleDisplayState.PAUSED
     val rule = ruleText(schedule.rule)
-    val subtitle = when (line) {
-        is StatusLine.Next -> stringResource(R.string.recurring_row_subtitle, rule, dueText(line.date, today))
-        else -> stringResource(R.string.recurring_row_subtitle, rule, statusLineText(line))
+    val timing = when (line) {
+        is StatusLine.Next -> dueText(line.date, today)
+        else -> statusLineText(line)
     }
-    val resumeLabel = stringResource(R.string.recurring_action_resume)
+    val subtitle = stringResource(
+        R.string.recurring_row_subtitle,
+        stringResource(R.string.recurring_row_subtitle, rule, timing),
+        schedule.account.name,
+    )
+    val faded = row.state != ScheduleDisplayState.ACTIVE
     val signed = RecurringListLogic.signedAmount(schedule.kind, schedule.money)
+    Row(verticalAlignment = Alignment.CenterVertically) {
     ListRow(
         icon = { RecurringScheduleBadge(schedule, 40) },
         title = schedule.name,
@@ -283,19 +293,41 @@ internal fun RecurringListRow(
                         )
                     }
                 }
-                if (paused) {
-                    // Resuming can need a choice about the occurrences that came due, which the detail screen offers.
-                    Switch(
-                        checked = false,
-                        onCheckedChange = { onOpen(schedule.id) },
-                        modifier = Modifier.semantics { contentDescription = resumeLabel },
-                    )
-                }
             }
         },
-        modifier = Modifier.semantics(mergeDescendants = true) {},
+        modifier = Modifier
+            .weight(1f)
+            .alpha(if (faded) 0.6f else 1f)
+            .semantics(mergeDescendants = true) {},
         onClick = { onOpen(schedule.id) },
     )
+    if (paused) {
+        // Resuming can need a choice about the occurrences that came due, which the detail screen offers.
+        ResumeChip(onClick = { onOpen(schedule.id) }, modifier = Modifier.padding(end = 10.dp))
+    }
+    }
+}
+
+@Composable
+private fun ResumeChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            Modifier
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), PillShape)
+                .padding(start = 12.dp, end = 6.dp, top = 7.dp, bottom = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.recurring_action_resume),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+        }
+    }
 }
 
 /** "in 3 days" / "today"; a date already behind [today] (overdue, not yet generated) reads as today. */

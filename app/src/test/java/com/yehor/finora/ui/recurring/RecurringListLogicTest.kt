@@ -177,6 +177,17 @@ class NextThirtyDaysTest {
     @Test fun boundariesAreInclusiveAndPastIsIgnored() =
         assertEquals(5L to 7L, nextThirtyDays(listOf(out(5, 0), inc(7, 30), out(9, -1)), today))
 
+    @Test fun groupsPerCurrencySortedByCode() {
+        val eur = CurrencyRegistry.get("EUR")
+        val euroSchedule = schedule(3, kind = TransactionKind.INCOME, amountMinor = 900)
+            .let { it.copy(money = Money(900, eur)) }
+        val items = listOf(out(100, 1), UpcomingItem(euroSchedule, today.plusDays(2)), out(50, 5))
+        val totals = nextThirtyDaysByCurrency(items, today)
+        assertEquals(listOf("EUR", "USD"), totals.map { it.out.currency.code })
+        assertEquals(Money(0, eur) to Money(900, eur), totals[0].out to totals[0].income)
+        assertEquals(Money(150, USD) to Money(0, USD), totals[1].out to totals[1].income)
+    }
+
     @Test fun emptyIsZero() = assertEquals(0L to 0L, nextThirtyDays(emptyList(), today))
 }
 
