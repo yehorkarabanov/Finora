@@ -3,6 +3,7 @@ package com.yehor.finora.ui.common
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,7 +18,10 @@ import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.icon.AppIcons
 
-/** Top bar of the screens reached from the More sheet: round back button, Space Grotesk title, round [actions]. */
+/**
+ * Top bar of the screens reached from the More sheet: round back button, Space Grotesk title, round [actions].
+ * Consumes the status-bar inset, so place it in a Scaffold `topBar` slot (or at the top of an inset-free layout).
+ */
 @Composable
 fun OrganizeTopBar(
     title: String,
@@ -26,7 +30,8 @@ fun OrganizeTopBar(
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
-        modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp),
+        // Scaffold leaves the top inset to its topBar (edge-to-edge), so the bar clears the status bar itself.
+        modifier.statusBarsPadding().padding(start = 12.dp, end = 12.dp, top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RoundIconButton(AppIcons.Back, stringResource(R.string.navigate_back), onBack)
