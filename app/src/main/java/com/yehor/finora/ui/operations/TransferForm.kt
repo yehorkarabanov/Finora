@@ -11,7 +11,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -170,11 +169,10 @@ internal fun TransferEditor(
 
     val sameCurrency = source != null && dest != null && source.currency.code == dest.currency.code
     val currenciesKnownEqual = source == null || dest == null || sameCurrency
-    // "They receive" is its own row across currencies, and also while a same-currency amount was unlinked by hand.
-    val showReceiveRow = !currenciesKnownEqual || !state.receivedLinked
-    LaunchedEffect(showReceiveRow) {
-        if (!showReceiveRow && target == TransferTarget.RECEIVED) onTargetChange(TransferTarget.SENT)
-    }
+    // "They receive" is its own row across currencies, and also while a same-currency amount was unlinked by hand;
+    // a linked same-currency transfer offers "Different amount" (e.g. a fee) on the To row instead.
+    val showReceiveRow = TransferFormLogic.showReceivedRow(source?.currency, dest?.currency, state.receivedLinked)
+    val showDifferentAmount = TransferFormLogic.showDifferentAmountAction(source?.currency, dest?.currency, state.receivedLinked)
 
     val sentMinor = (TransferAmountParser.parse(state.sentText, sentCurrency) as? TransferAmountParser.Result.Value)?.minor
     val receivedMinor = (TransferAmountParser.parse(state.receivedText, receivedCurrency) as? TransferAmountParser.Result.Value)?.minor
@@ -209,7 +207,7 @@ internal fun TransferEditor(
         stage = stage,
         onStageChange = onStageChange,
         topBar = topBar,
-        amount = {
+        amount = { layout ->
             EditorAmount(
                 sign = if (editingSent) FORM_MINUS else "+",
                 amountText = activeText,
@@ -217,6 +215,7 @@ internal fun TransferEditor(
                 symbols = symbols,
                 isError = activeError != null,
                 label = if (editingSent) null else theyReceive,
+                maxFontSize = layout.amountMaxFontSize,
             )
             if (activeError != null) {
                 Text(activeError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -227,8 +226,8 @@ internal fun TransferEditor(
                 symbols = symbols,
                 onClick = { pickSide = (if (editingSent) AccountSide.SOURCE else AccountSide.DEST).name },
             )
-            if (showReceiveRow) {
-                // Switches the keypad between the two amounts.
+            // Switches the keypad between the two amounts (also the way back after choosing "Different amount").
+            if (showReceiveRow || !editingSent) {
                 SmallPill(
                     text = if (editingSent) {
                         "$theyReceive  +" + transferAmountDisplay(state.receivedText, receivedCurrency, symbols)
@@ -240,13 +239,14 @@ internal fun TransferEditor(
                 )
             }
         },
-        keypad = {
-            QuickAmountRow(activeText, activeCurrency.symbol, onActiveChange)
+        keypad = { layout ->
+            if (layout.showQuickAmounts) QuickAmountRow(activeText, activeCurrency.symbol, onActiveChange)
             NumberPad(
                 decimalLabel = symbols.decimalSeparator.toString(),
                 decimalEnabled = activeCurrency.scale > 0,
                 onKey = { onActiveChange(AmountKeypad.applyKey(activeText, it, activeCurrency.scale)) },
                 onClear = { onActiveChange("") },
+                keyHeight = layout.keyHeight,
             )
         },
         shelfKindLabel = stringResource(R.string.transaction_kind_transfer),
@@ -286,6 +286,21 @@ internal fun TransferEditor(
                     onClick = { pickSide = AccountSide.DEST.name },
                     extraTrailing = {
                         RoundIconButton(AppIcons.SwapVertical, stringResource(R.string.transfer_form_swap), actions.onSwap)
+                    },
+                    below = if (showDifferentAmount) {
+                        {
+                            // Typing the received amount on the keypad unlinks it from the sent one.
+                            SmallPill(
+                                text = stringResource(R.string.editor_different_amount),
+                                onClick = {
+                                    onTargetChange(TransferTarget.RECEIVED)
+                                    onStageChange(EditorStage.AMOUNT)
+                                },
+                                modifier = Modifier.padding(start = 48.dp),
+                            )
+                        }
+                    } else {
+                        null
                     },
                 )
                 if (showReceiveRow) {
@@ -530,6 +545,14 @@ private fun TransferKeypadLightPreview() = TransferPreviewContent(dark = false, 
 @Preview(name = "Transfer keypad · dark", showBackground = true, widthDp = 380, heightDp = 800)
 @Composable
 private fun TransferKeypadDarkPreview() = TransferPreviewContent(dark = true, stage = EditorStage.AMOUNT)
+
+@Preview(name = "Transfer keypad, 360×640 · light", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun TransferKeypadSmallLightPreview() = TransferPreviewContent(dark = false, stage = EditorStage.AMOUNT)
+
+@Preview(name = "Transfer keypad, 360×640 · dark", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun TransferKeypadSmallDarkPreview() = TransferPreviewContent(dark = true, stage = EditorStage.AMOUNT)
 
 @Composable
 private fun TransferPreviewContent(dark: Boolean, stage: EditorStage) {

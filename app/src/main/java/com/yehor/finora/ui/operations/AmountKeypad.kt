@@ -30,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.icon.AppIcons
@@ -100,7 +101,7 @@ object AmountKeypad {
     }
 }
 
-private val KeySize = 58.dp
+private val DefaultKeyHeight = 58.dp
 
 /**
  * The borderless 3×4 amount keypad: digits, the decimal key bottom-left and backspace bottom-right.
@@ -113,6 +114,8 @@ internal fun NumberPad(
     onKey: (String) -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Row height; short screens pass less, never below the 48dp touch target. */
+    keyHeight: Dp = DefaultKeyHeight,
 ) {
     val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", AmountKeypad.DECIMAL, "0", AmountKeypad.BACKSPACE)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -125,6 +128,7 @@ internal fun NumberPad(
                         enabled = key != AmountKeypad.DECIMAL || decimalEnabled,
                         onKey = onKey,
                         onClear = onClear,
+                        keyHeight = keyHeight.coerceAtLeast(48.dp),
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -141,6 +145,7 @@ private fun KeypadKey(
     enabled: Boolean,
     onKey: (String) -> Unit,
     onClear: () -> Unit,
+    keyHeight: Dp,
     modifier: Modifier = Modifier,
 ) {
     val haptics = LocalHapticFeedback.current
@@ -165,7 +170,7 @@ private fun KeypadKey(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .height(KeySize)
+            .height(keyHeight)
             .combinedClickable(
                 interactionSource = interaction,
                 indication = null,
@@ -190,7 +195,7 @@ private fun KeypadKey(
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(KeySize)
+                .size(keyHeight)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale

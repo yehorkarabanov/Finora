@@ -125,4 +125,31 @@ class TransferFormLogicTest {
         assertNull(TransferFormLogic.blocker(setOf(TransferDraftError.DATE_IN_FUTURE)))
         assertNull(TransferFormLogic.blocker(setOf(TransferDraftError.SENT_AMOUNT_INVALID)))
     }
+
+    @Test
+    fun receivedRowHiddenAndDifferentAmountOfferedWhenSameCurrencyAndLinked() {
+        assertEquals(false, TransferFormLogic.showReceivedRow(pln, pln, linked = true))
+        assertEquals(true, TransferFormLogic.showDifferentAmountAction(pln, pln, linked = true))
+    }
+
+    @Test
+    fun receivedRowShownWhenSameCurrencyButUnlinked() {
+        assertEquals(true, TransferFormLogic.showReceivedRow(pln, pln, linked = false))
+        assertEquals(false, TransferFormLogic.showDifferentAmountAction(pln, pln, linked = false))
+    }
+
+    @Test
+    fun receivedRowShownAcrossCurrencies() {
+        assertEquals(true, TransferFormLogic.showReceivedRow(pln, usd, linked = true))
+        assertEquals(true, TransferFormLogic.showReceivedRow(pln, usd, linked = false))
+        assertEquals(false, TransferFormLogic.showDifferentAmountAction(pln, usd, linked = true))
+    }
+
+    @Test
+    fun unknownCurrencyShowsNeitherWhileLinked() {
+        assertEquals(false, TransferFormLogic.showReceivedRow(pln, null, linked = true))
+        assertEquals(false, TransferFormLogic.showDifferentAmountAction(pln, null, linked = true))
+        assertEquals(false, TransferFormLogic.showDifferentAmountAction(null, usd, linked = true))
+        assertEquals(true, TransferFormLogic.showReceivedRow(null, usd, linked = false))
+    }
 }

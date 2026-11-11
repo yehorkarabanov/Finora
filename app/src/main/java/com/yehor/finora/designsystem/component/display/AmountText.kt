@@ -62,13 +62,23 @@ private fun String.numericValue(): Double? {
     return normalized.toDoubleOrNull()
 }
 
-/** Splits at the last '.' or ','; the tail (separator + decimals) is dimmed at 60% size. */
-private fun styledAmount(text: String, style: TextStyle, dim: Color): AnnotatedString = buildAnnotatedString {
+/**
+ * Splits [text] into the whole part and the fraction tail (separator + decimals). The last '.' or ',' is a
+ * decimal separator only when exactly one or two digits follow it at the end, so grouped whole numbers such as
+ * "1,234" or "1.234.567" stay whole.
+ */
+internal fun splitAmount(text: String): Pair<String, String> {
     val split = text.indexOfLast { it == '.' || it == ',' }
-    if (split < 0) {
-        append(text)
-    } else {
-        append(text.substring(0, split))
-        withStyle(SpanStyle(color = dim, fontSize = style.fontSize * 0.6f)) { append(text.substring(split)) }
+    if (split < 0) return text to ""
+    val tail = text.substring(split + 1)
+    return if (tail.length in 1..2 && tail.all { it.isDigit() }) text.substring(0, split) to text.substring(split) else text to ""
+}
+
+/** The fraction tail (see [splitAmount]) is dimmed at 60% size. */
+private fun styledAmount(text: String, style: TextStyle, dim: Color): AnnotatedString = buildAnnotatedString {
+    val (whole, fraction) = splitAmount(text)
+    append(whole)
+    if (fraction.isNotEmpty()) {
+        withStyle(SpanStyle(color = dim, fontSize = style.fontSize * 0.6f)) { append(fraction) }
     }
 }

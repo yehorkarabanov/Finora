@@ -31,9 +31,18 @@ import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
 
-/** Equal-width segmented selector in a pill track; the selected segment is a raised pill. */
+/**
+ * Equal-width segmented selector in a pill track; the selected segment is a raised pill.
+ * When not [enabled] the choice is fixed: the selected segment stays readable and the others are dimmed.
+ */
 @Composable
-fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun SegmentedPill(
+    options: List<String>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
     val scheme = MaterialTheme.colorScheme
     val isDark = MaterialTheme.finance.isDark
     val selectedFill = if (isDark) scheme.surfaceContainerHighest else scheme.surfaceContainerLowest
@@ -60,6 +69,7 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
                     .height(48.dp)
                     .selectable(
                         selected = isSelected,
+                        enabled = enabled,
                         interactionSource = interaction,
                         indication = null,
                         role = Role.Tab,
@@ -80,7 +90,11 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
                     Text(
                         label,
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (isSelected) scheme.onSurface else scheme.onSurfaceVariant,
+                        color = when {
+                            isSelected -> scheme.onSurface
+                            enabled -> scheme.onSurfaceVariant
+                            else -> scheme.onSurfaceVariant.copy(alpha = 0.38f)
+                        },
                     )
                 }
             }

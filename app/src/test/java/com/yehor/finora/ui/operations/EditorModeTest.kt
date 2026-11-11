@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.operations
 
+import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -29,4 +30,19 @@ class EditorModeTest {
 
     @Test
     fun editOpensWithShelf() = assertEquals(EditorStage.DETAILS, initialStage(isEdit = true))
+
+    @Test
+    fun tallScreenGetsTheFullKeypad() {
+        val layout = editorLayoutFor(700.dp)
+        assertEquals(58.dp, layout.keyHeight)
+        assertEquals(true, layout.showQuickAmounts)
+    }
+
+    @Test
+    fun shortScreenShrinksKeysToTheTouchTargetAndDropsQuickAmounts() {
+        // 360×640 with a 24dp status bar and 48dp 3-button navigation leaves 568dp.
+        val layout = editorLayoutFor(568.dp)
+        assertEquals(48.dp, layout.keyHeight)
+        assertEquals(false, layout.showQuickAmounts)
+    }
 }

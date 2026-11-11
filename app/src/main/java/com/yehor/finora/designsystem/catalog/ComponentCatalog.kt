@@ -181,6 +181,7 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Controls", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         SegmentedPill(listOf("Expense", "Income", "Transfer"), segment, { segment = it })
+        SegmentedPill(listOf("Expense", "Income", "Transfer"), 1, {}, enabled = false)
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterPill("Account", active = false, onClick = { filter = true })
             FilterPill("Groceries", active = filter, onClick = {}, onClear = { filter = false })

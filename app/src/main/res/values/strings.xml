@@ -366,8 +366,6 @@
     <string name="transactions_day_yesterday">Yesterday</string>
 
     <!-- Transaction Form -->
-    <string name="transaction_form_new_title">New transaction</string>
-    <string name="transaction_form_edit_title">Edit transaction</string>
     <string name="transaction_kind_expense">Expense</string>
     <string name="transaction_kind_income">Income</string>
     <string name="transaction_kind_transfer">Transfer</string>
@@ -380,24 +378,18 @@
     <string name="transaction_form_description">Description</string>
     <string name="transaction_form_tags">Tags</string>
     <string name="transaction_form_cta_save">Save changes</string>
-    <string name="transaction_form_cta_add_income">Add Income</string>
-    <string name="transaction_form_cta_add_expense">Add Expense</string>
-    <string name="transaction_form_save_and_another">Save and create another</string>
     <string name="transaction_form_merchant_description">Merchant &amp; Description</string>
     <string name="transaction_form_labels_tags">Labels &amp; Tags</string>
     <string name="transaction_form_in_parent">in %1$s</string>
-    <string name="transaction_form_balance">Balance %1$s</string>
     <string name="transaction_form_balance_after">%1$s → %2$s after saving</string>
     <string name="transaction_form_recent">Recent</string>
     <string name="transaction_form_description_hint">e.g. Whole Foods, Uber, Rent</string>
     <string name="transaction_form_add_tag">Add tag</string>
     <string name="transaction_form_tags_done">Done</string>
     <string name="transaction_form_tags_note">Optional · never affects balances</string>
-    <string name="transaction_form_time_hint">%1$s · Tap to adjust</string>
     <string name="transaction_form_saved_another">Saved. Ready for the next one.</string>
     <!-- Transfer mode of the unified editor -->
     <string name="txn_transfer_same_amount">Same amount</string>
-    <string name="txn_transfer_cta">Transfer</string>
     <string name="txn_transfer_note_hint">e.g. Move savings, cash withdrawal</string>
     <string name="txn_error_from_missing">Choose the account to send from</string>
     <string name="txn_error_to_missing">Choose the account to send to</string>
@@ -421,16 +413,13 @@
 
     <!-- Transfer Form -->
     <string name="transfer_form_new_title">New transfer</string>
-    <string name="transfer_form_edit_title">Edit transfer</string>
     <string name="transfer_form_from">From</string>
     <string name="transfer_form_to">To</string>
     <string name="transfer_form_swap">Swap accounts</string>
     <string name="transfer_form_amount_sent">Amount sent</string>
     <string name="transfer_form_amount_received">Amount received</string>
     <string name="transfer_form_error_same_accounts">Choose two different accounts</string>
-    <string name="transfer_form_same_as_sent">Same as sent</string>
     <string name="transfer_form_enter_received">Enter the amount received in %1$s</string>
-    <string name="transfer_form_cta_amounts">Transfer · %1$s → %2$s</string>
     <string name="transfer_form_delete_title">Delete transfer?</string>
     <string name="transfer_form_delete_body">The transfer will be deleted. %1$s returns to the source account and %2$s is removed from the destination account.</string>
     <string name="transfer_form_opening_order_body">This transfer is dated before the initial balance of one of its accounts. Move the initial balances back so they are not later than this transfer?</string>
@@ -919,4 +908,5 @@
     <string name="editor_save_income">Save income</string>
     <string name="editor_save_transfer">Save transfer</string>
     <string name="editor_they_receive">They receive</string>
+    <string name="editor_different_amount">Different amount</string>
 </resources>

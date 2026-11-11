@@ -370,8 +370,6 @@
     <string name="transactions_summary_expense">−%1$s</string>
     <string name="transactions_day_today">Сегодня</string>
     <string name="transactions_day_yesterday">Вчера</string>
-    <string name="transaction_form_new_title">Новая операция</string>
-    <string name="transaction_form_edit_title">Редактирование операции</string>
     <string name="transaction_kind_expense">Расход</string>
     <string name="transaction_kind_income">Доход</string>
     <string name="transaction_kind_transfer">Перевод</string>
@@ -384,23 +382,17 @@
     <string name="transaction_form_description">Описание</string>
     <string name="transaction_form_tags">Метки</string>
     <string name="transaction_form_cta_save">Сохранить изменения</string>
-    <string name="transaction_form_cta_add_income">Добавить доход</string>
-    <string name="transaction_form_cta_add_expense">Добавить расход</string>
-    <string name="transaction_form_save_and_another">Сохранить и создать ещё</string>
     <string name="transaction_form_merchant_description">Магазин и описание</string>
     <string name="transaction_form_labels_tags">Метки</string>
     <string name="transaction_form_in_parent">в «%1$s»</string>
-    <string name="transaction_form_balance">Баланс %1$s</string>
     <string name="transaction_form_balance_after">%1$s → %2$s после сохранения</string>
     <string name="transaction_form_recent">Недавние</string>
     <string name="transaction_form_description_hint">Например, Пятёрочка, Uber, аренда</string>
     <string name="transaction_form_add_tag">Добавить метку</string>
     <string name="transaction_form_tags_done">Готово</string>
     <string name="transaction_form_tags_note">Необязательно · не влияет на баланс</string>
-    <string name="transaction_form_time_hint">%1$s · Нажмите, чтобы изменить</string>
     <string name="transaction_form_saved_another">Сохранено. Можно вводить следующую.</string>
     <string name="txn_transfer_same_amount">Та же сумма</string>
-    <string name="txn_transfer_cta">Перевод</string>
     <string name="txn_transfer_note_hint">Например, перевод накоплений, снятие наличных</string>
     <string name="txn_error_from_missing">Выберите счёт списания</string>
     <string name="txn_error_to_missing">Выберите счёт зачисления</string>
@@ -422,16 +414,13 @@
     <string name="transaction_form_delete_title">Удалить операцию?</string>
     <string name="transaction_form_delete_body">Операция будет удалена, а баланс счёта изменится на %1$s.</string>
     <string name="transfer_form_new_title">Новый перевод</string>
-    <string name="transfer_form_edit_title">Редактирование перевода</string>
     <string name="transfer_form_from">Откуда</string>
     <string name="transfer_form_to">Куда</string>
     <string name="transfer_form_swap">Поменять счета местами</string>
     <string name="transfer_form_amount_sent">Сумма отправления</string>
     <string name="transfer_form_amount_received">Сумма получения</string>
     <string name="transfer_form_error_same_accounts">Выберите два разных счёта</string>
-    <string name="transfer_form_same_as_sent">Как отправлено</string>
     <string name="transfer_form_enter_received">Введите сумму, полученную в %1$s</string>
-    <string name="transfer_form_cta_amounts">Перевод · %1$s → %2$s</string>
     <string name="transfer_form_delete_title">Удалить перевод?</string>
     <string name="transfer_form_delete_body">Перевод будет удалён. %1$s вернётся на счёт-источник, а %2$s будет списано со счёта назначения.</string>
     <string name="transfer_form_opening_order_body">Этот перевод датирован раньше начального баланса одного из его счетов. Сдвинуть начальные балансы назад, чтобы они были не позже этого перевода?</string>
@@ -932,4 +921,5 @@
     <string name="editor_save_income">Сохранить доход</string>
     <string name="editor_save_transfer">Сохранить перевод</string>
     <string name="editor_they_receive">Получатель получит</string>
+    <string name="editor_different_amount">Другая сумма</string>
 </resources>

@@ -59,7 +59,9 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.motion.FinoraMotion
@@ -69,6 +71,25 @@ import com.yehor.finora.designsystem.theme.hairline
 import kotlinx.coroutines.launch
 
 // The keypad screen and the details shelf that rises over it, shared by every mode of the editor.
+
+/** Sizes of the keypad screen for the height it has. */
+internal data class EditorLayout(
+    val keyHeight: Dp,
+    val showQuickAmounts: Boolean,
+    val amountMaxFontSize: TextUnit,
+    val amountTopPadding: Dp,
+    val amountSpacing: Dp,
+)
+
+/**
+ * Tall screens get the full layout; shorter ones shrink the keys (never below the 48dp touch target), the amount
+ * and its spacing, and the shortest drop the quick-amount pills so Next always fits (e.g. 360×640 with 3-button nav).
+ */
+internal fun editorLayoutFor(available: Dp): EditorLayout = when {
+    available >= 660.dp -> EditorLayout(58.dp, true, 56.sp, 28.dp, 14.dp)
+    available >= 600.dp -> EditorLayout(52.dp, true, 48.sp, 16.dp, 10.dp)
+    else -> EditorLayout(48.dp, false, 44.sp, 8.dp, 8.dp)
+}
 
 private val ShelfShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
 private const val SHELF_SCRIM_ALPHA = 0.45f
@@ -93,8 +114,8 @@ internal fun EditorScaffold(
     stage: EditorStage,
     onStageChange: (EditorStage) -> Unit,
     topBar: @Composable () -> Unit,
-    amount: @Composable ColumnScope.() -> Unit,
-    keypad: @Composable ColumnScope.() -> Unit,
+    amount: @Composable ColumnScope.(EditorLayout) -> Unit,
+    keypad: @Composable ColumnScope.(EditorLayout) -> Unit,
     shelfKindLabel: String,
     shelfScroll: ScrollState,
     shelfContent: @Composable ColumnScope.() -> Unit,
@@ -118,7 +139,9 @@ internal fun EditorScaffold(
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+            val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
             val shelfMaxHeight = (maxHeight - statusTop - ShelfTopClearance).coerceAtLeast(240.dp)
+            val layout = editorLayoutFor(maxHeight - statusTop - navBottom)
 
             Column(
                 Modifier
@@ -129,10 +152,13 @@ internal fun EditorScaffold(
             ) {
                 Spacer(Modifier.height(8.dp))
                 topBar()
+                // The amount takes what is left after the keypad and Next, so on short screens it is the amount
+                // area that gives way, never the CTA.
                 Column(
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = 28.dp)
+                        .weight(1f)
+                        .padding(top = layout.amountTopPadding)
                         .graphicsLayer {
                             val scale = 1f - (1f - AMOUNT_SHRINK) * progress
                             scaleX = scale
@@ -141,15 +167,12 @@ internal fun EditorScaffold(
                             transformOrigin = TransformOrigin(0.5f, 0f)
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(14.dp),
-                    content = amount,
-                )
-                Spacer(Modifier.weight(1f))
+                    verticalArrangement = Arrangement.spacedBy(layout.amountSpacing),
+                ) { amount(layout) }
                 Column(
                     Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    content = keypad,
-                )
+                ) { keypad(layout) }
                 Spacer(Modifier.height(12.dp))
                 PrimaryButton(stringResource(R.string.editor_next), onClick = { onStageChange(EditorStage.DETAILS) })
                 Spacer(Modifier.height(16.dp))

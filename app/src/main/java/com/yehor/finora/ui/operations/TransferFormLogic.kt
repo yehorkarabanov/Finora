@@ -77,6 +77,22 @@ object TransferFormLogic {
         return if (sameOrUnknown) sentText else ""
     }
 
+    /**
+     * Whether "They receive" is its own editable row: across currencies, or when a same-currency (or still unknown)
+     * received amount was unlinked by hand.
+     */
+    fun showReceivedRow(sourceCurrency: Currency?, destCurrency: Currency?, linked: Boolean): Boolean {
+        val knownEqual = sourceCurrency == null || destCurrency == null || sourceCurrency.code == destCurrency.code
+        return !knownEqual || !linked
+    }
+
+    /**
+     * Whether to offer "Different amount" (e.g. a fee): both currencies known and equal and the received amount
+     * still mirrors the sent one. Choosing it lets the keypad edit the received amount, which unlinks it.
+     */
+    fun showDifferentAmountAction(sourceCurrency: Currency?, destCurrency: Currency?, linked: Boolean): Boolean =
+        linked && sourceCurrency != null && destCurrency != null && sourceCurrency.code == destCurrency.code
+
     /** True when a stored transfer is a plain same-amount, same-currency one, so the received amount starts linked. */
     fun isLinked(sent: Money, received: Money): Boolean =
         sent.currency.code == received.currency.code && sent.amountMinor == received.amountMinor

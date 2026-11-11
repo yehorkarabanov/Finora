@@ -274,26 +274,28 @@ internal fun ExpenseIncomeEditor(
         stage = stage,
         onStageChange = onStageChange,
         topBar = topBar,
-        amount = {
+        amount = { layout ->
             EditorAmount(
                 sign = if (isIncome) "+" else FORM_MINUS,
                 amountText = state.amountText,
                 currencySymbol = currency.symbol,
                 symbols = symbols,
                 isError = amountError != null,
+                maxFontSize = layout.amountMaxFontSize,
             )
             if (amountError != null) {
                 Text(amountError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
             }
             AccountPill(selectedAccount, balance, symbols, onClick = { pickAccount = true })
         },
-        keypad = {
-            QuickAmountRow(state.amountText, currency.symbol, actions.onAmountChange)
+        keypad = { layout ->
+            if (layout.showQuickAmounts) QuickAmountRow(state.amountText, currency.symbol, actions.onAmountChange)
             NumberPad(
                 decimalLabel = symbols.decimalSeparator.toString(),
                 decimalEnabled = currency.scale > 0,
                 onKey = { actions.onAmountChange(AmountKeypad.applyKey(state.amountText, it, currency.scale)) },
                 onClear = { actions.onAmountChange("") },
+                keyHeight = layout.keyHeight,
             )
         },
         shelfKindLabel = stringResource(if (isIncome) R.string.transaction_kind_income else R.string.transaction_kind_expense),
@@ -516,6 +518,14 @@ private fun ShelfOpenLightPreview() = ExpenseIncomePreviewContent(dark = false, 
 @Preview(name = "Shelf open · dark", showBackground = true, widthDp = 380, heightDp = 800)
 @Composable
 private fun ShelfOpenDarkPreview() = ExpenseIncomePreviewContent(dark = true, stage = EditorStage.DETAILS)
+
+@Preview(name = "New expense, 360×640 · light", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun NewExpenseSmallLightPreview() = ExpenseIncomePreviewContent(dark = false, stage = EditorStage.AMOUNT)
+
+@Preview(name = "New expense, 360×640 · dark", showBackground = true, widthDp = 360, heightDp = 640)
+@Composable
+private fun NewExpenseSmallDarkPreview() = ExpenseIncomePreviewContent(dark = true, stage = EditorStage.AMOUNT)
 
 @Composable
 private fun ExpenseIncomePreviewContent(dark: Boolean, stage: EditorStage) {

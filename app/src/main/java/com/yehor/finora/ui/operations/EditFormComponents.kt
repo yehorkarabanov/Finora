@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -129,6 +130,7 @@ internal fun EditorTopBar(
             ),
             selected = mode.ordinal,
             onSelect = { if (!isEdit) onModeChange(EditorMode.entries[it]) },
+            enabled = !isEdit,
             modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
         )
         if (isEdit) {
@@ -163,12 +165,15 @@ internal fun EditorTopBar(
 // Amount block
 // ---------------------------------------------------------------------------
 
-/** Big-amount size that keeps long numbers on one line. */
-private fun amountFontSize(length: Int): TextUnit = when {
-    length <= 8 -> 56.sp
-    length <= 11 -> 46.sp
-    length <= 14 -> 38.sp
-    else -> 30.sp
+/** Big-amount size that keeps long numbers on one line, capped at [max]. */
+private fun amountFontSize(length: Int, max: TextUnit): TextUnit {
+    val step = when {
+        length <= 8 -> 56.sp
+        length <= 11 -> 46.sp
+        length <= 14 -> 38.sp
+        else -> 30.sp
+    }
+    return if (step.value > max.value) max else step
 }
 
 /**
@@ -183,9 +188,10 @@ internal fun EditorAmount(
     symbols: DecimalFormatSymbols,
     isError: Boolean,
     label: String? = null,
+    maxFontSize: TextUnit = 56.sp,
 ) {
     val formatted = currencySymbol + AmountKeypad.format(amountText, symbols.groupingSeparator, symbols.decimalSeparator)
-    val size = amountFontSize(sign.length + formatted.length)
+    val size = amountFontSize(sign.length + formatted.length, maxFontSize)
     val style = MaterialTheme.typography.displayLarge.copy(fontSize = size, lineHeight = size * 1.1f)
     val color = when {
         isError -> MaterialTheme.colorScheme.error
@@ -201,13 +207,7 @@ internal fun EditorAmount(
             modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
         ) {
             if (sign.isNotEmpty()) Text(sign, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            // AmountText dims everything after the last separator, which is only right when a fraction was typed:
-            // a grouped whole number ("1,234") is shown plainly.
-            if ('.' in amountText) {
-                AmountText(formatted, style = style, color = color, animate = false)
-            } else {
-                Text(formatted, style = style, color = color, maxLines = 1)
-            }
+            AmountText(formatted, style = style, color = color, animate = false)
         }
     }
 }
@@ -382,6 +382,7 @@ internal fun AccountShelfRow(
     supportingIsError: Boolean,
     onClick: () -> Unit,
     extraTrailing: (@Composable () -> Unit)? = null,
+    below: (@Composable () -> Unit)? = null,
 ) {
     ShelfRow(
         icon = { IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 34) },
@@ -405,6 +406,7 @@ internal fun AccountShelfRow(
             }
             extraTrailing?.invoke()
         },
+        below = below,
     )
 }
 
@@ -693,7 +695,7 @@ internal fun AddAnotherRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit)
             .fillMaxWidth()
             .heightIn(min = 48.dp)
             .clip(MaterialTheme.shapes.small)
-            .clickable(role = Role.Switch) { onCheckedChange(!checked) }
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
