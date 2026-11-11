@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +31,7 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainer, PillShape)
             .border(hairline(MaterialTheme.finance.isDark), PillShape)
-            .padding(4.dp),
+            .padding(horizontal = 4.dp),
     ) {
         options.forEachIndexed { index, label ->
             val isSelected = index == selected
@@ -37,20 +39,25 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
                 if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
                 label = "segmentBg",
             )
+            // 48dp hit area; the filled pill inside keeps the compact look.
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .clip(PillShape)
-                    .background(container)
+                    .height(48.dp)
                     .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(index) })
-                    .padding(vertical = 9.dp),
+                    .padding(vertical = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Box(
+                    modifier = Modifier.fillMaxSize().clip(PillShape).background(container),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        label,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
     }

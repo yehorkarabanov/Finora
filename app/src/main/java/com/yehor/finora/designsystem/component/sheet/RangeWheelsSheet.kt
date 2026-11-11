@@ -52,6 +52,7 @@ import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.input.FilterPill
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
 import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
@@ -89,7 +90,12 @@ internal fun RangeWheelsContent(
     onConfirm: (YearMonth, YearMonth) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val years = remember(today, earliest) { RangeWheelsLogic.years(today, earliest) }
+    val years = remember(today, earliest, initialFrom, initialTo) {
+        val base = RangeWheelsLogic.years(today, earliest)
+        val first = minOf(base.first(), initialFrom.year, initialTo.year)
+        val last = maxOf(base.last(), minOf(maxOf(initialFrom.year, initialTo.year), today.year))
+        (first..last).toList()
+    }
     val locale = Locale.getDefault()
     val monthNames = remember(locale) { Month.entries.map { it.getDisplayName(TextStyle.SHORT, locale) } }
     val current = YearMonth.from(today)
@@ -128,7 +134,7 @@ internal fun RangeWheelsContent(
                     .fillMaxWidth()
                     .height(ItemHeight)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(16.dp))
-                    .border(1.dp, Color.White.copy(alpha = if (MaterialTheme.finance.isDark) 0.06f else 0f), RoundedCornerShape(16.dp)),
+                    .border(hairline(MaterialTheme.finance.isDark), RoundedCornerShape(16.dp)),
             )
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Wheel(
@@ -168,7 +174,11 @@ internal fun RangeWheelsContent(
         }
         PrimaryButton(
             text = when (validity) {
-                is RangeValidity.Valid -> stringResource(R.string.range_show, label(from), label(to))
+                is RangeValidity.Valid -> if (from == to) {
+                    stringResource(R.string.range_show_one, label(from))
+                } else {
+                    stringResource(R.string.range_show, label(from), label(to))
+                }
                 RangeValidity.EndBeforeStart -> stringResource(R.string.range_invalid_order)
                 RangeValidity.InFuture -> stringResource(R.string.range_in_future)
             },

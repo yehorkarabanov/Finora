@@ -919,6 +919,7 @@
         <item quantity="other">%d месяца</item>
     </plurals>
     <string name="range_show">Показать %1$s – %2$s</string>
+    <string name="range_show_one">Показать %1$s</string>
     <string name="range_invalid_order">Конец раньше начала</string>
     <string name="range_in_future">В будущем</string>
     <string name="range_today">Сегодня</string>

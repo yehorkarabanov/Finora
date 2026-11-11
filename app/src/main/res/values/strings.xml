@@ -906,6 +906,7 @@
         <item quantity="other">%d months</item>
     </plurals>
     <string name="range_show">Show %1$s – %2$s</string>
+    <string name="range_show_one">Show %1$s</string>
     <string name="range_invalid_order">End before start</string>
     <string name="range_in_future">In the future</string>
     <string name="range_today">Today</string>

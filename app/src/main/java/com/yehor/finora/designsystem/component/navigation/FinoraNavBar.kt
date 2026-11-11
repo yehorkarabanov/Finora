@@ -11,6 +11,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -75,13 +76,20 @@ fun FinoraNavBar(
                 label = "navPill",
             )
             val content = if (active) scheme.onPrimaryContainer else scheme.onSurfaceVariant
-            Row(
+            // 48dp hit area around the 42dp visual pill.
+            Box(
                 modifier = Modifier
                     .weight(weight.coerceAtLeast(0.1f))
+                    .height(48.dp)
+                    .selectable(selected = active, role = Role.Tab, onClick = { onSelect(index) }),
+                contentAlignment = Alignment.Center,
+            ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
                     .height(42.dp)
                     .clip(PillShape)
-                    .background(container, PillShape)
-                    .selectable(selected = active, role = Role.Tab, onClick = { onSelect(index) }),
+                    .background(container, PillShape),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
@@ -104,6 +112,7 @@ fun FinoraNavBar(
                         modifier = Modifier.padding(start = 6.dp),
                     )
                 }
+            }
             }
         }
     }

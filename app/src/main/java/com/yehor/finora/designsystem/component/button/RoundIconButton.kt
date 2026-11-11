@@ -26,15 +26,22 @@ fun RoundIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // 48dp hit area around the 40dp visual circle.
     Box(
         modifier = modifier
-            .size(40.dp)
+            .size(48.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
-            .border(hairline(MaterialTheme.finance.isDark), CircleShape)
             .clickable(role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
+                .border(hairline(MaterialTheme.finance.isDark), CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
+        }
     }
 }

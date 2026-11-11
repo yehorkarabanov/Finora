@@ -4,7 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.res.stringResource
+import com.yehor.finora.R
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -31,25 +38,30 @@ fun FilterPill(
     onClear: (() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val showClear = active && onClear != null
     val content = if (active) scheme.primary else scheme.onSurfaceVariant
     val border = if (active) BorderStroke(1.dp, scheme.primary.copy(alpha = 0.4f)) else hairline(MaterialTheme.finance.isDark)
-    Row(
-        modifier = modifier
-            .clip(PillShape)
-            .background(if (active) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainer, PillShape)
-            .border(border, PillShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = content)
-        if (active && onClear != null) {
-            Icon(
-                AppIcons.Close,
-                contentDescription = null,
-                tint = content,
-                modifier = Modifier.padding(start = 6.dp).size(14.dp).clickable(onClick = onClear),
-            )
+    // 48dp-high hit area; the visual pill stays compact. The clear glyph gets its own 48dp target.
+    Box(modifier.heightIn(min = 48.dp), contentAlignment = Alignment.CenterStart) {
+        Row(
+            modifier = Modifier
+                .clip(PillShape)
+                .background(if (active) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainer, PillShape)
+                .border(border, PillShape)
+                .clickable(role = Role.Button, onClick = onClick)
+                .padding(start = 12.dp, top = 7.dp, bottom = 7.dp, end = if (showClear) 0.dp else 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = content)
+            if (showClear) Spacer(Modifier.width(48.dp))
+        }
+        if (onClear != null && showClear) {
+            Box(
+                Modifier.align(Alignment.CenterEnd).size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onClear),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(AppIcons.Close, contentDescription = stringResource(R.string.filter_clear), tint = content, modifier = Modifier.size(14.dp))
+            }
         }
     }
 }

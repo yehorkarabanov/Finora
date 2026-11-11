@@ -72,7 +72,6 @@ fun AddFab(
 ) {
     val reduce = rememberReduceMotion()
     val haptics = LocalHapticFeedback.current
-    val scheme = MaterialTheme.colorScheme
     val hasDial = !speedDial.isNullOrEmpty()
     val open = expanded && hasDial
 
