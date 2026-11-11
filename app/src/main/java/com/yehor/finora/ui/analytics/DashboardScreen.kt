@@ -1,6 +1,8 @@
 package com.yehor.finora.ui.analytics
 
 import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.ui.navigation.LocalOpenMore
 import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -132,21 +134,17 @@ fun DashboardContent(
         val period = state.period
         when {
             state.loading || period == null -> Unit
-            !state.hasAccounts -> FirstAccountCard(actions.onAddAccount, Modifier.padding(padding).padding(16.dp))
+            !state.hasAccounts -> Column(Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                DashboardTitleRow()
+                FirstAccountCard(actions.onAddAccount)
+            }
             else -> LazyColumn(
                 Modifier.fillMaxSize().padding(padding),
                 // Bottom padding keeps the last card clear of the FAB.
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 88.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item(key = "title") {
-                    Text(
-                        stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
-                    )
-                }
+                item(key = "title") { DashboardTitleRow() }
                 // One compact row that scopes the cash flow and the sections below the quick actions.
                 item(key = "period") {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -180,6 +178,20 @@ fun DashboardContent(
                 item(key = "recent") { RecentSection(state.recent, state.selectedAccountIds, actions) }
             }
         }
+    }
+}
+
+/** App title with a temporary round "more" button (until the Home rebuild) that opens the More sheet. */
+@Composable
+private fun DashboardTitleRow() {
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            stringResource(R.string.app_name),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.weight(1f).semantics { heading() },
+        )
+        RoundIconButton(AppIcons.NavMore, stringResource(R.string.nav_more), LocalOpenMore.current)
     }
 }
 

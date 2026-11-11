@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
@@ -8,18 +7,34 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.pluralStringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.component.navigation.AddFab
+import com.yehor.finora.designsystem.component.navigation.FabMode
+import com.yehor.finora.designsystem.component.navigation.FabScroll
+import com.yehor.finora.designsystem.component.navigation.FinoraNavBar
+import com.yehor.finora.designsystem.component.navigation.NavBarItem
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -62,9 +77,11 @@ private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
 fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = backStackEntry?.destination
+    val route = backStackEntry?.destination?.route
     val snackbarHostState = remember { SnackbarHostState() }
-    val showBottomBar = currentDestination?.route !in ROUTES_WITHOUT_BOTTOM_BAR
+    val showBottomBar = route !in ROUTES_WITHOUT_BOTTOM_BAR
+    val fabController = remember { ShellFabController() }
+    var showMore by remember { mutableStateOf(false) }
 
     val outcome = shellViewModel.restoreOutcome
     val accounts = outcome?.summary?.accounts ?: 0
@@ -82,41 +99,121 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
         if (outcomeMessage != null) snackbarHostState.showSnackbar(outcomeMessage)
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        // Each screen has its own Scaffold and handles the top inset itself.
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            if (showBottomBar) NavigationBar {
-                TopLevelDestination.entries.forEach { dest ->
-                    val selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            // Always open the tab's root screen. Sub-screens opened earlier in the tab
-                            // are discarded, not saved and restored.
-                            navController.navigate(dest.route) {
-                                popUpTo(navController.graph.findStartDestination().id)
-                                launchSingleTop = true
-                            }
-                        },
-                        icon = { Icon(if (selected) dest.selectedIcon else dest.icon, contentDescription = null) },
-                        label = { Text(stringResource(dest.label)) },
-                    )
-                }
+    CompositionLocalProvider(
+        LocalShellFab provides fabController,
+        LocalOpenMore provides { showMore = true },
+    ) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            // Content clears the floating bar (and the system nav inset) while it is visible.
+            val contentModifier = if (showBottomBar) {
+                Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = ShellContentBottomPaddingDp.dp)
+            } else {
+                Modifier
             }
-        },
-    ) { padding ->
-        FinoraNavHost(navController, padding)
+            FinoraNavHost(navController, contentModifier)
+
+            if (showBottomBar) {
+                BottomFade(Modifier.align(Alignment.BottomCenter))
+                val items = TopLevelDestination.entries.map {
+                    NavBarItem(stringResource(it.label), it.icon, it.selectedIcon)
+                }
+                FinoraNavBar(
+                    items = items,
+                    selectedIndex = tabFor(route)?.ordinal ?: -1,
+                    onSelect = { index ->
+                        // Always open the tab's root screen. Sub-screens opened earlier in the tab
+                        // are discarded, not saved and restored.
+                        navController.navigate(TopLevelDestination.entries[index].route) {
+                            popUpTo(navController.graph.findStartDestination().id)
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                ShellFabHost(fabController)
+            }
+
+            SnackbarHost(
+                snackbarHostState,
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = if (showBottomBar) 76.dp else 0.dp),
+            )
+        }
+
+        if (showMore) {
+            MoreSheet(
+                onDismiss = { showMore = false },
+                onNavigate = { target ->
+                    showMore = false
+                    navController.navigate(target) { launchSingleTop = true }
+                },
+            )
+        }
     }
 }
 
+/** Fade from the page background so scrolling content dissolves behind the floating bar. */
 @Composable
-private fun FinoraNavHost(navController: NavHostController, padding: PaddingValues) {
+private fun BottomFade(modifier: Modifier = Modifier) {
+    val background = MaterialTheme.colorScheme.background
+    val inset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(110.dp + inset)
+            .background(Brush.verticalGradient(listOf(Color.Transparent, background))),
+    )
+}
+
+/** Renders the FAB registered by the current screen; owns the speed-dial expanded state and scroll-driven mode. */
+@Composable
+private fun ShellFabHost(controller: ShellFabController) {
+    val registration = controller.registration ?: return
+    var mode by remember { mutableStateOf(FabMode.EXTENDED) }
+    var expanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(registration.listState) {
+        val list = registration.listState
+        mode = FabMode.EXTENDED
+        expanded = false
+        var prevIndex = list.firstVisibleItemIndex
+        var prevOffset = list.firstVisibleItemScrollOffset
+        snapshotFlow { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }.collect { (index, offset) ->
+            val delta = when {
+                index == prevIndex -> (offset - prevOffset).toFloat()
+                index > prevIndex -> FabScroll.FLING_PX + 1f
+                else -> -FabScroll.FLING_PX - 1f
+            }
+            prevIndex = index
+            prevOffset = offset
+            mode = FabScroll.next(mode, index == 0, offset, delta)
+            if (mode == FabMode.HIDDEN) expanded = false
+        }
+    }
+
+    val dial = registration.items?.map { item ->
+        item.copy(onClick = {
+            expanded = false
+            item.onClick()
+        })
+    }
+    AddFab(
+        mode = mode,
+        expanded = expanded,
+        onToggle = { if (dial == null) registration.onClick() else expanded = !expanded },
+        label = registration.label,
+        speedDial = dial,
+    )
+}
+
+@Composable
+private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) {
     NavHost(
         navController = navController,
         startDestination = Routes.DASHBOARD,
-        modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+        modifier = modifier,
     ) {
         composable(Routes.DASHBOARD) {
             DashboardScreen(
@@ -240,9 +337,6 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onShowAll = { navController.openTransactions(it) },
             )
-        }
-        composable(Routes.MORE) {
-            MoreScreen(onNavigate = { navController.navigate(it) })
         }
         composable(Routes.CATEGORIES) {
             CategoriesScreen(

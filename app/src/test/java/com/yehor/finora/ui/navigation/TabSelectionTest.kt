@@ -1,6 +1,8 @@
 package com.yehor.finora.ui.navigation
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -15,14 +17,26 @@ class TabSelectionTest {
     }
 
     @Test
-    fun moreTabCoversItsScreens() {
+    fun fourTabs() = assertEquals(
+        listOf("DASHBOARD", "TRANSACTIONS", "ACCOUNTS", "STATISTICS"),
+        TopLevelDestination.entries.map { it.name },
+    )
+
+    @Test
+    fun moreChildrenHighlightNoTab() {
+        assertNull(tabFor(Routes.CATEGORIES))
+        assertNull(tabFor(Routes.SETTINGS))
+        assertNull(tabFor(Routes.RECURRING_DETAIL))
+        assertNull(tabFor(null))
+    }
+
+    @Test
+    fun accountDetailHighlightsAccounts() = assertEquals(TopLevelDestination.ACCOUNTS, tabFor(Routes.ACCOUNT_DETAIL))
+
+    @Test
+    fun moreRoutesStayUnderMorePrefix() {
         assertTrue(isRouteUnder(Routes.CATEGORIES, Routes.MORE))
-        assertTrue(isRouteUnder(Routes.CATEGORY_NEW, Routes.MORE))
-        assertTrue(isRouteUnder(Routes.CATEGORY_EDIT, Routes.MORE))
         assertTrue(isRouteUnder(Routes.SETTINGS, Routes.MORE))
-        assertTrue(isRouteUnder(Routes.RECURRING, Routes.MORE))
-        assertTrue(isRouteUnder(Routes.RECURRING_NEW, Routes.MORE))
-        assertTrue(isRouteUnder(Routes.RECURRING_DETAIL, Routes.MORE))
         assertTrue(isRouteUnder(Routes.RECURRING_EDIT, Routes.MORE))
     }
 

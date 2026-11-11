@@ -79,12 +79,15 @@ enum class TopLevelDestination(
     TRANSACTIONS(Routes.TRANSACTIONS, R.string.nav_transactions, AppIcons.NavTransactions, AppIcons.NavTransactionsSelected),
     ACCOUNTS(Routes.ACCOUNTS, R.string.nav_accounts, AppIcons.NavAccounts, AppIcons.NavAccountsSelected),
     STATISTICS(Routes.STATISTICS, R.string.nav_statistics, AppIcons.NavStatistics, AppIcons.NavStatisticsSelected),
-    MORE(Routes.MORE, R.string.nav_more, AppIcons.NavMore, AppIcons.NavMoreSelected),
 }
 
 /**
  * A tab is selected on its own route and on any route nested under it, such as `accounts/{id}`.
- * `more/...` screens highlight the More tab through the same rule.
+ * `more/...` screens belong to no tab (More is a sheet, not a tab); see [tabFor].
  */
 fun isRouteUnder(route: String?, tabRoute: String): Boolean =
     route != null && (route == tabRoute || route.startsWith("$tabRoute/") || route.startsWith("$tabRoute?"))
+
+/** The tab to highlight for [route], or null (e.g. `more/...` screens). */
+fun tabFor(route: String?): TopLevelDestination? =
+    TopLevelDestination.entries.firstOrNull { isRouteUnder(route, it.route) }
