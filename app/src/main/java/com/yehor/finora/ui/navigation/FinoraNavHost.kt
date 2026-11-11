@@ -266,6 +266,8 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
                 onTransfer = { navController.navigate(Routes.transferNew(sourceAccountId = it)) },
+                onAddExpense = { navController.navigate(Routes.transactionNew(sourceAccountId = it)) },
+                onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME", sourceAccountId = it)) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onOpenStatistics = { navController.navigate(Routes.accountAnalytics(it)) },
                 onShowAllTransactions = { accountId ->

@@ -190,6 +190,19 @@
 
     <!-- Accounts -->
     <string name="accounts_title">Accounts</string>
+    <string name="accounts_total">Total · %1$s</string>
+    <plurals name="accounts_count">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
+    </plurals>
+    <string name="accounts_archived_row">Archived</string>
+    <plurals name="accounts_hidden_from_totals">
+        <item quantity="one">%1$d account · hidden from totals</item>
+        <item quantity="other">%1$d accounts · hidden from totals</item>
+    </plurals>
+    <string name="accounts_restore">Restore</string>
+    <string name="fab_account">Account</string>
+    <string name="account_detail_this_month">%1$s this month</string>
     <string name="accounts_add">Add account</string>
     <string name="accounts_add_transfer">Add transfer</string>
     <string name="accounts_empty_title">No accounts yet</string>

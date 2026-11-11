@@ -1,9 +1,8 @@
 package com.yehor.finora.ui.accounts
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -12,9 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.domain.money.Currency
@@ -25,35 +22,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-/** Not tappable and navigates nowhere (design section 5.1). Accounts-tab hero. */
+/** The small warning lines under the Accounts total: outdated rates and currencies left out of the total. */
 @Composable
-fun ValuationCard(state: ValuationCardState, modifier: Modifier = Modifier, accountCount: Int? = null) {
-    AccountsCard(modifier) {
-        Text(
-            stringResource(if (state.estimated) R.string.valuation_title_estimate else R.string.valuation_title_native),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(4.dp))
-        val total = state.total
-        if (total != null) {
-            Text(
-                total.format(),
-                style = MaterialTheme.typography.headlineSmall.copy(fontFeatureSettings = "tnum"),
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        } else {
-            Text(
-                stringResource(R.string.valuation_unavailable),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+fun ValuationNotes(state: ValuationCardState, modifier: Modifier = Modifier) {
+    Column(modifier) {
         if (state.outdated) {
             Row(
-                Modifier.padding(top = 8.dp),
+                Modifier.padding(top = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -71,14 +46,6 @@ fun ValuationCard(state: ValuationCardState, modifier: Modifier = Modifier, acco
             }
         }
         NotIncludedLine(state.excluded)
-        if (accountCount != null && accountCount > 0) {
-            Text(
-                pluralStringResource(R.plurals.account_list_active_count, accountCount, accountCount),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
     }
 }
 

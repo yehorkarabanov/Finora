@@ -31,6 +31,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.TextStyle
+import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.Balance
+import com.yehor.finora.domain.money.Currency
+import com.yehor.finora.domain.money.Money
+import com.yehor.finora.ui.analytics.signedMoney
+import com.yehor.finora.ui.common.ColorPalette
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
@@ -86,41 +99,6 @@ internal fun AccountSectionCard(
 }
 
 @Composable
-internal fun AccountsCard(
-    modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), content = content)
-    }
-}
-
-@Composable
-internal fun AccountsSectionHeader(
-    title: String,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
-) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 40.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f).semantics { heading() },
-        )
-        if (actionLabel != null && onAction != null) {
-            TextButton(onClick = onAction, contentPadding = PaddingValues(start = 12.dp, end = 4.dp)) {
-                Text(actionLabel)
-                Icon(AppIcons.Next, contentDescription = null, modifier = Modifier.size(IconSize.Small))
-            }
-        }
-    }
-}
-
-@Composable
 internal fun AccountLeadingIcon(icon: ImageVector) {
     Box(
         Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest),
@@ -160,46 +138,6 @@ internal fun AccountSmallPill(
         Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
             if (text != null) Text(text, style = MaterialTheme.typography.labelLarge)
             icon?.invoke()
-        }
-    }
-}
-
-@Composable
-internal fun AccountQuickAction(
-    label: String,
-    icon: ImageVector,
-    container: Color,
-    contentColor: Color,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(
-            Modifier.padding(vertical = 12.dp, horizontal = 4.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            val alpha = if (enabled) 1f else 0.38f
-            Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(container.copy(alpha = alpha)),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = contentColor.copy(alpha = alpha))
-            }
-            Text(
-                label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
     }
 }
@@ -285,6 +223,66 @@ internal fun AccountBottomCta(
     }
 }
 
+/** The account's own color, lifted for dark theme. */
+@Composable
+internal fun accountTint(account: Account): Color =
+    MaterialTheme.finance.accent(ColorPalette.resolve(account.color, ColorPalette.ACCOUNT_DEFAULT))
+
+/** A balance with the decimals dimmed and the currency symbol small; negative in the negative color. */
+@Composable
+internal fun AccountBalanceAmount(balance: Balance, style: TextStyle, modifier: Modifier = Modifier) {
+    when (balance) {
+        Balance.Overflow -> Text(
+            stringResource(R.string.accounts_balance_overflow),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.error,
+            modifier = modifier,
+        )
+        is Balance.Value -> {
+            val money = balance.money
+            val color = if (money.amountMinor < 0) MaterialTheme.finance.negative else MaterialTheme.colorScheme.onSurface
+            Row(modifier, verticalAlignment = Alignment.Bottom) {
+                AmountText(money.toPlainString(), style, color, animate = false)
+                Text(" ${money.currency.symbol}", style = style.copy(fontSize = style.fontSize * 0.6f), color = color, maxLines = 1)
+            }
+        }
+    }
+}
+
+/** "+₴3,240" in the income color, "−₴120" in the negative color, a muted dash for no change. */
+@Composable
+internal fun AccountChangeText(change: Long?, currency: Currency, modifier: Modifier = Modifier) {
+    val finance = MaterialTheme.finance
+    val (text, color) = when {
+        change == null || change == 0L -> "—" to MaterialTheme.colorScheme.onSurfaceVariant
+        change > 0 -> signedMoney(Money(change, currency)) to finance.income
+        else -> signedMoney(Money(change, currency)) to finance.negative
+    }
+    Text(text, style = MaterialTheme.typography.bodySmall, color = color, maxLines = 1, modifier = modifier)
+}
+
+/** Round icon button with its label underneath (account detail actions). */
+@Composable
+internal fun AccountRoundAction(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        RoundIconButton(icon, label, onClick, enabled = enabled)
+        Text(
+            label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.clearAndSetSemantics {},
+        )
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Previews
 // ---------------------------------------------------------------------------
@@ -333,20 +331,6 @@ private fun AccountEmptyPreviewContent(dark: Boolean) {
                 actionLabel = "Add account",
                 onAction = {},
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AccountQuickAction(
-                    "Add", AppIcons.Add,
-                    container = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    enabled = true, onClick = {}, modifier = Modifier.weight(1f),
-                )
-                AccountQuickAction(
-                    "Disabled", AppIcons.Account,
-                    container = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    enabled = false, onClick = {}, modifier = Modifier.weight(1f),
-                )
-            }
         }
     }
 }

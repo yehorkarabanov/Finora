@@ -189,6 +189,23 @@
 
     <!-- Accounts -->
     <string name="accounts_title">Счета</string>
+    <string name="accounts_total">Всего · %1$s</string>
+    <plurals name="accounts_count">
+        <item quantity="one">%1$d счёт</item>
+        <item quantity="few">%1$d счёта</item>
+        <item quantity="many">%1$d счетов</item>
+        <item quantity="other">%1$d счёта</item>
+    </plurals>
+    <string name="accounts_archived_row">Архив</string>
+    <plurals name="accounts_hidden_from_totals">
+        <item quantity="one">%1$d счёт · не входит в итог</item>
+        <item quantity="few">%1$d счёта · не входят в итог</item>
+        <item quantity="many">%1$d счетов · не входят в итог</item>
+        <item quantity="other">%1$d счёта · не входят в итог</item>
+    </plurals>
+    <string name="accounts_restore">Восстановить</string>
+    <string name="fab_account">Счёт</string>
+    <string name="account_detail_this_month">%1$s за месяц</string>
     <string name="accounts_add">Добавить счёт</string>
     <string name="accounts_add_transfer">Добавить перевод</string>
     <string name="accounts_empty_title">Счетов пока нет</string>

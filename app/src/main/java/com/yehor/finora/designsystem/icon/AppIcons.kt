@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Receipt as FilledReceipt
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AddCircleOutline
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material.icons.outlined.ArrowUpward
@@ -95,6 +96,7 @@ object AppIcons {
     val Calendar: ImageVector get() = Icons.Outlined.CalendarMonth
     val Time: ImageVector get() = Icons.Outlined.Schedule
     val Account: ImageVector get() = Icons.Outlined.AccountBalanceWallet
+    val Archive: ImageVector get() = Icons.Outlined.Archive
     val Category: ImageVector get() = Icons.Outlined.Category
     val Tag: ImageVector get() = Icons.Outlined.Sell
     val Merchant: ImageVector get() = Icons.Outlined.Storefront
