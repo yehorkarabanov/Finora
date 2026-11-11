@@ -1,0 +1,104 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;padding:18px 18px 0;box-shadow:0 0 0 1px rgba(255,255,255,.08);overflow:hidden}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#00e599}.red{color:#ff7a6b}
+.pill{border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;background:rgba(0,229,153,.1)}
+.card{background:#1b1c1d;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:16px 0 14px;margin-top:14px;overflow:hidden;position:relative}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:13px;font-weight:600}
+.seg span{flex:1;text-align:center;padding:7px 0;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center}
+.navA{margin:16px 4px 12px;background:rgba(30,32,36,.92);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;justify-content:space-around;padding:8px}
+.navA span{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.tip{position:absolute;transform:translate(-50%,0);background:#292a2b;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:5px 9px;font-size:11px;white-space:nowrap}
+.wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.lab{text-align:center;font-weight:700;margin-bottom:8px}
+.zl{position:absolute;right:12px;font-size:10px;color:#8b919c}
+</style>
+
+<h2>Net wave with a zero line</h2>
+<p class="subtitle">One curve for net (income minus spending). Above zero it's mint, below zero it turns red. Days shows the month as a running total, Months shows each month's net.</p>
+
+<div class="wrap">
+
+<div class="option" data-choice="days-running" onclick="toggleSelect(this)" style="display:block;padding:10px">
+<div class="lab">Days · running net through the month</div>
+<div class="ph">
+  <div class="row"><span class="g" style="font-size:20px;font-weight:700;letter-spacing:.5px">FINORA</span>
+    <div style="display:flex;gap:8px"><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span></div></div>
+  <div class="seg" style="margin-top:16px"><span class="on">Days</span><span>Months</span></div>
+  <div style="text-align:center;margin-top:16px">
+    <div class="muted" style="font-size:11px;letter-spacing:1.5px;font-weight:700">NET IN NOVEMBER</div>
+    <div class="g mint" style="font-size:40px;font-weight:700;margin-top:4px">+$1,240<span style="opacity:.6;font-size:26px">.00</span></div>
+    <span class="pill"><span class="mint">In $2,660</span> <span class="muted">·</span> <span class="red">Out $1,420</span></span>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 304 140" width="100%" height="140" style="display:block">
+      <defs>
+        <linearGradient id="up" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e599" stop-opacity=".45"/><stop offset="1" stop-color="#00e599" stop-opacity="0"/></linearGradient>
+        <linearGradient id="dn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff7a6b" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a6b" stop-opacity="0"/></linearGradient>
+        <clipPath id="above"><rect x="0" y="0" width="304" height="80"/></clipPath>
+        <clipPath id="below"><rect x="0" y="80" width="304" height="60"/></clipPath>
+        <filter id="gl"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <!-- area between curve and zero line -->
+      <path clip-path="url(#above)" d="M0 80 C20 84 35 100 60 108 S95 118 115 100 S130 30 150 28 S185 40 205 50 S235 72 255 60 S285 38 304 34 L304 80 L0 80Z" fill="url(#up)"/>
+      <path clip-path="url(#below)" d="M0 80 C20 84 35 100 60 108 S95 118 115 100 S130 30 150 28 S185 40 205 50 S235 72 255 60 S285 38 304 34 L304 80 L0 80Z" fill="url(#dn)"/>
+      <!-- stroke, coloured per side -->
+      <path clip-path="url(#above)" d="M0 80 C20 84 35 100 60 108 S95 118 115 100 S130 30 150 28 S185 40 205 50 S235 72 255 60 S285 38 304 34" fill="none" stroke="#00e599" stroke-width="3" stroke-linecap="round" filter="url(#gl)"/>
+      <path clip-path="url(#below)" d="M0 80 C20 84 35 100 60 108 S95 118 115 100 S130 30 150 28 S185 40 205 50 S235 72 255 60 S285 38 304 34" fill="none" stroke="#ff7a6b" stroke-width="3" stroke-linecap="round" filter="url(#gl)"/>
+      <line x1="0" y1="80" x2="304" y2="80" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 5"/>
+      <circle cx="138" cy="48" r="9" fill="#00e599" opacity=".22"/><circle cx="138" cy="48" r="5" fill="#fff" stroke="#00e599" stroke-width="2.5"/>
+    </svg>
+    <span class="zl" style="top:84px">0</span>
+    <div class="tip g" style="left:45%;top:8px">Nov 12 · Salary <span class="mint">+$2,600</span></div>
+    <div class="row muted" style="font-size:11px;padding:0 16px"><span>Nov 1</span><span>Nov 10</span><span>Nov 20</span><span>Nov 30</span></div>
+  </div>
+  <div class="navA">
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Home</span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></span>
+  </div>
+</div></div>
+
+<div class="option" data-choice="months-net" onclick="toggleSelect(this)" style="display:block;padding:10px">
+<div class="lab">Months · each month's net</div>
+<div class="ph">
+  <div class="row"><span class="g" style="font-size:20px;font-weight:700;letter-spacing:.5px">FINORA</span>
+    <div style="display:flex;gap:8px"><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span></div></div>
+  <div class="seg" style="margin-top:16px"><span>Days</span><span class="on">Months</span></div>
+  <div style="text-align:center;margin-top:16px">
+    <div class="muted" style="font-size:11px;letter-spacing:1.5px;font-weight:700">NET IN 2026</div>
+    <div class="g mint" style="font-size:40px;font-weight:700;margin-top:4px">+$9,360</div>
+    <span class="pill"><span class="mint">8 months up</span> <span class="muted">·</span> <span class="red">3 down</span></span>
+  </div>
+  <div class="card">
+    <svg viewBox="0 0 304 140" width="100%" height="140" style="display:block">
+      <defs>
+        <clipPath id="a2"><rect x="0" y="0" width="304" height="78"/></clipPath>
+        <clipPath id="b2"><rect x="0" y="78" width="304" height="62"/></clipPath>
+      </defs>
+      <path clip-path="url(#a2)" d="M0 50 C20 40 35 35 55 45 S85 100 105 102 S130 40 150 35 S175 30 195 50 S220 110 240 96 S275 30 304 40 L304 78 L0 78Z" fill="url(#up)"/>
+      <path clip-path="url(#b2)" d="M0 50 C20 40 35 35 55 45 S85 100 105 102 S130 40 150 35 S175 30 195 50 S220 110 240 96 S275 30 304 40 L304 78 L0 78Z" fill="url(#dn)"/>
+      <path clip-path="url(#a2)" d="M0 50 C20 40 35 35 55 45 S85 100 105 102 S130 40 150 35 S175 30 195 50 S220 110 240 96 S275 30 304 40" fill="none" stroke="#00e599" stroke-width="3" filter="url(#gl)"/>
+      <path clip-path="url(#b2)" d="M0 50 C20 40 35 35 55 45 S85 100 105 102 S130 40 150 35 S175 30 195 50 S220 110 240 96 S275 30 304 40" fill="none" stroke="#ff7a6b" stroke-width="3" filter="url(#gl)"/>
+      <line x1="0" y1="78" x2="304" y2="78" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 5"/>
+      <circle cx="105" cy="102" r="9" fill="#ff7a6b" opacity=".22"/><circle cx="105" cy="102" r="5" fill="#fff" stroke="#ff7a6b" stroke-width="2.5"/>
+    </svg>
+    <span class="zl" style="top:82px">0</span>
+    <div class="tip g" style="left:35%;top:122px;transform:translate(-50%,-100%)">April · <span class="red">−$640</span></div>
+    <div class="row muted" style="font-size:11px;padding:0 16px"><span>Jan</span><span>Apr</span><span>Aug</span><span>Dec</span></div>
+  </div>
+  <div class="navA">
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Home</span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></span>
+  </div>
+</div></div>
+
+</div>

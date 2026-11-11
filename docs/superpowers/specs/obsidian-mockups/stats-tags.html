@@ -1,0 +1,135 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;height:780px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:16px 18px 100px;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}.red{color:#ff7a6b}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.round{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center;color:#c6c6cb}
+.tabs{display:flex;gap:18px;margin-top:14px;font-size:15px;font-weight:700;color:#6c727f;border-bottom:1px solid rgba(255,255,255,.06)}
+.tabs span{padding-bottom:10px;position:relative}.tabs span.on{color:#fff}
+.tabs span.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px;background:#00e599}
+/* period block, fixed spacing */
+.period{margin-top:14px}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:13px;font-weight:600}
+.seg span{flex:1;text-align:center;padding:8px 0;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+.stepper{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.stepper .a{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#8b919c;background:#1b1c1d}
+.stepper .m{font-weight:700;font-size:15px;display:flex;gap:6px;align-items:center;padding:6px 12px;border-radius:999px}
+.tagrow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-top:14px}.tagrow::-webkit-scrollbar{display:none}
+.t{flex-shrink:0;border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;background:#1b1c1d;border:1px solid rgba(255,255,255,.07);color:#c6c6cb}
+.t.on{background:rgba(0,229,153,.14);color:#6dffba;border-color:rgba(0,229,153,.3)}
+.mode{display:flex;align-items:center;gap:8px;font-size:12px;color:#8b919c;margin-top:10px}
+.mini{display:flex;background:#1b1c1d;border-radius:999px;padding:3px}.mini span{padding:4px 10px;border-radius:999px;font-weight:700}.mini span.on{background:#343536;color:#fff}
+.figs{display:grid;grid-template-columns:1fr 1fr 1fr;background:#1b1c1d;border-radius:22px;padding:14px 4px;margin-top:14px;text-align:center}
+.figs small{display:block;font-size:10px;letter-spacing:1px;font-weight:700;color:#8b919c;margin-bottom:2px}
+.figs b{font-size:16px}.figs div+div{border-left:1px solid rgba(255,255,255,.06)}
+.card{background:#1b1c1d;border-radius:24px;padding:14px 0 12px;margin-top:12px;border:1px solid rgba(255,255,255,.05)}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:22px}
+.split{display:flex;gap:3px;height:10px;margin-top:12px}.split i{border-radius:99px}
+.grp{background:#1b1c1d;border-radius:22px;padding:0 14px;margin-top:10px;border:1px solid rgba(255,255,255,.05)}
+.c{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.c:last-child{border:none}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pct{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;display:inline-block;margin-top:3px}
+.navA{position:absolute;left:18px;right:18px;bottom:14px;height:56px;box-sizing:border-box;background:rgba(30,32,36,.95);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;align-items:center;justify-content:space-around;padding:0 7px}
+.navA span{display:flex;align-items:center;gap:6px;height:42px;padding:0 11px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.fade{position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(transparent,#121314 60%);pointer-events:none}
+.notes{max-width:300px;font-size:14px;line-height:1.5}
+.wrap{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.empty{text-align:center;padding:40px 20px;color:#8b919c}
+.lab{text-align:center;font-weight:700;margin-bottom:8px}
+</style>
+
+<h2>Statistics · Tags tab, plus a cleaner period block</h2>
+<p class="subtitle">Left: nothing picked yet. Right: two tags picked (scroll inside it). The period controls are now two even rows on every tab.</p>
+
+<div class="wrap">
+
+<div>
+<div class="lab">No tag picked yet</div>
+<div class="ph">
+ <div class="scroll">
+  <div class="row"><b class="g" style="font-size:24px">Statistics</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></span></div>
+  <div class="tabs"><span>Expenses</span><span>Income</span><span class="on">Tags</span><span>Accounts</span></div>
+  <div class="period">
+    <div class="seg"><span>Week</span><span class="on">Month</span><span>Year</span></div>
+    <div class="stepper"><span class="a">‹</span><span class="m g">November 2026 <span class="muted">▾</span></span><span class="a" style="opacity:.35">›</span></div>
+  </div>
+  <div class="tagrow"><span class="t"># trip</span><span class="t"># work</span><span class="t"># gifts</span><span class="t"># renovation</span><span class="t"># kids</span></div>
+  <div class="empty">
+    <div style="width:64px;height:64px;border-radius:50%;background:#1b1c1d;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#6dffba"><svg class="ico" viewBox="0 0 24 24" style="width:28px;height:28px"><path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/></svg></div>
+    <b style="color:#e3e2e3;font-size:16px">Pick one or more tags</b>
+    <p style="font-size:13px;margin-top:6px">See what you spent and earned on a trip, a project, or anything else you've tagged.</p>
+  </div>
+ </div>
+  <div class="navA"><span><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span><span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span><span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>Stats</span></div>
+</div></div>
+
+<div>
+<div class="lab">#trip + #work picked</div>
+<div class="ph">
+ <div class="scroll">
+  <div class="row"><b class="g" style="font-size:24px">Statistics</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></span></div>
+  <div class="tabs"><span>Expenses</span><span>Income</span><span class="on">Tags</span><span>Accounts</span></div>
+  <div class="period">
+    <div class="seg"><span>Week</span><span>Month</span><span class="on">Year</span></div>
+    <div class="stepper"><span class="a">‹</span><span class="m g">2026 <span class="muted">▾</span></span><span class="a" style="opacity:.35">›</span></div>
+  </div>
+  <div class="tagrow"><span class="t on"># trip ✕</span><span class="t on"># work ✕</span><span class="t"># gifts</span><span class="t"># renovation</span><span class="t"># kids</span></div>
+  <div class="mode">Match <span class="mini"><span class="on">Any tag</span><span>All tags</span></span></div>
+
+  <div class="figs">
+    <div><small>IN</small><b class="g mint">$900</b></div>
+    <div><small>OUT</small><b class="g">$2,310</b></div>
+    <div><small>NET</small><b class="g red">−$1,410</b></div>
+  </div>
+  <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">48 transactions · ↗ 12% more than 2025</div>
+
+  <div class="sec"><b class="g" style="font-size:17px">Over time</b>
+    <span class="mini" style="font-size:11px"><span class="on">Spent</span><span>Earned</span><span>Moved</span></span></div>
+  <div class="card">
+    <svg viewBox="0 0 304 100" width="100%" height="100" style="display:block">
+      <defs><linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e599" stop-opacity=".4"/><stop offset="1" stop-color="#00e599" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 85 C20 84 40 82 60 80 S100 30 120 34 S150 78 175 80 S220 50 245 20 S285 70 304 72 L304 100 L0 100Z" fill="url(#sf)"/>
+      <path d="M0 85 C20 84 40 82 60 80 S100 30 120 34 S150 78 175 80 S220 50 245 20 S285 70 304 72" fill="none" stroke="#00e599" stroke-width="3"/>
+    </svg>
+    <div class="row muted" style="font-size:11px;padding:0 16px"><span>Jan</span><span>Jun</span><span>Dec</span></div>
+  </div>
+
+  <div class="sec"><b class="g" style="font-size:17px">Categories</b><span class="muted" style="font-size:12px">See all</span></div>
+  <div class="split"><i style="flex:45;background:#78b4ff"></i><i style="flex:30;background:#ff9f6e"></i><i style="flex:25;background:#c3c9d8"></i></div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:rgba(120,180,255,.14);color:#78b4ff"><svg class="ico" viewBox="0 0 24 24"><path d="M3 15 21 9M6 14l-2-5 3-1 3 4M14 11l2-6 3-1-1 7"/></svg></span><div style="flex:1"><b>Flights</b><div class="muted" style="font-size:12px">4 transactions</div></div><div style="text-align:right"><b class="g">$1,040</b><br><span class="pct" style="background:rgba(120,180,255,.14);color:#78b4ff">45%</span></div></div>
+    <div class="c"><span class="av" style="background:rgba(255,159,110,.15);color:#ff9f6e"><svg class="ico" viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg></span><div style="flex:1"><b>Restaurants</b><div class="muted" style="font-size:12px">19 transactions</div></div><div style="text-align:right"><b class="g">$693</b><br><span class="pct" style="background:rgba(255,159,110,.15);color:#ff9f6e">30%</span></div></div>
+  </div>
+
+  <div class="sec"><b class="g" style="font-size:17px">By account</b></div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:rgba(196,160,255,.14);color:#c4a0ff;border-radius:12px"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M12 10v8M3 20h18"/></svg></span><div style="flex:1"><b>Revolut</b></div><b class="g">$1,610</b></div>
+    <div class="c"><span class="av" style="background:rgba(255,160,90,.14);color:#ffa05a;border-radius:12px"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span><div style="flex:1"><b>Wallet</b></div><b class="g">$700</b></div>
+  </div>
+
+  <div class="sec"><b class="g" style="font-size:17px">Recent</b><span class="mint" style="font-size:12px;font-weight:600">All 48 ›</span></div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:#292a2b"><svg class="ico" viewBox="0 0 24 24"><path d="M3 15 21 9"/></svg></span><div style="flex:1"><b>Ryanair</b><div class="muted" style="font-size:12px">Flights · #trip</div></div><b class="g">−$212</b></div>
+  </div>
+ </div>
+  <div class="fade"></div>
+  <div class="navA"><span><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span><span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span><span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>Stats</span></div>
+</div></div>
+
+<div class="notes">
+  <h3>Period block, fixed</h3>
+  <p>Week / Month / Year now spans the full width. Below it is a separate row with ‹ › arrows and the period name in the middle. Tapping the name opens the From/To wheels. The › arrow is greyed out when the next period hasn't happened yet. Every tab uses this same block.</p>
+  <h3>Tags tab</h3>
+  <ul>
+    <li>Your tags sit in one row you can scroll sideways. Tap to pick them; picked tags turn mint with an ✕.</li>
+    <li>With two or more tags, a small "Any tag / All tags" switch appears.</li>
+    <li>Then come In / Out / Net, the transaction count and the comparison, a wave over time (switch between Spent / Earned / Moved), categories, by account, and recent transactions.</li>
+    <li>"All 48 ›" opens Transactions with these tags already filtered, as it does today.</li>
+  </ul>
+</div>
+</div>

@@ -2,7 +2,7 @@
 
 Date: 2026-11-11 · Branch: `denys/feat/ui-refurbished`
 Visual source: `docs/stitch_finora_personal_finance_app/dd_*` (`dd_home`, `dd_analytics`, `dd_add_money`, `dd_card_editor`) and their `DESIGN.md` ("Obsidian Wealth").
-Mockups agreed during brainstorming: `.superpowers/brainstorm/935-1794350235/content/*.html` (open in a browser; file names are cited per section below).
+Mockups agreed during brainstorming: `docs/superpowers/specs/obsidian-mockups/*.html` (open in a browser; file names are cited per section below; see that folder's README for where a mockup is out of date and the spec wins).
 
 ## 1. Intent
 
@@ -56,9 +56,9 @@ Rewrite `docs/ui-design-system.md` to describe this system (it currently describ
 
 | Component | Spec | Mockup |
 |---|---|---|
-| **Floating nav bar** | Detached pill (56dp tall, 18dp side margins, 14dp from bottom, translucent `rgba(30,32,36,.95)` + blur where supported). 4 tabs: Home, Transactions, Accounts, Statistics. Inactive = icon only; active = mint pill with icon + label. Content scrolls under it with a bottom fade. | `home-v2.html` (A), `footer-plus.html` |
+| **Floating nav bar** | Detached pill (56dp tall, 18dp side margins, 14dp from bottom, translucent `rgba(30,32,36,.95)` + blur where supported). 4 tabs: Home, Transactions, Accounts, Statistics. Inactive = icon only; active = mint pill with icon + label. Content scrolls under it with a bottom fade. | `fab-above.html` (bar at the bottom) |
 | **Add FAB** | Floats **above** the nav bar, right‑aligned. At list top it's an extended pill "+ Add"; scrolling down collapses it to a 52dp circle; a fast downward fling hides it, scrolling up brings it back. Tap: icon rotates to ✕, scrim dims, a speed‑dial fans out (Expense / Income / Transfer) with staggered spring; each opens the editor preset to that type. Shown on **Transactions** and **Accounts** (on Accounts the FAB adds an *account*, no speed‑dial). Not on Home (Home has quick actions) or Statistics. | `fab-above.html` |
-| **Top bar** | Large screen title in Space Grotesk at left; round 38dp icon buttons at right. Home: "FINORA" wordmark + **⋯** (opens More). No search on Home. | `home-v2.html` |
+| **Top bar** | Large screen title in Space Grotesk at left; round 38dp icon buttons at right. Home: "FINORA" wordmark + **⋯** (opens More). No search on Home. | `home-scroll.html` |
 | **Segmented control** | Pill track `surfaceContainerLow`, selected segment `surfaceContainerHighest` + white text. | everywhere |
 | **Grouped list card** | One rounded card; rows = round tinted icon, title + subtitle, right‑aligned amount (+ optional % badge/sub‑line). | `transactions.html`, `accounts-list-v5.html` |
 | **Bottom sheet** | 28dp top radius, grab handle, scrim; content in grouped cards; primary CTA full‑width mint pill at bottom. | `add-tx-sheet-v2.html` |

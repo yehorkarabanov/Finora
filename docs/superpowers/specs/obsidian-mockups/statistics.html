@@ -1,0 +1,106 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;height:760px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden;margin:0 auto}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:16px 18px 100px;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}.red{color:#ff7a6b}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.round{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center;color:#c6c6cb}
+.tabs{display:flex;gap:18px;margin-top:14px;font-size:15px;font-weight:700;color:#6c727f;border-bottom:1px solid rgba(255,255,255,.06)}
+.tabs span{padding-bottom:10px;position:relative}.tabs span.on{color:#fff}
+.tabs span.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;border-radius:3px;background:#00e599}
+.ctl{display:flex;gap:8px;margin-top:14px}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:12px;font-weight:600;flex:1}
+.seg span{flex:1;text-align:center;padding:7px 0;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+.chip{border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;background:#1b1c1d;border:1px solid rgba(255,255,255,.07);white-space:nowrap}
+.hero{text-align:center;margin-top:20px}
+.hero small{font-size:11px;letter-spacing:1.4px;font-weight:700;color:#8b919c}
+.cmp{display:inline-flex;gap:6px;align-items:center;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;background:rgba(0,229,153,.1);margin-top:8px}
+.card{background:#1b1c1d;border-radius:24px;padding:14px 0 12px;margin-top:16px;position:relative;border:1px solid rgba(255,255,255,.05)}
+.tip{position:absolute;transform:translate(-50%,0);background:#292a2b;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:5px 9px;font-size:11px;white-space:nowrap}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin-top:22px}
+.crumb{display:flex;gap:6px;align-items:center;font-size:12px;margin-top:8px;color:#8b919c}
+.crumb b{color:#6dffba;font-weight:600}
+.split{display:flex;gap:3px;height:10px;margin-top:12px}.split i{border-radius:99px}
+.grp{background:#1b1c1d;border-radius:22px;padding:0 14px;margin-top:12px;border:1px solid rgba(255,255,255,.05)}
+.c{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.c:last-child{border:none}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pct{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;display:inline-block;margin-top:3px}
+.navA{position:absolute;left:18px;right:18px;bottom:14px;height:56px;box-sizing:border-box;background:rgba(30,32,36,.95);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;align-items:center;justify-content:space-around;padding:0 7px}
+.navA span{display:flex;align-items:center;gap:6px;height:42px;padding:0 11px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.fade{position:absolute;left:0;right:0;bottom:0;height:110px;background:linear-gradient(transparent,#121314 60%);pointer-events:none}
+.notes{max-width:310px;font-size:14px;line-height:1.5}
+.wrap{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+</style>
+
+<h2>Statistics, in the style of dd_analytics</h2>
+<p class="subtitle">Same 4 tabs, period controls, comparison with the previous period and category drill-down as today. The list scrolls inside the phone.</p>
+
+<div class="wrap">
+<div class="ph">
+ <div class="scroll">
+  <div class="row"><b class="g" style="font-size:24px">Statistics</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></svg></span></div>
+  <div class="tabs"><span class="on">Expenses</span><span>Income</span><span>Tags</span><span>Accounts</span></div>
+  <div class="ctl"><div class="seg"><span>Week</span><span class="on">Month</span><span>Year</span></div><span class="chip">Nov 2026 ▾</span></div>
+
+  <div class="hero">
+    <small>SPENT IN NOVEMBER</small>
+    <div class="g" style="font-size:42px;font-weight:700;line-height:1.1;margin-top:4px">$1,420<span class="muted" style="font-size:26px">.50</span></div>
+    <span class="cmp mint">↘ 8% less than October</span>
+  </div>
+
+  <div class="card">
+    <div class="row" style="padding:0 16px"><b style="font-size:14px">Daily spending</b><span class="muted" style="font-size:12px">Avg <b class="g" style="color:#e3e2e3">$47</b> / day</span></div>
+    <svg viewBox="0 0 304 120" width="100%" height="120" style="display:block;margin-top:6px">
+      <defs><linearGradient id="sf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e599" stop-opacity=".4"/><stop offset="1" stop-color="#00e599" stop-opacity="0"/></linearGradient>
+      <filter id="gl"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+      <path d="M0 90 C25 88 40 70 60 74 S95 98 120 86 S150 22 175 26 S215 84 240 78 S280 60 304 64" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.5" stroke-dasharray="3 5"/>
+      <path d="M0 96 C20 92 35 60 60 64 S95 100 120 92 S150 30 172 24 S205 70 230 80 L230 120 L0 120Z" fill="url(#sf)"/>
+      <path d="M0 96 C20 92 35 60 60 64 S95 100 120 92 S150 30 172 24 S205 70 230 80" fill="none" stroke="#00e599" stroke-width="3" stroke-linecap="round" filter="url(#gl)"/>
+      <circle cx="172" cy="24" r="9" fill="#00e599" opacity=".22"/><circle cx="172" cy="24" r="5" fill="#fff" stroke="#00e599" stroke-width="2.5"/>
+    </svg>
+    <div class="tip g" style="left:56%;top:30px">Nov 18 · <b>$210</b></div>
+    <div class="row muted" style="font-size:11px;padding:0 16px"><span>Nov 1</span><span>Nov 15</span><span>Nov 30</span></div>
+    <div class="row" style="padding:10px 16px 0;font-size:11px"><span class="muted"><span style="display:inline-block;width:14px;border-top:2px solid #00e599;vertical-align:middle"></span> This month &nbsp; <span style="display:inline-block;width:14px;border-top:2px dashed #6c727f;vertical-align:middle"></span> October</span></div>
+  </div>
+
+  <div class="sec"><b class="g" style="font-size:19px">Categories</b><span class="muted" style="font-size:12px">12 total</span></div>
+  <div class="crumb">All <span>›</span> <b>Food &amp; Dining</b> <span style="margin-left:auto;font-weight:600">✕</span></div>
+  <div class="split"><i style="flex:33;background:#ff9f6e"></i><i style="flex:24;background:#00e599"></i><i style="flex:15;background:#c3c9d8"></i><i style="flex:6;background:#b18cff"></i><i style="flex:22;background:#343536"></i></div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:rgba(255,159,110,.15);color:#ff9f6e"><svg class="ico" viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg></span>
+      <div style="flex:1"><b style="font-size:15px">Restaurants</b><div class="muted" style="font-size:12px">22 transactions</div></div>
+      <div style="text-align:right"><b class="g">$470.00</b><br><span class="pct" style="background:rgba(255,159,110,.15);color:#ff9f6e">33%</span></div></div>
+    <div class="c"><span class="av" style="background:rgba(0,229,153,.14);color:#6dffba"><svg class="ico" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 11h-11z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg></span>
+      <div style="flex:1"><b style="font-size:15px">Groceries</b><div class="muted" style="font-size:12px">14 transactions</div></div>
+      <div style="text-align:right"><b class="g">$340.20</b><br><span class="pct" style="background:rgba(0,229,153,.12);color:#6dffba">24%</span></div></div>
+    <div class="c"><span class="av" style="background:rgba(195,201,216,.12);color:#c3c9d8"><svg class="ico" viewBox="0 0 24 24"><path d="M6 8h10v6a4 4 0 0 1-4 4h-2a4 4 0 0 1-4-4zM16 10h2a2 2 0 0 1 0 4h-2"/></svg></span>
+      <div style="flex:1"><b style="font-size:15px">Cafés</b><div class="muted" style="font-size:12px">31 transactions</div></div>
+      <div style="text-align:right"><b class="g">$213.00</b><br><span class="pct" style="background:rgba(195,201,216,.12);color:#c3c9d8">15%</span></div></div>
+  </div>
+ </div>
+  <div class="fade"></div>
+  <div class="navA">
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span>
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg>Stats</span>
+  </div>
+</div>
+
+<div class="notes">
+  <h3>What maps to what</h3>
+  <ul>
+    <li><b>Tabs</b> (Expenses / Income / Tags / Accounts) become simple text tabs with a mint underline.</li>
+    <li><b>Period:</b> Week / Month / Year, plus the month button that opens the From/To wheels.</li>
+    <li><b>Big total</b> with the comparison as a small line ("8% less than October").</li>
+    <li><b>Trend</b> uses the same wave as Home. The previous period is a faint dashed line behind it (the existing "compare" option). Tap a point to see the value, or open that day's transactions.</li>
+    <li><b>The donut becomes a colored split bar</b> like dd_analytics, above the category rows. Each row has a % badge in its category color.</li>
+    <li><b>Drill-down:</b> tapping a category opens its subcategories in place. A small trail shows where you are ("All › Food &amp; Dining"); tap ✕ or "All" to go back.</li>
+    <li>The ☰ at the top right holds the extra controls (account filter, compare on/off).</li>
+  </ul>
+</div>
+</div>

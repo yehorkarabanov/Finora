@@ -1,0 +1,132 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;padding:18px 18px 0;box-shadow:0 0 0 1px rgba(255,255,255,.08);overflow:hidden;margin:0 auto}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#00e599}.red{color:#ff7a6b}
+.pill{border-radius:999px;padding:6px 12px;font-size:12px;font-weight:600;background:rgba(0,229,153,.1)}
+.chip{border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;background:#1e2024;border:1px solid rgba(255,255,255,.08);cursor:pointer}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:13px;font-weight:600}
+.seg span{flex:1;text-align:center;padding:7px 14px;border-radius:999px;color:#8b919c;cursor:pointer}.seg span.on{background:#343536;color:#fff}
+.ico{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center}
+.navA{margin:16px 4px 12px;background:rgba(30,32,36,.92);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;justify-content:space-around;padding:8px}
+.navA span{display:flex;align-items:center;gap:6px;padding:10px 12px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.card{background:#1b1c1d;border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:14px 0 12px;margin-top:14px;position:relative}
+.scroller{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.scroller::-webkit-scrollbar{display:none}
+.strip{display:flex;width:300%}
+.pane{width:calc(100%/3);scroll-snap-align:center;flex-shrink:0}
+.pane .ax{display:flex;justify-content:space-between;font-size:11px;color:#8b919c;padding:0 16px}
+.dots{display:flex;gap:5px;justify-content:center;margin-top:10px}.dots i{width:6px;height:6px;border-radius:9px;background:#343536}.dots i.on{width:18px;background:#00e599}
+.sheet{width:300px;background:#1b1c1d;border:1px solid rgba(255,255,255,.08);border-radius:24px 24px 0 0;padding:16px;color:#e3e2e3;font-family:Manrope,sans-serif}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.mgrid span{text-align:center;padding:10px 0;border-radius:999px;font-size:13px;font-weight:600;background:#1f2021}
+.mgrid span.in{background:rgba(0,229,153,.14);color:#6dffba;border-radius:6px}
+.mgrid span.edge{background:#00e599;color:#003822}
+.wrap{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.notes{max-width:300px;font-size:14px;line-height:1.5}
+</style>
+
+<h2>Scrollable wave + range picker</h2>
+<p class="subtitle">Try it: swipe the chart sideways (or scroll with your trackpad) to go back a month. The chip above the chart opens the range picker on the right.</p>
+
+<div class="wrap">
+<div class="ph">
+  <div class="row"><span class="g" style="font-size:20px;font-weight:700;letter-spacing:.5px">FINORA</span>
+    <div style="display:flex;gap:8px"><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><span class="iconbtn"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span></div></div>
+
+  <div class="row" style="margin-top:16px;gap:8px">
+    <div class="seg"><span class="on">Days</span><span>Months</span></div>
+    <span class="chip" id="rangechip">November 2026 ▾</span>
+  </div>
+
+  <div style="text-align:center;margin-top:16px">
+    <div class="muted" style="font-size:11px;letter-spacing:1.5px;font-weight:700" id="lbl">NET IN NOVEMBER</div>
+    <div class="g mint" style="font-size:40px;font-weight:700;margin-top:4px" id="amt">+$1,240</div>
+    <span class="pill"><span class="mint">In $2,660</span> <span class="muted">·</span> <span class="red">Out $1,420</span></span>
+  </div>
+
+  <div class="card">
+    <div class="scroller" id="sc">
+      <div class="strip">
+        <div class="pane" data-l="SEPTEMBER" data-a="−$310" data-c="red">
+          <svg viewBox="0 0 304 130" width="100%" height="130"><defs>
+            <linearGradient id="up" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e599" stop-opacity=".45"/><stop offset="1" stop-color="#00e599" stop-opacity="0"/></linearGradient>
+            <linearGradient id="dn" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff7a6b" stop-opacity=".45"/><stop offset="1" stop-color="#ff7a6b" stop-opacity="0"/></linearGradient>
+            <clipPath id="ab"><rect width="304" height="74"/></clipPath><clipPath id="be"><rect y="74" width="304" height="60"/></clipPath></defs>
+            <g><path clip-path="url(#ab)" d="M0 74 C30 84 50 104 80 100 S120 40 150 46 S200 80 230 90 S280 92 304 86 L304 74 L0 74Z" fill="url(#up)"/>
+            <path clip-path="url(#be)" d="M0 74 C30 84 50 104 80 100 S120 40 150 46 S200 80 230 90 S280 92 304 86 L304 74 L0 74Z" fill="url(#dn)"/>
+            <path clip-path="url(#ab)" d="M0 74 C30 84 50 104 80 100 S120 40 150 46 S200 80 230 90 S280 92 304 86" fill="none" stroke="#00e599" stroke-width="3"/>
+            <path clip-path="url(#be)" d="M0 74 C30 84 50 104 80 100 S120 40 150 46 S200 80 230 90 S280 92 304 86" fill="none" stroke="#ff7a6b" stroke-width="3"/></g>
+            <line x1="0" y1="74" x2="304" y2="74" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 5"/></svg>
+          <div class="ax"><span>Sep 1</span><span>Sep 15</span><span>Sep 30</span></div>
+        </div>
+        <div class="pane" data-l="OCTOBER" data-a="+$860" data-c="mint">
+          <svg viewBox="0 0 304 130" width="100%" height="130">
+            <path clip-path="url(#ab)" d="M0 74 C25 80 45 96 70 94 S100 30 130 32 S175 50 200 58 S260 54 304 50 L304 74 L0 74Z" fill="url(#up)"/>
+            <path clip-path="url(#be)" d="M0 74 C25 80 45 96 70 94 S100 30 130 32 S175 50 200 58 S260 54 304 50 L304 74 L0 74Z" fill="url(#dn)"/>
+            <path clip-path="url(#ab)" d="M0 74 C25 80 45 96 70 94 S100 30 130 32 S175 50 200 58 S260 54 304 50" fill="none" stroke="#00e599" stroke-width="3"/>
+            <path clip-path="url(#be)" d="M0 74 C25 80 45 96 70 94 S100 30 130 32 S175 50 200 58 S260 54 304 50" fill="none" stroke="#ff7a6b" stroke-width="3"/>
+            <line x1="0" y1="74" x2="304" y2="74" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 5"/></svg>
+          <div class="ax"><span>Oct 1</span><span>Oct 15</span><span>Oct 31</span></div>
+        </div>
+        <div class="pane" data-l="NOVEMBER" data-a="+$1,240" data-c="mint">
+          <svg viewBox="0 0 304 130" width="100%" height="130">
+            <path clip-path="url(#ab)" d="M0 74 C20 78 35 94 60 100 S95 108 115 94 S130 26 150 24 S185 36 205 44 L205 74 L0 74Z" fill="url(#up)"/>
+            <path clip-path="url(#be)" d="M0 74 C20 78 35 94 60 100 S95 108 115 94 S130 26 150 24 S185 36 205 44 L205 74 L0 74Z" fill="url(#dn)"/>
+            <path clip-path="url(#ab)" d="M0 74 C20 78 35 94 60 100 S95 108 115 94 S130 26 150 24 S185 36 205 44" fill="none" stroke="#00e599" stroke-width="3"/>
+            <path clip-path="url(#be)" d="M0 74 C20 78 35 94 60 100 S95 108 115 94 S130 26 150 24 S185 36 205 44" fill="none" stroke="#ff7a6b" stroke-width="3"/>
+            <line x1="0" y1="74" x2="304" y2="74" stroke="rgba(255,255,255,.22)" stroke-dasharray="4 5"/>
+            <circle cx="205" cy="44" r="9" fill="#00e599" opacity=".22"/><circle cx="205" cy="44" r="5" fill="#fff" stroke="#00e599" stroke-width="2.5"/>
+            <text x="212" y="38" fill="#8b919c" font-size="10" font-family="Manrope">today</text></svg>
+          <div class="ax"><span>Nov 1</span><span>Nov 15</span><span>Nov 30</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="dots"><i></i><i></i><i class="on"></i></div>
+  </div>
+
+  <div class="navA">
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Home</span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></span>
+  </div>
+</div>
+
+<div>
+  <div class="sheet">
+    <div class="row"><b class="g" style="font-size:17px">Pick a range</b><span class="muted" style="font-size:12px">2026 ‹ ›</span></div>
+    <div class="seg" style="margin-top:12px"><span class="on">Month</span><span>Custom days</span></div>
+    <div class="mgrid">
+      <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+      <span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+      <span class="edge">Sep</span><span class="in">Oct</span><span class="edge">Nov</span><span class="muted" style="opacity:.4">Dec</span>
+    </div>
+    <p class="muted" style="font-size:12px;margin:12px 0">Tap one month, or tap two to make a range (Sep – Nov shown).</p>
+    <div style="background:#00e599;color:#003822;text-align:center;border-radius:999px;padding:13px;font-weight:700">Show Sep – Nov</div>
+  </div>
+  <div class="notes" style="margin-top:20px">
+    <ul>
+      <li><b>Swipe the chart</b> to step back one period at a time (a month in Days, a year in Months). The title and totals update as it snaps.</li>
+      <li><b>The chip</b> opens a sheet to jump straight to a month or pick a range of months. "Custom days" uses your existing calendar range picker.</li>
+      <li>The dots under the chart show where you are. You can't swipe past today.</li>
+    </ul>
+  </div>
+</div>
+</div>
+
+<script>
+const sc=document.getElementById('sc');
+requestAnimationFrame(()=>{sc.scrollLeft=sc.scrollWidth});
+sc.addEventListener('scroll',()=>{
+  const i=Math.round(sc.scrollLeft/(sc.scrollWidth/3));
+  const p=sc.querySelectorAll('.pane')[Math.min(2,i)];
+  document.getElementById('lbl').textContent='NET IN '+p.dataset.l;
+  const a=document.getElementById('amt');a.textContent=p.dataset.a;a.className='g '+p.dataset.c;
+  document.getElementById('rangechip').textContent=p.dataset.l.charAt(0)+p.dataset.l.slice(1).toLowerCase()+' 2026 ▾';
+  document.querySelectorAll('.dots i').forEach((d,k)=>d.className=k===Math.min(2,i)?'on':'');
+});
+</script>
