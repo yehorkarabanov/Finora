@@ -12,21 +12,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -37,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -52,6 +47,8 @@ import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.designsystem.component.input.SegmentedPill
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.designsystem.theme.finance
@@ -96,7 +93,6 @@ internal fun TransactionFilter.coveredCategoryIds(tree: CategoryTree): Set<Long>
  * Category filter in the design-system style: Expense / Income tabs, one connected group of rows with
  * category badges, expandable parents, and changes applied immediately (like the account sheet).
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryFilterSheet(
     filter: TransactionFilter,
@@ -105,7 +101,6 @@ fun CategoryFilterSheet(
     onDismiss: () -> Unit,
 ) {
     val tree = remember(categories) { CategoryTree(categories) }
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val hasIncome = tree.rootsOf(CategoryType.INCOME).isNotEmpty()
     val hasExpense = tree.rootsOf(CategoryType.EXPENSE).isNotEmpty()
     var tab by rememberSaveable {
@@ -123,12 +118,8 @@ fun CategoryFilterSheet(
     val covered = filter.coveredCategoryIds(tree)
     val selectedCount = filter.categoryIds.size + if (filter.includeUncategorized) 1 else 0
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-    ) {
-        Column(Modifier.navigationBarsPadding()) {
+    FinoraSheet(onDismiss) {
+        Column {
             FilterSheetHeader(
                 title = stringResource(R.string.filter_categories),
                 showClear = selectedCount > 0,
@@ -142,7 +133,6 @@ fun CategoryFilterSheet(
                         ),
                     )
                 },
-                onDone = onDismiss,
             )
 
             if (hasExpense && hasIncome) {
@@ -151,7 +141,7 @@ fun CategoryFilterSheet(
                     expenseCount = filter.categoryIds.count { tree.category(it)?.type == CategoryType.EXPENSE },
                     incomeCount = filter.categoryIds.count { tree.category(it)?.type == CategoryType.INCOME },
                     onSelect = { tab = it },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(vertical = 4.dp),
                 )
             }
             if (categories.size > FILTER_SEARCH_THRESHOLD) {
@@ -159,13 +149,14 @@ fun CategoryFilterSheet(
                     query,
                     { query = it },
                     stringResource(R.string.filter_categories_search),
-                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    Modifier.padding(vertical = 8.dp),
                 )
             }
 
             val rows = remember(tree, tab, query, expanded.toList()) { visibleRows(tree, tab, query, expanded) }
             LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                modifier = Modifier.weight(1f, fill = false),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 rows.forEachIndexed { index, row ->
@@ -206,6 +197,7 @@ fun CategoryFilterSheet(
                     }
                 }
             }
+            FilterSheetDone(onDismiss)
         }
     }
 }
@@ -237,23 +229,21 @@ private fun KindTabs(
     onSelect: (CategoryType) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    @Composable
-    fun option(type: CategoryType, label: Int, count: Int, color: Color): SegmentOption {
-        val text = stringResource(label)
-        return SegmentOption(if (count > 0) "$text · $count" else text, type == selected, color) { onSelect(type) }
-    }
-    SegmentedTrack(
-        listOf(
-            option(CategoryType.EXPENSE, R.string.filter_type_expenses, expenseCount, MaterialTheme.finance.expense),
-            option(CategoryType.INCOME, R.string.filter_type_income, incomeCount, MaterialTheme.finance.income),
+    fun label(text: String, count: Int) = if (count > 0) "$text · $count" else text
+    SegmentedPill(
+        options = listOf(
+            label(stringResource(R.string.filter_type_expenses), expenseCount),
+            label(stringResource(R.string.filter_type_income), incomeCount),
         ),
-        modifier,
+        selected = if (selected == CategoryType.EXPENSE) 0 else 1,
+        onSelect = { onSelect(if (it == 0) CategoryType.EXPENSE else CategoryType.INCOME) },
+        modifier = modifier,
     )
 }
 
 @Composable
 private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
-    Surface(shape = RoundedCornerShape(FilterRowRadius), color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+    Surface(shape = RoundedCornerShape(FilterRowRadius), color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier
                 .clickable(role = Role.Checkbox, onClick = onToggle)
@@ -262,7 +252,7 @@ private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
-                Modifier.size(36.dp).background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape),
+                Modifier.size(36.dp).background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
@@ -302,7 +292,7 @@ private fun CategoryRow(
     Surface(
         shape = shape,
         // Subcategories sit one tone up, so the hierarchy reads without lines.
-        color = if (isChild) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surfaceContainer,
+        color = if (isChild) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Row(

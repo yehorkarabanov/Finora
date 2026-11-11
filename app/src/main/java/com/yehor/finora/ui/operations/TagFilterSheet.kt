@@ -9,19 +9,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.input.SegmentedPill
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagMatchMode
@@ -51,7 +49,6 @@ internal fun orderTags(tags: List<Tag>, usage: Map<Long, Int>): List<Tag> =
  * Tag filter in the same style as the category sheet: a Match any / Match all track (from two tags on,
  * with a one-line explanation), search for long lists, and one connected group of tag rows.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagFilterSheet(
     filter: TransactionFilter,
@@ -60,37 +57,28 @@ fun TagFilterSheet(
     onFilterChange: (TransactionFilter) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var query by rememberSaveable { mutableStateOf("") }
     val ordered = remember(tags) { orderTags(tags, usage) }
     val needle = query.trim()
     val rows = if (needle.isEmpty()) ordered else ordered.filter { it.name.contains(needle, ignoreCase = true) }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.background,
-    ) {
-        Column(Modifier.navigationBarsPadding()) {
+    FinoraSheet(onDismiss) {
+        Column {
             FilterSheetHeader(
                 title = stringResource(R.string.filter_tags),
                 showClear = filter.tagIds.isNotEmpty(),
                 onClear = { onFilterChange(filter.copy(tagIds = emptySet(), tagMode = TagMatchMode.ANY)) },
-                onDone = onDismiss,
             )
 
             if (filter.tagIds.size >= 2) {
-                val color = MaterialTheme.colorScheme.primary
-                SegmentedTrack(
-                    listOf(
-                        SegmentOption(stringResource(R.string.filter_tag_mode_any_short), filter.tagMode == TagMatchMode.ANY, color) {
-                            onFilterChange(filter.copy(tagMode = TagMatchMode.ANY))
-                        },
-                        SegmentOption(stringResource(R.string.filter_tag_mode_all_short), filter.tagMode == TagMatchMode.ALL, color) {
-                            onFilterChange(filter.copy(tagMode = TagMatchMode.ALL))
-                        },
+                SegmentedPill(
+                    options = listOf(
+                        stringResource(R.string.filter_tag_mode_any_short),
+                        stringResource(R.string.filter_tag_mode_all_short),
                     ),
-                    Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    selected = if (filter.tagMode == TagMatchMode.ANY) 0 else 1,
+                    onSelect = { onFilterChange(filter.copy(tagMode = if (it == 0) TagMatchMode.ANY else TagMatchMode.ALL)) },
+                    modifier = Modifier.padding(vertical = 4.dp),
                 )
                 Text(
                     stringResource(
@@ -98,7 +86,7 @@ fun TagFilterSheet(
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 )
             }
             if (tags.size > FILTER_SEARCH_THRESHOLD) {
@@ -106,12 +94,13 @@ fun TagFilterSheet(
                     query,
                     { query = it },
                     stringResource(R.string.filter_tags_search),
-                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    Modifier.padding(vertical = 8.dp),
                 )
             }
 
             LazyColumn(
-                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                modifier = Modifier.weight(1f, fill = false),
+                contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 itemsIndexed(rows, key = { _, tag -> tag.id }) { index, tag ->
@@ -137,6 +126,7 @@ fun TagFilterSheet(
                     }
                 }
             }
+            FilterSheetDone(onDismiss)
         }
     }
 }
@@ -144,7 +134,7 @@ fun TagFilterSheet(
 @Composable
 private fun TagRow(tag: Tag, usage: Int, checked: Boolean, shape: Shape, onToggle: () -> Unit) {
     val tint = tag.color?.let { MaterialTheme.finance.accent(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant
-    Surface(shape = shape, color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.fillMaxWidth()) {
+    Surface(shape = shape, color = MaterialTheme.colorScheme.surfaceContainerHigh, modifier = Modifier.fillMaxWidth()) {
         Row(
             Modifier
                 .clickable(role = Role.Checkbox, onClick = onToggle)

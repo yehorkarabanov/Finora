@@ -1,8 +1,5 @@
 package com.yehor.finora.ui.common
 
-
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,44 +8,57 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.ui.draw.clip
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemColors
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconCatalog
+import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
-import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionItem
-import com.yehor.finora.designsystem.theme.AmountStyle
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
+/**
+ * One transaction: category-colored round icon, title, "Category · Account" with tag chips, amount and time.
+ * Transfers read "A → B" with the sent / received pair. Place it inside a `GroupedCard`; it has no background.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TransactionRow(
     item: TransactionItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    colors: ListItemColors = ListItemDefaults.colors(),
 ) {
     val isTransfer = item.type == OperationType.TRANSFER
     val uncategorized = stringResource(R.string.picker_uncategorized)
-
-    val title = item.description?.takeIf { it.isNotBlank() }
-        ?: item.category?.name
-        ?: if (isTransfer) stringResource(R.string.transaction_kind_transfer) else uncategorized
+    val transferLabel = stringResource(R.string.transaction_kind_transfer)
+    val timeFormat = remember { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT) }
+    val time = remember(item.occurredAt) {
+        Instant.ofEpochMilli(item.occurredAt).atZone(ZoneId.systemDefault()).format(timeFormat)
+    }
 
     // A transfer has two entries; the source is the negative one, whatever order they are stored in.
     val transferSides = if (isTransfer && item.entries.size == 2) {
@@ -57,45 +67,53 @@ fun TransactionRow(
     } else {
         null
     }
+    val pairDiffers = transferSides != null && !(
+        transferSides.first.money.currency.code == transferSides.second.money.currency.code &&
+            -transferSides.first.money.amountMinor == transferSides.second.money.amountMinor
+        )
 
-    // When there is no description the title already is the category, so don't repeat it.
-    val hasDescription = !item.description.isNullOrBlank()
+    val description = item.description?.takeIf { it.isNotBlank() }
+    val title = when {
+        transferSides != null -> "${transferSides.first.account.name} → ${transferSides.second.account.name}"
+        else -> description ?: item.category?.name ?: if (isTransfer) transferLabel else uncategorized
+    }
     val accountName = item.entries.firstOrNull()?.account?.name.orEmpty()
-    val subtitle = if (hasDescription) "${item.category?.name ?: uncategorized} · $accountName" else accountName
+    val subtitle = when {
+        transferSides != null -> listOfNotNull(
+            description ?: transferLabel,
+            if (pairDiffers) "${transferSides.first.money.format().removePrefix("-")} → ${transferSides.second.money.format()}" else null,
+        ).joinToString(" · ")
+        // When there is no description the title already is the category, so don't repeat it.
+        description != null -> "${item.category?.name ?: uncategorized} · $accountName"
+        else -> accountName
+    }
 
-    ListItem(
-        modifier = modifier.clickable(onClick = onClick),
-        colors = colors,
-        leadingContent = {
-            if (isTransfer) {
-                // Transfer uses primary / primaryContainer (design system §2).
-                Box(
-                    Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        AppIcons.Transfer,
-                        contentDescription = null,
-                        modifier = Modifier.size(IconSize.Default),
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-            } else {
-                val category = item.category
-                IconBadge(
-                    icon = category?.icon,
-                    color = category?.color,
-                    fallbackColor = ColorPalette.defaultFor(category?.type ?: CategoryType.EXPENSE),
-                    size = 40,
-                )
-            }
-        },
-        headlineContent = {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .semantics(mergeDescendants = true) {}
+            .padding(horizontal = 14.dp, vertical = 11.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        val category = item.category
+        when {
+            isTransfer -> NeutralBadge(AppIcons.Transfer)
+            category == null -> NeutralBadge(AppIcons.Help)
+            else -> RoundIcon(
+                icon = IconCatalog.get(category.icon),
+                tint = MaterialTheme.finance.accent(ColorPalette.resolve(category.color, ColorPalette.defaultFor(category.type))),
+                size = 40.dp,
+            )
+        }
+        Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     title,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
@@ -109,93 +127,36 @@ fun TransactionRow(
                     )
                 }
             }
-        },
-        supportingContent = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (transferSides != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            transferSides.first.account.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        // Not weighted: always measured, never hidden by long names.
-                        Icon(
-                            AppIcons.TransferDirection,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 4.dp).size(20.dp),
-                        )
-                        Text(
-                            transferSides.second.account.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                    }
-                } else if (subtitle.isNotBlank()) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                if (item.tags.isNotEmpty()) {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                        item.tags.take(2).forEach { tag ->
-                            Text(
-                                "#${tag.name}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
-                        if (item.tags.size > 2) {
-                            Text(
-                                "+${item.tags.size - 2}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
+            if (subtitle.isNotBlank()) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (item.tags.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    item.tags.take(2).forEach { tag -> TagChip("#${tag.name}") }
+                    if (item.tags.size > 2) TagChip("+${item.tags.size - 2}")
                 }
             }
-        },
-        trailingContent = {
-            Column(horizontalAlignment = Alignment.End) {
-                if (transferSides != null) {
-                    // A transfer is neither income nor expense: neutral colors, source first.
-                    val sent = transferSides.first.money
-                    val received = transferSides.second.money
-                    if (sent.currency.code == received.currency.code && -sent.amountMinor == received.amountMinor) {
-                        Text(
-                            received.format(),
-                            style = AmountStyle,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    } else {
-                        Text(
-                            "−" + sent.format().removePrefix("-"),
-                            style = AmountStyle,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                        Text(
-                            "+" + received.format(),
-                            style = AmountStyle,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    return@Column
-                }
+        }
+        Column(horizontalAlignment = Alignment.End) {
+            if (transferSides != null) {
+                // A transfer is neither income nor expense: neutral, the received side.
+                AmountText(
+                    transferSides.second.money.format(),
+                    AmountStyle,
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+                    animate = false,
+                )
+            } else {
                 item.entries.forEach { entry ->
                     val minor = entry.money.amountMinor
                     val amountText = if (minor > 0) "+${entry.money.format()}" else entry.money.format()
@@ -204,14 +165,32 @@ fun TransactionRow(
                         minor < 0 -> MaterialTheme.finance.expense
                         else -> MaterialTheme.colorScheme.onSurface
                     }
-                    Text(
-                        amountText,
-                        style = AmountStyle,
-                        fontWeight = FontWeight.SemiBold,
-                        color = color,
-                    )
+                    AmountText(amountText, AmountStyle, color, animate = false)
                 }
             }
-        },
+            Text(time, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun NeutralBadge(icon: ImageVector) {
+    Box(
+        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+    }
+}
+
+@Composable
+private fun TagChip(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, PillShape)
+            .padding(horizontal = 7.dp, vertical = 2.dp),
     )
 }

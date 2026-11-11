@@ -241,7 +241,9 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
             ),
         ) {
             TransactionsScreen(
-                onAdd = { navController.navigate(Routes.transactionNew()) },
+                onAddExpense = { navController.navigate(Routes.transactionNew()) },
+                onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME")) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
             )

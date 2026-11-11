@@ -9,24 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TriStateCheckbox
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.state.ToggleableState
@@ -34,6 +29,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.category.CategoryNode
@@ -95,7 +93,6 @@ private fun FilterSection.titleRes(): Int = when (this) {
     FilterSection.TEXT -> R.string.filter_title
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionFilterSheet(
     filter: TransactionFilter,
@@ -106,23 +103,24 @@ fun TransactionFilterSheet(
     onDismiss: () -> Unit,
     sections: Set<FilterSection> = FilterSection.entries.toSet(),
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var current by remember { mutableStateOf(filter) }
     val scopeCurrency = FilterScope.scopeCurrency(current, accounts)
     val today = remember { LocalDate.now() }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    FinoraSheet(onDismiss) {
         Column(
             Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             val single = sections.singleOrNull()
             Text(
                 stringResource(single?.titleRes() ?: R.string.filter_title),
                 style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
 
             if (FilterSection.TYPE in sections) {
@@ -130,21 +128,17 @@ fun TransactionFilterSheet(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(OperationType.EXPENSE, OperationType.INCOME, OperationType.TRANSFER).forEach { type ->
                         val selected = type in current.types
-                        FilterChip(
-                            selected = selected,
+                        FilterPill(
+                            label = stringResource(
+                                when (type) {
+                                    OperationType.INCOME -> R.string.transaction_kind_income
+                                    OperationType.TRANSFER -> R.string.transaction_kind_transfer
+                                    else -> R.string.transaction_kind_expense
+                                },
+                            ),
+                            active = selected,
                             onClick = {
                                 current = current.copy(types = if (selected) current.types - type else current.types + type)
-                            },
-                            label = {
-                                Text(
-                                    stringResource(
-                                        when (type) {
-                                            OperationType.INCOME -> R.string.transaction_kind_income
-                                            OperationType.TRANSFER -> R.string.transaction_kind_transfer
-                                            else -> R.string.transaction_kind_expense
-                                        },
-                                    ),
-                                )
                             },
                         )
                     }
@@ -156,14 +150,14 @@ fun TransactionFilterSheet(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     accounts.forEach { account ->
                         val selected = account.id in current.accountIds
-                        FilterChip(
-                            selected = selected,
+                        FilterPill(
+                            label = account.name,
+                            active = selected,
                             onClick = {
                                 current = current.copy(
                                     accountIds = if (selected) current.accountIds - account.id else current.accountIds + account.id,
                                 )
                             },
-                            label = { Text(account.name) },
                         )
                     }
                 }
@@ -280,20 +274,24 @@ fun TransactionFilterSheet(
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedButton(
-                    onClick = { current = current.resetSections(sections) },
-                    modifier = Modifier.weight(1f),
-                ) { Text(stringResource(R.string.filter_reset)) }
-                Button(
-                    onClick = {
-                        // An amount range only means something while one currency is in scope.
-                        onApply(if (scopeCurrency == null) current.copy(amount = null) else current)
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f),
-                ) { Text(stringResource(R.string.filter_apply)) }
+        }
+        Row(
+            Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = { current = current.resetSections(sections) }) {
+                Text(stringResource(R.string.filter_reset))
             }
+            PrimaryButton(
+                text = stringResource(R.string.filter_apply),
+                onClick = {
+                    // An amount range only means something while one currency is in scope.
+                    onApply(if (scopeCurrency == null) current.copy(amount = null) else current)
+                    onDismiss()
+                },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
