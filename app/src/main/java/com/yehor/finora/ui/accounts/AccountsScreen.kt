@@ -346,11 +346,16 @@ private fun AccountRow(
                 }
             }
         }
-        Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 78.dp)) {
-            AccountBalanceAmount(item.balance, MaterialTheme.typography.titleSmall.copy(fontFeatureSettings = "tnum"), dim)
-            if (onRestore != null) {
+        val balanceStyle = MaterialTheme.typography.titleSmall.copy(fontFeatureSettings = "tnum")
+        if (onRestore != null) {
+            // Beside the balance, so an archived row is no taller than an active one.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                AccountBalanceAmount(item.balance, balanceStyle, dim)
                 RestoreChip(onClick = { onRestore(a.id) })
-            } else {
+            }
+        } else {
+            Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 78.dp)) {
+                AccountBalanceAmount(item.balance, balanceStyle)
                 AccountChangeText(trend?.monthChange, a.currency)
             }
         }
