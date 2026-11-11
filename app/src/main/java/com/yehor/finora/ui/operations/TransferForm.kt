@@ -7,7 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -398,7 +398,7 @@ internal fun TransferEditor(
 
     pickSide?.let { sideName ->
         val side = AccountSide.valueOf(sideName)
-        ModalBottomSheet(onDismissRequest = { pickSide = null }) {
+        FinoraSheet(onDismiss = { pickSide = null }) {
             AccountPickerContent(
                 accounts = if (side == AccountSide.SOURCE) state.sourceChoices else state.destChoices,
                 selectedAccountId = if (side == AccountSide.SOURCE) state.sourceAccountId else state.destAccountId,
@@ -412,7 +412,7 @@ internal fun TransferEditor(
     }
 
     if (pickCategory) {
-        ModalBottomSheet(onDismissRequest = { pickCategory = false }) {
+        FinoraSheet(onDismiss = { pickCategory = false }) {
             CategoryTreePickerContent(
                 tree = tree,
                 type = CategoryType.TRANSFER,
@@ -423,7 +423,7 @@ internal fun TransferEditor(
                     actions.onCategoryChange(it)
                     pickCategory = false
                 },
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
             )
         }
     }

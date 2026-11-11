@@ -8,6 +8,7 @@ import com.yehor.finora.designsystem.icon.IconKeys
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,14 +27,10 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +52,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.ui.operations.FilterSearchField
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.SectionHeader
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.hairline
 import com.yehor.finora.designsystem.theme.finance
 
 /** A round colored badge with an icon, used for accounts and categories. */
@@ -91,9 +92,8 @@ private fun groupLabel(id: String): Int = when (id) {
 /**
  * Icon field for the account and category forms: a compact row showing the current icon that opens
  * a searchable, grouped sheet. [selected] may be null or unknown; the row shows the default icon
- * and nothing is highlighted in the sheet.
+ * and nothing is highlighted in the sheet. Place it inside a [GroupedCard].
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IconPicker(
     groups: List<IconGroup>,
@@ -106,10 +106,7 @@ fun IconPicker(
     var open by rememberSaveable { mutableStateOf(false) }
     IconPickerRow(selected, color, fallbackColor, onClick = { open = true }, modifier = modifier)
     if (open) {
-        ModalBottomSheet(
-            onDismissRequest = { open = false },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        ) {
+        FinoraSheet(onDismiss = { open = false }) {
             IconPickerSheetContent(
                 groups = groups,
                 selected = selected,
@@ -122,7 +119,7 @@ fun IconPicker(
     }
 }
 
-/** The form row: 44dp badge in the selected color, the "Icon" label with the icon's name, a chevron. */
+/** The form row: badge in the selected color, the "Icon" label with the icon's name, a chevron. */
 @Composable
 internal fun IconPickerRow(
     selected: String?,
@@ -132,27 +129,25 @@ internal fun IconPickerRow(
     modifier: Modifier = Modifier,
 ) {
     val clickLabel = stringResource(R.string.picker_icon_choose)
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = clickLabel, onClick = onClick),
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button, onClickLabel = clickLabel, onClick = onClick)
+            .heightIn(min = 48.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Row(
-            Modifier.heightIn(min = 44.dp).padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            IconBadge(selected, color, fallbackColor, size = 44)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    stringResource(R.string.picker_icon),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(stringResource(IconCatalog.label(selected)), style = MaterialTheme.typography.bodyLarge)
-            }
-            Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        IconBadge(selected, color, fallbackColor, size = 40)
+        Column(Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.picker_icon),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(stringResource(IconCatalog.label(selected)), style = MaterialTheme.typography.bodyLarge)
         }
+        Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -191,7 +186,7 @@ internal fun IconPickerSheetContent(
             value = query,
             onValueChange = { query = it },
             placeholder = stringResource(R.string.picker_icon_search),
-            modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
+            modifier = Modifier.padding(bottom = 8.dp),
         )
         if (visible.isEmpty()) {
             Text(
@@ -206,13 +201,12 @@ internal fun IconPickerSheetContent(
             modifier = Modifier.weight(1f, fill = false),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
         ) {
             visible.forEach { group ->
                 item(key = "header-${group.id}", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
+                    SectionHeader(
                         stringResource(groupLabel(group.id)),
-                        style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.padding(top = 8.dp).semantics { heading() },
                     )
                 }
@@ -231,7 +225,7 @@ private fun IconOption(key: String, label: String, isSelected: Boolean, tint: Co
         Surface(
             shape = CircleShape,
             color = if (isSelected) tint.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceContainerHigh,
-            border = if (isSelected) BorderStroke(2.dp, tint) else null,
+            border = if (isSelected) BorderStroke(2.dp, tint) else hairline(MaterialTheme.finance.isDark),
             modifier = Modifier
                 .size(48.dp)
                 .semantics { contentDescription = description; this.selected = isSelected }
@@ -265,6 +259,7 @@ fun ColorPicker(
                     .size(40.dp)
                     .clip(CircleShape)
                     .background(Color(argb))
+                    .then(if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
                     .semantics { contentDescription = description; this.selected = isSelected }
                     .clickable(role = Role.RadioButton) { onSelect(argb) },
                 contentAlignment = Alignment.Center,
@@ -288,9 +283,11 @@ private fun IconRowPreview(dark: Boolean) {
     PreviewTheme(dark) {
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                IconPickerRow("restaurant", 0xFFEA6A0CL, ColorPalette.ACCOUNT_DEFAULT, {})
-                IconPickerRow("legacy-garbage", null, ColorPalette.ACCOUNT_DEFAULT, {})
-                ColorPicker(0xFFEA6A0CL, {})
+                GroupedCard {
+                    IconPickerRow("restaurant", 0xFFEA6A0CL, ColorPalette.ACCOUNT_DEFAULT, {})
+                    IconPickerRow("legacy-garbage", null, ColorPalette.ACCOUNT_DEFAULT, {})
+                    ColorPicker(0xFFEA6A0CL, {}, Modifier.padding(14.dp))
+                }
             }
         }
     }
@@ -307,14 +304,14 @@ private fun IconSheetPreviewDark() = IconSheetPreview(dark = true)
 @Composable
 private fun IconSheetPreview(dark: Boolean) {
     PreviewTheme(dark) {
-        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
             IconPickerSheetContent(
                 groups = IconKeys.categoryGroups,
                 selected = "coffee",
                 color = 0xFFEA6A0CL,
                 fallbackColor = ColorPalette.ACCOUNT_DEFAULT,
                 onSelect = {},
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier.fillMaxHeight().padding(horizontal = 20.dp),
             )
         }
     }

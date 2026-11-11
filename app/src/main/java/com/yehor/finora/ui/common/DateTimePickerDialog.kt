@@ -10,25 +10,21 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
@@ -46,13 +42,17 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -112,15 +112,17 @@ private fun DateTimePickerContent(
     val inFuture = date != null && date == maxDate && time.isAfter(LocalTime.now())
     val canConfirm = date != null && !inFuture
 
-    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(12.dp),
+    ) {
         Column(Modifier.fillMaxSize()) {
             Row(
-                Modifier.fillMaxWidth().statusBarsPadding().padding(start = 4.dp, end = 8.dp),
+                Modifier.fillMaxWidth().padding(start = 8.dp, end = 12.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = onDismiss, modifier = Modifier.size(44.dp)) {
-                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.date_range_close))
-                }
+                RoundIconButton(AppIcons.Close, stringResource(R.string.date_range_close), onDismiss)
                 Text(
                     stringResource(R.string.transaction_form_date_time),
                     style = MaterialTheme.typography.titleMedium,
@@ -134,15 +136,11 @@ private fun DateTimePickerContent(
                 title = null,
                 headline = null,
                 showModeToggle = false,
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
+                colors = obsidianDatePickerColors(),
             )
 
             Column(
-                Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -178,27 +176,19 @@ private fun DateTimePickerContent(
                         )
                     }
                 }
-                Button(
+                PrimaryButton(
+                    text = when {
+                        date == null -> stringResource(R.string.date_time_choose_date)
+                        inFuture -> stringResource(R.string.date_time_future)
+                        else -> {
+                            val pattern = if (date.year == LocalDate.now().year) "d MMM" else "d MMM yyyy"
+                            val dateText = date.format(DateTimeFormatter.ofPattern(pattern, locale))
+                            stringResource(R.string.date_time_set, "$dateText, $timeText")
+                        }
+                    },
                     onClick = { if (date != null && canConfirm) onConfirm(date, time) },
                     enabled = canConfirm,
-                    shape = CircleShape,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                ) {
-                    Text(
-                        text = when {
-                            date == null -> stringResource(R.string.date_time_choose_date)
-                            inFuture -> stringResource(R.string.date_time_future)
-                            else -> {
-                                val pattern = if (date.year == LocalDate.now().year) "d MMM" else "d MMM yyyy"
-                                val dateText = date.format(DateTimeFormatter.ofPattern(pattern, locale))
-                                stringResource(R.string.date_time_set, "$dateText, $timeText")
-                            }
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                    )
-                }
+                )
             }
         }
     }
@@ -223,13 +213,14 @@ private fun PickerPill(
 ) {
     Surface(
         onClick = onClick,
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        shape = PillShape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier.defaultMinSize(minHeight = 44.dp),
+        border = hairline(MaterialTheme.finance.isDark),
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
     ) {
         Row(
-            Modifier.defaultMinSize(minHeight = 44.dp).padding(horizontal = 14.dp),
+            Modifier.defaultMinSize(minHeight = 48.dp).padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) { content() }
     }
@@ -258,24 +249,29 @@ private fun TimeSelectDialog(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.semantics { heading() },
                 )
-                TimePicker(state = timeState, modifier = Modifier.align(Alignment.CenterHorizontally))
+                TimePicker(
+                    state = timeState,
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    colors = TimePickerDefaults.colors(
+                        selectorColor = MaterialTheme.colorScheme.primary,
+                        clockDialSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                )
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
-                    Button(
+                    TextButton(onClick = onDismiss, shape = PillShape) { Text(stringResource(R.string.action_cancel)) }
+                    PrimaryButton(
+                        text = stringResource(R.string.date_time_set_short),
                         onClick = { onConfirm(LocalTime.of(timeState.hour, timeState.minute)) },
-                        shape = CircleShape,
-                    ) {
-                        Text(
-                            stringResource(R.string.date_time_set_short),
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                        )
-                    }
+                        fillWidth = false,
+                    )
                 }
             }
         }
@@ -307,6 +303,6 @@ private fun PreviewContent(dark: Boolean) {
 @Composable
 private fun DateTimePickerLightPreview() = PreviewContent(dark = false)
 
-@Preview(showBackground = true, heightDp = 780)
+@Preview(showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 780)
 @Composable
 private fun DateTimePickerDarkPreview() = PreviewContent(dark = true)

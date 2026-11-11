@@ -7,19 +7,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DateRangePicker
 import androidx.compose.material3.DateRangePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
@@ -35,12 +29,14 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -123,15 +119,17 @@ private fun DateRangePickerContent(
     val locale = LocalConfiguration.current.locales[0]
     val thisYear = LocalDate.now().year
 
-    Surface(color = MaterialTheme.colorScheme.background, modifier = Modifier.fillMaxSize()) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(12.dp),
+    ) {
         Column(Modifier.fillMaxSize()) {
             Row(
-                Modifier.fillMaxWidth().statusBarsPadding().padding(start = 4.dp, end = 8.dp),
+                Modifier.fillMaxWidth().padding(start = 8.dp, end = 12.dp, top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = onDismiss, modifier = Modifier.size(44.dp)) {
-                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.date_range_close))
-                }
+                RoundIconButton(AppIcons.Close, stringResource(R.string.date_range_close), onDismiss)
                 Text(
                     stringResource(R.string.date_range_title),
                     style = MaterialTheme.typography.titleMedium,
@@ -140,6 +138,7 @@ private fun DateRangePickerContent(
                 TextButton(
                     enabled = start != null,
                     onClick = { state.setSelection(null, null) },
+                    shape = PillShape,
                 ) { Text(stringResource(R.string.filter_clear)) }
             }
 
@@ -149,17 +148,11 @@ private fun DateRangePickerContent(
                 title = null,
                 headline = null,
                 showModeToggle = false,
-                colors = DatePickerDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    selectedDayContainerColor = MaterialTheme.colorScheme.primary,
-                    selectedDayContentColor = MaterialTheme.colorScheme.onPrimary,
-                    dayInSelectionRangeContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    dayInSelectionRangeContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                ),
+                colors = obsidianDatePickerColors(),
             )
 
             Column(
-                Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
@@ -182,31 +175,23 @@ private fun DateRangePickerContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                Button(
+                PrimaryButton(
+                    text = if (start != null && end != null) {
+                        val dayMonth = DateTimeFormatter.ofPattern("d MMM", locale)
+                        val full = DateTimeFormatter.ofPattern("d MMM yyyy", locale)
+                        val label = when {
+                            start == end -> start.format(if (start.year == thisYear) dayMonth else full)
+                            start.year == thisYear && end.year == thisYear ->
+                                stringResource(R.string.analytics_range, start.format(dayMonth), end.format(dayMonth))
+                            else -> stringResource(R.string.analytics_range, start.format(full), end.format(full))
+                        }
+                        stringResource(R.string.date_range_apply, label)
+                    } else {
+                        stringResource(R.string.date_range_apply_empty)
+                    },
                     onClick = { if (start != null && end != null) onConfirm(start, end) },
                     enabled = start != null && end != null,
-                    shape = CircleShape,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                ) {
-                    Text(
-                        text = if (start != null && end != null) {
-                            val dayMonth = DateTimeFormatter.ofPattern("d MMM", locale)
-                            val full = DateTimeFormatter.ofPattern("d MMM yyyy", locale)
-                            val label = when {
-                                start == end -> start.format(if (start.year == thisYear) dayMonth else full)
-                                start.year == thisYear && end.year == thisYear ->
-                                    stringResource(R.string.analytics_range, start.format(dayMonth), end.format(dayMonth))
-                                else -> stringResource(R.string.analytics_range, start.format(full), end.format(full))
-                            }
-                            stringResource(R.string.date_range_apply, label)
-                        } else {
-                            stringResource(R.string.date_range_apply_empty)
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                    )
-                }
+                )
             }
         }
     }
@@ -231,6 +216,6 @@ private fun PreviewContent(dark: Boolean) {
 @Composable
 private fun DateRangePickerLightPreview() = PreviewContent(dark = false)
 
-@Preview(showBackground = true, heightDp = 780)
+@Preview(showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 780)
 @Composable
 private fun DateRangePickerDarkPreview() = PreviewContent(dark = true)

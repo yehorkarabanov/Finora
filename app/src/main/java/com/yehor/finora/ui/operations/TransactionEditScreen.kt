@@ -10,7 +10,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -392,7 +392,7 @@ internal fun ExpenseIncomeEditor(
     )
 
     if (pickAccount) {
-        ModalBottomSheet(onDismissRequest = { pickAccount = false }) {
+        FinoraSheet(onDismiss = { pickAccount = false }) {
             AccountPickerContent(
                 accounts = state.accounts,
                 selectedAccountId = state.selectedAccountId,
@@ -406,7 +406,7 @@ internal fun ExpenseIncomeEditor(
     }
 
     if (pickCategory) {
-        ModalBottomSheet(onDismissRequest = { pickCategory = false }) {
+        FinoraSheet(onDismiss = { pickCategory = false }) {
             CategoryTreePickerContent(
                 tree = tree,
                 type = categoryType,
@@ -417,7 +417,7 @@ internal fun ExpenseIncomeEditor(
                     actions.onCategoryChange(it)
                     pickCategory = false
                 },
-                modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp),
             )
         }
     }

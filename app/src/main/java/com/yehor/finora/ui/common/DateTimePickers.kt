@@ -4,14 +4,10 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,34 +67,17 @@ fun DateField(
 
     if (showDialog) {
         val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = TransactionDateTime.pickerUtcMidnight(date ?: emptyPickerDate),
+        SingleDateDialog(
+            initialUtcMillis = TransactionDateTime.pickerUtcMidnight(date ?: emptyPickerDate),
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= maxUtcMidnight
             },
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                onDateChange(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate())
+                showDialog = false
+            },
         )
-        DatePickerDialog(
-            onDismissRequest = { showDialog = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            onDateChange(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate())
-                        }
-                        showDialog = false
-                    },
-                ) {
-                    Text(stringResource(R.string.action_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDialog = false }) {
-                    Text(stringResource(R.string.action_cancel))
-                }
-            },
-        ) {
-            DatePicker(state = datePickerState)
-        }
     }
 }
 
