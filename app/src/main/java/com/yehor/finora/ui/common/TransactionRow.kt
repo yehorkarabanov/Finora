@@ -30,6 +30,7 @@ import com.yehor.finora.ui.theme.finance
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionItem
+import com.yehor.finora.ui.theme.AmountStyle
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -172,20 +173,20 @@ fun TransactionRow(
                     if (sent.currency.code == received.currency.code && -sent.amountMinor == received.amountMinor) {
                         Text(
                             received.format(),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = AmountStyle,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                     } else {
                         Text(
                             "−" + sent.format().removePrefix("-"),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = AmountStyle,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                         )
                         Text(
                             "+" + received.format(),
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = AmountStyle,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -202,7 +203,7 @@ fun TransactionRow(
                     }
                     Text(
                         amountText,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = AmountStyle,
                         fontWeight = FontWeight.SemiBold,
                         color = color,
                     )

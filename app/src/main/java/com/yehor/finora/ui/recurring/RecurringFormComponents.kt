@@ -71,6 +71,8 @@ import com.yehor.finora.ui.theme.finance
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import androidx.compose.material3.ripple
+import com.yehor.finora.ui.theme.KeypadNumStyle
 
 // Building blocks of the schedule form, in the style of TransactionEditScreen (docs/ui-design-system.md 5.3).
 
@@ -282,7 +284,7 @@ private fun FormAmountDisplay(sign: String, signColor: Color, amountDisplay: Str
                 fontFeatureSettings = "tnum",
                 letterSpacing = (-1).sp,
             ),
-            autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 48.sp),
+            autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 56.sp),
             modifier = Modifier.weight(1f, fill = false),
         )
         Box(
@@ -319,11 +321,10 @@ private fun FormNumberPad(
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp)
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(
-                                if (keyEnabled) MaterialTheme.colorScheme.surfaceContainerHigh else Color.Transparent,
-                            )
                             .combinedClickable(
+                                interactionSource = null,
+                                // Borderless keys: a circular wash on press instead of a filled tile.
+                                indication = ripple(bounded = false, radius = 32.dp),
                                 enabled = keyEnabled,
                                 role = Role.Button,
                                 onClickLabel = if (isBackspace) backspaceLabel else null,
@@ -347,8 +348,7 @@ private fun FormNumberPad(
                             isDecimal && !decimalEnabled -> Unit
                             else -> Text(
                                 if (isDecimal) decimalLabel else key,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Medium,
+                                style = KeypadNumStyle,
                             )
                         }
                     }

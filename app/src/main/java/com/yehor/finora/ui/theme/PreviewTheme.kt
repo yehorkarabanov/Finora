@@ -8,6 +8,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 @Composable
 fun PreviewTheme(dark: Boolean, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalFinanceColors provides if (dark) DarkFinanceColors else LightFinanceColors) {
-        MaterialTheme(colorScheme = if (dark) FinoraDarkColorScheme else FinoraLightColorScheme, content = content)
+        MaterialTheme(
+            colorScheme = if (dark) FinoraDarkColorScheme else FinoraLightColorScheme,
+            typography = FinoraTypography,
+            shapes = FinoraShapes,
+            content = content,
+        )
     }
 }

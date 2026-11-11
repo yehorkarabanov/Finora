@@ -30,6 +30,7 @@ import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.AppIcons
 import com.yehor.finora.ui.common.IconSize
 import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.ui.theme.hairline
 
 // Reusable building blocks of the recurring screens (design system 5.1 / 5.3 / 5.5).
 
@@ -53,7 +54,7 @@ internal fun RecurringCard(
     color: Color = MaterialTheme.colorScheme.surfaceContainer,
     content: @Composable () -> Unit,
 ) {
-    Surface(modifier.fillMaxWidth(), shape = shape, color = color, content = content)
+    Surface(modifier.fillMaxWidth(), shape = shape, color = color, border = hairline(MaterialTheme.finance.isDark), content = content)
 }
 
 @Composable

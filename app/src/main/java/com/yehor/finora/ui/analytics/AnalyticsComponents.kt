@@ -70,6 +70,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+import com.yehor.finora.ui.theme.AmountStyle
 
 // ---- Text helpers ----
 
@@ -147,7 +148,7 @@ fun periodTitle(state: PeriodState, period: ResolvedPeriod): String {
 fun AmountText(
     cell: Cell?,
     modifier: Modifier = Modifier,
-    style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.titleMedium,
+    style: androidx.compose.ui.text.TextStyle = AmountStyle,
     color: Color = Color.Unspecified,
     signed: Boolean = false,
 ) {
