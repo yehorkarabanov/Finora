@@ -7,15 +7,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.chart.SplitBar
+import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
 
@@ -33,6 +40,7 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
     ) {
         ColorSwatches()
         TypeScale()
+        ChartsSection()
     }
 }
 
@@ -93,10 +101,46 @@ private fun TypeScale(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(name = "Catalog light", showBackground = true, heightDp = 700)
+@Composable
+private fun ChartsSection(modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val finance = MaterialTheme.finance
+    val runningNet = listOf(120L, 300L, 180L, -150L, -320L, -40L, 260L, 540L, 480L, 760L)
+    val compare = listOf(80L, 150L, 220L, 90L, 40L, 120L, 200L, 310L, 380L, 420L)
+    var selected by remember { mutableStateOf<Int?>(7) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Wave chart", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+        WaveChart(
+            values = runningNet,
+            zeroLine = true,
+            selectedIndex = selected,
+            onSelect = { selected = it },
+            label = { "Day ${it + 1}: ${runningNet[it]}" },
+            modifier = Modifier.fillMaxWidth().height(160.dp),
+        )
+        WaveChart(listOf(5L, 5L, 5L, 5L), label = { "" }, modifier = Modifier.fillMaxWidth().height(80.dp))
+        WaveChart(
+            values = runningNet,
+            compare = compare,
+            label = { "" },
+            modifier = Modifier.fillMaxWidth().height(120.dp),
+        )
+        WaveChart(
+            values = runningNet,
+            sparkline = true,
+            color = finance.expense,
+            label = { "" },
+            modifier = Modifier.fillMaxWidth().height(36.dp),
+        )
+        Text("Split bar", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+        SplitBar(listOf(5f to finance.income, 3f to finance.expense, 2f to scheme.primary))
+    }
+}
+
+@Preview(name = "Catalog light", showBackground = true, heightDp = 1200)
 @Composable
 private fun ComponentCatalogLightPreview() = PreviewTheme(dark = false) { ComponentCatalog() }
 
-@Preview(name = "Catalog dark", showBackground = true, heightDp = 700)
+@Preview(name = "Catalog dark", showBackground = true, heightDp = 1200)
 @Composable
 private fun ComponentCatalogDarkPreview() = PreviewTheme(dark = true) { ComponentCatalog() }
