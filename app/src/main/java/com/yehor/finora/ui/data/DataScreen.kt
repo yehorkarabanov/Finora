@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.data
 
-import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -31,16 +31,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.tooling.preview.Preview
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.domain.dataio.BackupFileNames
 import com.yehor.finora.domain.dataio.DataSummary
 import com.yehor.finora.domain.dataio.ImportFailure
@@ -251,6 +251,8 @@ fun DataScreen(
                     PrimaryButton(
                         text = stringResource(R.string.data_restore_action_replace),
                         onClick = { viewModel.confirmRestore() },
+                        destructive = true,
+                        fillWidth = false,
                     )
                 },
                 dismissButton = {

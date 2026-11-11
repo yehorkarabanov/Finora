@@ -29,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -172,6 +173,7 @@ internal fun CsvExportContent(
                     label = stringResource(R.string.filter_title),
                     active = false,
                     onClick = { if (!state.isBusy) filterSheetOpen = true },
+                    modifier = Modifier.alpha(if (state.isBusy) 0.38f else 1f),
                 )
             }
             }

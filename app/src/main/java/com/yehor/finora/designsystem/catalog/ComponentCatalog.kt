@@ -189,6 +189,8 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
         }
         PrimaryButton("Save", onClick = {})
         PrimaryButton("Disabled", onClick = {}, enabled = false)
+        PrimaryButton("Replace data", onClick = {}, destructive = true)
+        PrimaryButton("Replace data", onClick = {}, destructive = true, enabled = false)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             RoundIconButton(AppIcons.Search, "Search", {})
             RoundIconButton(AppIcons.Sort, "Sort", {})
