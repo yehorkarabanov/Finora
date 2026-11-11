@@ -253,8 +253,8 @@ private fun TimeSelectDialog(
                     state = timeState,
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     colors = TimePickerDefaults.colors(
-                        selectorColor = MaterialTheme.colorScheme.primary,
-                        clockDialSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        selectorColor = MaterialTheme.colorScheme.primaryContainer,
+                        clockDialSelectedContentColor = MaterialTheme.finance.onMint,
                         timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
                         timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
                         periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),

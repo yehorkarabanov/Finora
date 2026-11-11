@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.finance
 
 /** Obsidian colors shared by every date picker: raised container, mint selection and "today" ring. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,12 +27,12 @@ internal fun obsidianDatePickerColors(container: Color = MaterialTheme.colorSche
     val scheme = MaterialTheme.colorScheme
     return DatePickerDefaults.colors(
         containerColor = container,
-        selectedDayContainerColor = scheme.primary,
-        selectedDayContentColor = scheme.onPrimary,
+        selectedDayContainerColor = scheme.primaryContainer,
+        selectedDayContentColor = MaterialTheme.finance.onMint,
         todayContentColor = scheme.primary,
         todayDateBorderColor = scheme.primary,
-        selectedYearContainerColor = scheme.primary,
-        selectedYearContentColor = scheme.onPrimary,
+        selectedYearContainerColor = scheme.primaryContainer,
+        selectedYearContentColor = MaterialTheme.finance.onMint,
         dayInSelectionRangeContainerColor = scheme.primary.copy(alpha = 0.16f),
         dayInSelectionRangeContentColor = scheme.onSurface,
     )

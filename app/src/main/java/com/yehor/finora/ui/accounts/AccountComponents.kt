@@ -78,27 +78,27 @@ internal fun AccountsEmptyState(
         ) {
             Box(
                 Modifier.size(64.dp).clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)),
+                    .background(MaterialTheme.finance.onMint.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    tint = MaterialTheme.finance.onMint,
                 )
             }
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.finance.onMint,
             )
             Text(
                 body,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                color = MaterialTheme.finance.onMint.copy(alpha = 0.8f),
             )
             Button(onClick = onAction) {
                 Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small))

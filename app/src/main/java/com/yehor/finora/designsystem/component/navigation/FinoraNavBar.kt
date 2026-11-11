@@ -80,7 +80,7 @@ fun FinoraNavBar(
                 animationSpec = if (reduce) snap() else spring(stiffness = Spring.StiffnessMedium),
                 label = "navPill",
             )
-            val content = if (active) scheme.onPrimaryContainer else scheme.onSurfaceVariant
+            val content = if (active) MaterialTheme.finance.onMint else scheme.onSurfaceVariant
             // 48dp hit area around the 42dp visual pill.
             Box(
                 modifier = Modifier

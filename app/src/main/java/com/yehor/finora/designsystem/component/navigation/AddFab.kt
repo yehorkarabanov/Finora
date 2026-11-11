@@ -131,12 +131,12 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
         label = "fabRotation",
     )
     val container by animateColorAsState(
-        if (open) scheme.surfaceContainerHighest else scheme.primary,
+        if (open) scheme.surfaceContainerHighest else scheme.primaryContainer,
         animationSpec = if (reduce) snap() else spring(),
         label = "fabBg",
     )
     val content by animateColorAsState(
-        if (open) scheme.onSurface else scheme.onPrimary,
+        if (open) scheme.onSurface else MaterialTheme.finance.onMint,
         animationSpec = if (reduce) snap() else spring(),
         label = "fabFg",
     )
@@ -216,13 +216,13 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .background(if (item.primary) scheme.primary else scheme.surfaceContainerHighest, CircleShape),
+                .background(if (item.primary) scheme.primaryContainer else scheme.surfaceContainerHighest, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 item.icon,
                 contentDescription = null,
-                tint = if (item.primary) scheme.onPrimary else scheme.onSurface,
+                tint = if (item.primary) MaterialTheme.finance.onMint else scheme.onSurface,
                 modifier = Modifier.size(20.dp),
             )
         }

@@ -89,6 +89,8 @@ private fun ColorSwatches(modifier: Modifier = Modifier) {
         "surface" to scheme.surface,
         "container" to scheme.surfaceContainer,
         "primary" to scheme.primary,
+        "mint" to scheme.primaryContainer,
+        "onMint" to finance.onMint,
         "onSurface" to scheme.onSurface,
         "variant" to scheme.onSurfaceVariant,
         "outline" to scheme.outlineVariant,

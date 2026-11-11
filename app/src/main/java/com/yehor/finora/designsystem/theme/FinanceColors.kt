@@ -21,6 +21,12 @@ data class FinanceColors(
     val expenseContainer: Color,
     val negative: Color,
     val accentGlow: Color,
+    /**
+     * Content (text/icons) on every solid mint fill, which is always `colorScheme.primaryContainer`: CTA, FAB,
+     * nav active pill, quick actions, picker selections. One dark green for both themes:
+     * 10.24:1 on light primaryContainer (#4DFFB2), 7.97:1 on dark primaryContainer (#00E599).
+     */
+    val onMint: Color,
     val isDark: Boolean,
 ) {
     /**
@@ -33,6 +39,9 @@ data class FinanceColors(
     }
 }
 
+/** Dark green content on the mint fill (same value as dark `onPrimary`). */
+private val OnMint = Color(0xFF003822)
+
 val LightFinanceColors = FinanceColors(
     income = Color(0xFF006C46),
     incomeContainer = Color(0xFFC6F7DD),
@@ -41,6 +50,7 @@ val LightFinanceColors = FinanceColors(
     // Contrast: 5.13:1 on surface (#F8F8F9), 4.87:1 on surfaceContainerLow (#F2F2F3).
     negative = Color(0xFFC2362B),
     accentGlow = Color(0xFF00A36C).copy(alpha = 0.25f),
+    onMint = OnMint,
     isDark = false,
 )
 
@@ -52,6 +62,7 @@ val DarkFinanceColors = FinanceColors(
     // Contrast: 7.31:1 on surface (#121314), 6.70:1 on surfaceContainerLow (#1B1C1D).
     negative = Color(0xFFFF7A6B),
     accentGlow = Color(0xFF00E599).copy(alpha = 0.35f),
+    onMint = OnMint,
     isDark = true,
 )
 

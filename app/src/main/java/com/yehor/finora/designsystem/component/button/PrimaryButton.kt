@@ -37,8 +37,8 @@ fun PrimaryButton(
         interactionSource = interaction,
         shape = PillShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (destructive) scheme.error else scheme.primary,
-            contentColor = if (destructive) scheme.onError else scheme.onPrimary,
+            containerColor = if (destructive) scheme.error else scheme.primaryContainer,
+            contentColor = if (destructive) scheme.onError else MaterialTheme.finance.onMint,
         ),
         modifier = modifier
             .pressScale(interaction)

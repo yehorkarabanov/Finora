@@ -234,11 +234,11 @@ private fun QuickAction(
         Box(
             Modifier
                 .size(56.dp)
-                .background(if (primary) scheme.primary else scheme.surfaceContainer, CircleShape)
+                .background(if (primary) scheme.primaryContainer else scheme.surfaceContainer, CircleShape)
                 .then(if (primary) Modifier else Modifier.border(hairline(MaterialTheme.finance.isDark), CircleShape)),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = if (primary) scheme.onPrimary else scheme.onSurface)
+            Icon(icon, contentDescription = null, tint = if (primary) MaterialTheme.finance.onMint else scheme.onSurface)
         }
         Text(
             label,

@@ -62,6 +62,8 @@ Boundary rules (enforced by `DesignSystemBoundaryTest`, which must stay green):
 
 Mint `#00E599` is the accent for primary CTAs, selected states, positive numbers and chart lines.
 
+**One mint fill.** Every solid mint fill uses the same pair: container `colorScheme.primaryContainer` (`#4DFFB2` light / `#00E599` dark) and content `MaterialTheme.finance.onMint` (`#003822` in both themes; 10.24:1 light, 7.97:1 dark). That covers `PrimaryButton`, the FAB and its primary speed-dial item, the nav bar active pill, the Home Expense quick action, date-picker day/year selection, the time-picker selector and the Accounts empty-state card. Never fill with `colorScheme.primary`. `primary` is only for mint text, icons, thin indicators, cursors, rings and the soft-chip tint (`primary` content on `primary` @ 12%, used by `FilterPill` active, Restore, Resume and the accounts chip). `finance.income` is for positive numbers and chart lines, never fills.
+
 ### Finance colors: `MaterialTheme.finance` (`theme/FinanceColors.kt`)
 | Token | Light | Dark | Use |
 |---|---|---|---|
@@ -75,7 +77,7 @@ Mint `#00E599` is the accent for primary CTAs, selected states, positive numbers
 
 - Never use `colorScheme.error` to mean expense or negative; `error` is for validation and failures.
 - `finance.accent(argb)` draws a stored category/account color (lifted 25% toward white in dark). Stored values never change.
-- Contrast (checked): `negative` 5.13:1 / 7.31:1 on `surface` (light/dark), 4.87 / 6.70 on `surfaceContainerLow`; `onSurfaceVariant` 8.8 / 11.0 on `surface`; `onPrimaryContainer` on `primaryContainer` 13.3 / 4.6. Text must stay >= 4.5:1 in both themes.
+- Contrast (checked): `negative` 5.13:1 / 7.31:1 on `surface` (light/dark), 4.87 / 6.70 on `surfaceContainerLow`; `onSurfaceVariant` 8.8 / 11.0 on `surface`; `finance.onMint` on `primaryContainer` 10.24 / 7.97 (the mint fill); `onPrimaryContainer` is not used on fills (only 4.6:1 in dark). Text must stay >= 4.5:1 in both themes.
 - Hairlines: `hairline(isDark)` is 1px white @ 8% (dark) / black @ 6% (light). Cards and pills use it instead of shadows.
 - User colors come from `ColorPalette.colors` (`ui/common/ColorPalette.kt`, 28 entries). Tinted circles are the color at ~14-18% alpha behind an icon in the color.
 
@@ -86,7 +88,7 @@ Every **visible gradient** (chart fills, card gradients, fades over content) als
 - Masks used only for alpha (e.g. the wheel edge fade) are exempt.
 
 ### Type (`theme/Type.kt`)
-Space Grotesk for amounts, headings and keypad digits (tabular numerals); Manrope for everything else. Big money: integer part full weight, decimals in `onSurfaceVariant` at ~60% size (see `AmountText`).
+Space Grotesk for amounts, headings and keypad digits (tabular numerals); Manrope for everything else. Big money: integer part full weight, decimals in the amount's own colour at 70% alpha and ~60% size, currency suffix at full size (see `AmountText`).
 
 ### Shape and spacing (`theme/Shape.kt`)
 `PillShape` for every button, chip, segmented control, nav bar and FAB. Cards 22-24dp. Sheets 28dp top corners. Screen margin 18-20dp. Grouped lists: one card, rows separated by 1px dividers, ~12dp vertical row padding.
@@ -102,7 +104,7 @@ Path prefix: `designsystem/component/` unless noted.
 
 | Component | File | Key parameters / behavior |
 |---|---|---|
-| `PrimaryButton` | `button/PrimaryButton.kt` | mint 52dp pill CTA with accent glow. `destructive` switches to error colors (irreversible actions); `fillWidth = false` for dialog slots; `enabled` removes the glow. Springy press. |
+| `PrimaryButton` | `button/PrimaryButton.kt` | mint (`primaryContainer` / `finance.onMint`) 52dp pill CTA with accent glow. `destructive` switches to error colors (irreversible actions); `fillWidth = false` for dialog slots; `enabled` removes the glow. Springy press. |
 | `RoundIconButton` | `button/RoundIconButton.kt` | 40dp circle in a 48dp hit area; `contentDescription` is required in practice; `enabled = false` dims to 38% and ignores taps. |
 | `SegmentedPill` | `input/SegmentedPill.kt` | `options`, `selected`, `onSelect`. `enabled = false` fixes the choice (selected stays readable, others dim). `selected = -1` shows no selection. 48dp segments. |
 | `FilterPill` | `input/FilterPill.kt` | `label`, `active`, `onClick`; `onClear` adds a separate 48dp clear target while active. |
@@ -112,7 +114,7 @@ Path prefix: `designsystem/component/` unless noted.
 | `BindShellFab` | `ui/navigation/ShellFab.kt` | screen-side hook: `BindShellFab(listState, items, label, onClick)` registers the screen's list state and actions with the shell-hosted `AddFab`. Used by Transactions and Accounts. Not on Home or Statistics. |
 | `FinoraSheet` | `sheet/FinoraSheet.kt` | Obsidian bottom sheet: 28dp top corners, grab handle, 55% black scrim. Use for choosing; dialogs only for destructive confirmation. |
 | `RangeWheelsSheet` | `sheet/RangeWheelsSheet.kt` | FROM / TO month wheels with snap and a haptic tick per step, month-count chip, quick options, confirm CTA. Validation is pure in `RangeWheelsLogic.kt`. |
-| `AmountText` | `display/AmountText.kt` | `AmountText(text, style, color, animate = true)`. `splitAmount` rule: the last `.` or `,` is a decimal separator only when exactly 1-2 digits follow it at the end, so `1,234` and `1.234.567` stay whole; the fraction tail renders in `onSurfaceVariant` at ~60% size. A changed value rolls vertically (bigger from below, smaller from above) unless `animate = false` (list rows) or reduce-motion. Hero amounts (Home, Statistics) keep `animate = true`. |
+| `AmountText` | `display/AmountText.kt` | `AmountText(text, style, color, animate = true)`. `splitAmount` rule: whole + fraction + optional currency suffix (`^(.*?)([.,]\d{1,2})(\s*\D+)?$`). A `.` or `,` is the decimal separator only when 1-2 digits follow it and nothing but a non-digit suffix comes after, so `1,234` and `1.234.567` stay whole while `48.20 $`, `1 234,56 ₴`, `-48.20` and `$48.20` split. The fraction renders in the amount's own colour at 70% alpha and 60% size (no size change when the style's font size is unspecified); the suffix stays full size and colour. A changed value rolls vertically (bigger from below, smaller from above) unless `animate = false` (list rows) or reduce-motion. Hero amounts (Home, Statistics) keep `animate = true`. |
 | `WaveChart` | `chart/WaveChart.kt` | smooth area chart: `values`, `compare`, `zeroLine`, `selectedIndex`/`onSelect` (tap or hold-drag scrubs), `color`. `gestures: WaveGestures?` adds horizontal pan and pinch (vertical drags stay with the parent scroll); `sparkline = true` draws a bare 2dp line; `slide: (() -> Float)?` shifts the drawing sideways by a fraction of the width every frame, so paging can move the wave with the fingers. The canvas extends a 16dp **bleed** beyond its bounds so glow, halos and caps are never clipped; do not clip the parent. Draws in over 500ms, instantly when data changes during a gesture. |
 | `SplitBar` | `chart/SplitBar.kt` | `parts: List<Pair<Float, Color>>` normalised, rounded segments, 3dp gaps. |
 | Donut | `chart/Charts.kt` | category ring with selection; legend rows always repeat the numbers as text. |
