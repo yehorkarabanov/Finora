@@ -1,6 +1,6 @@
 package com.yehor.finora.designsystem.chart
 
-import kotlin.math.sqrt
+import kotlin.math.abs
 
 data class WavePoint(val x: Float, val y: Float)
 
@@ -62,38 +62,65 @@ object WaveGeometry {
         return WaveLayout(runs, zeroY, lo, hi)
     }
 
-    /** Monotone cubic (Fritsch–Carlson) segments for one run; never overshoots between monotone neighbours. */
-    fun smooth(run: List<WavePoint>): List<CubicSegment> {
+    /** Cardinal-spline tension: each handle is [TENSION] / 2 of the chord between a point's neighbours. */
+    private const val TENSION = 0.4f
+
+    /** How far (fraction of a segment's |Δy|) a control point may sit beyond the segment's own endpoints. */
+    private const val OVERSHOOT = 0.12f
+
+    /**
+     * Cardinal (Catmull–Rom family) spline through one run, as cubic Béziers. Each point's tangent is
+     * shared by both adjacent segments (so the curve stays C1-smooth) and its vertical part is scaled
+     * down until every control point lies within [OVERSHOOT] of its segment's y-range, inside
+     * [top]..[bottom], and — when both ends of a segment are on the same side of [zeroY] — on that side.
+     */
+    fun smooth(
+        run: List<WavePoint>,
+        zeroY: Float? = null,
+        top: Float = Float.NEGATIVE_INFINITY,
+        bottom: Float = Float.POSITIVE_INFINITY,
+    ): List<CubicSegment> {
         val n = run.size
         if (n < 2) return emptyList()
-        val dx = FloatArray(n - 1) { run[it + 1].x - run[it].x }
-        val slope = FloatArray(n - 1) { if (dx[it] == 0f) 0f else (run[it + 1].y - run[it].y) / dx[it] }
-        val m = FloatArray(n)
-        m[0] = slope[0]
-        m[n - 1] = slope[n - 2]
-        for (i in 1 until n - 1) {
-            m[i] = if (slope[i - 1] * slope[i] <= 0f) 0f else (slope[i - 1] + slope[i]) / 2f
-        }
-        for (i in 0 until n - 1) {
-            if (slope[i] == 0f) {
-                m[i] = 0f
-                m[i + 1] = 0f
-            } else {
-                val a = m[i] / slope[i]
-                val b = m[i + 1] / slope[i]
-                val s = a * a + b * b
-                if (s > 9f) {
-                    val t = 3f / sqrt(s)
-                    m[i] = t * a * slope[i]
-                    m[i + 1] = t * b * slope[i]
-                }
+        val k = TENSION / 2f
+        val tx = FloatArray(n) { (run[minOf(it + 1, n - 1)].x - run[maxOf(it - 1, 0)].x) * k }
+        val ty = FloatArray(n) { (run[minOf(it + 1, n - 1)].y - run[maxOf(it - 1, 0)].y) * k }
+        val lo = FloatArray(n - 1)
+        val hi = FloatArray(n - 1)
+        for (j in 0 until n - 1) {
+            val a = run[j].y
+            val b = run[j + 1].y
+            val slack = OVERSHOOT * abs(b - a)
+            var l = minOf(a, b) - slack
+            var h = maxOf(a, b) + slack
+            if (zeroY != null) {
+                if (a <= zeroY && b <= zeroY) h = minOf(h, zeroY)
+                if (a >= zeroY && b >= zeroY) l = maxOf(l, zeroY)
             }
+            lo[j] = maxOf(l, top)
+            hi[j] = minOf(h, bottom)
         }
-        return List(n - 1) { i ->
-            val p0 = run[i]
-            val p1 = run[i + 1]
-            val h = dx[i] / 3f
-            CubicSegment(p0, WavePoint(p0.x + h, p0.y + m[i] * h), WavePoint(p1.x - h, p1.y - m[i + 1] * h), p1)
+        // Largest scale in 0..1 so that y + offset * scale stays within lo..hi.
+        fun limit(y: Float, offset: Float, l: Float, h: Float): Float = when {
+            offset > 0f -> ((h - y) / offset).coerceIn(0f, 1f)
+            offset < 0f -> ((l - y) / offset).coerceIn(0f, 1f)
+            else -> 1f
+        }
+        for (i in 0 until n) {
+            var scale = 1f
+            if (i < n - 1) scale = minOf(scale, limit(run[i].y, ty[i], lo[i], hi[i]))
+            if (i > 0) scale = minOf(scale, limit(run[i].y, -ty[i], lo[i - 1], hi[i - 1]))
+            ty[i] *= scale
+        }
+        return List(n - 1) { j ->
+            val p0 = run[j]
+            val p1 = run[j + 1]
+            CubicSegment(
+                p0,
+                WavePoint((p0.x + tx[j]).coerceIn(p0.x, p1.x), p0.y + ty[j]),
+                WavePoint((p1.x - tx[j + 1]).coerceIn(p0.x, p1.x), p1.y - ty[j + 1]),
+                p1,
+            )
         }
     }
 }

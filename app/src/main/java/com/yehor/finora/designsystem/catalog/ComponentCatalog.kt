@@ -131,25 +131,32 @@ private fun ChartsSection(modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
     val finance = MaterialTheme.finance
     val runningNet = listOf(120L, 300L, 180L, -150L, -320L, -40L, 260L, 540L, 480L, 760L)
+    val monthlyNet = listOf(420L, 380L, 610L, 240L, 520L, 700L, 450L, 820L, 760L, 910L, 680L, 990L)
     val compare = listOf(80L, 150L, 220L, 90L, 40L, 120L, 200L, 310L, 380L, 420L)
     var selected by remember { mutableStateOf<Int?>(7) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Wave chart", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+        ChartCaption("Running net with a negative dip")
         WaveChart(
             values = runningNet,
             zeroLine = true,
             selectedIndex = selected,
             onSelect = { selected = it },
-            label = { "Day ${it + 1}: ${runningNet[it]}" },
+            label = { "Day ${it + 1} · ${runningNet[it]}" },
             modifier = Modifier.fillMaxWidth().height(160.dp),
         )
+        ChartCaption("Monthly net")
+        WaveChart(monthlyNet, label = { "" }, modifier = Modifier.fillMaxWidth().height(140.dp))
+        ChartCaption("Flat")
         WaveChart(listOf(5L, 5L, 5L, 5L), label = { "" }, modifier = Modifier.fillMaxWidth().height(80.dp))
+        ChartCaption("Compare")
         WaveChart(
-            values = runningNet,
+            values = runningNet.map { it + 400L },
             compare = compare,
             label = { "" },
             modifier = Modifier.fillMaxWidth().height(120.dp),
         )
+        ChartCaption("Sparkline")
         WaveChart(
             values = runningNet,
             sparkline = true,
@@ -161,6 +168,10 @@ private fun ChartsSection(modifier: Modifier = Modifier) {
         SplitBar(listOf(5f to finance.income, 3f to finance.expense, 2f to scheme.primary))
     }
 }
+
+@Composable
+private fun ChartCaption(text: String) =
+    Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
 @Composable
 private fun ControlsSection(modifier: Modifier = Modifier) {
@@ -267,10 +278,10 @@ private fun NavigationSection(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(name = "Catalog light", showBackground = true, heightDp = 2400)
+@Preview(name = "Catalog light", showBackground = true, heightDp = 2700)
 @Composable
 private fun ComponentCatalogLightPreview() = PreviewTheme(dark = false) { ComponentCatalog() }
 
-@Preview(name = "Catalog dark", showBackground = true, heightDp = 2400)
+@Preview(name = "Catalog dark", showBackground = true, heightDp = 2700)
 @Composable
 private fun ComponentCatalogDarkPreview() = PreviewTheme(dark = true) { ComponentCatalog() }
