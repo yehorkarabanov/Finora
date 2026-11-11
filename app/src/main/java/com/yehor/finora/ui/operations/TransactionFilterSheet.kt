@@ -65,6 +65,10 @@ internal fun dateOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalD
 /** The parts of the filter sheet a caller can show. */
 enum class FilterSection { TYPE, ACCOUNT, CATEGORY, TAG, DATE, AMOUNT, TEXT }
 
+/** All three types selected is the same as no type filter. */
+internal fun TransactionFilter.normalizeTypes(): TransactionFilter =
+    if (types.containsAll(listOf(OperationType.INCOME, OperationType.EXPENSE, OperationType.TRANSFER))) copy(types = emptySet()) else this
+
 /** Clears only the dimensions the sheet shows, so a one-section sheet never wipes the other filters. */
 internal fun TransactionFilter.resetSections(sections: Set<FilterSection>): TransactionFilter {
     val default = TransactionFilter()
@@ -287,7 +291,7 @@ fun TransactionFilterSheet(
                 text = stringResource(R.string.filter_apply),
                 onClick = {
                     // An amount range only means something while one currency is in scope.
-                    onApply(if (scopeCurrency == null) current.copy(amount = null) else current)
+                    onApply((if (scopeCurrency == null) current.copy(amount = null) else current).normalizeTypes())
                     onDismiss()
                 },
                 modifier = Modifier.weight(1f),

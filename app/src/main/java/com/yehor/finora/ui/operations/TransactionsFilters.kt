@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -147,7 +148,7 @@ internal fun RowDivider() {
 
 @Composable
 internal fun SearchField(value: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier) {
-    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    val focusManager = LocalFocusManager.current
     TextField(
         value = value,
         onValueChange = onValueChange,

@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.operations
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -119,7 +120,8 @@ internal fun TransactionsList(
     onOpenTransaction: (TransactionItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val sections = buildSections(source)
+    // Day rows only change when items are added or removed, the last page arrives, or the order changes.
+    val sections = remember(source.count, source.endReached, state.sort, state.filter) { buildSections(source) }
     LazyColumn(modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)) {
         if (state.filter.isActive && state.summary.isNotEmpty()) {
             item(key = "summary") {
@@ -150,8 +152,9 @@ internal fun TransactionsList(
 @Composable
 private fun DayHeader(group: DayGroup, net: Money?) {
     val locale = Locale.getDefault()
-    val format = remember(locale) { DateTimeFormatter.ofPattern("MMM d", locale) }
-    val yearFormat = remember(locale) { DateTimeFormatter.ofPattern("MMM d, yyyy", locale) }
+    // Locale-aware field order ("Nov 10" / "10 нояб.").
+    val format = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "MMMd"), locale) }
+    val yearFormat = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "yMMMd"), locale) }
     val today = LocalDate.now()
     val text = when (group) {
         DayGroup.Today -> stringResource(R.string.transactions_day_today) + " · " + today.format(format)

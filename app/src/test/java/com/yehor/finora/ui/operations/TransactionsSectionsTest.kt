@@ -84,4 +84,12 @@ class TransactionsSectionsTest {
         assertEquals(listOf(0 to 2, 2 to 4, 4 to 5), sections.map { it.start to it.endExclusive })
         assertEquals(setOf(null), sections.map { it.group }.toSet())
     }
+
+    @Test
+    fun allThreeTypesNormalizeToNoTypeFilter() {
+        val all = com.yehor.finora.domain.operation.TransactionFilter(types = setOf(OperationType.INCOME, OperationType.EXPENSE, OperationType.TRANSFER))
+        assertEquals(emptySet<OperationType>(), all.normalizeTypes().types)
+        val two = com.yehor.finora.domain.operation.TransactionFilter(types = setOf(OperationType.INCOME, OperationType.EXPENSE))
+        assertEquals(two, two.normalizeTypes())
+    }
 }
