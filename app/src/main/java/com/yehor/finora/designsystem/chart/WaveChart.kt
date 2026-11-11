@@ -39,7 +39,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.motion.FinoraMotion
 import com.yehor.finora.designsystem.motion.rememberReduceMotion
+import com.yehor.finora.designsystem.theme.drawGrain
 import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.rememberGrainAlpha
+import com.yehor.finora.designsystem.theme.rememberGrainBrush
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -71,6 +74,8 @@ fun WaveChart(
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
     val lineColor = color ?: finance.income
+    val grainBrush = rememberGrainBrush()
+    val grainAlpha = rememberGrainAlpha()
     val reduceMotion = rememberReduceMotion()
     val instant = reduceMotion || LocalInspectionMode.current
 
@@ -161,12 +166,15 @@ fun WaveChart(
                         if (zeroLine && zeroY != null) {
                             clipRect(bottom = zeroY) {
                                 drawPath(fill, fade(lineColor, 0f, zeroY))
+                                drawGrain(grainBrush, grainAlpha, fill)
                             }
                             clipRect(top = zeroY) {
                                 drawPath(fill, fade(finance.negative, this.size.height, zeroY))
+                                drawGrain(grainBrush, grainAlpha, fill)
                             }
                         } else {
                             drawPath(fill, fade(lineColor, 0f, baseline))
+                            drawGrain(grainBrush, grainAlpha, fill)
                         }
                         if (!reduceMotion) {
                             strokeSplit(line, finance.accentGlow, finance.accentGlow, strokePx * 3f, false, zeroY)

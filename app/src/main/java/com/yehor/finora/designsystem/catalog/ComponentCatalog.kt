@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ import java.time.YearMonth
 import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.grain
 
 /**
  * Gallery of every design-system component, light and dark. Later tasks append their
@@ -60,6 +62,7 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         TypeScale()
         ChartsSection()
         ControlsSection()
+        GrainSection()
         ListSection()
         NavigationSection()
     }
@@ -178,6 +181,25 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
         }
         AmountText("1 234,56", MaterialTheme.typography.displayLarge, scheme.onSurface)
         AmountText("-48.20", MaterialTheme.typography.titleLarge, MaterialTheme.finance.negative)
+    }
+}
+
+@Composable
+private fun GrainSection(modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val gradient = Brush.verticalGradient(listOf(scheme.primary, scheme.background))
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Grain", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, RoundedCornerShape(16.dp)))
+                Text("Plain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, RoundedCornerShape(16.dp)).grain())
+                Text("Grain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
+            }
+        }
     }
 }
 

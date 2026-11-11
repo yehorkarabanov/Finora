@@ -3,6 +3,8 @@ package com.yehor.finora.designsystem.component.input
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,50 +14,68 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
 
-/** Equal-width segmented selector in a pill container; the selected segment is filled. */
+/** Equal-width segmented selector in a pill track; the selected segment is a raised pill. */
 @Composable
 fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val isDark = MaterialTheme.finance.isDark
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainer, PillShape)
-            .border(hairline(MaterialTheme.finance.isDark), PillShape)
+            .background(scheme.surfaceContainerLow, PillShape)
+            .border(hairline(isDark), PillShape)
             .padding(horizontal = 4.dp),
     ) {
         options.forEachIndexed { index, label ->
             val isSelected = index == selected
+            val selectedFill = if (isDark) scheme.surfaceContainerHighest else scheme.surfaceContainerLowest
             val container by animateColorAsState(
-                if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+                if (isSelected) selectedFill else Color.Transparent,
                 label = "segmentBg",
             )
-            // 48dp hit area; the filled pill inside keeps the compact look.
+            val interaction = remember { MutableInteractionSource() }
+            // 48dp hit area without indication; feedback is drawn on the inner pill so it stays pill-shaped.
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .height(48.dp)
-                    .selectable(selected = isSelected, role = Role.Tab, onClick = { onSelect(index) })
+                    .selectable(
+                        selected = isSelected,
+                        interactionSource = interaction,
+                        indication = null,
+                        role = Role.Tab,
+                        onClick = { onSelect(index) },
+                    )
                     .padding(vertical = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    modifier = Modifier.fillMaxSize().clip(PillShape).background(container),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(PillShape)
+                        .background(container)
+                        .then(if (isSelected && !isDark) Modifier.border(hairline(false), PillShape) else Modifier)
+                        .indication(interaction, ripple()),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         label,
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = if (isSelected) scheme.onSurface else scheme.onSurfaceVariant,
                     )
                 }
             }

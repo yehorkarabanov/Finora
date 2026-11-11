@@ -32,6 +32,7 @@ import com.yehor.finora.designsystem.component.navigation.FabMode
 import com.yehor.finora.designsystem.component.navigation.FabScroll
 import com.yehor.finora.designsystem.component.navigation.FinoraNavBar
 import com.yehor.finora.designsystem.component.navigation.NavBarItem
+import com.yehor.finora.designsystem.theme.grain
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -163,7 +164,8 @@ private fun BottomFade(modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .height(110.dp + inset)
-            .background(Brush.verticalGradient(listOf(Color.Transparent, background))),
+            .background(Brush.verticalGradient(listOf(Color.Transparent, background)))
+            .grain(),
     )
 }
 
