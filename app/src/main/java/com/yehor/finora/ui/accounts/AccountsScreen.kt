@@ -288,6 +288,9 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
     }
 }
 
+/** Same minimum height for active and archived rows: the 48dp Restore box plus 2 x 8dp padding = 64dp. */
+private val AccountRowMinHeight = 64.dp
+
 @Composable
 private fun AccountRow(
     item: AccountWithBalance,
@@ -304,7 +307,8 @@ private fun AccountRow(
         Modifier
             .fillMaxWidth()
             .clickable(role = Role.Button) { onOpen(a.id) }
-            .padding(horizontal = 14.dp, vertical = 11.dp),
+            .heightIn(min = AccountRowMinHeight)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -350,7 +354,7 @@ private fun AccountRow(
         if (onRestore != null) {
             // Beside the balance, so an archived row is no taller than an active one.
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                AccountBalanceAmount(item.balance, balanceStyle, dim)
+                AccountBalanceAmount(item.balance, balanceStyle, dim.widthIn(min = 64.dp))
                 RestoreChip(onClick = { onRestore(a.id) })
             }
         } else {
