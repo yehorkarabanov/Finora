@@ -3,6 +3,8 @@ package com.yehor.finora.ui.analytics
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
@@ -71,6 +74,8 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.hairline
 
 // ---- Text helpers ----
 
@@ -313,30 +318,42 @@ fun AccountSelector(
         else -> pluralStringResource(R.plurals.analytics_accounts_selected, selected.size, selected.size)
     }
 
-    Surface(
-        onClick = { showSheet = true },
-        modifier = modifier.heightIn(min = 44.dp),
-        shape = CircleShape,
-        color = if (selected.isEmpty()) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.secondaryContainer,
-        contentColor = if (selected.isEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSecondaryContainer,
+    // Obsidian chip: quiet pill with a hairline; with a selection it takes the mint tint of an active filter.
+    val scheme = MaterialTheme.colorScheme
+    val active = selected.isNotEmpty()
+    Box(
+        modifier
+            .heightIn(min = 48.dp)
+            .clip(PillShape)
+            .clickable(role = Role.Button) { showSheet = true },
+        contentAlignment = Alignment.Center,
     ) {
         Row(
-            Modifier.heightIn(min = 44.dp).padding(start = 10.dp, end = 8.dp),
+            Modifier
+                .background(if (active) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainerHigh, PillShape)
+                .border(
+                    if (active) BorderStroke(1.dp, scheme.primary.copy(alpha = 0.4f)) else hairline(MaterialTheme.finance.isDark),
+                    PillShape,
+                )
+                .heightIn(min = 36.dp)
+                .padding(start = 10.dp, end = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            val content = if (active) scheme.primary else scheme.onSurface
             if (selected.isEmpty()) {
-                Icon(AppIcons.Account, contentDescription = null, modifier = Modifier.size(IconSize.Small))
+                Icon(AppIcons.Account, contentDescription = null, tint = content, modifier = Modifier.size(IconSize.Small))
             } else {
                 StackedBadges(selected)
             }
             Text(
                 label,
                 style = MaterialTheme.typography.labelLarge,
+                color = content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(start = 8.dp).widthIn(max = 104.dp),
             )
-            Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
+            Icon(AppIcons.Dropdown, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Medium))
         }
     }
 

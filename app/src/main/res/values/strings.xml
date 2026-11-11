@@ -728,23 +728,22 @@
     </plurals>
 
     <!-- Dashboard -->
+    <string name="home_net_in">Net in %1$s</string>
+    <string name="home_net_range">Net · %1$s</string>
+    <string name="home_in_out">In %1$s · Out %2$s</string>
+    <string name="home_days">Days</string>
+    <string name="home_months">Months</string>
+    <string name="home_today">Today</string>
+    <string name="quick_recurring">Recurring</string>
     <string name="dashboard_first_account_title">Add your first account to see your finances here</string>
     <string name="dashboard_net">Net</string>
     <string name="dashboard_by_currency">By currency</string>
     <string name="dashboard_manage_accounts">Accounts</string>
-    <string name="dashboard_distribution">Expenses by category</string>
-    <string name="dashboard_no_expenses">No expenses in this period</string>
-    <string name="dashboard_details">Details</string>
     <string name="dashboard_recent">Recent transactions</string>
     <string name="dashboard_see_all">See all</string>
     <string name="dashboard_upcoming">Upcoming</string>
     <string name="dashboard_upcoming_none">No upcoming recurring transactions</string>
     <string name="dashboard_first_account_action">Add account</string>
-    <string name="dashboard_cash_flow">Cash flow</string>
-    <string name="dashboard_spent">Spent</string>
-    <string name="dashboard_net_cash_flow">Net cash flow</string>
-    <string name="dashboard_add_account">New account</string>
-    <string name="dashboard_manage">Manage</string>
     <string name="dashboard_no_recent">No transactions yet. Tap Expense or Income to add one.</string>
     <plurals name="dashboard_schedules_attention">
         <item quantity="one">%1$d schedule needs attention</item>

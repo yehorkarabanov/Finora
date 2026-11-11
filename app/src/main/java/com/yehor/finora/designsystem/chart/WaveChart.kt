@@ -334,8 +334,9 @@ private class WaveGeometryCache(
     private val points: Array<WavePoint?>,
     val width: Float,
 ) {
-    val latestIndex: Int? = points.indices.lastOrNull().takeIf { points.lastOrNull() != null }
-    val latest: WavePoint? = points.lastOrNull()
+    /** The last drawn point (trailing nulls are future buckets), so "today" carries the live point. */
+    val latestIndex: Int? = points.indexOfLast { it != null }.takeIf { it >= 0 }
+    val latest: WavePoint? = latestIndex?.let { points[it] }
 
     fun pointAt(index: Int): WavePoint? = points.getOrNull(index)
 
