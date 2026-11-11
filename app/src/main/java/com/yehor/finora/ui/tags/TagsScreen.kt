@@ -1,48 +1,36 @@
 package com.yehor.finora.ui.tags
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -70,24 +57,21 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagNameError
 import com.yehor.finora.domain.tag.TagWithUsage
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.ListRow
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.ui.common.OrganizeTopBar
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.text.style.TextAlign
 import com.yehor.finora.ui.common.ColorPicker
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
-
-private val GroupRadius = 20.dp
-private val GroupInnerRadius = 4.dp
-private val GroupTopShape = RoundedCornerShape(GroupRadius, GroupRadius, GroupInnerRadius, GroupInnerRadius)
-private val GroupMiddleShape = RoundedCornerShape(GroupInnerRadius)
-private val GroupBottomShape = RoundedCornerShape(GroupInnerRadius, GroupInnerRadius, GroupRadius, GroupRadius)
-private val SingleShape = RoundedCornerShape(GroupRadius)
-
-private fun groupShape(index: Int, count: Int): Shape = when {
-    count == 1 -> SingleShape
-    index == 0 -> GroupTopShape
-    index == count - 1 -> GroupBottomShape
-    else -> GroupMiddleShape
-}
 
 @Composable
 fun TagsScreen(
@@ -119,7 +103,6 @@ fun TagsScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TagsContent(
     state: TagsUiState,
@@ -141,22 +124,9 @@ internal fun TagsContent(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tags_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
-                    }
-                },
-                colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                ),
-            )
-        },
-        floatingActionButton = {
-            if (state.tags.isNotEmpty()) {
-                FloatingActionButton(onClick = onAdd) {
-                    Icon(AppIcons.Add, contentDescription = stringResource(R.string.tags_add))
+            OrganizeTopBar(stringResource(R.string.tags_title), onBack) {
+                if (state.tags.isNotEmpty()) {
+                    RoundIconButton(AppIcons.Add, stringResource(R.string.tags_add), onAdd)
                 }
             }
         },
@@ -206,8 +176,7 @@ private fun TagsList(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
     ) {
         if (showSearch) {
             item(key = "search") {
@@ -237,16 +206,20 @@ private fun TagsList(
         if (visible.isEmpty()) {
             item(key = "no-results") { NoResults(query = effectiveQuery) }
         } else {
-            itemsIndexed(visible, key = { _, item -> item.tag.id }) { index, item ->
-                TagRow(
-                    item = item,
-                    shape = groupShape(index, visible.size),
-                    onClick = { onShowTransactions(item.tag.id) },
-                    onEdit = { onEdit(item.tag) },
-                    onDelete = { onDeleteRequest(item) },
-                    onShowTransactions = { onShowTransactions(item.tag.id) },
-                    onAnalyze = { onAnalyze(item.tag.id) },
-                )
+            item(key = "tags") {
+                GroupedCard(Modifier.fillMaxWidth()) {
+                    visible.forEachIndexed { index, item ->
+                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        TagRow(
+                            item = item,
+                            onClick = { onShowTransactions(item.tag.id) },
+                            onEdit = { onEdit(item.tag) },
+                            onDelete = { onDeleteRequest(item) },
+                            onShowTransactions = { onShowTransactions(item.tag.id) },
+                            onAnalyze = { onAnalyze(item.tag.id) },
+                        )
+                    }
+                }
             }
         }
     }
@@ -272,7 +245,7 @@ private fun TagSearchField(
                 }
             }
         },
-        shape = CircleShape,
+        shape = PillShape,
         colors = TextFieldDefaults.colors(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -287,26 +260,13 @@ private fun TagSearchField(
 @Composable
 private fun SortPill(sortOrder: TagSortOrder, onSortChange: (TagSortOrder) -> Unit) {
     val next = if (sortOrder == TagSortOrder.MOST_USED) TagSortOrder.NAME else TagSortOrder.MOST_USED
-    Surface(
+    FilterPill(
+        label = stringResource(
+            if (sortOrder == TagSortOrder.MOST_USED) R.string.tag_sort_most_used else R.string.tag_sort_name,
+        ),
+        active = false,
         onClick = { onSortChange(next) },
-        shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.heightIn(min = 44.dp),
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Icon(AppIcons.Sort, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text(
-                text = stringResource(
-                    if (sortOrder == TagSortOrder.MOST_USED) R.string.tag_sort_most_used else R.string.tag_sort_name,
-                ),
-                style = MaterialTheme.typography.labelLarge,
-            )
-        }
-    }
+    )
 }
 
 @Composable
@@ -332,24 +292,14 @@ private fun NoResults(query: String) {
 
 @Composable
 private fun TagsEmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier.padding(16.dp), contentAlignment = Alignment.Center) {
-        Surface(
-            shape = RoundedCornerShape(28.dp),
-            color = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
+    Box(modifier.padding(18.dp), contentAlignment = Alignment.Center) {
+        GroupedCard(Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier.padding(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Box(
-                    Modifier.size(64.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.18f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(AppIcons.Tag, contentDescription = null, modifier = Modifier.size(32.dp))
-                }
+                RoundIcon(AppIcons.Tag, MaterialTheme.colorScheme.primary, size = 64.dp)
                 Text(
                     stringResource(R.string.tags_empty_title),
                     style = MaterialTheme.typography.titleMedium,
@@ -358,12 +308,10 @@ private fun TagsEmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
                 Text(
                     stringResource(R.string.tags_empty_body),
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                 )
-                Button(onClick = onAdd) {
-                    Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.size(8.dp))
-                    Text(stringResource(R.string.tags_add))
-                }
+                PrimaryButton(stringResource(R.string.tags_add), onAdd)
             }
         }
     }
@@ -371,25 +319,13 @@ private fun TagsEmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
 
 @Composable
 private fun TagBadge(color: Long?, size: Int = 44, modifier: Modifier = Modifier) {
-    val tint = color?.let { MaterialTheme.finance.accent(it) }
-    val background = tint?.copy(alpha = 0.18f) ?: MaterialTheme.colorScheme.surfaceContainerHighest
-    Box(
-        modifier.size(size.dp).background(background, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            AppIcons.Tag,
-            contentDescription = null,
-            tint = tint ?: MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size((size * 0.5f).dp),
-        )
-    }
+    val tint = color?.let { MaterialTheme.finance.accent(it) } ?: MaterialTheme.colorScheme.onSurfaceVariant
+    RoundIcon(AppIcons.Tag, tint, modifier, size.dp)
 }
 
 @Composable
 private fun TagRow(
     item: TagWithUsage,
-    shape: Shape,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
@@ -397,32 +333,11 @@ private fun TagRow(
     onAnalyze: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
-
-    Surface(
-        onClick = onClick,
-        shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(
-            modifier = Modifier.padding(start = 14.dp, top = 8.dp, bottom = 8.dp, end = 4.dp).heightIn(min = 48.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            TagBadge(color = item.tag.color)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    item.tag.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    pluralStringResource(R.plurals.tags_usage_count, item.usageCount, item.usageCount),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
+    ListRow(
+        icon = { TagBadge(color = item.tag.color) },
+        title = item.tag.name,
+        subtitle = pluralStringResource(R.plurals.tags_usage_count, item.usageCount, item.usageCount),
+        trailing = {
             Box {
                 IconButton(onClick = { menuOpen = true }) {
                     Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
@@ -452,11 +367,12 @@ private fun TagRow(
                     )
                 }
             }
-        }
-    }
+        },
+        modifier = Modifier.heightIn(min = 56.dp),
+        onClick = onClick,
+    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TagEditSheet(
     state: TagDialogState,
@@ -468,10 +384,7 @@ private fun TagEditSheet(
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(state.tagId, state.isEdit) { focusRequester.requestFocus() }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-    ) {
+    FinoraSheet(onDismiss = onDismiss) {
         TagEditSheetContent(
             state = state,
             name = name,
@@ -503,9 +416,7 @@ internal fun TagEditSheetContent(
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-            .navigationBarsPadding(),
+            .padding(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text(
@@ -514,8 +425,8 @@ internal fun TagEditSheetContent(
             modifier = Modifier.semantics { heading() },
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Surface(shape = GroupTopShape, color = MaterialTheme.colorScheme.surfaceContainer) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            GroupedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         TagBadge(color = color)
@@ -562,7 +473,7 @@ internal fun TagEditSheetContent(
                     )
                 }
             }
-            Surface(shape = GroupBottomShape, color = MaterialTheme.colorScheme.surfaceContainer) {
+            GroupedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -577,45 +488,24 @@ internal fun TagEditSheetContent(
             }
         }
 
-        Button(
+        PrimaryButton(
+            text = stringResource(
+                when (action) {
+                    TagFormAction.CREATE -> R.string.tag_form_create
+                    TagFormAction.SAVE -> R.string.action_save
+                    TagFormAction.ENTER_NAME -> R.string.tag_form_error_empty
+                    TagFormAction.NAME_TOO_LONG -> R.string.tag_form_error_too_long
+                },
+            ),
             onClick = onSave,
             enabled = enabled,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(),
-        ) {
-            Text(
-                stringResource(
-                    when (action) {
-                        TagFormAction.CREATE -> R.string.tag_form_create
-                        TagFormAction.SAVE -> R.string.action_save
-                        TagFormAction.ENTER_NAME -> R.string.tag_form_error_empty
-                        TagFormAction.NAME_TOO_LONG -> R.string.tag_form_error_too_long
-                    },
-                ),
-                style = MaterialTheme.typography.titleSmall,
-            )
-        }
+        )
     }
 }
 
 @Composable
 private fun NoColorPill(selected: Boolean, onClick: () -> Unit) {
-    Surface(
-        onClick = onClick,
-        shape = CircleShape,
-        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = if (selected) {
-            MaterialTheme.colorScheme.onSecondaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        },
-        modifier = Modifier.heightIn(min = 32.dp),
-    ) {
-        Box(Modifier.padding(horizontal = 12.dp), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.tag_form_no_color), style = MaterialTheme.typography.labelLarge)
-        }
-    }
+    FilterPill(label = stringResource(R.string.tag_form_no_color), active = selected, onClick = onClick)
 }
 
 @Composable
@@ -638,6 +528,7 @@ private fun TagDeleteDialog(
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
+                shape = PillShape,
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
             ) {
                 Text(stringResource(R.string.action_delete))
@@ -693,6 +584,7 @@ private fun PreviewSheet(dark: Boolean) {
     PreviewTheme(dark) {
         Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
             TagEditSheetContent(
+                modifier = Modifier.padding(horizontal = 20.dp),
                 state = TagDialogState(isEdit = true, tagId = 1, name = "Vacation", color = 0xFF2563EB),
                 name = "Vacation",
                 color = 0xFF2563EB,

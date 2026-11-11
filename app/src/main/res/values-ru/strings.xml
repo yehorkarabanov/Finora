@@ -526,6 +526,17 @@
     <string name="recurring_empty_body">Расписание само создаёт доход или расход в повторяющуюся дату, например аренду 1-го числа каждого месяца.</string>
     <string name="recurring_section_active">Активные</string>
     <string name="recurring_section_paused">На паузе</string>
+    <string name="recurring_next30_title">Ближайшие 30 дней</string>
+    <string name="recurring_next30_out">Расходы</string>
+    <string name="recurring_next30_in">Доходы</string>
+    <string name="recurring_list_upcoming">Предстоящие</string>
+    <string name="recurring_due_today">сегодня</string>
+    <plurals name="recurring_due_in_days">
+        <item quantity="one">через %1$d день</item>
+        <item quantity="few">через %1$d дня</item>
+        <item quantity="many">через %1$d дней</item>
+        <item quantity="other">через %1$d дня</item>
+    </plurals>
     <string name="recurring_section_ended">Завершённые</string>
     <string name="recurring_row_subtitle">%1$s · %2$s</string>
     <string name="recurring_status_next">Следующая: %1$s</string>

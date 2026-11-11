@@ -17,19 +17,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,11 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,6 +50,20 @@ import com.yehor.finora.domain.recurring.ScheduleDisplayState
 import com.yehor.finora.domain.recurring.ScheduleStatus
 import com.yehor.finora.domain.recurring.displayState
 import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.ui.common.OrganizeTopBar
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.HorizontalDivider
 import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.designsystem.theme.PreviewTheme
@@ -75,43 +84,32 @@ fun RecurringDetailScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.recurring_detail_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
-                    }
-                },
-                actions = {
-                    val schedule = state.schedule
-                    if (schedule != null) {
-                        IconButton(onClick = { onEdit(schedule.id) }) {
-                            Icon(AppIcons.Edit, contentDescription = stringResource(R.string.action_edit))
-                        }
-                        var menuOpen by remember { mutableStateOf(false) }
-                        Box {
-                            IconButton(onClick = { menuOpen = true }) {
-                                Icon(AppIcons.More, contentDescription = stringResource(R.string.recurring_detail_more))
-                            }
-                            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
-                                    },
-                                    leadingIcon = {
-                                        Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-                                    },
-                                    onClick = {
-                                        menuOpen = false
-                                        viewModel.onDeleteRequest()
-                                    },
-                                )
-                            }
+            OrganizeTopBar(stringResource(R.string.recurring_detail_title), onBack) {
+                val schedule = state.schedule
+                if (schedule != null) {
+                    RoundIconButton(AppIcons.Edit, stringResource(R.string.action_edit), { onEdit(schedule.id) })
+                    var menuOpen by remember { mutableStateOf(false) }
+                    Box {
+                        RoundIconButton(AppIcons.More, stringResource(R.string.recurring_detail_more), { menuOpen = true })
+                        DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                                },
+                                leadingIcon = {
+                                    Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                },
+                                onClick = {
+                                    menuOpen = false
+                                    viewModel.onDeleteRequest()
+                                },
+                            )
                         }
                     }
-                },
-            )
+                }
+            }
         },
     ) { padding ->
         val schedule = state.schedule
@@ -122,7 +120,7 @@ fun RecurringDetailScreen(
         val displayState = schedule.displayState()
 
         Column(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             state.issue?.let { IssueBanner(schedule, it, state, viewModel) }
@@ -142,7 +140,7 @@ fun RecurringDetailScreen(
 @Composable
 internal fun RecurringHero(schedule: RecurringSchedule, modifier: Modifier = Modifier) {
     val displayState = schedule.displayState()
-    RecurringCard(modifier, shape = RoundedCornerShape(28.dp)) {
+    GroupedCard(modifier.fillMaxWidth()) {
         Column(
             Modifier.fillMaxWidth().padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -150,11 +148,11 @@ internal fun RecurringHero(schedule: RecurringSchedule, modifier: Modifier = Mod
         ) {
             RecurringScheduleBadge(schedule, 56)
             Text(schedule.name, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            Text(
+            AmountText(
                 RecurringListLogic.signedAmount(schedule.kind, schedule.money),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineMedium,
                 color = recurringSignedAmountColor(schedule.kind),
+                animate = false,
             )
             @OptIn(ExperimentalLayoutApi::class)
             FlowRow(
@@ -213,20 +211,16 @@ private fun ActionTile(
     Surface(
         onClick = onClick,
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
+        border = hairline(MaterialTheme.finance.isDark),
     ) {
         Column(
             Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Box(
-                Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
-            }
+            RoundIcon(icon, MaterialTheme.colorScheme.primary, size = 44.dp)
             Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
         }
     }
@@ -255,7 +249,7 @@ private fun DetailsGroup(schedule: RecurringSchedule) {
         if (schedule.tags.isNotEmpty()) {
             add {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    RecurringLeadingIcon(AppIcons.Tag)
+                    RoundIcon(AppIcons.Tag, MaterialTheme.colorScheme.onSurfaceVariant, size = 44.dp)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Text(
                             stringResource(R.string.recurring_label_tags),
@@ -270,9 +264,10 @@ private fun DetailsGroup(schedule: RecurringSchedule) {
             }
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    GroupedCard(Modifier.fillMaxWidth()) {
         rows.forEachIndexed { index, content ->
-            RecurringRowCard(shape = recurringGroupShape(index, rows.size)) { content() }
+            if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            Box(Modifier.padding(14.dp)) { content() }
         }
     }
 }
@@ -284,7 +279,7 @@ private fun DetailRowContent(icon: androidx.compose.ui.graphics.vector.ImageVect
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        RecurringLeadingIcon(icon)
+        RoundIcon(icon, MaterialTheme.colorScheme.onSurfaceVariant, size = 44.dp)
         Column(Modifier.weight(1f)) {
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(value, style = MaterialTheme.typography.bodyLarge)
@@ -326,8 +321,7 @@ private fun UpcomingCard(
                         Text(formatScheduleDate(date), style = MaterialTheme.typography.bodyMedium)
                         Text(
                             amount,
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.SemiBold,
+                            style = AmountStyle,
                             color = if (dimmed) MaterialTheme.colorScheme.onSurfaceVariant else recurringSignedAmountColor(schedule.kind),
                         )
                     }
@@ -349,9 +343,10 @@ private fun HistoryCard(history: HistoryView, onOpenTransaction: (Long) -> Unit)
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column {
                     history.rows.forEachIndexed { index, row ->
-                        HistoryItem(row, recurringGroupShape(index, history.rows.size), onOpenTransaction)
+                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        HistoryItem(row, onOpenTransaction)
                     }
                 }
                 if (history.hasMore) {
@@ -367,43 +362,50 @@ private fun HistoryCard(history: HistoryView, onOpenTransaction: (Long) -> Unit)
 }
 
 @Composable
-private fun HistoryItem(row: HistoryRow, shape: androidx.compose.ui.graphics.Shape, onOpenTransaction: (Long) -> Unit) {
+private fun HistoryItem(row: HistoryRow, onOpenTransaction: (Long) -> Unit) {
     when (row) {
-        is HistoryRow.Generated -> RecurringRowCard(
-            modifier = Modifier.semantics(mergeDescendants = true) {},
-            shape = shape,
-            onClick = { onOpenTransaction(row.operationId) },
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(
-                    AppIcons.Recurring,
-                    contentDescription = stringResource(R.string.recurring_marker),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(formatScheduleDate(row.date), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-                row.money?.let {
-                    Text(it.format(), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
-                }
-                Icon(
-                    AppIcons.Next,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(IconSize.Default),
-                )
+        is HistoryRow.Generated -> HistoryLine(onClick = { onOpenTransaction(row.operationId) }) {
+            Icon(
+                AppIcons.Recurring,
+                contentDescription = stringResource(R.string.recurring_marker),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(formatScheduleDate(row.date), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+            row.money?.let {
+                Text(it.format(), style = AmountStyle, maxLines = 1)
             }
+            Icon(
+                AppIcons.Next,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(IconSize.Default),
+            )
         }
-        is HistoryRow.Deleted -> HistorySecondaryRow(row, shape, stringResource(R.string.recurring_history_deleted))
-        is HistoryRow.Skipped -> HistorySecondaryRow(row, shape, stringResource(R.string.recurring_history_skipped))
+        is HistoryRow.Deleted -> HistorySecondaryRow(row, stringResource(R.string.recurring_history_deleted))
+        is HistoryRow.Skipped -> HistorySecondaryRow(row, stringResource(R.string.recurring_history_skipped))
     }
 }
 
 @Composable
-private fun HistorySecondaryRow(row: HistoryRow, shape: androidx.compose.ui.graphics.Shape, label: String) {
-    RecurringRowCard(modifier = Modifier.semantics(mergeDescendants = true) {}, shape = shape) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(formatScheduleDate(row.date), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
+private fun HistoryLine(onClick: (() -> Unit)? = null, content: @Composable RowScope.() -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
+            .let { if (onClick != null) it.clickable(onClick = onClick) else it }
+            .heightIn(min = 48.dp)
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        content = content,
+    )
+}
+
+@Composable
+private fun HistorySecondaryRow(row: HistoryRow, label: String) {
+    HistoryLine {
+        Text(formatScheduleDate(row.date), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -436,8 +438,8 @@ private fun IssueBanner(
                 )
             }
             if (issue == GenerationIssue.BEFORE_OPENING_BALANCE) {
-                Button(onClick = viewModel::onMoveBackRequest) { Text(stringResource(R.string.recurring_issue_move_back)) }
-                OutlinedButton(onClick = viewModel::onSkipBlocked) { Text(stringResource(R.string.recurring_issue_skip)) }
+                PrimaryButton(stringResource(R.string.recurring_issue_move_back), viewModel::onMoveBackRequest)
+                OutlinedButton(onClick = viewModel::onSkipBlocked, shape = PillShape) { Text(stringResource(R.string.recurring_issue_skip)) }
             }
         }
     }

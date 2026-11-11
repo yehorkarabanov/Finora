@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.recurring
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,31 +25,21 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.yehor.finora.domain.analytics.UpcomingItem
+import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionKind
+import java.time.LocalDate
 import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
 
 // Reusable building blocks of the recurring screens (design system 5.1 / 5.3 / 5.5).
 
-internal val RecurringGroupTopShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-internal val RecurringGroupMiddleShape = RoundedCornerShape(4.dp)
-internal val RecurringGroupBottomShape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 20.dp, bottomEnd = 20.dp)
-internal val RecurringGroupSingleShape = RoundedCornerShape(20.dp)
-
-/** Shape of item [index] in a connected group of [size] rows. */
-internal fun recurringGroupShape(index: Int, size: Int): Shape = when {
-    size <= 1 -> RecurringGroupSingleShape
-    index == 0 -> RecurringGroupTopShape
-    index == size - 1 -> RecurringGroupBottomShape
-    else -> RecurringGroupMiddleShape
-}
-
 @Composable
 internal fun RecurringCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(24.dp),
+    shape: Shape = RoundedCornerShape(22.dp),
     color: Color = MaterialTheme.colorScheme.surfaceContainer,
     content: @Composable () -> Unit,
 ) {
@@ -80,49 +69,10 @@ internal fun RecurringSectionHeader(
     }
 }
 
-/** A row of a connected group: [shape] from [recurringGroupShape], optional click, optional error border. */
-@Composable
-internal fun RecurringRowCard(
-    modifier: Modifier = Modifier,
-    shape: Shape = RecurringGroupSingleShape,
-    onClick: (() -> Unit)? = null,
-    isError: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    val border = if (isError) BorderStroke(1.dp, MaterialTheme.colorScheme.error) else null
-    val rowModifier = modifier.fillMaxWidth()
-    if (onClick != null) {
-        Surface(
-            onClick = onClick,
-            modifier = rowModifier,
-            shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            border = border,
-        ) { Box(Modifier.padding(14.dp)) { content() } }
-    } else {
-        Surface(
-            modifier = rowModifier,
-            shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainer,
-            border = border,
-        ) { Box(Modifier.padding(14.dp)) { content() } }
-    }
-}
-
-@Composable
-internal fun RecurringLeadingIcon(icon: ImageVector, modifier: Modifier = Modifier) {
-    Box(
-        modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Default))
-    }
-}
-
 /** Read-only badge ("Paused", "Ended"). */
 @Composable
 internal fun RecurringPill(text: String, modifier: Modifier = Modifier, icon: ImageVector? = null) {
-    Surface(modifier, shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
+    Surface(modifier, shape = PillShape, color = MaterialTheme.colorScheme.surfaceContainerHighest) {
         Row(
             Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -162,3 +112,25 @@ internal fun RecurringKindBadge(kind: TransactionKind, size: Dp, modifier: Modif
 @Composable
 internal fun recurringSignedAmountColor(kind: TransactionKind): Color =
     if (kind == TransactionKind.INCOME) MaterialTheme.finance.income else MaterialTheme.finance.expense
+
+/** Out and in totals (minor units) of the [items] due within [today]..[today] + 30 days, inclusive. */
+fun nextThirtyDays(items: List<UpcomingItem>, today: LocalDate): Pair<Long, Long> {
+    val last = today.plusDays(30)
+    var out = 0L
+    var income = 0L
+    items.forEach { item ->
+        if (item.date < today || item.date > last) return@forEach
+        if (item.schedule.kind == TransactionKind.INCOME) income += item.schedule.money.amountMinor
+        else out += item.schedule.money.amountMinor
+    }
+    return out to income
+}
+
+/** Out / in of the next 30 days; one entry per currency because the schedule amounts are in their account currency. */
+data class ThirtyDayTotals(val out: Money, val income: Money)
+
+fun nextThirtyDaysByCurrency(items: List<UpcomingItem>, today: LocalDate): List<ThirtyDayTotals> =
+    items.groupBy { it.schedule.money.currency }.map { (currency, group) ->
+        val (out, income) = nextThirtyDays(group, today)
+        ThirtyDayTotals(Money(out, currency), Money(income, currency))
+    }.sortedBy { it.out.currency.code }

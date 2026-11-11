@@ -529,6 +529,15 @@
     <string name="recurring_empty_body">A schedule creates an income or an expense for you on a repeating date, such as rent on the 1st of every month.</string>
     <string name="recurring_section_active">Active</string>
     <string name="recurring_section_paused">Paused</string>
+    <string name="recurring_next30_title">Next 30 days</string>
+    <string name="recurring_next30_out">Out</string>
+    <string name="recurring_next30_in">In</string>
+    <string name="recurring_list_upcoming">Upcoming</string>
+    <string name="recurring_due_today">today</string>
+    <plurals name="recurring_due_in_days">
+        <item quantity="one">in %1$d day</item>
+        <item quantity="other">in %1$d days</item>
+    </plurals>
     <string name="recurring_section_ended">Ended</string>
     <string name="recurring_row_subtitle">%1$s · %2$s</string>
     <string name="recurring_status_next">Next: %1$s</string>

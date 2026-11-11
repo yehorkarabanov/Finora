@@ -19,6 +19,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yehor.finora.domain.analytics.UpcomingItem
 import java.time.LocalDate
 
 private val USD = CurrencyRegistry.get("USD")
@@ -32,12 +33,13 @@ private fun schedule(
     end: LocalDate? = null,
     next: LocalDate? = LocalDate.of(2026, 12, 1),
     status: ScheduleStatus = ScheduleStatus.ACTIVE,
+    amountMinor: Long = 12_50,
 ) = RecurringSchedule(
     id = id,
     name = name,
     kind = kind,
     account = Account(1, "Main", USD, AccountType.BANK, null, null, null, AccountStatus.ACTIVE, 0),
-    money = Money(12_50, USD),
+    money = Money(amountMinor, USD),
     category = null,
     categoryPath = emptyList(),
     tags = emptyList(),
@@ -158,6 +160,24 @@ class RecurringListLogicTest {
         assertEquals("+" + money.format(), RecurringListLogic.signedAmount(TransactionKind.INCOME, money))
         assertEquals("−" + money.format(), RecurringListLogic.signedAmount(TransactionKind.EXPENSE, money))
     }
+}
+
+class NextThirtyDaysTest {
+    private val today = LocalDate.of(2026, 11, 11)
+
+    private fun out(amount: Long, inDays: Long) =
+        UpcomingItem(schedule(1, kind = TransactionKind.EXPENSE, amountMinor = amount), today.plusDays(inDays))
+
+    private fun inc(amount: Long, inDays: Long) =
+        UpcomingItem(schedule(2, kind = TransactionKind.INCOME, amountMinor = amount), today.plusDays(inDays))
+
+    @Test fun sumsOnlyNext30Days() =
+        assertEquals(486L to 2600L, nextThirtyDays(listOf(out(486, 3), inc(2600, 18), out(100, 31)), today))
+
+    @Test fun boundariesAreInclusiveAndPastIsIgnored() =
+        assertEquals(5L to 7L, nextThirtyDays(listOf(out(5, 0), inc(7, 30), out(9, -1)), today))
+
+    @Test fun emptyIsZero() = assertEquals(0L to 0L, nextThirtyDays(emptyList(), today))
 }
 
 class RecurringDetailLogicTest {
