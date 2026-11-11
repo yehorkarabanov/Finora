@@ -907,4 +907,20 @@
     </plurals>
     <string name="csv_export_failed">Не удалось экспортировать: %1$s</string>
     <string name="transactions_export_csv">Экспорт в CSV</string>
+    <!-- Obsidian shared components -->
+    <string name="fab_add">Добавить</string>
+    <string name="range_title">Выберите период</string>
+    <string name="range_from">С</string>
+    <string name="range_to">По</string>
+    <plurals name="range_months_count">
+        <item quantity="one">%d месяц</item>
+        <item quantity="few">%d месяца</item>
+        <item quantity="many">%d месяцев</item>
+        <item quantity="other">%d месяца</item>
+    </plurals>
+    <string name="range_show">Показать %1$s – %2$s</string>
+    <string name="range_invalid_order">Конец раньше начала</string>
+    <string name="range_in_future">В будущем</string>
+    <string name="range_today">Сегодня</string>
+    <string name="range_custom_days">Свои дни…</string>
 </resources>

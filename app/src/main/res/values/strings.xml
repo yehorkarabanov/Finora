@@ -896,4 +896,18 @@
     </plurals>
     <string name="csv_export_failed">Export failed: %1$s</string>
     <string name="transactions_export_csv">Export as CSV</string>
+    <!-- Obsidian shared components -->
+    <string name="fab_add">Add</string>
+    <string name="range_title">Choose range</string>
+    <string name="range_from">From</string>
+    <string name="range_to">To</string>
+    <plurals name="range_months_count">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="range_show">Show %1$s – %2$s</string>
+    <string name="range_invalid_order">End before start</string>
+    <string name="range_in_future">In the future</string>
+    <string name="range_today">Today</string>
+    <string name="range_custom_days">Custom days…</string>
 </resources>

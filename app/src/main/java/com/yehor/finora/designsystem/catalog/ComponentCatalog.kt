@@ -22,6 +22,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.chart.SplitBar
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.input.SegmentedPill
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.ListRow
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.component.list.SectionHeader
+import com.yehor.finora.designsystem.component.navigation.AddFab
+import com.yehor.finora.designsystem.component.navigation.FabMode
+import com.yehor.finora.designsystem.component.navigation.FinoraNavBar
+import com.yehor.finora.designsystem.component.navigation.NavBarItem
+import com.yehor.finora.designsystem.component.navigation.SpeedDialItem
+import com.yehor.finora.designsystem.component.sheet.RangeWheelsContent
+import com.yehor.finora.designsystem.icon.AppIcons
+import java.time.LocalDate
+import java.time.YearMonth
 import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
@@ -41,6 +59,9 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         ColorSwatches()
         TypeScale()
         ChartsSection()
+        ControlsSection()
+        ListSection()
+        NavigationSection()
     }
 }
 
@@ -137,10 +158,95 @@ private fun ChartsSection(modifier: Modifier = Modifier) {
     }
 }
 
-@Preview(name = "Catalog light", showBackground = true, heightDp = 1200)
+@Composable
+private fun ControlsSection(modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    var segment by remember { mutableStateOf(0) }
+    var filter by remember { mutableStateOf(true) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Controls", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
+        SegmentedPill(listOf("Expense", "Income", "Transfer"), segment, { segment = it })
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            FilterPill("Account", active = false, onClick = { filter = true })
+            FilterPill("Groceries", active = filter, onClick = {}, onClear = { filter = false })
+        }
+        PrimaryButton("Save", onClick = {})
+        PrimaryButton("Disabled", onClick = {}, enabled = false)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RoundIconButton(AppIcons.Search, "Search", {})
+            RoundIconButton(AppIcons.Sort, "Sort", {})
+        }
+        AmountText("1 234,56", MaterialTheme.typography.displayLarge, scheme.onSurface)
+        AmountText("-48.20", MaterialTheme.typography.titleLarge, MaterialTheme.finance.negative)
+    }
+}
+
+@Composable
+private fun ListSection(modifier: Modifier = Modifier) {
+    val finance = MaterialTheme.finance
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        SectionHeader("Today") { Text("-62,40", style = MaterialTheme.typography.labelMedium, color = finance.expense) }
+        GroupedCard {
+            ListRow(
+                icon = { RoundIcon(AppIcons.Receipt, finance.expense) },
+                title = "Groceries",
+                subtitle = "Cash · Supermarket",
+                trailing = { AmountText("-48,20", MaterialTheme.typography.titleSmall, finance.expense) },
+                onClick = {},
+            )
+            ListRow(
+                icon = { RoundIcon(AppIcons.Income, finance.income) },
+                title = "Salary",
+                subtitle = null,
+                trailing = { AmountText("+2 400,00", MaterialTheme.typography.titleSmall, finance.income) },
+                onClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+private fun NavigationSection(modifier: Modifier = Modifier) {
+    val items = listOf(
+        NavBarItem("Home", AppIcons.NavDashboard, AppIcons.NavDashboardSelected),
+        NavBarItem("List", AppIcons.NavTransactions, AppIcons.NavTransactionsSelected),
+        NavBarItem("Accounts", AppIcons.NavAccounts, AppIcons.NavAccountsSelected),
+        NavBarItem("Stats", AppIcons.NavStatistics, AppIcons.NavStatisticsSelected),
+    )
+    val dial = listOf(
+        SpeedDialItem("Transfer", AppIcons.Transfer, {}, primary = false),
+        SpeedDialItem("Income", AppIcons.Add, {}, primary = false),
+        SpeedDialItem("Expense", AppIcons.Remove, {}, primary = true),
+    )
+    var selected by remember { mutableStateOf(1) }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("Navigation", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+        FinoraNavBar(items, selected, { selected = it }, Modifier.padding(horizontal = 0.dp))
+        Box(Modifier.fillMaxWidth().height(80.dp)) {
+            AddFab(FabMode.EXTENDED, expanded = false, onToggle = {}, label = "Add", speedDial = dial)
+        }
+        Box(Modifier.fillMaxWidth().height(80.dp)) {
+            AddFab(FabMode.COLLAPSED, expanded = false, onToggle = {}, label = "Add", speedDial = dial)
+        }
+        Box(Modifier.fillMaxWidth().height(320.dp)) {
+            AddFab(FabMode.COLLAPSED, expanded = true, onToggle = {}, label = "Add", speedDial = dial)
+        }
+        Text("Range wheels", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+        RangeWheelsContent(
+            initialFrom = YearMonth.of(2025, 11),
+            initialTo = YearMonth.of(2026, 2),
+            today = LocalDate.of(2026, 11, 10),
+            earliest = null,
+            quickOptions = listOf("This month" to {}, "Last 3 months" to {}),
+            onConfirm = { _, _ -> },
+        )
+    }
+}
+
+@Preview(name = "Catalog light", showBackground = true, heightDp = 2400)
 @Composable
 private fun ComponentCatalogLightPreview() = PreviewTheme(dark = false) { ComponentCatalog() }
 
-@Preview(name = "Catalog dark", showBackground = true, heightDp = 1200)
+@Preview(name = "Catalog dark", showBackground = true, heightDp = 2400)
 @Composable
 private fun ComponentCatalogDarkPreview() = PreviewTheme(dark = true) { ComponentCatalog() }
