@@ -18,10 +18,13 @@ import java.util.Locale
 internal fun bestPattern(locale: Locale, skeleton: String): DateTimeFormatter =
     DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
 
-/** "November 2026", capitalised (Russian stand-alone month names are lower case). */
+/** Upper-cases the first letter (Russian stand-alone month names are lower case). */
+internal fun String.capitalized(locale: Locale): String =
+    replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+
+/** "November 2026", capitalised. */
 internal fun monthYearName(date: LocalDate, locale: Locale): String =
-    date.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
-        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+    date.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale)).capitalized(locale)
 
 /** "Nov 9", or "Nov 9, 2025" outside the current year. */
 internal fun shortDate(date: LocalDate, today: LocalDate, locale: Locale): String =

@@ -139,8 +139,7 @@ fun periodTitle(state: PeriodState, period: ResolvedPeriod): String {
         PeriodKind.TODAY ->
             if (state.offset == 0) stringResource(R.string.period_today) else from.format(full)
         PeriodKind.WEEK -> "${from.format(dayMonth)} – ${to.format(if (to.year == LocalDate.now().year) dayMonth else full)}"
-        PeriodKind.MONTH -> from.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+        PeriodKind.MONTH -> monthYearName(from, locale)
         PeriodKind.YEAR -> from.year.toString()
         PeriodKind.CUSTOM -> compactRangeLabel(from, to, locale)
     }
@@ -212,7 +211,7 @@ fun PeriodSelector(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (arrows) {
-                IconButton(onClick = { onShift(-1) }, modifier = Modifier.size(44.dp)) {
+                IconButton(onClick = { onShift(-1) }, modifier = Modifier.size(48.dp)) {
                     Icon(AppIcons.Previous, contentDescription = stringResource(R.string.analytics_period_previous))
                 }
             }
@@ -235,7 +234,7 @@ fun PeriodSelector(
                 Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
             }
             if (arrows) {
-                IconButton(onClick = { onShift(1) }, enabled = canShiftForward, modifier = Modifier.size(44.dp)) {
+                IconButton(onClick = { onShift(1) }, enabled = canShiftForward, modifier = Modifier.size(48.dp)) {
                     Icon(AppIcons.Next, contentDescription = stringResource(R.string.analytics_period_next))
                 }
             }

@@ -1,10 +1,15 @@
 package com.yehor.finora.designsystem.component.navigation
 
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.EnterTransition
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.LocalIndication
+import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -79,7 +84,11 @@ fun AddFab(
     BackHandler(enabled = open, onBack = onToggle)
 
     Box(modifier.fillMaxSize()) {
-        val scrim by animateFloatAsState(if (open) 1f else 0f, label = "fabScrim")
+        val scrim by animateFloatAsState(
+            if (open) 1f else 0f,
+            animationSpec = if (reduce) snap() else spring(),
+            label = "fabScrim",
+        )
         if (scrim > 0f) {
             Box(
                 Modifier
@@ -121,11 +130,21 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
         label = "fabRotation",
     )
-    val container by animateColorAsState(if (open) scheme.surfaceContainerHighest else scheme.primary, label = "fabBg")
-    val content by animateColorAsState(if (open) scheme.onSurface else scheme.onPrimary, label = "fabFg")
+    val container by animateColorAsState(
+        if (open) scheme.surfaceContainerHighest else scheme.primary,
+        animationSpec = if (reduce) snap() else spring(),
+        label = "fabBg",
+    )
+    val content by animateColorAsState(
+        if (open) scheme.onSurface else scheme.onPrimary,
+        animationSpec = if (reduce) snap() else spring(),
+        label = "fabFg",
+    )
     val coerced = hidden.coerceIn(0f, 1f)
+    val interaction = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
+            .pressScale(interaction)
             .graphicsLayer {
                 translationY = coerced * 80.dp.toPx()
                 alpha = 1f - coerced
@@ -134,7 +153,7 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
             .shadow(if (open) 0.dp else 8.dp, PillShape, spotColor = MaterialTheme.finance.accentGlow)
             .heightIn(min = 52.dp)
             .background(container, PillShape)
-            .clickable(role = Role.Button, enabled = mode != FabMode.HIDDEN, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = LocalIndication.current, role = Role.Button, enabled = mode != FabMode.HIDDEN, onClick = onClick)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -146,8 +165,8 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
         )
         AnimatedVisibility(
             visible = mode == FabMode.EXTENDED,
-            enter = fadeIn() + expandHorizontally(),
-            exit = fadeOut() + shrinkHorizontally(),
+            enter = if (reduce) EnterTransition.None else fadeIn() + expandHorizontally(),
+            exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally(),
         ) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = content, modifier = Modifier.padding(start = 6.dp, end = 4.dp))
         }
@@ -158,6 +177,7 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
 private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     var shown by remember { mutableStateOf(false) }
+    val interaction = remember { MutableInteractionSource() }
     LaunchedEffect(visible) {
         if (visible) {
             if (!reduce) delay(delayMs)
@@ -174,13 +194,14 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
     if (progress <= 0.001f && !shown) return
     Row(
         modifier = Modifier
+            .pressScale(interaction)
             .graphicsLayer {
                 translationY = (1f - progress) * 20.dp.toPx()
                 alpha = progress.coerceIn(0f, 1f)
                 scaleX = 0.8f + 0.2f * progress
                 scaleY = 0.8f + 0.2f * progress
             }
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, role = Role.Button, onClick = onClick),
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {

@@ -325,7 +325,7 @@ private fun CategoryRow(
             }
             Checkbox(checked = selected || covered, enabled = !covered, onCheckedChange = null)
             if (hasChildren && row.parentName == null) {
-                IconButton(onClick = onToggleExpanded, modifier = Modifier.size(44.dp)) {
+                IconButton(onClick = onToggleExpanded, modifier = Modifier.size(48.dp)) {
                     Icon(
                         if (expanded) AppIcons.Collapse else AppIcons.Expand,
                         contentDescription = stringResource(

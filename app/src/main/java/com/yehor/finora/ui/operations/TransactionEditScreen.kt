@@ -23,6 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,8 +75,12 @@ fun TransactionEditScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val transferState by transferViewModel.state.collectAsStateWithLifecycle()
+    val haptics = LocalHapticFeedback.current
     LaunchedEffect(state.saved, transferState.saved) {
-        if (state.saved || transferState.saved) onBack()
+        if (state.saved || transferState.saved) {
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+            onBack()
+        }
     }
 
     // Expense/Income is derived from the loaded kind (an edited income opens with an unspecific route argument).
@@ -100,6 +106,7 @@ fun TransactionEditScreen(
     LaunchedEffect(state.savedAnotherCount) {
         if (state.savedAnotherCount > 0 && state.savedAnotherCount != handledSavedAnother) {
             handledSavedAnother = state.savedAnotherCount
+            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
             // Ready for the next entry: back to the keypad.
             stage = EditorStage.AMOUNT
             shelfScroll.scrollTo(0)

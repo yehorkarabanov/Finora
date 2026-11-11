@@ -7,7 +7,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.theme.PillShape
@@ -27,15 +30,18 @@ fun PrimaryButton(
     fillWidth: Boolean = true,
 ) {
     val scheme = MaterialTheme.colorScheme
+    val interaction = remember { MutableInteractionSource() }
     Button(
         onClick = onClick,
         enabled = enabled,
+        interactionSource = interaction,
         shape = PillShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (destructive) scheme.error else scheme.primary,
             contentColor = if (destructive) scheme.onError else scheme.onPrimary,
         ),
         modifier = modifier
+            .pressScale(interaction)
             .then(if (fillWidth) Modifier.fillMaxWidth() else Modifier)
             .height(52.dp)
             .shadow(

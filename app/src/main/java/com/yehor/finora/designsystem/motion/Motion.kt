@@ -5,7 +5,15 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.foundation.interaction.InteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
@@ -25,5 +33,23 @@ fun rememberReduceMotion(): Boolean {
     val resolver = LocalContext.current.contentResolver
     return remember(resolver) {
         Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
+    }
+}
+
+/**
+ * Springy press feedback: scales to 0.96 while [interactionSource] is pressed ([FinoraMotion.press]).
+ * Stays at 1 when reduce-motion is on.
+ */
+fun Modifier.pressScale(interactionSource: InteractionSource): Modifier = composed {
+    val reduce = rememberReduceMotion()
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && !reduce) 0.96f else 1f,
+        animationSpec = if (reduce) snap() else FinoraMotion.press,
+        label = "pressScale",
+    )
+    graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
 }

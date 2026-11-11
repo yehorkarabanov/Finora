@@ -68,10 +68,8 @@ import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.ui.common.OrganizeTopBar
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import com.yehor.finora.designsystem.theme.hairline

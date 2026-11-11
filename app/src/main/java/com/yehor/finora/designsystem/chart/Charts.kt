@@ -1,5 +1,7 @@
 package com.yehor.finora.designsystem.chart
 
+import com.yehor.finora.designsystem.motion.rememberReduceMotion
+import com.yehor.finora.designsystem.motion.FinoraMotion
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -62,7 +64,10 @@ fun DonutChart(
     // Previews and screenshots render a single frame, so they start fully drawn.
     val inspection = LocalInspectionMode.current
     val progress = remember { Animatable(if (inspection) 1f else 0f) }
-    LaunchedEffect(Unit) { progress.animateTo(1f, tween(durationMillis = 500)) }
+    val reduceMotion = rememberReduceMotion()
+    LaunchedEffect(Unit) {
+        if (reduceMotion) progress.snapTo(1f) else progress.animateTo(1f, tween(durationMillis = FinoraMotion.CHART_DRAW_MS))
+    }
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }
     // Start and sweep in degrees, clockwise from 12 o'clock, for drawing and hit testing.
     val arcs = remember(slices) {

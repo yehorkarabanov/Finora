@@ -36,7 +36,7 @@ import com.yehor.finora.designsystem.component.list.GroupedCardShape
 
 /**
  * Scaffold of an edit form: [OrganizeTopBar], the scrolling [content] with 18dp margins and [bottomBar]
- * (normally a [FormCtaBar]). The floating nav bar, when the route shows it, is cleared by the shell.
+ * (normally a [FormCtaBar], which owns the bottom insets). Form routes hide the floating nav bar.
  */
 @Composable
 internal fun FormScreen(

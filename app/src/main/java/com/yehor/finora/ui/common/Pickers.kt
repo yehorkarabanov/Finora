@@ -255,13 +255,16 @@ fun ColorPicker(
             val isSelected = argb == selected
             val description = stringResource(R.string.picker_color_item, index + 1)
             Box(
+                // 48dp hit area around the 40dp swatch.
                 Modifier
-                    .size(40.dp)
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .semantics { contentDescription = description; this.selected = isSelected }
+                    .clickable(role = Role.RadioButton) { onSelect(argb) }
+                    .padding(4.dp)
                     .clip(CircleShape)
                     .background(Color(argb))
-                    .then(if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier)
-                    .semantics { contentDescription = description; this.selected = isSelected }
-                    .clickable(role = Role.RadioButton) { onSelect(argb) },
+                    .then(if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier),
                 contentAlignment = Alignment.Center,
             ) {
                 if (isSelected) Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.padding(4.dp))

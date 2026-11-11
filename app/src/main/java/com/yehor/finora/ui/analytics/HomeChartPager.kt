@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.analytics
 
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -198,8 +200,7 @@ private fun bubbleLabel(chart: HomeChart, index: Int, currency: Currency?, local
     val bucket = chart.buckets.getOrNull(index) ?: return none
     val date = when (chart.unit) {
         BucketUnit.DAY -> bucket.fromDate.format(DateTimeFormatter.ofPattern("d MMM", locale))
-        else -> bucket.fromDate.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+        else -> monthYearName(bucket.fromDate, locale)
     }
     val minor = chart.values.getOrNull(index)
     val amount = if (minor == null || currency == null) {
@@ -214,10 +215,15 @@ private fun bubbleLabel(chart: HomeChart, index: Int, currency: Currency?, local
 @Composable
 private fun PageDots(page: Int, modifier: Modifier = Modifier) {
     val active = page.coerceIn(0, DOT_COUNT - 1)
+    val reduce = rememberReduceMotion()
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(5.dp, androidx.compose.ui.Alignment.CenterHorizontally)) {
         for (i in DOT_COUNT - 1 downTo 0) {
             val on = i == active
-            val width by animateDpAsState(if (on) 18.dp else 6.dp, label = "dot")
+            val width by animateDpAsState(
+                if (on) 18.dp else 6.dp,
+                animationSpec = if (reduce) snap() else spring(),
+                label = "dot",
+            )
             Box(
                 Modifier
                     .size(width = width, height = 6.dp)

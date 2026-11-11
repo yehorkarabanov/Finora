@@ -56,7 +56,6 @@ import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.domain.analytics.UpcomingOccurrences
 import com.yehor.finora.ui.common.OrganizeTopBar
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.draw.clip

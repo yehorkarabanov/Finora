@@ -288,7 +288,7 @@ private fun CategoryListRow(
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (row.hasChildren) {
-                        IconButton(onClick = onToggle, modifier = Modifier.size(44.dp)) {
+                        IconButton(onClick = onToggle, modifier = Modifier.size(48.dp)) {
                             Icon(
                                 AppIcons.Expand,
                                 contentDescription = stringResource(if (row.expanded) R.string.action_collapse else R.string.action_expand),
@@ -297,7 +297,7 @@ private fun CategoryListRow(
                         }
                     }
                     Box {
-                        IconButton(onClick = { menu = true }, modifier = Modifier.size(44.dp)) {
+                        IconButton(onClick = { menu = true }, modifier = Modifier.size(48.dp)) {
                             Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
                         }
                         DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {

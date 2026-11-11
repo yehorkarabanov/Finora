@@ -23,7 +23,7 @@ class DesignSystemBoundaryTest {
 
     @Test
     fun `screens hard-code no colors`() =
-        kt("src/main/java/com/yehor/finora/ui").forEach { f ->
+        kt("src/main/java/com/yehor/finora/ui").also { assertTrue("no screen files scanned", it.isNotEmpty()) }.forEach { f ->
             assertFalse("${f.name} hard-codes a color", Regex("""Color\(0x""").containsMatchIn(f.readText()))
         }
 

@@ -11,7 +11,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 
@@ -27,8 +31,14 @@ fun ListRow(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
 ) {
+    val interaction = remember { MutableInteractionSource() }
     val clickable = if (onClick != null || onLongClick != null) {
-        Modifier.combinedClickable(onClick = { onClick?.invoke() }, onLongClick = onLongClick)
+        Modifier.pressScale(interaction).combinedClickable(
+            interactionSource = interaction,
+            indication = LocalIndication.current,
+            onClick = { onClick?.invoke() },
+            onLongClick = onLongClick,
+        )
     } else {
         Modifier
     }

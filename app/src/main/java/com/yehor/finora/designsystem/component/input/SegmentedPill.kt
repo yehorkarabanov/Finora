@@ -1,5 +1,8 @@
 package com.yehor.finora.designsystem.component.input
 
+import com.yehor.finora.designsystem.motion.rememberReduceMotion
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
@@ -22,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -46,6 +50,7 @@ fun SegmentedPill(
     val scheme = MaterialTheme.colorScheme
     val isDark = MaterialTheme.finance.isDark
     val selectedFill = if (isDark) scheme.surfaceContainerHighest else scheme.surfaceContainerLowest
+    val reduce = rememberReduceMotion()
     val lightHairline = (hairline(false).brush as SolidColor).value
     Row(
         modifier = modifier
@@ -58,9 +63,14 @@ fun SegmentedPill(
             val isSelected = index == selected
             val container by animateColorAsState(
                 if (isSelected) selectedFill else Color.Transparent,
+                animationSpec = if (reduce) snap() else spring(),
                 label = "segmentBg",
             )
-            val borderAlpha by animateFloatAsState(if (isSelected && !isDark) 1f else 0f, label = "segmentBorder")
+            val borderAlpha by animateFloatAsState(
+                if (isSelected && !isDark) 1f else 0f,
+                animationSpec = if (reduce) snap() else spring(),
+                label = "segmentBorder",
+            )
             val interaction = remember { MutableInteractionSource() }
             // 48dp hit area without indication; feedback is drawn on the inner pill so it stays pill-shaped.
             Box(
@@ -81,6 +91,7 @@ fun SegmentedPill(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
+                        .pressScale(interaction)
                         .clip(PillShape)
                         .background(container)
                         .border(BorderStroke(1.dp, lightHairline.copy(alpha = lightHairline.alpha * borderAlpha)), PillShape)

@@ -226,6 +226,7 @@ private fun DetailsShelf(
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
     val dragOffset = remember { Animatable(0f) }
+    val reduceMotionDrag = rememberReduceMotion()
     val dismissDistance = with(density) { DragDismissDistance.toPx() }
     val dragState = rememberDraggableState { delta ->
         scope.launch { dragOffset.snapTo((dragOffset.value + delta).coerceAtLeast(0f)) }
@@ -258,7 +259,7 @@ private fun DetailsShelf(
                             if (dragOffset.value > dismissDistance || velocity > DRAG_DISMISS_VELOCITY) {
                                 onDismiss()
                             } else {
-                                dragOffset.animateTo(0f)
+                                if (reduceMotionDrag) dragOffset.snapTo(0f) else dragOffset.animateTo(0f)
                             }
                         },
                     ),

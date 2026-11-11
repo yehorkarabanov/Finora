@@ -1,5 +1,9 @@
 package com.yehor.finora.designsystem.component.navigation
 
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -73,6 +77,7 @@ fun FinoraNavBar(
             )
             val container by animateColorAsState(
                 if (active) scheme.primaryContainer else scheme.primaryContainer.copy(alpha = 0f),
+                animationSpec = if (reduce) snap() else spring(stiffness = Spring.StiffnessMedium),
                 label = "navPill",
             )
             val content = if (active) scheme.onPrimaryContainer else scheme.onSurfaceVariant
@@ -101,8 +106,8 @@ fun FinoraNavBar(
                 )
                 AnimatedVisibility(
                     visible = active,
-                    enter = fadeIn() + expandHorizontally(),
-                    exit = fadeOut() + shrinkHorizontally(),
+                    enter = if (reduce) EnterTransition.None else fadeIn() + expandHorizontally(),
+                    exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally(),
                 ) {
                     Text(
                         item.label,

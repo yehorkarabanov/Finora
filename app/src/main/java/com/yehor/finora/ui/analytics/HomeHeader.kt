@@ -238,8 +238,6 @@ private fun HomePeriod.span(): HomeSpan = when {
     else -> HomeSpan.RANGE
 }
 
-private fun String.capitalized(locale: Locale) = replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-
 private fun rangeText(period: HomePeriod, locale: Locale): String {
     val short = DateTimeFormatter.ofPattern("LLL yyyy", locale)
     return "${period.from.format(short).capitalized(locale)} – ${period.to.format(short).capitalized(locale)}"
@@ -250,7 +248,7 @@ private fun rangeText(period: HomePeriod, locale: Locale): String {
 internal fun homeChipLabel(period: HomePeriod): String {
     val locale = LocalConfiguration.current.locales[0]
     return when (period.span()) {
-        HomeSpan.MONTH -> period.from.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale)).capitalized(locale)
+        HomeSpan.MONTH -> monthYearName(period.from.atDay(1), locale)
         HomeSpan.YEAR -> period.from.year.toString()
         HomeSpan.RANGE -> rangeText(period, locale)
     }
