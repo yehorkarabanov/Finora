@@ -41,7 +41,7 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagMatchMode
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 
 /** Most used first, then by name. The order is fixed while the sheet is open, so rows never jump on tap. */
 internal fun orderTags(tags: List<Tag>, usage: Map<Long, Int>): List<Tag> =

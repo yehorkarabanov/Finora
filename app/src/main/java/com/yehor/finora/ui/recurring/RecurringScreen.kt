@@ -53,11 +53,11 @@ import com.yehor.finora.domain.recurring.RecurrenceUnit
 import com.yehor.finora.domain.recurring.RecurringSchedule
 import com.yehor.finora.domain.recurring.ScheduleDisplayState
 import com.yehor.finora.domain.recurring.ScheduleStatus
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.time.LocalDate
 
 @Composable

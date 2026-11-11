@@ -54,16 +54,16 @@ import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.category.CategoryRules.ParentCheck
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.CategoryTreePicker
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.ColorPicker
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconKeys
+import com.yehor.finora.designsystem.icon.IconKeys
 import com.yehor.finora.ui.common.IconPicker
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

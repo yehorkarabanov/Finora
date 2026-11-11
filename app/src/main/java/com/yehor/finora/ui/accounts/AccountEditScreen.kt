@@ -72,14 +72,14 @@ import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.ColorPicker
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconKeys
+import com.yehor.finora.designsystem.icon.IconKeys
 import com.yehor.finora.ui.common.IconPicker
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.time.ZoneOffset
 
 @Composable

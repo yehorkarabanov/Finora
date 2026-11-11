@@ -1,7 +1,7 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,9 +73,9 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.recurring.formatScheduleDate
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.time.LocalDate
-import com.yehor.finora.ui.theme.hairline
+import com.yehor.finora.designsystem.theme.hairline
 
 private val SectionShape = RoundedCornerShape(24.dp)
 private val TileShape = RoundedCornerShape(16.dp)
@@ -728,7 +728,7 @@ private fun DashboardPreviewContent(dark: Boolean) {
     val today = LocalDate.of(2026, 11, 9)
     val periodState = com.yehor.finora.domain.analytics.PeriodState()
     val accounts = listOf(acc(1, "Santander", 500_000, pln), acc(2, "IBKR", 200_000, usd), acc(3, "Cash", -3_000, pln))
-    com.yehor.finora.ui.theme.PreviewTheme(dark) {
+    com.yehor.finora.designsystem.theme.PreviewTheme(dark) {
         DashboardContent(
             state = DashboardUiState(
                 loading = false,

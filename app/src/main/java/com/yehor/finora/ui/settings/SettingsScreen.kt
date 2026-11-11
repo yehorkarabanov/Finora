@@ -63,9 +63,9 @@ import com.yehor.finora.domain.model.ThemeMode
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.data.settings.LocaleResolution
 import com.yehor.finora.domain.settings.AppLanguage
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 private val SettingsTopShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
 private val SettingsMiddleShape = RoundedCornerShape(4.dp)

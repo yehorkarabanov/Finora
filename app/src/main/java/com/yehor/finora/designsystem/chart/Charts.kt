@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.common.charts
+package com.yehor.finora.designsystem.chart
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween

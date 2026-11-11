@@ -68,16 +68,16 @@ import com.yehor.finora.data.repo.ReassignTarget
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.CategoryPickerModel
 import com.yehor.finora.ui.common.CategoryTreePicker
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.PickerRow
-import com.yehor.finora.ui.theme.PreviewTheme
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
 
 private val TabOrder = listOf(CategoryType.EXPENSE, CategoryType.INCOME, CategoryType.TRANSFER)
 

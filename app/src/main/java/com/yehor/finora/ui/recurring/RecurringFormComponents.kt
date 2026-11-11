@@ -64,15 +64,15 @@ import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
 import com.yehor.finora.domain.operation.TransactionDateTime
 import com.yehor.finora.domain.operation.TransactionKind
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.operations.AmountKeypad
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import androidx.compose.material3.ripple
-import com.yehor.finora.ui.theme.KeypadNumStyle
+import com.yehor.finora.designsystem.theme.KeypadNumStyle
 
 // Building blocks of the schedule form, in the style of TransactionEditScreen (docs/ui-design-system.md 5.3).
 

@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.common
+package com.yehor.finora.designsystem.icon
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons

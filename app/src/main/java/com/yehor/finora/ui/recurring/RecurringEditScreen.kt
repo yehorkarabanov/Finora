@@ -64,17 +64,17 @@ import com.yehor.finora.domain.recurring.RecurrenceUnit
 import com.yehor.finora.domain.recurring.ScheduleDraftError
 import com.yehor.finora.domain.recurring.ScheduleDraftValidator
 import com.yehor.finora.ui.common.AccountPickerContent
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.CategoryTreePickerContent
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.TagPicker
 import com.yehor.finora.ui.operations.AmountKeypad
-import com.yehor.finora.ui.theme.PreviewTheme
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
 

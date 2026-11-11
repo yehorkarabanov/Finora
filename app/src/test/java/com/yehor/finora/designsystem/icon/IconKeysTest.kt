@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.common
+package com.yehor.finora.designsystem.icon
 
 import com.yehor.finora.domain.category.DefaultCategories
 import org.junit.Assert.assertEquals

@@ -11,7 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.ui.navigation.FinoraShell
 import com.yehor.finora.ui.settings.SettingsViewModel
-import com.yehor.finora.ui.theme.FinoraTheme
+import com.yehor.finora.designsystem.theme.FinoraTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

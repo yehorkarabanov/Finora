@@ -1,5 +1,10 @@
 package com.yehor.finora.ui.common
 
+
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconCatalog
+import com.yehor.finora.designsystem.icon.IconGroup
+import com.yehor.finora.designsystem.icon.IconKeys
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -50,8 +55,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.ui.operations.FilterSearchField
-import com.yehor.finora.ui.theme.PreviewTheme
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
 
 /** A round colored badge with an icon, used for accounts and categories. */
 @Composable

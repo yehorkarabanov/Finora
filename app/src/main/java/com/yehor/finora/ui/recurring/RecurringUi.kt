@@ -27,10 +27,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.domain.operation.TransactionKind
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.finance
-import com.yehor.finora.ui.theme.hairline
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
 
 // Reusable building blocks of the recurring screens (design system 5.1 / 5.3 / 5.5).
 

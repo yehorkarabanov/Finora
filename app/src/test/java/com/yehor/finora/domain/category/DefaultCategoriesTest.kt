@@ -1,6 +1,6 @@
 package com.yehor.finora.domain.category
 
-import com.yehor.finora.ui.common.IconKeys
+import com.yehor.finora.designsystem.icon.IconKeys
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

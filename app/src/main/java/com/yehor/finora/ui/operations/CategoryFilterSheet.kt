@@ -1,7 +1,7 @@
 package com.yehor.finora.ui.operations
 
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +54,7 @@ import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 
 
 // ---- Selection rules (pure, so they can be unit tested) ----

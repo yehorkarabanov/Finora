@@ -57,14 +57,14 @@ import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionDraftError
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.AccountPickerContent
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.CategoryTreePickerContent
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateTimePickerFlow
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
 

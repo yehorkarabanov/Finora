@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.theme
+package com.yehor.finora.designsystem.theme
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape

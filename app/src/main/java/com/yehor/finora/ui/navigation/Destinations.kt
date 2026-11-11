@@ -3,7 +3,7 @@ package com.yehor.finora.ui.navigation
 import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.R
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter

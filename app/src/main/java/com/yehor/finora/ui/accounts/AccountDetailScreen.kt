@@ -50,12 +50,12 @@ import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionItem
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TransactionRow
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.text.DateFormat
 import java.util.Date
 
