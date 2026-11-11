@@ -6,6 +6,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Path
@@ -21,7 +25,7 @@ private const val DARK_GRAIN_ALPHA = 0.05f
 private const val LIGHT_GRAIN_ALPHA = 0.035f
 
 /** Deterministic noise tile: [size]x[size] ARGB pixels, luminance noise, alpha 255, seeded so previews are stable. */
-fun grainPixels(size: Int = 128, seed: Long = 7L): IntArray {
+fun grainPixels(size: Int = TILE_SIZE, seed: Long = 7L): IntArray {
     val random = Random(seed)
     return IntArray(size * size) {
         val l = random.nextInt(256)
@@ -42,15 +46,17 @@ val GrainBrush: ShaderBrush by lazy {
 fun rememberGrainAlpha(): Float = if (MaterialTheme.finance.isDark) DARK_GRAIN_ALPHA else LIGHT_GRAIN_ALPHA
 
 /**
- * Overlays static film grain on this node's content, masked by the content's own alpha: the node is
- * drawn into an offscreen layer and the grain is painted with SrcAtop, so transparent areas stay clean.
+ * Fills this node with [brush] (clipped to [shape]) and film grain, in one offscreen layer. The grain is
+ * painted with SrcAtop, so it follows the brush's alpha and stays invisible where the brush is transparent.
  */
 @Composable
-fun Modifier.grain(alpha: Float? = null): Modifier {
-    val a = alpha ?: rememberGrainAlpha()
+fun Modifier.grainyBackground(brush: Brush, shape: Shape = RectangleShape): Modifier {
+    val a = rememberGrainAlpha()
     return graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).drawWithContent {
+        val outline = shape.createOutline(size, layoutDirection, this)
+        drawOutline(outline, brush)
+        drawOutline(outline, GrainBrush, alpha = a, blendMode = BlendMode.SrcAtop)
         drawContent()
-        drawRect(GrainBrush, alpha = a, blendMode = BlendMode.SrcAtop)
     }
 }
 

@@ -45,7 +45,7 @@ import java.time.YearMonth
 import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
-import com.yehor.finora.designsystem.theme.grain
+import com.yehor.finora.designsystem.theme.grainyBackground
 
 /**
  * Gallery of every design-system component, light and dark. Later tasks append their
@@ -194,11 +194,11 @@ private fun GrainSection(modifier: Modifier = Modifier) {
         Text("Grain", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).clip(shape).background(gradient))
+                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, shape))
                 Text("Plain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).clip(shape).background(gradient).grain())
+                Box(Modifier.fillMaxWidth().height(96.dp).grainyBackground(gradient, shape))
                 Text("Grain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
         }
