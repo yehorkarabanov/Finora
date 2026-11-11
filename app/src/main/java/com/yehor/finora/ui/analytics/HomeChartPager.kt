@@ -59,7 +59,7 @@ private val CardShape = RoundedCornerShape(24.dp)
 /**
  * The swipeable net wave. Page 0 is the latest period of [period]'s chain (never after today); swiping
  * right goes back by the period's length. Each page observes its own chart via [chartFor]. When a page
- * settles, [onShift] moves Home's period there, so the hero, label and chip follow.
+ * settles, [onShow] makes that page's period Home's period, so the hero, label and chip follow.
  *
  * The card is not clipped and every page keeps 16dp around the chart: the wave draws a 16dp bleed.
  */
@@ -69,13 +69,13 @@ internal fun HomeChartPager(
     today: LocalDate,
     display: Currency?,
     chartFor: (HomePeriod) -> Flow<HomeChart>,
-    onShift: (Int) -> Unit,
+    onShow: (HomePeriod) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val page = period.stepsToLatest(today)
     val anchor = period.shifted(page)
     val currentPage by rememberUpdatedState(page)
-    val currentOnShift by rememberUpdatedState(onShift)
+    val currentOnShow by rememberUpdatedState(onShow)
     val haptics = LocalHapticFeedback.current
     val reduceMotion = rememberReduceMotion()
 
@@ -93,7 +93,8 @@ internal fun HomeChartPager(
                 snapshotFlow { pagerState.settledPage }.collect { settled ->
                     if (settled != currentPage) {
                         haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        currentOnShift(currentPage - settled)
+                        // Absolute target: a lagging currentPage can never cause a double shift.
+                        currentOnShow(anchor.shifted(-settled))
                     }
                 }
             }

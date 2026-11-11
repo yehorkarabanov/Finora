@@ -44,4 +44,26 @@ class HomeChartLogicTest {
         assertNull(parseHomePeriod("WEEKS|2026-01|2026-01"))
         assertNull(parseHomePeriod("DAYS|2026-03|2026-01"))
     }
+
+    @Test fun unchangedConfirmKeepsCurrentYear() {
+        val year = HomePeriod.current(MONTHS, nov10)
+        assertEquals(ym(2026, 11), year.sheetTo(nov10))
+        assertEquals(year, confirmedRange(year, ym(2026, 1), ym(2026, 11), nov10))
+    }
+    @Test fun unchangedConfirmKeepsRangeRunningPastToday() {
+        val range = HomePeriod(DAYS, ym(2026, 9), ym(2026, 12))
+        assertEquals(range, confirmedRange(range, ym(2026, 9), ym(2026, 11), nov10))
+    }
+    @Test fun monthsCalendarYearToTodayIsWholeYear() {
+        val past = HomePeriod(MONTHS, ym(2025, 1), ym(2025, 12))
+        assertEquals(HomePeriod.current(MONTHS, nov10), confirmedRange(past, ym(2026, 1), ym(2026, 11), nov10))
+    }
+    @Test fun daysClampedYearStaysARange() {
+        val month = HomePeriod.current(DAYS, nov10)
+        assertEquals(HomePeriod(DAYS, ym(2026, 1), ym(2026, 11)), confirmedRange(month, ym(2026, 1), ym(2026, 11), nov10))
+    }
+    @Test fun changedConfirmTakesTheNewRange() {
+        val year = HomePeriod.current(MONTHS, nov10)
+        assertEquals(HomePeriod(MONTHS, ym(2025, 11), ym(2026, 2)), confirmedRange(year, ym(2025, 11), ym(2026, 2), nov10))
+    }
 }

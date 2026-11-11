@@ -23,7 +23,10 @@ import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.recurring.ScheduleStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -109,9 +112,15 @@ class DashboardViewModel @Inject constructor(
         transactions.observeRecent(TransactionFilter(accountIds = accountIds), RECENT_LIMIT)
     }
 
-    private val chartCache = object : LinkedHashMap<HomePeriod, Flow<HomeChart>>(CHART_CACHE_SIZE, 0.75f, true) {
-        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<HomePeriod, Flow<HomeChart>>?): Boolean =
-            size > CHART_CACHE_SIZE
+    /** A cached chart flow with its own sharing scope, cancelled when the entry is evicted. */
+    private class CachedChart(val job: Job, val flow: Flow<HomeChart>)
+
+    private val chartCache = object : LinkedHashMap<HomePeriod, CachedChart>(CHART_CACHE_SIZE, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<HomePeriod, CachedChart>?): Boolean {
+            val evict = size > CHART_CACHE_SIZE
+            if (evict) eldest?.value?.job?.cancel()
+            return evict
+        }
     }
 
     private val currentChart: Flow<Pair<HomePeriod, HomeChart>> =
@@ -141,7 +150,8 @@ class DashboardViewModel @Inject constructor(
     /** The net wave of [period] for the selected accounts; each chart page observes its own. */
     fun chart(period: HomePeriod): Flow<HomeChart> = synchronized(chartCache) {
         chartCache.getOrPut(period) {
-            combine(
+            val job = SupervisorJob(viewModelScope.coroutineContext[Job])
+            val flow = combine(
                 env.map { it.today to it.zone }.distinctUntilChanged(),
                 _selectedAccountIds,
             ) { day, accountIds -> day to accountIds }
@@ -162,8 +172,9 @@ class DashboardViewModel @Inject constructor(
                     }
                 }
                 .distinctUntilChanged()
-                .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
-        }
+                .shareIn(CoroutineScope(viewModelScope.coroutineContext + job), SharingStarted.WhileSubscribed(5_000), replay = 1)
+            CachedChart(job, flow)
+        }.flow
     }
 
     private fun buildChart(
@@ -220,9 +231,17 @@ class DashboardViewModel @Inject constructor(
         if (steps != 0 && !next.from.isAfter(YearMonth.from(environment.today()))) setHome(next)
     }
 
+    /** A range-sheet confirm; confirming the range the sheet opened with keeps the period (see [confirmedRange]). */
     fun setHomeRange(from: YearMonth, to: YearMonth) {
         if (to.isBefore(from)) return
-        setHome(HomePeriod(_homePeriod.value.mode, from, to).clampedTo(environment.today()))
+        val today = environment.today()
+        val next = confirmedRange(_homePeriod.value, from, to, today).clampedTo(today)
+        if (next != _homePeriod.value) setHome(next)
+    }
+
+    /** Jumps to [period] (a settled chart page); ignored when it starts after today's month. */
+    fun showHomePeriod(period: HomePeriod) {
+        if (period != _homePeriod.value && !period.from.isAfter(YearMonth.from(environment.today()))) setHome(period)
     }
 
     fun toggleAccount(accountId: Long) {

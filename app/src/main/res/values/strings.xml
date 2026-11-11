@@ -731,6 +731,7 @@
     <string name="home_net_in">Net in %1$s</string>
     <string name="home_net_range">Net · %1$s</string>
     <string name="home_in_out">In %1$s · Out %2$s</string>
+    <string name="home_open_transactions">Open transactions</string>
     <string name="home_days">Days</string>
     <string name="home_months">Months</string>
     <string name="home_today">Today</string>

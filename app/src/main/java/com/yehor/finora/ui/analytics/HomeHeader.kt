@@ -112,7 +112,7 @@ internal fun HomePeriodControls(
         val quick = stringResource(if (period.mode == HomeMode.DAYS) R.string.period_this_month else R.string.period_this_year)
         RangeWheelsSheet(
             initialFrom = period.from,
-            initialTo = minOf(period.to, YearMonth.from(today)),
+            initialTo = period.sheetTo(today),
             today = today,
             earliest = null,
             quickOptions = listOf(
@@ -198,7 +198,7 @@ internal fun HomeHero(period: HomePeriod, today: LocalDate, chart: HomeChart?, o
             }
             Box(
                 Modifier.padding(top = 2.dp).heightIn(min = 48.dp).clip(PillShape)
-                    .clickable(role = Role.Button, onClick = onOpenTransactions),
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.home_open_transactions), onClick = onOpenTransactions),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

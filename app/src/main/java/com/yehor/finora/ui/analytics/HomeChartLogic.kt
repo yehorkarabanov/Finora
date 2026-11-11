@@ -49,6 +49,24 @@ fun HomePeriod.stepsToLatest(today: LocalDate): Int {
     return if (gap <= 0) 0 else gap / monthCount
 }
 
+/** The TO month the range sheet opens on: the period's end, but never a future month (the wheels reject those). */
+fun HomePeriod.sheetTo(today: LocalDate): YearMonth = minOf(to, YearMonth.from(today))
+
+/**
+ * The period a range-sheet confirm of [from]..[to] produces. Confirming what the sheet opened with keeps
+ * [period] unchanged (its end may have been clamped to today). In MONTHS a calendar year ending at today's
+ * month means that whole year (Jan–Dec), not an 11-month range.
+ */
+fun confirmedRange(period: HomePeriod, from: YearMonth, to: YearMonth, today: LocalDate): HomePeriod {
+    val current = YearMonth.from(today)
+    return when {
+        from == period.from && to == period.sheetTo(today) -> period
+        period.mode == HomeMode.MONTHS && from.monthValue == 1 && from.year == to.year && to == current ->
+            HomePeriod(HomeMode.MONTHS, from, YearMonth.of(from.year, 12))
+        else -> HomePeriod(period.mode, from, to)
+    }
+}
+
 /** "MODE|yyyy-MM|yyyy-MM", the SavedStateHandle form of a Home period. */
 fun HomePeriod.toSaved(): String = "${mode.name}|$from|$to"
 

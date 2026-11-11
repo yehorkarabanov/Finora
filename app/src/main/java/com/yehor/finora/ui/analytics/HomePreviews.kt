@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-private enum class HomeSample { POSITIVE, NEGATIVE, EMPTY }
+private enum class HomeSample { POSITIVE, NEGATIVE, EMPTY, NO_ACCOUNTS }
 
 @Preview(showBackground = true, heightDp = 1200)
 @Composable
@@ -40,6 +40,14 @@ private fun HomeNoDataPreview() = HomePreview(dark = false, HomeSample.EMPTY)
 @Composable
 private fun HomeNoDataDarkPreview() = HomePreview(dark = true, HomeSample.EMPTY)
 
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun HomeNoAccountsPreview() = HomePreview(dark = false, HomeSample.NO_ACCOUNTS)
+
+@Preview(showBackground = true, heightDp = 800, backgroundColor = 0xFF121314)
+@Composable
+private fun HomeNoAccountsDarkPreview() = HomePreview(dark = true, HomeSample.NO_ACCOUNTS)
+
 @Composable
 private fun HomePreview(dark: Boolean, sample: HomeSample) {
     val pln = CurrencyRegistry.get("PLN")
@@ -51,7 +59,7 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
     val (income, expense) = when (sample) {
         HomeSample.POSITIVE -> List(buckets.size) { if (it == 4) 520_000L else 0L } to List(buckets.size) { if (it % 2 == 0) 31_000L else 9_000L }
         HomeSample.NEGATIVE -> List(buckets.size) { 0L } to List(buckets.size) { 12_000L + it * 1_500L }
-        HomeSample.EMPTY -> List(buckets.size) { 0L } to List(buckets.size) { 0L }
+        HomeSample.EMPTY, HomeSample.NO_ACCOUNTS -> List(buckets.size) { 0L } to List(buckets.size) { 0L }
     }
     val last = period.lastElapsedIndex(today)
     val incomeTotal = income.take(last + 1).sum()
@@ -69,17 +77,17 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
         DashboardContent(
             state = DashboardUiState(
                 loading = false,
-                hasAccounts = true,
+                hasAccounts = sample != HomeSample.NO_ACCOUNTS,
                 today = today,
                 display = pln,
                 homePeriod = period,
                 chart = chart,
-                accounts = listOf(account(1, "Santander"), account(2, "Cash")),
+                accounts = if (sample == HomeSample.NO_ACCOUNTS) emptyList() else listOf(account(1, "Santander"), account(2, "Cash")),
             ),
             actions = DashboardActions({}, {}, {}, {}, {}, {}, {}, {}),
             chartFor = { flowOf(chart) },
             onMode = {},
-            onShift = {},
+            onShow = {},
             onRange = { _, _ -> },
             onToggleAccount = {},
             onClearAccountSelection = {},

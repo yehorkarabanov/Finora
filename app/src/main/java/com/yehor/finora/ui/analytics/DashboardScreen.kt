@@ -79,7 +79,7 @@ fun DashboardScreen(actions: DashboardActions, viewModel: DashboardViewModel = h
         actions = actions,
         chartFor = viewModel::chart,
         onMode = viewModel::setHomeMode,
-        onShift = viewModel::shiftHome,
+        onShow = viewModel::showHomePeriod,
         onRange = viewModel::setHomeRange,
         onToggleAccount = viewModel::toggleAccount,
         onClearAccountSelection = viewModel::clearAccountSelection,
@@ -92,7 +92,7 @@ fun DashboardContent(
     actions: DashboardActions,
     chartFor: (HomePeriod) -> Flow<HomeChart>,
     onMode: (HomeMode) -> Unit,
-    onShift: (Int) -> Unit,
+    onShow: (HomePeriod) -> Unit,
     onRange: (YearMonth, YearMonth) -> Unit,
     onToggleAccount: (Long) -> Unit,
     onClearAccountSelection: () -> Unit,
@@ -135,7 +135,7 @@ fun DashboardContent(
                 }
                 item(key = "chart") {
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        HomeChartPager(period, today, state.display, chartFor, onShift)
+                        HomeChartPager(period, today, state.display, chartFor, onShow)
                         val chart = state.chart
                         val display = state.display
                         if (chart != null && display != null) {
