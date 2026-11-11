@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
@@ -39,10 +41,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.motion.FinoraMotion
 import com.yehor.finora.designsystem.motion.rememberReduceMotion
+import com.yehor.finora.designsystem.theme.GrainBrush
 import com.yehor.finora.designsystem.theme.drawGrain
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.rememberGrainAlpha
-import com.yehor.finora.designsystem.theme.rememberGrainBrush
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -74,7 +76,7 @@ fun WaveChart(
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
     val lineColor = color ?: finance.income
-    val grainBrush = rememberGrainBrush()
+    val grainBrush = if (sparkline) null else GrainBrush
     val grainAlpha = rememberGrainAlpha()
     val reduceMotion = rememberReduceMotion()
     val instant = reduceMotion || LocalInspectionMode.current
@@ -134,7 +136,11 @@ fun WaveChart(
     }
 
     Box(modifier.then(scrub)) {
-        Canvas(Modifier.fillMaxSize().onSizeChanged { size = it }) {
+        Canvas(
+            Modifier.fillMaxSize()
+                .graphicsLayer(compositingStrategy = if (sparkline) CompositingStrategy.Auto else CompositingStrategy.Offscreen)
+                .onSizeChanged { size = it },
+        ) {
             val strokePx = (if (sparkline) 2.dp else 3.dp).toPx()
             val zeroY = layout.zeroY
             clipRect(right = this.size.width * progress.value) {
@@ -166,15 +172,15 @@ fun WaveChart(
                         if (zeroLine && zeroY != null) {
                             clipRect(bottom = zeroY) {
                                 drawPath(fill, fade(lineColor, 0f, zeroY))
-                                drawGrain(grainBrush, grainAlpha, fill)
+                                grainBrush?.let { drawGrain(it, grainAlpha, fill) }
                             }
                             clipRect(top = zeroY) {
                                 drawPath(fill, fade(finance.negative, this.size.height, zeroY))
-                                drawGrain(grainBrush, grainAlpha, fill)
+                                grainBrush?.let { drawGrain(it, grainAlpha, fill) }
                             }
                         } else {
                             drawPath(fill, fade(lineColor, 0f, baseline))
-                            drawGrain(grainBrush, grainAlpha, fill)
+                            grainBrush?.let { drawGrain(it, grainAlpha, fill) }
                         }
                         if (!reduceMotion) {
                             strokeSplit(line, finance.accentGlow, finance.accentGlow, strokePx * 3f, false, zeroY)

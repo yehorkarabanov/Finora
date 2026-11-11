@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -187,16 +188,17 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
 @Composable
 private fun GrainSection(modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(16.dp)
     val gradient = Brush.verticalGradient(listOf(scheme.primary, scheme.background))
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Grain", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, RoundedCornerShape(16.dp)))
+                Box(Modifier.fillMaxWidth().height(96.dp).clip(shape).background(gradient))
                 Text("Plain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, RoundedCornerShape(16.dp)).grain())
+                Box(Modifier.fillMaxWidth().height(96.dp).clip(shape).background(gradient).grain())
                 Text("Grain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
         }

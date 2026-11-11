@@ -1,6 +1,8 @@
 package com.yehor.finora.designsystem.component.input
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.indication
@@ -22,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.theme.PillShape
@@ -33,6 +36,8 @@ import com.yehor.finora.designsystem.theme.hairline
 fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
     val scheme = MaterialTheme.colorScheme
     val isDark = MaterialTheme.finance.isDark
+    val selectedFill = if (isDark) scheme.surfaceContainerHighest else scheme.surfaceContainerLowest
+    val lightHairline = (hairline(false).brush as SolidColor).value
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -42,11 +47,11 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
     ) {
         options.forEachIndexed { index, label ->
             val isSelected = index == selected
-            val selectedFill = if (isDark) scheme.surfaceContainerHighest else scheme.surfaceContainerLowest
             val container by animateColorAsState(
                 if (isSelected) selectedFill else Color.Transparent,
                 label = "segmentBg",
             )
+            val borderAlpha by animateFloatAsState(if (isSelected && !isDark) 1f else 0f, label = "segmentBorder")
             val interaction = remember { MutableInteractionSource() }
             // 48dp hit area without indication; feedback is drawn on the inner pill so it stays pill-shaped.
             Box(
@@ -68,7 +73,7 @@ fun SegmentedPill(options: List<String>, selected: Int, onSelect: (Int) -> Unit,
                         .fillMaxSize()
                         .clip(PillShape)
                         .background(container)
-                        .then(if (isSelected && !isDark) Modifier.border(hairline(false), PillShape) else Modifier)
+                        .border(BorderStroke(1.dp, lightHairline.copy(alpha = lightHairline.alpha * borderAlpha)), PillShape)
                         .indication(interaction, ripple()),
                     contentAlignment = Alignment.Center,
                 ) {

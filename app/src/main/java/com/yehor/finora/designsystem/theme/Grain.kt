@@ -3,10 +3,10 @@ package com.yehor.finora.designsystem.theme
 import android.graphics.Bitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.graphicsLayer
 import java.util.Random
 
 private const val DARK_GRAIN_ALPHA = 0.05f
@@ -28,11 +29,11 @@ fun grainPixels(size: Int = 128, seed: Long = 7L): IntArray {
     }
 }
 
-/** Brush that tiles the grain noise; remembered so the bitmap is built once. */
-@Composable
-fun rememberGrainBrush(): ShaderBrush = remember {
-    val size = 128
-    val bitmap = Bitmap.createBitmap(grainPixels(size), size, size, Bitmap.Config.ARGB_8888).asImageBitmap()
+private const val TILE_SIZE = 128
+
+/** Process-wide grain brush; the tile bitmap is built once, on first use. */
+val GrainBrush: ShaderBrush by lazy {
+    val bitmap = Bitmap.createBitmap(grainPixels(TILE_SIZE), TILE_SIZE, TILE_SIZE, Bitmap.Config.ARGB_8888).asImageBitmap()
     ShaderBrush(ImageShader(bitmap, TileMode.Repeated, TileMode.Repeated))
 }
 
@@ -40,22 +41,27 @@ fun rememberGrainBrush(): ShaderBrush = remember {
 @Composable
 fun rememberGrainAlpha(): Float = if (MaterialTheme.finance.isDark) DARK_GRAIN_ALPHA else LIGHT_GRAIN_ALPHA
 
-/** Overlays static film grain on this node's content. */
+/**
+ * Overlays static film grain on this node's content, masked by the content's own alpha: the node is
+ * drawn into an offscreen layer and the grain is painted with SrcAtop, so transparent areas stay clean.
+ */
 @Composable
 fun Modifier.grain(alpha: Float? = null): Modifier {
-    val brush = rememberGrainBrush()
     val a = alpha ?: rememberGrainAlpha()
-    return drawWithContent {
+    return graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen).drawWithContent {
         drawContent()
-        drawRect(brush, alpha = a, blendMode = BlendMode.Overlay)
+        drawRect(GrainBrush, alpha = a, blendMode = BlendMode.SrcAtop)
     }
 }
 
-/** Draws grain inside a Canvas, clipped to [path] when given. */
+/**
+ * Draws grain inside a Canvas, clipped to [path] when given. Must run inside an offscreen layer
+ * (`graphicsLayer(compositingStrategy = Offscreen)`) so SrcAtop masks it by what is already drawn.
+ */
 fun DrawScope.drawGrain(brush: ShaderBrush, alpha: Float, path: Path? = null) {
     if (path != null) {
-        clipPath(path) { drawRect(brush, alpha = alpha, blendMode = BlendMode.Overlay) }
+        clipPath(path) { drawRect(brush, alpha = alpha, blendMode = BlendMode.SrcAtop) }
     } else {
-        drawRect(brush, alpha = alpha, blendMode = BlendMode.Overlay)
+        drawRect(brush, alpha = alpha, blendMode = BlendMode.SrcAtop)
     }
 }
