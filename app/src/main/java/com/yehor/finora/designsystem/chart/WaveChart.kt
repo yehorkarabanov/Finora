@@ -1,6 +1,7 @@
 package com.yehor.finora.designsystem.chart
 
 import android.graphics.BlurMaskFilter
+import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -11,6 +12,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroid
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -45,7 +51,9 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -65,7 +73,12 @@ import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-/** Pan/zoom callbacks for the wave chart; wired up by the Statistics screen (not handled yet). */
+/**
+ * Pan/zoom callbacks for the wave chart. [onPan] gets the horizontal finger movement as a fraction of the
+ * chart width, positive = towards later dates (finger moving left). [onZoom] gets the pinch factor of one
+ * step (> 1 spreads the fingers) and the pinch centre as a fraction of the width. [onGestureEnd] follows
+ * the release of a pan or pinch.
+ */
 data class WaveGestures(
     val onPan: (deltaFraction: Float) -> Unit,
     val onZoom: (scale: Float, focusFraction: Float) -> Unit,
@@ -78,7 +91,9 @@ private val Bleed = 16.dp
 /**
  * Smooth area chart. Tap or hold-and-drag scrubs to the nearest index ([onSelect]); tapping the
  * selected index again clears it. [sparkline] draws only a 2dp line (no glow, fill, live point, scrub
- * or bubble). [gestures] is accepted for later wiring and is not handled yet.
+ * or bubble). With [gestures], a plain horizontal drag pans and two fingers pinch; vertical drags stay
+ * with the parent scroll, and values that change while (or right after) the fingers move redraw at once
+ * instead of replaying the draw-in.
  *
  * All paths are built once per (values, compare, size, zeroLine); animation frames only move clips,
  * the selection marker and the live-point pulse. The canvas extends [Bleed] beyond the chart's bounds
@@ -105,8 +120,11 @@ fun WaveChart(
     val instant = reduceMotion || LocalInspectionMode.current
 
     val progress = remember { Animatable(if (instant) 1f else 0f) }
+    // Uptime of the last pan/pinch step: data arriving for a moving window must not replay the draw-in.
+    val lastGestureAt = remember { longArrayOf(Long.MIN_VALUE / 2) }
     LaunchedEffect(values) {
-        if (instant) {
+        val following = SystemClock.uptimeMillis() - lastGestureAt[0] < GESTURE_SETTLE_MS
+        if (instant || following) {
             progress.snapTo(1f)
         } else {
             progress.snapTo(0f)
@@ -128,6 +146,7 @@ fun WaveChart(
     val currentValues by rememberUpdatedState(values)
     val currentSelected by rememberUpdatedState(selectedIndex)
     val currentOnSelect by rememberUpdatedState(onSelect)
+    val currentGestures by rememberUpdatedState(gestures)
 
     val density = LocalDensity.current
     val padTop = with(density) { (if (sparkline) 4.dp else 30.dp).toPx() }
@@ -170,6 +189,16 @@ fun WaveChart(
     fun markerX(): Float = if (instant) target?.x ?: 0f else selX.value
     fun markerY(): Float = if (instant) target?.y ?: 0f else selY.value
 
+    val panZoom = if (sparkline || gestures == null) {
+        Modifier
+    } else {
+        Modifier.pointerInput(Unit) {
+            panZoomGestures(
+                gestures = { currentGestures },
+                onStep = { lastGestureAt[0] = SystemClock.uptimeMillis() },
+            )
+        }
+    }
     val scrub = if (sparkline) {
         Modifier
     } else {
@@ -199,7 +228,9 @@ fun WaveChart(
 
     val surface = scheme.surface
     val onSurface = scheme.onSurface
-    Box(modifier.then(scrub).onSizeChanged { size = it }) {
+    // Pan/zoom is outside the scrub handlers: they see each event first, so a long-press scrub consumes
+    // its drag before the pan handler could claim it.
+    Box(modifier.then(panZoom).then(scrub).onSizeChanged { size = it }) {
         Canvas(
             Modifier
                 .fillMaxSize()
@@ -310,6 +341,72 @@ fun WaveChart(
                     .border(hairline(finance.isDark), shape)
                     .padding(horizontal = 10.dp, vertical = 4.dp),
             )
+        }
+    }
+}
+
+/** Data that arrives this soon after a pan/pinch step is following the fingers: no draw-in. */
+private const val GESTURE_SETTLE_MS = 1_000L
+
+/**
+ * One-finger horizontal drag pans, two fingers pinch (and pan by their centroid). A single finger is
+ * only claimed once it has moved past touch slop mostly sideways and before the long-press timeout, so
+ * vertical drags scroll the page and hold-then-drag stays a scrub.
+ */
+private suspend fun PointerInputScope.panZoomGestures(gestures: () -> WaveGestures?, onStep: () -> Unit) {
+    awaitEachGesture {
+        val down = awaitFirstDown(requireUnconsumed = false)
+        val slop = viewConfiguration.touchSlop
+        val longPress = viewConfiguration.longPressTimeoutMillis
+        var claimed = false
+        var dx = 0f
+        var dy = 0f
+        while (true) {
+            val event = awaitPointerEvent()
+            val pressed = event.changes.filter { it.pressed }
+            if (pressed.isEmpty()) break
+            val width = size.width.toFloat().coerceAtLeast(1f)
+            if (pressed.size >= 2) {
+                if (!claimed && event.changes.any { it.isConsumed }) break
+                claimed = true
+                val zoom = event.calculateZoom()
+                val pan = event.calculatePan()
+                val centroid = event.calculateCentroid(useCurrent = true)
+                val g = gestures()
+                if (g != null) {
+                    if (zoom != 1f) g.onZoom(zoom, (centroid.x / width).coerceIn(0f, 1f))
+                    if (pan.x != 0f) g.onPan(-pan.x / width)
+                    onStep()
+                }
+                event.changes.forEach { if (it.positionChange() != Offset.Zero) it.consume() }
+                continue
+            }
+            val change = pressed.first()
+            if (!claimed) {
+                // A scrub (long press) or the parent scroll already owns this drag.
+                if (change.isConsumed) break
+                if (change.uptimeMillis - down.uptimeMillis > longPress) break
+                val delta = change.positionChange()
+                dx += delta.x
+                dy += delta.y
+                if (abs(dx) > slop && abs(dx) > abs(dy)) {
+                    claimed = true
+                } else if (abs(dy) > slop) {
+                    break
+                } else {
+                    continue
+                }
+            }
+            val delta = change.positionChange()
+            if (delta.x != 0f) {
+                gestures()?.onPan(-delta.x / width)
+                onStep()
+            }
+            change.consume()
+        }
+        if (claimed) {
+            onStep()
+            gestures()?.onGestureEnd()
         }
     }
 }

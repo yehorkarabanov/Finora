@@ -300,7 +300,6 @@ class ReportBuilderTest {
 
     @Test
     fun accountAndTagSharesAreAgainstThePeriodTotalEvenWhenDrilledIn() {
-        val buckets = com.yehor.finora.domain.analytics.BucketPlan.months(today, 2, ZoneOffset.UTC)
         val report = ReportBuilder.flow(
             env = env(),
             scope = display,
@@ -309,15 +308,10 @@ class ReportBuilderTest {
             previousRows = null,
             accountRows = Rows.Ok(listOf(row(7, 100))),
             tagRows = Rows.Ok(listOf(row(null, 400))),
-            trendRows = Rows.Ok(emptyList()),
-            trendBuckets = buckets,
-            trendYearly = false,
             path = listOf(1),
         )
         assertEquals(250, report.byAccount.single().share!!.permille)
         assertEquals(1000, report.byTag.single().share!!.permille)
-        assertEquals(2, report.trend.size)
-        assertFalse(report.trendYearly)
     }
 
     @Test

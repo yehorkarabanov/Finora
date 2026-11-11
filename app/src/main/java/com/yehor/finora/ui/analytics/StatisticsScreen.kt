@@ -1,6 +1,7 @@
 package com.yehor.finora.ui.analytics
 
 import com.yehor.finora.designsystem.icon.AppIcons
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,21 +12,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,7 +31,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,87 +67,67 @@ data class StatisticsActions(
 @Composable
 fun StatisticsScreen(actions: StatisticsActions, viewModel: StatisticsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    StatisticsBody(state, viewModel, actions)
+    val trend by viewModel.trend.collectAsStateWithLifecycle()
+    StatisticsBody(state, trend, viewModel, actions)
 }
 
 private val TagSheetSections = setOf(FilterSection.TYPE, FilterSection.ACCOUNT, FilterSection.CATEGORY, FilterSection.DATE)
 
-@OptIn(ExperimentalMaterial3Api::class)
+private val ScreenMargin = 18.dp
+
 @Composable
-private fun StatisticsBody(state: StatisticsUiState, vm: StatisticsViewModel, actions: StatisticsActions) {
+private fun StatisticsBody(state: StatisticsUiState, trend: StatsTrend?, vm: StatisticsViewModel, actions: StatisticsActions) {
     val env = state.env
     val scope = state.scope
     val controls = state.controls
     var filterSheet by rememberSaveable { mutableStateOf(false) }
+    var optionsSheet by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_statistics)) }) }) { padding ->
-        if ((state.loading || env == null) || scope == null) {
-            Box(Modifier.fillMaxSize().padding(padding))
-            return@Scaffold
-        }
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
+        if ((state.loading || env == null) || scope == null) return@Box
+        val hasOptions = controls.tab != StatsTab.ACCOUNTS
         LazyColumn(
-            Modifier.fillMaxSize().padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(start = ScreenMargin, end = ScreenMargin, top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            item(key = "tabs") {
-                PrimaryTabRow(selectedTabIndex = controls.tab.ordinal) {
-                    StatsTab.entries.forEach { tab ->
-                        Tab(
-                            selected = controls.tab == tab,
-                            onClick = { vm.selectTab(tab) },
-                            text = { Text(stringResource(tab.labelRes()), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        )
-                    }
-                }
-            }
+            item(key = "top") { StatsTopBar(onOptions = if (hasOptions) ({ optionsSheet = true }) else null) }
+            item(key = "tabs") { StatsTabs(controls.tab, vm::selectTab) }
             item(key = "period") {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    PeriodSelector(
-                        state = env.periodState,
-                        period = env.period,
-                        onSelect = vm::selectPeriod,
-                        onCustom = vm::setCustomPeriod,
-                        modifier = Modifier.weight(1f),
-                        arrows = true,
-                        canShiftForward = env.canShiftForward,
-                        onShift = vm::shiftPeriod,
-                    )
-                    if (controls.tab != StatsTab.ACCOUNTS) {
-                        AccountSelector(
-                            accounts = env.allAccounts,
-                            selectedAccountIds = controls.selectedAccountIds,
-                            onToggleAccount = vm::toggleAccount,
-                            onClearSelection = vm::clearAccounts,
-                        )
-                    }
-                }
+                StatsPeriodBlock(
+                    state = env.periodState,
+                    period = env.period,
+                    today = env.today,
+                    canShiftForward = env.canShiftForward,
+                    onSelect = vm::selectPeriod,
+                    onShift = vm::shiftPeriod,
+                    onMonths = vm::selectMonths,
+                    onCustom = vm::setCustomPeriod,
+                )
             }
             if (controls.tab != StatsTab.ACCOUNTS) {
-                item(key = "compare") {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.stats_compare), style = MaterialTheme.typography.bodyLarge)
-                            state.previousPeriod?.let {
-                                Text(
-                                    stringResource(R.string.stats_compare_previous, rangeLabel(it)),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                        Switch(checked = controls.compare, onCheckedChange = vm::setCompare)
-                    }
-                }
                 item(key = "note") { ConversionNote(state.conversion, scope) }
             }
             when (val content = state.content) {
-                is StatsContent.Flows -> flowItems(content.tab, state, vm, actions)
+                is StatsContent.Flows -> flowItems(content.tab, trend, state, vm, actions)
                 is StatsContent.Tags -> tagItems(content.tab, state, vm, actions) { filterSheet = true }
                 is StatsContent.Accounts -> accountItems(content.rows, actions)
                 null -> Unit
             }
         }
+    }
+
+    if (optionsSheet && env != null && controls.tab != StatsTab.ACCOUNTS) {
+        StatsOptionsSheet(
+            accounts = env.allAccounts,
+            selectedAccountIds = controls.selectedAccountIds,
+            onToggleAccount = vm::toggleAccount,
+            onClearAccounts = vm::clearAccounts,
+            compare = controls.compare,
+            previousLabel = state.previousPeriod?.let { rangeLabel(it) },
+            onCompare = vm::setCompare,
+            onDismiss = { optionsSheet = false },
+        )
     }
 
     if (filterSheet && env != null) {
@@ -171,13 +146,6 @@ private fun StatisticsBody(state: StatisticsUiState, vm: StatisticsViewModel, ac
     }
 }
 
-private fun StatsTab.labelRes(): Int = when (this) {
-    StatsTab.EXPENSES -> R.string.stats_tab_expenses
-    StatsTab.INCOME -> R.string.stats_tab_income
-    StatsTab.TAGS -> R.string.stats_tab_tags
-    StatsTab.ACCOUNTS -> R.string.stats_tab_accounts
-}
-
 private fun Measure.labelRes(): Int = when (this) {
     Measure.EXPENSE -> R.string.stats_measure_expense
     Measure.INCOME -> R.string.stats_measure_income
@@ -188,6 +156,7 @@ private fun Measure.labelRes(): Int = when (this) {
 
 private fun androidx.compose.foundation.lazy.LazyListScope.flowItems(
     tab: FlowTab,
+    trend: StatsTrend?,
     state: StatisticsUiState,
     vm: StatisticsViewModel,
     actions: StatisticsActions,
@@ -196,18 +165,27 @@ private fun androidx.compose.foundation.lazy.LazyListScope.flowItems(
     val env = state.env ?: return
     val compare = state.controls.compare
     item(key = "total") {
-        Column {
-            Text(
-                stringResource(report.measure.labelRes()),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            AmountText(report.category.total, style = MaterialTheme.typography.headlineSmall)
-            if (compare) {
-                val text = deltaText(report.category.totalDelta)
-                if (text.isNotEmpty()) Text(text, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
+        StatsHero(
+            measure = report.measure,
+            state = env.periodState,
+            period = env.period,
+            previous = state.previousPeriod,
+            today = env.today,
+            total = report.category.total,
+            delta = if (compare) report.category.totalDelta else null,
+        )
+    }
+    item(key = "trend") {
+        StatsTrendCard(
+            trend = trend,
+            committed = ChartWindow.of(env.period),
+            today = env.today,
+            currentName = periodShortName(env.period, env.today),
+            previousName = state.previousPeriod?.let { periodShortName(it, env.today) },
+            onPreview = vm::previewWindow,
+            onCommit = vm::commitWindow,
+            onOpenBucket = { t, bucket -> actions.onOpenTransactions(AnalyticsFilters.bucket(t.base, t.measure, bucket)) },
+        )
     }
     item(key = "categories") {
         CategorySection(
@@ -272,30 +250,6 @@ private fun androidx.compose.foundation.lazy.LazyListScope.flowItems(
                     )
                 }
             }
-        }
-    }
-    item(key = "trend") {
-        Column {
-            SectionTitle(stringResource(R.string.stats_trend))
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = !report.trendYearly,
-                    onClick = { vm.setTrendYearly(false) },
-                    label = { Text(stringResource(R.string.stats_trend_monthly)) },
-                )
-                FilterChip(
-                    selected = report.trendYearly,
-                    onClick = { vm.setTrendYearly(true) },
-                    label = { Text(stringResource(R.string.stats_trend_yearly)) },
-                )
-            }
-            TrendSection(
-                points = report.trend,
-                unit = if (report.trendYearly) BucketUnit.YEAR else BucketUnit.MONTH,
-                onOpen = { bucket ->
-                    actions.onOpenTransactions(AnalyticsFilters.bucket(tab.trendBase, report.measure, bucket))
-                },
-            )
         }
     }
 }

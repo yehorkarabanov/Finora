@@ -57,6 +57,7 @@ import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
@@ -87,6 +88,7 @@ object AppIcons {
     val Search: ImageVector get() = Icons.Outlined.Search
     val SearchEmpty: ImageVector get() = Icons.Outlined.SearchOff
     val Sort: ImageVector get() = Icons.AutoMirrored.Outlined.Sort
+    val Filter: ImageVector get() = Icons.Outlined.FilterList
     val SwapVertical: ImageVector get() = Icons.Outlined.SwapVert
 
     // Concepts

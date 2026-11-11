@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.domain.analytics.Bucket
 import com.yehor.finora.domain.analytics.BucketUnit
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CategoryDrill
@@ -64,8 +63,6 @@ data class FlowReport(
     val category: CategoryReport,
     val byAccount: List<BreakdownLine>,
     val byTag: List<BreakdownLine>,
-    val trend: List<TrendPoint>,
-    val trendYearly: Boolean,
 )
 
 /** Pure assembly of the numbers the analytics screens show. Everything converted goes through [ScopeConverter]. */
@@ -141,9 +138,6 @@ object ReportBuilder {
         previousRows: Rows?,
         accountRows: Rows,
         tagRows: Rows,
-        trendRows: Rows,
-        trendBuckets: List<Bucket>,
-        trendYearly: Boolean,
         path: List<Long>,
     ): FlowReport {
         val converter = ScopeConverter(scope, env.table, env.now)
@@ -155,8 +149,6 @@ object ReportBuilder {
             category = category,
             byAccount = breakdown(accountRows, converter, periodTotal),
             byTag = breakdown(tagRows, converter, periodTotal),
-            trend = Reports.trend(trendBuckets, trendRows.list(), converter),
-            trendYearly = trendYearly,
         )
     }
 

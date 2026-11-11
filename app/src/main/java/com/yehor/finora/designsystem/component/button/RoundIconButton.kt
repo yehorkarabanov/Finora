@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -18,20 +19,22 @@ import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
 
-/** 40dp circular container-colored icon button (top bars, filters). */
+/** 40dp circular container-colored icon button (top bars, filters). Disabled, it is dimmed and ignores taps. */
 @Composable
 fun RoundIconButton(
     icon: ImageVector,
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
 ) {
     // 48dp hit area around the 40dp visual circle.
     Box(
         modifier = modifier
             .size(48.dp)
             .clip(CircleShape)
-            .clickable(role = Role.Button, onClick = onClick),
+            .alpha(if (enabled) 1f else 0.38f)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Box(

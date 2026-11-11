@@ -182,6 +182,7 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
         Text("Controls", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         SegmentedPill(listOf("Expense", "Income", "Transfer"), segment, { segment = it })
         SegmentedPill(listOf("Expense", "Income", "Transfer"), 1, {}, enabled = false)
+        SegmentedPill(listOf("Week", "Month", "Year"), -1, {})
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             FilterPill("Account", active = false, onClick = { filter = true })
             FilterPill("Groceries", active = filter, onClick = {}, onClear = { filter = false })
@@ -191,6 +192,7 @@ private fun ControlsSection(modifier: Modifier = Modifier) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             RoundIconButton(AppIcons.Search, "Search", {})
             RoundIconButton(AppIcons.Sort, "Sort", {})
+            RoundIconButton(AppIcons.Next, "Next", {}, enabled = false)
         }
         AmountText("1 234,56", MaterialTheme.typography.displayLarge, scheme.onSurface)
         AmountText("-48.20", MaterialTheme.typography.titleLarge, MaterialTheme.finance.negative)
