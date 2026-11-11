@@ -1,7 +1,7 @@
 package com.yehor.finora.ui.operations
 
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -91,14 +91,14 @@ import com.yehor.finora.ui.analytics.AccountSelector
 import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.common.compactRangeLabel
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
-import com.yehor.finora.ui.theme.hairline
+import com.yehor.finora.designsystem.theme.hairline
 
 // A day of transactions is one connected group: only its outer corners are rounded (design system §5.3).
 private val GroupRadius = 20.dp

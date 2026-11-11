@@ -70,10 +70,10 @@ import com.yehor.finora.R
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagNameError
 import com.yehor.finora.domain.tag.TagWithUsage
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPicker
-import com.yehor.finora.ui.theme.PreviewTheme
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
 
 private val GroupRadius = 20.dp
 private val GroupInnerRadius = 4.dp

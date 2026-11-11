@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.common
 
+
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.yehor.finora.R
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset

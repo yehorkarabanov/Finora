@@ -1,6 +1,6 @@
 package com.yehor.finora.ui.operations
 
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

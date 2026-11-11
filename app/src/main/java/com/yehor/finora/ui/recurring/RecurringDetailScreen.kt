@@ -54,10 +54,10 @@ import com.yehor.finora.domain.recurring.RecurringSchedule
 import com.yehor.finora.domain.recurring.ScheduleDisplayState
 import com.yehor.finora.domain.recurring.ScheduleStatus
 import com.yehor.finora.domain.recurring.displayState
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TagChip
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

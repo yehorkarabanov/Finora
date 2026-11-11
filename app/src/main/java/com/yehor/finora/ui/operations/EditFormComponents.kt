@@ -79,21 +79,21 @@ import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionDraftValidator
 import com.yehor.finora.domain.tag.Tag
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.TagPicker
 import com.yehor.finora.ui.common.rememberTimeFormatter
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import androidx.compose.material3.ripple
-import com.yehor.finora.ui.theme.KeypadNumStyle
+import com.yehor.finora.designsystem.theme.KeypadNumStyle
 
 // Building blocks shared by the Expense/Income and the Transfer modes of the unified editor.
 

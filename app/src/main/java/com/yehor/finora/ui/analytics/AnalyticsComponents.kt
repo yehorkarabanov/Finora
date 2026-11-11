@@ -1,7 +1,7 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -64,13 +64,13 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.compactRangeLabel
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.theme.finance
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-import com.yehor.finora.ui.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.AmountStyle
 
 // ---- Text helpers ----
 

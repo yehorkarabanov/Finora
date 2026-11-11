@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.theme
+package com.yehor.finora.designsystem.motion
 
 import android.provider.Settings
 import androidx.compose.animation.core.FastOutSlowInEasing

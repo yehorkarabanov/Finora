@@ -33,9 +33,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 private data class MoreEntry(
     val icon: ImageVector,

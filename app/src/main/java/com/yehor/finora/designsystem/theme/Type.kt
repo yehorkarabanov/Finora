@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.theme
+package com.yehor.finora.designsystem.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi

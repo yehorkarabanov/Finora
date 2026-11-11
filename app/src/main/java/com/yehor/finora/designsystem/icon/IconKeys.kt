@@ -1,4 +1,4 @@
-package com.yehor.finora.ui.common
+package com.yehor.finora.designsystem.icon
 
 /** A titled section of the icon picker. [id] maps to a string resource in the UI layer. */
 data class IconGroup(val id: String, val keys: List<String>)

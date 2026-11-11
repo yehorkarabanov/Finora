@@ -40,9 +40,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.PaddingValues
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
-import com.yehor.finora.ui.theme.PreviewTheme
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 // Connected group: only its outer corners are rounded.
 private val GroupRadius = 20.dp

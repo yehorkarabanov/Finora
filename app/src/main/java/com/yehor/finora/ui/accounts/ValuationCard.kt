@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.domain.money.Currency
-import com.yehor.finora.ui.common.AppIcons
-import com.yehor.finora.ui.common.IconSize
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

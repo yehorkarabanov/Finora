@@ -37,9 +37,9 @@ import com.yehor.finora.domain.analytics.Share
 import com.yehor.finora.domain.analytics.share
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.ui.common.ColorPalette
-import com.yehor.finora.ui.common.charts.DonutChart
-import com.yehor.finora.ui.common.charts.DonutSlice
-import com.yehor.finora.ui.theme.finance
+import com.yehor.finora.designsystem.chart.DonutChart
+import com.yehor.finora.designsystem.chart.DonutSlice
+import com.yehor.finora.designsystem.theme.finance
 
 /** "Food", "Food (direct)" or "Uncategorized". */
 @Composable
@@ -208,7 +208,7 @@ private fun CategoryBreakdownDarkPreview() {
         com.yehor.finora.domain.money.Estimate(minor, pln, com.yehor.finora.domain.money.EstimateBasis.NATIVE),
         2, emptySet(), false, null,
     )
-    com.yehor.finora.ui.theme.PreviewTheme(dark = true) {
+    com.yehor.finora.designsystem.theme.PreviewTheme(dark = true) {
         val f = MaterialTheme.finance
         val raw = listOf(
             "Food" to (70_000L to 0xFFDC2626L),

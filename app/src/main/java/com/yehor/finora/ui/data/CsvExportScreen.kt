@@ -1,6 +1,6 @@
 package com.yehor.finora.ui.data
 
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement

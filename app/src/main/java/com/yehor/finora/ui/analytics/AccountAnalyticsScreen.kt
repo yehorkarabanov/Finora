@@ -1,6 +1,6 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -40,7 +40,7 @@ import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
-import com.yehor.finora.ui.common.charts.BalanceLine
+import com.yehor.finora.designsystem.chart.BalanceLine
 import java.time.format.DateTimeFormatter
 
 @Composable

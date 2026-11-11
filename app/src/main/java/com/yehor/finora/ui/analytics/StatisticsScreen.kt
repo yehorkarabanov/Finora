@@ -1,6 +1,6 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.ui.common.AppIcons
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,8 +56,8 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TagFilterPicker
 import com.yehor.finora.ui.common.TransactionRow
-import com.yehor.finora.ui.common.charts.Bar
-import com.yehor.finora.ui.common.charts.TrendBars
+import com.yehor.finora.designsystem.chart.Bar
+import com.yehor.finora.designsystem.chart.TrendBars
 import com.yehor.finora.ui.operations.FilterSection
 import com.yehor.finora.ui.operations.TransactionFilterSheet
 import java.time.format.DateTimeFormatter
