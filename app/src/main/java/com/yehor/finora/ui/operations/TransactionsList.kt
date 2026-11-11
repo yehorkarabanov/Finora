@@ -120,8 +120,8 @@ internal fun TransactionsList(
     onOpenTransaction: (TransactionItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Day rows only change when items are added or removed, the last page arrives, or the order changes.
-    val sections = remember(source.count, source.endReached, state.sort, state.filter) { buildSections(source) }
+    // Not remembered: loaded rows can change without the count changing (an in-place edit), and a stale day net is wrong.
+    val sections = buildSections(source)
     LazyColumn(modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)) {
         if (state.filter.isActive && state.summary.isNotEmpty()) {
             item(key = "summary") {
