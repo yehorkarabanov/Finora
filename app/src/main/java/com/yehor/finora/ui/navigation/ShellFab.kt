@@ -9,11 +9,29 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.component.navigation.AddFabBottomOffsetDp
+import com.yehor.finora.designsystem.component.navigation.AddFabHeightDp
 import com.yehor.finora.designsystem.component.navigation.SpeedDialItem
 import kotlinx.coroutines.DisposableHandle
 
 /** Bottom space that content must leave free for the floating nav bar: 56dp bar + 14dp gap + 16dp breathing room. */
 val ShellContentBottomPaddingDp = 56 + 14 + 16
+
+/** Gap between the last list row and the top of the shell FAB. */
+private const val FAB_GAP_DP = 22
+
+/**
+ * Extra bottom content padding for a screen that binds the shell FAB, on top of [ShellContentBottomPaddingDp]:
+ * the FAB (collapsed or extended, same height) spans [AddFabBottomOffsetDp]..+[AddFabHeightDp] above the nav
+ * inset, so the last row needs 84 + 52 + 22 - 86 = 72dp more to scroll fully clear of it.
+ */
+val ShellFabClearance: Dp = (AddFabBottomOffsetDp + AddFabHeightDp + FAB_GAP_DP - ShellContentBottomPaddingDp).dp
+
+/** Snackbar bottom offset above the nav inset: just over the nav bar, or over the FAB when a screen binds one. */
+fun shellSnackbarBottom(fabBound: Boolean): Dp =
+    if (fabBound) (AddFabBottomOffsetDp + AddFabHeightDp + 8).dp else 76.dp
 
 /** A screen's FAB registration. */
 @Stable

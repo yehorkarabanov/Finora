@@ -140,12 +140,15 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
                 ShellFabHost(fabController)
             }
 
+            // Drawn after the FAB host so it stays on top; lifted over the FAB while a screen binds one.
             SnackbarHost(
                 snackbarHostState,
                 Modifier
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
-                    .padding(bottom = if (showBottomBar) 76.dp else 0.dp),
+                    .padding(
+                        bottom = if (showBottomBar) shellSnackbarBottom(fabBound = fabController.registration != null) else 0.dp,
+                    ),
             )
         }
 

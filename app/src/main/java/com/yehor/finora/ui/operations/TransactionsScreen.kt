@@ -54,6 +54,7 @@ import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.ui.navigation.BindShellFab
+import com.yehor.finora.ui.navigation.ShellFabClearance
 import java.time.LocalDate
 
 @Composable
@@ -132,7 +133,8 @@ fun TransactionsScreen(
             onOpenTransaction = onOpenTransaction,
             onExportCsv = { onExportCsv(state.filter) },
         )
-        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter))
+        // Above the shell FAB (drawn over this screen), so the message never hides under it.
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = ShellFabClearance))
     }
 
     if (categorySheetOpen) {

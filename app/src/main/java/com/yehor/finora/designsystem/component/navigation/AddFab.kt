@@ -61,6 +61,12 @@ data class SpeedDialItem(val label: String, val icon: ImageVector, val onClick: 
 
 private const val STAGGER_MS = 50L
 
+/** The FAB sits this far above the system nav inset (clear of the floating nav bar). */
+const val AddFabBottomOffsetDp = 84
+
+/** Minimum height of the FAB pill. */
+const val AddFabHeightDp = 52
+
 /**
  * Floating add button above the nav bar. Fills its parent so the scrim can dim the whole screen;
  * place it as the last child of the shell Box (it never consumes touches while collapsed).
@@ -103,7 +109,7 @@ fun AddFab(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .navigationBarsPadding()
-                .padding(end = 22.dp, bottom = 84.dp),
+                .padding(end = 22.dp, bottom = AddFabBottomOffsetDp.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -151,7 +157,7 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
             }
             .scale(1f - 0.6f * coerced)
             .shadow(if (open) 0.dp else 8.dp, PillShape, spotColor = MaterialTheme.finance.accentGlow)
-            .heightIn(min = 52.dp)
+            .heightIn(min = AddFabHeightDp.dp)
             .background(container, PillShape)
             .clickable(interactionSource = interaction, indication = LocalIndication.current, role = Role.Button, enabled = mode != FabMode.HIDDEN, onClick = onClick)
             .padding(horizontal = 14.dp),

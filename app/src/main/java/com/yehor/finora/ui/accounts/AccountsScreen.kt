@@ -79,6 +79,7 @@ import com.yehor.finora.domain.money.EstimateBasis
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.navigation.BindShellFab
+import com.yehor.finora.ui.navigation.ShellFabClearance
 import java.math.BigDecimal
 
 @StringRes
@@ -172,7 +173,7 @@ fun AccountsContent(
             LazyColumn(
                 Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 96.dp),
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp + ShellFabClearance),
             ) {
                 state.valuation?.let { valuation ->
                     item(key = "header") { AccountsTotalHeader(state, valuation) }

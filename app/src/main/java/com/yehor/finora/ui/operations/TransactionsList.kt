@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
+import com.yehor.finora.ui.navigation.ShellFabClearance
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.display.AmountText
 import com.yehor.finora.designsystem.component.list.GroupedCard
@@ -122,7 +123,7 @@ internal fun TransactionsList(
 ) {
     // Not remembered: loaded rows can change without the count changing (an in-place edit), and a stale day net is wrong.
     val sections = buildSections(source)
-    LazyColumn(modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp)) {
+    LazyColumn(modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp + ShellFabClearance)) {
         if (state.filter.isActive && state.summary.isNotEmpty()) {
             item(key = "summary") {
                 SummaryCard(state, Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
