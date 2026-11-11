@@ -1,45 +1,29 @@
 package com.yehor.finora.ui.data
 
 import com.yehor.finora.designsystem.icon.AppIcons
-import android.text.format.Formatter
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -53,17 +37,19 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.tooling.preview.Preview
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.domain.dataio.BackupFileNames
 import com.yehor.finora.domain.dataio.DataSummary
 import com.yehor.finora.domain.dataio.ImportFailure
 import com.yehor.finora.domain.dataio.ImportReportFormatter
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DataScreen(
     onBack: () -> Unit,
@@ -100,140 +86,25 @@ fun DataScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.data_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            AppIcons.Back,
-                            contentDescription = stringResource(R.string.navigate_back),
-                        )
-                    }
-                },
+    DataContent(
+        state = state,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onBackup = {
+            val fileName = BackupFileNames.backup(System.currentTimeMillis(), ZoneId.systemDefault())
+            backupLauncher.launch(fileName)
+        },
+        onRestore = {
+            restoreLauncher.launch(
+                arrayOf(
+                    "application/vnd.sqlite3",
+                    "application/x-sqlite3",
+                    "application/octet-stream",
+                ),
             )
         },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            // Summary Card
-            DataSummaryCard(state.summary, state.appVersion)
-
-            // Backup Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        stringResource(R.string.data_backup_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Button(
-                        onClick = {
-                            val fileName = BackupFileNames.backup(System.currentTimeMillis(), ZoneId.systemDefault())
-                            backupLauncher.launch(fileName)
-                        },
-                        enabled = !state.isBusy,
-                    ) {
-                        Text(stringResource(R.string.data_backup_button))
-                    }
-
-                    when (val exp = state.exportState) {
-                        is ExportState.Exporting -> {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.data_backup_exporting))
-                            }
-                        }
-                        is ExportState.Done -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(AppIcons.Success, null, tint = MaterialTheme.colorScheme.primary)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        stringResource(R.string.data_backup_done_title) + " (${exp.fileName})",
-                                        fontWeight = FontWeight.Bold,
-                                    )
-                                }
-                                Text(
-                                    stringResource(R.string.data_backup_notice),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        }
-                        is ExportState.Failed -> {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(AppIcons.Error, null, tint = MaterialTheme.colorScheme.error)
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    stringResource(R.string.data_backup_failed, exp.message),
-                                    color = MaterialTheme.colorScheme.error,
-                                )
-                            }
-                        }
-                        ExportState.Idle -> Unit
-                    }
-                }
-            }
-
-            // Restore Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        stringResource(R.string.data_restore_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Button(
-                        onClick = {
-                            restoreLauncher.launch(
-                                arrayOf(
-                                    "application/vnd.sqlite3",
-                                    "application/x-sqlite3",
-                                    "application/octet-stream",
-                                ),
-                            )
-                        },
-                        enabled = !state.isBusy,
-                    ) {
-                        Text(stringResource(R.string.data_restore_button))
-                    }
-                }
-            }
-
-            // CSV Export Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            ) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        stringResource(R.string.data_export_csv_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Button(
-                        onClick = onOpenCsvExport,
-                        enabled = !state.isBusy,
-                    ) {
-                        Text(stringResource(R.string.data_export_csv_button))
-                    }
-                }
-            }
-        }
-    }
+        onOpenCsvExport = onOpenCsvExport,
+    )
 
     // Restore State Overlays / Dialogs
     when (val res = state.restoreState) {
@@ -242,7 +113,7 @@ fun DataScreen(
                 onDismissRequest = { viewModel.cancelRestore() },
                 properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false),
             ) {
-                Card(Modifier.padding(16.dp)) {
+                GroupedCard(Modifier.padding(16.dp)) {
                     Column(
                         Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -288,6 +159,8 @@ fun DataScreen(
                 },
             )
             AlertDialog(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(28.dp),
                 onDismissRequest = { viewModel.cancelRestore() },
                 title = { Text(stringResource(R.string.data_restore_reject_title)) },
                 text = {
@@ -335,6 +208,8 @@ fun DataScreen(
         }
         is RestoreState.Preview -> {
             AlertDialog(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(28.dp),
                 onDismissRequest = { viewModel.cancelRestore() },
                 title = { Text(stringResource(R.string.data_restore_preview_title)) },
                 text = {
@@ -373,12 +248,10 @@ fun DataScreen(
                     }
                 },
                 confirmButton = {
-                    Button(
+                    PrimaryButton(
+                        text = stringResource(R.string.data_restore_action_replace),
                         onClick = { viewModel.confirmRestore() },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                    ) {
-                        Text(stringResource(R.string.data_restore_action_replace))
-                    }
+                    )
                 },
                 dismissButton = {
                     Column {
@@ -402,7 +275,7 @@ fun DataScreen(
                 onDismissRequest = {},
                 properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false),
             ) {
-                Card(Modifier.padding(16.dp)) {
+                GroupedCard(Modifier.padding(16.dp)) {
                     Column(
                         Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -416,50 +289,6 @@ fun DataScreen(
             }
         }
         RestoreState.Idle -> Unit
-    }
-}
-
-@Composable
-private fun DataSummaryCard(summary: DataSummary?, appVersion: String) {
-    val context = LocalContext.current
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(stringResource(R.string.data_summary_title), style = MaterialTheme.typography.titleMedium)
-            HorizontalDivider(Modifier.padding(vertical = 4.dp))
-
-            if (summary != null) {
-                SummaryRow(stringResource(R.string.data_accounts), "${summary.accounts} (${summary.activeAccounts})")
-                SummaryRow(stringResource(R.string.data_transactions), summary.transactions.toString())
-                SummaryRow(stringResource(R.string.data_transfers), summary.transfers.toString())
-                SummaryRow(stringResource(R.string.data_categories), summary.categories.toString())
-                SummaryRow(stringResource(R.string.data_tags), summary.tags.toString())
-                SummaryRow(stringResource(R.string.data_schedules), summary.schedules.toString())
-
-                val periodText = if (summary.firstOperationAt != null && summary.lastOperationAt != null) {
-                    val fmt = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-                    val first = Instant.ofEpochMilli(summary.firstOperationAt).atZone(ZoneId.systemDefault()).toLocalDate()
-                    val last = Instant.ofEpochMilli(summary.lastOperationAt).atZone(ZoneId.systemDefault()).toLocalDate()
-                    "${first.format(fmt)} to ${last.format(fmt)}"
-                } else {
-                    stringResource(R.string.data_period_empty)
-                }
-                SummaryRow(stringResource(R.string.data_period), periodText)
-                SummaryRow(stringResource(R.string.data_database_size), Formatter.formatFileSize(context, summary.databaseBytes))
-                SummaryRow(stringResource(R.string.data_schema_version), summary.schemaVersion.toString())
-            }
-            SummaryRow(stringResource(R.string.data_app_version), appVersion)
-        }
-    }
-}
-
-@Composable
-private fun SummaryRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
     }
 }
 

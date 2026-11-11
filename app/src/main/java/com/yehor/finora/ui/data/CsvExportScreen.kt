@@ -10,22 +10,17 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,11 +32,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Preview
 import com.yehor.finora.R
+import com.yehor.finora.data.dataio.CsvExportResult
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.SectionHeader
+import com.yehor.finora.ui.common.OrganizeTopBar
 import com.yehor.finora.domain.dataio.BackupFileNames
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -52,14 +56,12 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun CsvExportScreen(
     onBack: () -> Unit,
     viewModel: CsvExportViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
     val zone = remember { ZoneId.systemDefault() }
 
     val launcher = rememberLauncherForActivityResult(
@@ -70,53 +72,53 @@ fun CsvExportScreen(
         }
     }
 
+    CsvExportContent(
+        state = state,
+        zone = zone,
+        onBack = onBack,
+        onFilterChange = viewModel::onFilterChange,
+        onExport = { launcher.launch(BackupFileNames.csv(System.currentTimeMillis(), zone)) },
+    )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun CsvExportContent(
+    state: CsvExportUiState,
+    zone: ZoneId,
+    onBack: () -> Unit,
+    onFilterChange: (TransactionFilter) -> Unit,
+    onExport: () -> Unit,
+) {
+    var filterSheetOpen by rememberSaveable { mutableStateOf(false) }
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.csv_export_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            AppIcons.Back,
-                            contentDescription = stringResource(R.string.navigate_back),
-                        )
-                    }
-                },
-            )
-        },
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = { OrganizeTopBar(stringResource(R.string.csv_export_title), onBack) },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Text(stringResource(R.string.csv_export_filter_section), style = MaterialTheme.typography.titleMedium)
+            SectionHeader(stringResource(R.string.csv_export_filter_section), Modifier.semantics { heading() })
 
             val filter = state.filter
             val dateFormat = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM) }
             fun dateText(millis: Long) = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate().format(dateFormat)
 
+            GroupedCard(Modifier.fillMaxWidth()) {
             FlowRow(
+                modifier = Modifier.padding(14.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 @Composable
                 fun Chip(label: String, onRemove: () -> Unit) {
-                    InputChip(
-                        selected = true,
-                        onClick = onRemove,
-                        label = { Text(label) },
-                        trailingIcon = {
-                            Icon(
-                                AppIcons.Close,
-                                contentDescription = stringResource(R.string.action_remove),
-                                modifier = Modifier.size(18.dp),
-                            )
-                        },
-                    )
+                    FilterPill(label = label, active = true, onClick = onRemove, onClear = onRemove)
                 }
                 filter.types.forEach { type ->
                     Chip(
@@ -127,18 +129,18 @@ fun CsvExportScreen(
                                 else -> R.string.transaction_kind_expense
                             },
                         ),
-                    ) { viewModel.onFilterChange(filter.copy(types = filter.types - type)) }
+                    ) { onFilterChange(filter.copy(types = filter.types - type)) }
                 }
                 filter.accountIds.forEach { id ->
                     Chip(state.accounts.find { it.id == id }?.name.orEmpty()) {
-                        viewModel.onFilterChange(filter.copy(accountIds = filter.accountIds - id))
+                        onFilterChange(filter.copy(accountIds = filter.accountIds - id))
                     }
                 }
                 filter.categoryIds.forEach { id ->
                     val name = state.categories.find { it.id == id }?.name.orEmpty()
                     val isDirectOnly = filter.categoryExact || id in filter.exactCategoryIds
                     Chip(if (isDirectOnly) stringResource(R.string.filter_category_direct_only, name) else name) {
-                        viewModel.onFilterChange(
+                        onFilterChange(
                             filter.copy(
                                 categoryIds = filter.categoryIds - id,
                                 exactCategoryIds = filter.exactCategoryIds - id,
@@ -148,12 +150,12 @@ fun CsvExportScreen(
                 }
                 if (filter.includeUncategorized) {
                     Chip(stringResource(R.string.picker_uncategorized)) {
-                        viewModel.onFilterChange(filter.copy(includeUncategorized = false))
+                        onFilterChange(filter.copy(includeUncategorized = false))
                     }
                 }
                 filter.tagIds.forEach { id ->
                     Chip("#" + state.tags.find { it.id == id }?.name.orEmpty()) {
-                        viewModel.onFilterChange(filter.copy(tagIds = filter.tagIds - id))
+                        onFilterChange(filter.copy(tagIds = filter.tagIds - id))
                     }
                 }
                 if (filter.from != null || filter.toExclusive != null) {
@@ -164,12 +166,14 @@ fun CsvExportScreen(
                         from != null -> stringResource(R.string.filter_chip_date_from, from)
                         else -> stringResource(R.string.filter_chip_date_to, to.orEmpty())
                     }
-                    Chip(label) { viewModel.onFilterChange(filter.copy(from = null, toExclusive = null)) }
+                    Chip(label) { onFilterChange(filter.copy(from = null, toExclusive = null)) }
                 }
+                FilterPill(
+                    label = stringResource(R.string.filter_title),
+                    active = false,
+                    onClick = { if (!state.isBusy) filterSheetOpen = true },
+                )
             }
-
-            OutlinedButton(onClick = { filterSheetOpen = true }, enabled = !state.isBusy) {
-                Text(stringResource(R.string.filter_title))
             }
 
             Text(
@@ -186,12 +190,11 @@ fun CsvExportScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
-            Button(
-                onClick = { launcher.launch(BackupFileNames.csv(System.currentTimeMillis(), zone)) },
+            PrimaryButton(
+                text = stringResource(R.string.csv_export_button),
+                onClick = onExport,
                 enabled = !state.isBusy && state.matchingCount > 0,
-            ) {
-                Text(stringResource(R.string.csv_export_button))
-            }
+            )
 
             if (state.isBusy) {
                 val exporting = stringResource(R.string.csv_export_exporting)
@@ -229,7 +232,7 @@ fun CsvExportScreen(
                 accounts = state.accounts,
                 categories = state.categories,
                 tags = state.tags,
-                onApply = viewModel::onFilterChange,
+                onApply = onFilterChange,
                 onDismiss = { filterSheetOpen = false },
                 sections = setOf(
                     FilterSection.TYPE,
@@ -242,3 +245,28 @@ fun CsvExportScreen(
         }
     }
 }
+
+@Composable
+private fun CsvPreviewBody(dark: Boolean) {
+    PreviewTheme(dark = dark) {
+        CsvExportContent(
+            state = CsvExportUiState(
+                filter = TransactionFilter(types = setOf(OperationType.EXPENSE), includeUncategorized = true),
+                matchingCount = 42,
+                exportResult = CsvExportResult("finora-2026-11-11.csv", 42),
+            ),
+            zone = ZoneId.of("UTC"),
+            onBack = {},
+            onFilterChange = {},
+            onExport = {},
+        )
+    }
+}
+
+@Preview(name = "CSV export light", showBackground = true)
+@Composable
+private fun CsvExportLightPreview() = CsvPreviewBody(dark = false)
+
+@Preview(name = "CSV export dark", showBackground = true, backgroundColor = 0xFF0F1412)
+@Composable
+private fun CsvExportDarkPreview() = CsvPreviewBody(dark = true)
