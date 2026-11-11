@@ -4,8 +4,8 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -30,9 +30,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -106,26 +104,28 @@ fun WaveChart(
     val scrub = if (sparkline) {
         Modifier
     } else {
-        Modifier.pointerInput(Unit) {
-            awaitEachGesture {
-                val down = awaitFirstDown()
-                val width = this.size.width.toFloat()
-                val start = nearestIndex(currentValues, down.position.x, width)
-                val wasSelected = start != null && start == currentSelected
-                var moved = false
-                start?.let { currentOnSelect(it) }
-                while (true) {
-                    val change = awaitPointerEvent(PointerEventPass.Main).changes.firstOrNull() ?: break
-                    if (change.positionChange() != Offset.Zero) {
-                        moved = true
-                        nearestIndex(currentValues, change.position.x, width)?.let { currentOnSelect(it) }
-                        change.consume()
-                    }
-                    if (!change.pressed) break
+        Modifier
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    val i = nearestIndex(currentValues, offset.x, this.size.width.toFloat())
+                    currentOnSelect(if (i != null && i == currentSelected) null else i)
                 }
-                if (wasSelected && !moved) currentOnSelect(null)
             }
-        }
+            .pointerInput(Unit) {
+                // Hold, then drag: vertical drags before the long press stay with the parent scroll.
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { offset ->
+                        nearestIndex(currentValues, offset.x, this.size.width.toFloat())?.let { currentOnSelect(it) }
+                    },
+                    onDrag = { change, _ ->
+                        nearestIndex(currentValues, change.position.x, this.size.width.toFloat())
+                            ?.let { currentOnSelect(it) }
+                        change.consume()
+                    },
+                    onDragEnd = {},
+                    onDragCancel = {},
+                )
+            }
     }
 
     Box(modifier.then(scrub)) {
@@ -146,7 +146,10 @@ fun WaveChart(
                 }
                 val baseline = if (zeroLine && zeroY != null) zeroY else this.size.height
                 layout.runs.forEach { run ->
-                    if (run.size < 2) return@forEach
+                    if (run.size < 2) {
+                        run.firstOrNull()?.let { drawCircle(lineColor, strokePx, Offset(it.x, it.y)) }
+                        return@forEach
+                    }
                     val line = smoothPath(run)
                     if (!sparkline) {
                         val fill = Path().apply {
