@@ -41,7 +41,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
@@ -457,55 +456,4 @@ fun ConversionNote(info: ConversionInfo, scope: CurrencyScope, modifier: Modifie
             )
         }
     }
-}
-
-// ---- Rows ----
-
-@Composable
-fun AnalyticsRow(
-    label: String,
-    cell: Cell,
-    modifier: Modifier = Modifier,
-    icon: String? = null,
-    color: Long? = null,
-    fallbackColor: Long = ColorPalette.ACCOUNT_DEFAULT,
-    share: Share? = null,
-    delta: Delta? = null,
-    previousOnly: Boolean = false,
-    muted: Boolean = false,
-    chevron: Boolean = false,
-    onClick: (() -> Unit)? = null,
-) {
-    val details = buildList {
-        if (share != null) add(formatPermille(share))
-        val text = deltaText(delta)
-        if (text.isNotEmpty()) add(text)
-        if (cell.operationCount > 0) {
-            add(pluralStringResource(R.plurals.analytics_operations, cell.operationCount, cell.operationCount))
-        }
-    }.joinToString(" · ")
-
-    ListItem(
-        modifier = modifier
-            .alpha(if (muted) 0.6f else 1f)
-            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier),
-        leadingContent = { IconBadge(icon, color, fallbackColor, size = 36) },
-        headlineContent = { Text(label, maxLines = 1) },
-        supportingContent = if (details.isNotEmpty()) {
-            { Text(details, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-        } else {
-            null
-        },
-        trailingContent = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                AmountText(if (previousOnly) null else cell, style = MaterialTheme.typography.bodyLarge)
-                if (chevron) Icon(AppIcons.Next, contentDescription = null)
-            }
-        },
-    )
-}
-
-@Composable
-fun SectionTitle(text: String, modifier: Modifier = Modifier) {
-    Text(text, style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(top = 8.dp))
 }

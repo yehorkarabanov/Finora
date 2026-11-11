@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
@@ -52,6 +53,7 @@ import com.yehor.finora.designsystem.component.display.AmountText
 import com.yehor.finora.designsystem.component.input.SegmentedPill
 import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.component.list.ListRow
+import com.yehor.finora.designsystem.component.list.RoundIcon
 import com.yehor.finora.designsystem.component.list.SectionHeader
 import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.component.sheet.RangeWheelsSheet
@@ -258,7 +260,7 @@ internal fun StatsPeriodBlock(
     }
 }
 
-/** The ☰ sheet: the account filter and, where it applies, the Compare switch. */
+/** The ☰ sheet: the account filter, where it applies the Compare switch and, on Tags, the filter sheet. */
 @Composable
 internal fun StatsOptionsSheet(
     accounts: List<Account>,
@@ -269,9 +271,21 @@ internal fun StatsOptionsSheet(
     previousLabel: String?,
     onCompare: ((Boolean) -> Unit)?,
     onDismiss: () -> Unit,
+    onFilter: (() -> Unit)? = null,
 ) {
     FinoraSheet(onDismiss = onDismiss) {
         Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (onFilter != null) {
+                GroupedCard {
+                    ListRow(
+                        icon = { RoundIcon(AppIcons.Filter, MaterialTheme.colorScheme.primary, size = 36.dp) },
+                        title = stringResource(R.string.stats_filter),
+                        subtitle = stringResource(R.string.stats_tags_filter_hint),
+                        trailing = { Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        onClick = onFilter,
+                    )
+                }
+            }
             if (onCompare != null) {
                 GroupedCard {
                     Row(
@@ -362,22 +376,7 @@ internal fun StatsHero(
             }
         }
         if (delta != null && previous != null) {
-            val percent = delta.percentTimesTen
-            val previousName = periodShortName(previous, today)
-            val down = delta.amount.amountMinor < 0
-            val text = when {
-                delta.amount.amountMinor == 0L -> stringResource(R.string.stats_same_as, previousName)
-                percent == null -> deltaText(delta)
-                down -> "↘ " + stringResource(R.string.stats_less_than, wholePercent(percent), previousName)
-                else -> "↗ " + stringResource(R.string.stats_more_than, wholePercent(percent), previousName)
-            }
-            // Spending less, or earning more, is the good direction.
-            val good = if (measure == Measure.INCOME) !down else down
-            val tint = when {
-                delta.amount.amountMinor == 0L -> scheme.onSurfaceVariant
-                good -> finance.income
-                else -> finance.negative
-            }
+            val (text, tint) = comparison(measure, delta, previous, today)
             Text(
                 text,
                 style = MaterialTheme.typography.labelMedium,
@@ -391,6 +390,30 @@ internal fun StatsHero(
             )
         }
     }
+}
+
+/** "↘ 8% less than October" and its tint: mint for the good direction, red for the other, grey for no change. */
+@Composable
+internal fun comparison(measure: Measure, delta: Delta, previous: ResolvedPeriod, today: LocalDate): Pair<String, Color> {
+    val scheme = MaterialTheme.colorScheme
+    val finance = MaterialTheme.finance
+    val percent = delta.percentTimesTen
+    val previousName = periodShortName(previous, today)
+    val down = delta.amount.amountMinor < 0
+    val text = when {
+        delta.amount.amountMinor == 0L -> stringResource(R.string.stats_same_as, previousName)
+        percent == null -> deltaText(delta)
+        down -> "↘ " + stringResource(R.string.stats_less_than, wholePercent(percent), previousName)
+        else -> "↗ " + stringResource(R.string.stats_more_than, wholePercent(percent), previousName)
+    }
+    // Spending less, or earning more, is the good direction.
+    val good = if (measure == Measure.INCOME) !down else down
+    val tint = when {
+        delta.amount.amountMinor == 0L -> scheme.onSurfaceVariant
+        good -> finance.income
+        else -> finance.negative
+    }
+    return text to tint
 }
 
 /** "8%" from tenths of a percent, rounded half up, without a sign. */

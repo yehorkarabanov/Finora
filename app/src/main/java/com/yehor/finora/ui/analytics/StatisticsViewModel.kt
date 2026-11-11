@@ -65,8 +65,7 @@ data class FlowTab(
 data class TagsTab(
     /** The full filter, with period and scope, for hand-offs to Transactions (R15). */
     val filter: TransactionFilter,
-    /** Null while no tag is selected: nothing is computed. */
-    val report: TagsReport?,
+    val report: TagsReport,
     val recent: List<TransactionItem>,
 )
 
@@ -75,6 +74,10 @@ data class AccountPeriodView(val account: Account, val row: AccountPeriodRow)
 sealed interface StatsContent {
     data class Flows(val tab: FlowTab) : StatsContent
     data class Tags(val tab: TagsTab) : StatsContent
+
+    /** The Tags tab while no tag is picked: every tag of the period, largest first. */
+    data class TagRanking(val rows: List<TagRankRow>, val measure: Measure) : StatsContent
+
     data class Accounts(val rows: List<AccountPeriodView>) : StatsContent
 }
 
@@ -244,6 +247,9 @@ class StatisticsViewModel @Inject constructor(
 
     fun setTagMode(mode: TagMatchMode) = changeTags { it.copy(tagMode = mode) }
 
+    /** Opens the stats of several tags picked on the ranking, matching any of them. */
+    fun combineTags(tagIds: Set<Long>) = changeTags { it.copy(tagIds = tagIds, tagMode = TagMatchMode.ANY) }
+
     fun setTagMeasure(measure: Measure) = change { it.copy(tagMeasure = measure, path = emptyList()) }
 
     /**
@@ -390,19 +396,19 @@ class StatisticsViewModel @Inject constructor(
         scope: CurrencyScope,
         previous: ResolvedPeriod?,
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
-        val chosen = controls.tagFilter
+        // A picked tag that was deleted since does not count (it has no chip to remove it by).
+        val knownTags = env.tags.map { it.id }.toSet()
+        val chosen = controls.tagFilter.let { it.copy(tagIds = it.tagIds.filter(knownTags::contains).toSet()) }
         val effectiveAccountIds = if (chosen.accountIds.isNotEmpty()) chosen.accountIds else controls.selectedAccountIds
         val filter = chosen.copy(
             from = env.period.from,
             toExclusive = env.period.toExclusive,
             accountIds = effectiveAccountIds,
         )
-        if (filter.tagIds.isEmpty()) {
-            return flowOf(StatsContent.Tags(TagsTab(filter, null, emptyList())) to emptyList())
-        }
         val measure = chosen.types.singleOrNull()?.let { type ->
             Measure.entries.firstOrNull { it.operationType() == type }
         } ?: controls.tagMeasure
+        if (filter.tagIds.isEmpty()) return tagRanking(env, scope, filter, measure)
         val previousFilter = previous?.let { filter.copy(from = it.from, toExclusive = it.toExclusive) }
         val (unit, buckets) = BucketPlan.auto(env.period, env.zone)
 
@@ -445,6 +451,19 @@ class StatisticsViewModel @Inject constructor(
             StatsContent.Tags(TagsTab(filter, report, items)) to cells
         }
     }
+
+    private fun tagRanking(
+        env: AnalyticsEnv,
+        scope: CurrencyScope,
+        filter: TransactionFilter,
+        measure: Measure,
+    ): Flow<Pair<StatsContent, Collection<Cell>>> =
+        analytics.observeByTag(filter, measure).asRows().map { rows ->
+            val cells = Reports.cells(rows.list(), ScopeConverter(scope, env.table, env.now))
+            val ranked = rankTags(env.tags, cells)
+            val shown = ranked.map { it.cell } + listOfNotNull(ReportBuilder.OVERFLOW.takeIf { rows.overflowed })
+            StatsContent.TagRanking(ranked, measure) to shown
+        }
 
     private class TagParts(
         val totals: Triple<Rows, Rows, Rows>,
