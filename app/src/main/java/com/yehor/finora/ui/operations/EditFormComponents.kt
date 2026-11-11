@@ -28,7 +28,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -80,6 +79,7 @@ import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TagChip
+import com.yehor.finora.ui.common.PendingTagChip
 import com.yehor.finora.ui.common.TagPicker
 import com.yehor.finora.ui.common.rememberTimeFormatter
 import java.text.DecimalFormatSymbols
@@ -670,16 +670,7 @@ internal fun TagsShelfRow(
                 ) {
                     selected.forEach { tag -> TagChip(tag = tag, onRemove = { onToggleTag(tag.id) }) }
                     pendingTagNames.forEach { name ->
-                        InputChip(
-                            selected = true,
-                            onClick = {},
-                            label = { Text(stringResource(R.string.tag_picker_new_suffix, name)) },
-                            trailingIcon = {
-                                IconButton(onClick = { onRemovePendingTag(name) }, modifier = Modifier.size(16.dp)) {
-                                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
-                                }
-                            },
-                        )
+                        PendingTagChip(name) { onRemovePendingTag(name) }
                     }
                 }
             }

@@ -13,10 +13,13 @@ import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
 
+/** Corner shape shared by [GroupedCard] and anything outlining it. */
+val GroupedCardShape = RoundedCornerShape(22.dp)
+
 /** Layer-1 container (22dp, hairline) that groups [ListRow]s. */
 @Composable
 fun GroupedCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    val shape = RoundedCornerShape(22.dp)
+    val shape = GroupedCardShape
     Column(
         modifier = modifier
             .clip(shape)

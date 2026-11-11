@@ -9,9 +9,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.list.GroupedCardShape
 
 // Shared building blocks of the full-screen edit forms (account, category, recurring): Obsidian top bar,
 // scrolling column of grouped cards and a pinned full-width mint CTA. Row styling reuses the editor's
@@ -75,6 +76,7 @@ internal fun FormCtaBar(
     Column(
         modifier
             .fillMaxWidth()
+            .navigationBarsPadding()
             .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -94,7 +96,7 @@ internal fun FormCtaBar(
 /** Red outline over a [com.yehor.finora.designsystem.component.list.GroupedCard] holding an invalid field. */
 @Composable
 internal fun Modifier.errorOutline(isError: Boolean): Modifier =
-    if (isError) border(1.dp, MaterialTheme.colorScheme.error, RoundedCornerShape(22.dp)) else this
+    if (isError) border(1.dp, MaterialTheme.colorScheme.error, GroupedCardShape) else this
 
 /** A validation or helper line under a field. */
 @Composable

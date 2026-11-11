@@ -289,8 +289,6 @@
     <string name="category_form_new_title">New category</string>
     <string name="category_form_edit_title">Edit category</string>
     <string name="category_form_name">Name</string>
-    <string name="category_form_type">Type: %1$s</string>
-    <string name="category_form_parent">Parent</string>
     <string name="category_form_error_name_empty">Enter a name</string>
     <string name="category_form_error_name_long">Name is too long (50 characters at most)</string>
     <string name="category_form_error_self">A category cannot be its own parent.</string>

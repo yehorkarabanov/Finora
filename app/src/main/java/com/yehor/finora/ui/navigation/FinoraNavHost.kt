@@ -72,6 +72,12 @@ import com.yehor.finora.ui.data.DataScreen
 private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
     Routes.TRANSACTION_NEW,
     Routes.TRANSACTION_EDIT,
+    Routes.ACCOUNT_NEW,
+    Routes.ACCOUNT_EDIT,
+    Routes.CATEGORY_NEW,
+    Routes.CATEGORY_EDIT,
+    Routes.RECURRING_NEW,
+    Routes.RECURRING_EDIT,
 )
 
 @Composable

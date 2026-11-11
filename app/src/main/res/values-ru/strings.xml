@@ -291,8 +291,6 @@
     <string name="category_form_new_title">Новая категория</string>
     <string name="category_form_edit_title">Редактирование категории</string>
     <string name="category_form_name">Название</string>
-    <string name="category_form_type">Тип: %1$s</string>
-    <string name="category_form_parent">Родитель</string>
     <string name="category_form_error_name_empty">Введите название</string>
     <string name="category_form_error_name_long">Название слишком длинное (не более 50 символов)</string>
     <string name="category_form_error_self">Категория не может быть собственным родителем.</string>

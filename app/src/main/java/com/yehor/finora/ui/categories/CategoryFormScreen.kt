@@ -3,6 +3,8 @@ package com.yehor.finora.ui.categories
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -128,7 +130,7 @@ internal fun CategoryFormContent(
     ) {
         NameGroup(state, onName)
 
-        SectionHeader(stringResource(R.string.category_form_parent), Modifier.padding(top = 8.dp))
+        Spacer(Modifier.height(4.dp))
         GroupedCard(Modifier.fillMaxWidth().errorOutline(rejection != null)) {
             val parent = state.parentId?.let { state.tree.category(it) }
             ShelfRow(
@@ -213,7 +215,7 @@ private fun NameGroup(state: CategoryFormState, onName: (String) -> Unit) {
         ShelfDivider()
         ShelfRow(
             icon = { ShelfIcon(AppIcons.Tag) },
-            label = stringResource(R.string.category_form_type, stringResource(state.type.labelRes())),
+            label = stringResource(R.string.account_form_type),
             onClick = null,
             trailing = { CategoryPill(stringResource(state.type.labelRes()), state.type.kindColor()) },
         )
