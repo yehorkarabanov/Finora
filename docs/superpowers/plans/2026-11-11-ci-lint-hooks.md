@@ -54,7 +54,7 @@
 
 - [ ] **Step 1: Create branch `chore/ci-lint-hooks` from `master`, then cherry-pick spec commit `8a5b4d2` and this plan's commit onto it.**
 
-Run: `git switch -c chore/ci-lint-hooks master && git cherry-pick 8a5b4d2 1073bd6 9e56bea`
+Run: `git switch -c chore/ci-lint-hooks master && git cherry-pick $(git log denys/feat/ui-refurbished --reverse --format=%h -- docs/superpowers/specs/2026-11-11-ci-lint-hooks-design.md docs/superpowers/plans/2026-11-11-ci-lint-hooks.md)`
 Expected: branch contains both docs and nothing from `denys/feat/ui-refurbished`.
 
 - [ ] **Step 2: Add Spotless (ktlint, `.kt` and `.kts`) and detekt to the version catalog and Gradle files.** Pick the newest releases that support Kotlin 2.4.21, AGP 9.5.1 and JDK 25. detekt reads `config/detekt/detekt.yml` on top of its defaults (`buildUponDefaultConfig = true`).
