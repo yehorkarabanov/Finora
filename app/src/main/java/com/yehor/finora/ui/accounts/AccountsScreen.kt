@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -32,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -75,6 +77,7 @@ import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Estimate
 import com.yehor.finora.domain.money.EstimateBasis
 import com.yehor.finora.domain.money.Money
+import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.navigation.BindShellFab
 import java.math.BigDecimal
 
@@ -275,11 +278,12 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
         }
         ValuationNotes(valuation)
         if (state.shares.isNotEmpty()) {
-            val colors = state.active.associate { it.account.id to accountTint(it.account) }
-            SplitBar(
-                parts = state.shares.mapNotNull { (id, share) -> colors[id]?.let { share to it } },
-                modifier = Modifier.padding(top = 14.dp),
-            )
+            val finance = MaterialTheme.finance
+            val parts = remember(state.active, state.shares, finance) {
+                val colors = state.active.associate { it.account.id to finance.accent(ColorPalette.resolve(it.account.color, ColorPalette.ACCOUNT_DEFAULT)) }
+                state.shares.mapNotNull { (id, share) -> colors[id]?.let { share to it } }
+            }
+            SplitBar(parts = parts, modifier = Modifier.padding(top = 14.dp))
         }
     }
 }
@@ -345,7 +349,7 @@ private fun AccountRow(
         Column(horizontalAlignment = Alignment.End, modifier = Modifier.widthIn(min = 78.dp)) {
             AccountBalanceAmount(item.balance, MaterialTheme.typography.titleSmall.copy(fontFeatureSettings = "tnum"), dim)
             if (onRestore != null) {
-                RestoreChip(onClick = { onRestore(a.id) }, modifier = Modifier.padding(top = 3.dp))
+                RestoreChip(onClick = { onRestore(a.id) })
             } else {
                 AccountChangeText(trend?.monthChange, a.currency)
             }
@@ -353,22 +357,29 @@ private fun AccountRow(
     }
 }
 
-/** Mint "Restore" pill; the framework widens the touch target to 48dp around it. */
+/** Mint "Restore" pill inside a 48dp touch target; the box, not the row, consumes the tap. */
 @Composable
 private fun RestoreChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
     val primary = MaterialTheme.colorScheme.primary
-    Text(
-        stringResource(R.string.accounts_restore),
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.Bold,
-        color = primary,
-        maxLines = 1,
-        modifier = modifier
+    Box(
+        modifier
+            .heightIn(min = 48.dp)
+            .widthIn(min = 48.dp)
             .clip(PillShape)
-            .background(primary.copy(alpha = 0.12f), PillShape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
-    )
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            stringResource(R.string.accounts_restore),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = primary,
+            maxLines = 1,
+            modifier = Modifier
+                .background(primary.copy(alpha = 0.12f), PillShape)
+                .padding(horizontal = 10.dp, vertical = 4.dp),
+        )
+    }
 }
 
 /** Quiet bottom row that expands into the greyed list of archived accounts. */

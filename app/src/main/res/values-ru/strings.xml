@@ -212,20 +212,12 @@
     <string name="accounts_empty_body">Добавьте первый счёт, чтобы начать учёт денег.</string>
     <string name="accounts_archived_section">В архиве (%1$d)</string>
     <string name="accounts_balance_overflow">Баланс вне допустимого диапазона</string>
-    <plurals name="account_list_active_count">
-        <item quantity="one">%1$d активный счёт</item>
-        <item quantity="few">%1$d активных счёта</item>
-        <item quantity="many">%1$d активных счетов</item>
-        <item quantity="other">%1$d активного счёта</item>
-    </plurals>
     <string name="account_list_section_title">Счета</string>
     <string name="account_list_no_active_hint">Нет активных счетов. Добавьте счёт, чтобы записывать новые операции.</string>
     <string name="account_status_archived">В архиве</string>
     <string name="account_detail_recent_title">Последние операции</string>
     <string name="account_list_archived_expanded">Развёрнуто</string>
     <string name="account_list_archived_collapsed">Свёрнуто</string>
-    <string name="valuation_title_native">Общий баланс</string>
-    <string name="valuation_title_estimate">Общая оценка (приблизительно)</string>
     <string name="valuation_unavailable">Недоступно</string>
     <string name="valuation_outdated">Курсы могли устареть. Обновлено: %1$s</string>
     <string name="valuation_not_included">Не учтено: %1$s (нет курса)</string>

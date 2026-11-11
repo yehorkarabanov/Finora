@@ -209,18 +209,12 @@
     <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
     <string name="accounts_archived_section">Archived (%1$d)</string>
     <string name="accounts_balance_overflow">Balance is out of range</string>
-    <plurals name="account_list_active_count">
-        <item quantity="one">%1$d active account</item>
-        <item quantity="other">%1$d active accounts</item>
-    </plurals>
     <string name="account_list_section_title">Accounts</string>
     <string name="account_list_no_active_hint">No active accounts. Add one to record new transactions.</string>
     <string name="account_status_archived">Archived</string>
     <string name="account_detail_recent_title">Recent transactions</string>
     <string name="account_list_archived_expanded">Expanded</string>
     <string name="account_list_archived_collapsed">Collapsed</string>
-    <string name="valuation_title_native">Total balance</string>
-    <string name="valuation_title_estimate">Total valuation (estimate)</string>
     <string name="valuation_unavailable">Unavailable</string>
     <string name="valuation_outdated">Rates may be outdated. Last updated %1$s</string>
     <string name="valuation_not_included">Not included: %1$s (no rate)</string>

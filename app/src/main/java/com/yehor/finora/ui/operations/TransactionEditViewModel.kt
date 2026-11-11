@@ -118,7 +118,7 @@ class TransactionEditViewModel @Inject constructor(
     private val duplicateOf: Long? =
         savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
     /** Account the editor was opened for (account detail actions); only used for a new transaction. */
-    private val presetAccountId: Long? = savedStateHandle.get<Long>("sourceAccountId")?.takeIf { it > 0 }
+    private val presetArg: Long = savedStateHandle.get<Long>("sourceAccountId") ?: -1L
     private val initialKind: TransactionKind =
         if (mode == EditorMode.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE
 
@@ -193,11 +193,8 @@ class TransactionEditViewModel @Inject constructor(
                 }
             }
         } else {
-            val preset = presetAccountId
-                ?.let { accountRepository.observe(it).first() }
-                ?.takeIf { it.account.status == AccountStatus.ACTIVE }
-                ?.account?.id
-            (preset ?: transactionRepository.defaultAccountId())?.let { accountId ->
+            val accounts = if (presetArg > 0) accountRepository.observeAll().first().map { it.account } else emptyList()
+            presetAccountId(presetArg, accounts, transactionRepository.defaultAccountId())?.let { accountId ->
                 _state.value = _state.value.copy(selectedAccountId = accountId)
             }
         }
