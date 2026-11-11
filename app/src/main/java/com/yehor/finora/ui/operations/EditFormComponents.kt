@@ -1,15 +1,8 @@
 package com.yehor.finora.ui.operations
 
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,26 +13,23 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,197 +40,211 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.input.SegmentedPill
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionDraftValidator
 import com.yehor.finora.domain.tag.Tag
-import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.TagPicker
 import com.yehor.finora.ui.common.rememberTimeFormatter
-import com.yehor.finora.designsystem.theme.finance
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import androidx.compose.material3.ripple
-import com.yehor.finora.designsystem.theme.KeypadNumStyle
 
 // Building blocks shared by the Expense/Income and the Transfer modes of the unified editor.
 
-// Account → tags are one connected group: only its outer corners are rounded.
-private val GroupRadius = 20.dp
-private val GroupInnerRadius = 4.dp
-internal val FormGroupTopShape = RoundedCornerShape(
-    topStart = GroupRadius, topEnd = GroupRadius,
-    bottomStart = GroupInnerRadius, bottomEnd = GroupInnerRadius,
-)
-internal val FormGroupMiddleShape = RoundedCornerShape(GroupInnerRadius)
-internal val FormGroupBottomShape = RoundedCornerShape(
-    topStart = GroupInnerRadius, topEnd = GroupInnerRadius,
-    bottomStart = GroupRadius, bottomEnd = GroupRadius,
-)
 internal const val FORM_MINUS = "−"
 
 // ---------------------------------------------------------------------------
-// Mode tabs
+// Stage
 // ---------------------------------------------------------------------------
 
+/** The editor's two stages: typing the amount on the keypad, or the details shelf raised over it. */
+enum class EditorStage { AMOUNT, DETAILS }
+
+/** New operations start on the keypad; existing ones open with the details shelf up. */
+fun initialStage(isEdit: Boolean): EditorStage = if (isEdit) EditorStage.DETAILS else EditorStage.AMOUNT
+
+// ---------------------------------------------------------------------------
+// Top bar
+// ---------------------------------------------------------------------------
+
+/**
+ * Round ✕, the Expense | Income | Transfer pill and, when editing, the ⋯ menu (Duplicate, Delete).
+ * In edit mode the kind is fixed, so taps on the other segments are ignored.
+ */
 @Composable
-internal fun KindTabs(
+internal fun EditorTopBar(
     mode: EditorMode,
-    enabled: Boolean,
+    isEdit: Boolean,
+    onClose: () -> Unit,
     onModeChange: (EditorMode) -> Unit,
+    onDuplicate: (() -> Unit)?,
+    onDelete: () -> Unit,
 ) {
-    Surface(
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Row(Modifier.padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            KindTab(
-                label = stringResource(R.string.transaction_kind_expense),
-                icon = AppIcons.Income,
-                color = MaterialTheme.finance.expense,
-                selected = mode == EditorMode.EXPENSE,
-                enabled = enabled,
-                onClick = { onModeChange(EditorMode.EXPENSE) },
-            )
-            KindTab(
-                label = stringResource(R.string.transaction_kind_income),
-                icon = AppIcons.Expense,
-                color = MaterialTheme.finance.income,
-                selected = mode == EditorMode.INCOME,
-                enabled = enabled,
-                onClick = { onModeChange(EditorMode.INCOME) },
-            )
-            KindTab(
-                label = stringResource(R.string.transaction_kind_transfer),
-                icon = AppIcons.Transfer,
-                color = MaterialTheme.colorScheme.primary,
-                selected = mode == EditorMode.TRANSFER,
-                enabled = enabled,
-                onClick = { onModeChange(EditorMode.TRANSFER) },
-            )
-        }
-    }
-}
-
-@Composable
-private fun RowScope.KindTab(
-    label: String,
-    icon: ImageVector,
-    color: Color,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val content = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant
-    Surface(
-        selected = selected,
-        onClick = onClick,
-        // In edit mode the kind is fixed: the selected tab stays readable, the others fade.
-        enabled = enabled && !selected,
-        shape = RoundedCornerShape(50),
-        color = if (selected) color.copy(alpha = 0.16f) else Color.Transparent,
-        contentColor = content,
-        modifier = Modifier
-            .weight(1f)
-            .height(44.dp)
-            .alpha(if (!enabled && !selected) 0.38f else 1f),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(IconSize.Small))
-            Spacer(Modifier.width(6.dp))
-            Text(label, style = MaterialTheme.typography.labelLarge, fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium)
+    var menuOpen by remember { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        RoundIconButton(AppIcons.Close, stringResource(R.string.navigate_back), onClose)
+        SegmentedPill(
+            options = listOf(
+                stringResource(R.string.transaction_kind_expense),
+                stringResource(R.string.transaction_kind_income),
+                stringResource(R.string.transaction_kind_transfer),
+            ),
+            selected = mode.ordinal,
+            onSelect = { if (!isEdit) onModeChange(EditorMode.entries[it]) },
+            modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
+        )
+        if (isEdit) {
+            Box {
+                RoundIconButton(AppIcons.More, stringResource(R.string.action_more_options), { menuOpen = true })
+                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                    if (onDuplicate != null) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.transaction_form_duplicate)) },
+                            onClick = {
+                                menuOpen = false
+                                onDuplicate()
+                            },
+                        )
+                    }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_delete)) },
+                        onClick = {
+                            menuOpen = false
+                            onDelete()
+                        },
+                    )
+                }
+            }
+        } else {
+            Spacer(Modifier.size(48.dp))
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Amount display + keypad
+// Amount block
 // ---------------------------------------------------------------------------
 
-/** The big amount with a blinking caret. An empty [sign] shows the amount alone (transfers are not signed). */
+/** Big-amount size that keeps long numbers on one line. */
+private fun amountFontSize(length: Int): TextUnit = when {
+    length <= 8 -> 56.sp
+    length <= 11 -> 46.sp
+    length <= 14 -> 38.sp
+    else -> 30.sp
+}
+
+/**
+ * The huge amount: a muted sign, the symbol and the typed number with its decimals dimmed.
+ * [label] is an optional caption above it (the transfer's "They receive").
+ */
 @Composable
-internal fun AmountDisplay(sign: String, signColor: Color, amountDisplay: String, isError: Boolean, isEmpty: Boolean) {
-    val amountColor = when {
+internal fun EditorAmount(
+    sign: String,
+    amountText: String,
+    currencySymbol: String,
+    symbols: DecimalFormatSymbols,
+    isError: Boolean,
+    label: String? = null,
+) {
+    val formatted = currencySymbol + AmountKeypad.format(amountText, symbols.groupingSeparator, symbols.decimalSeparator)
+    val size = amountFontSize(sign.length + formatted.length)
+    val style = MaterialTheme.typography.displayLarge.copy(fontSize = size, lineHeight = size * 1.1f)
+    val color = when {
         isError -> MaterialTheme.colorScheme.error
-        isEmpty -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        amountText.isEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant
         else -> MaterialTheme.colorScheme.onSurface
     }
-    val caretAlpha by rememberInfiniteTransition(label = "caret").animateFloat(
-        initialValue = 1f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(530), RepeatMode.Reverse),
-        label = "caretAlpha",
-    )
-    val text = buildAnnotatedString {
-        if (sign.isNotEmpty()) {
-            withStyle(SpanStyle(color = signColor)) { append(sign) }
-            append(" ")
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        if (label != null) {
+            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        withStyle(SpanStyle(color = amountColor)) { append(amountDisplay) }
-    }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-    ) {
-        BasicText(
-            text = text,
-            maxLines = 1,
-            style = MaterialTheme.typography.displayMedium.copy(
-                fontWeight = FontWeight.SemiBold,
-                fontFeatureSettings = "tnum",
-                letterSpacing = (-1).sp,
-            ),
-            autoSize = TextAutoSize.StepBased(minFontSize = 24.sp, maxFontSize = 56.sp),
-            modifier = Modifier.weight(1f, fill = false),
-        )
-        Box(
-            Modifier
-                .padding(start = 4.dp)
-                .width(2.dp)
-                .height(40.dp)
-                .alpha(caretAlpha)
-                .background(MaterialTheme.colorScheme.primary),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+        ) {
+            if (sign.isNotEmpty()) Text(sign, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // AmountText dims everything after the last separator, which is only right when a fraction was typed:
+            // a grouped whole number ("1,234") is shown plainly.
+            if ('.' in amountText) {
+                AmountText(formatted, style = style, color = color, animate = false)
+            } else {
+                Text(formatted, style = style, color = color, maxLines = 1)
+            }
+        }
     }
 }
 
-/** The +10/+25/+50 quick-add pills and the clear pill. */
+/** The account pill under the amount: icon, name, balance and ⇅; tapping it opens the account picker. */
+@Composable
+internal fun AccountPill(account: Account?, balance: Money?, symbols: DecimalFormatSymbols, onClick: () -> Unit) {
+    val name = account?.name ?: stringResource(R.string.transaction_form_account)
+    val changeAccount = stringResource(R.string.transaction_form_change_account)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .clip(PillShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow, PillShape)
+            .border(hairline(MaterialTheme.finance.isDark), PillShape)
+            .clickable(role = Role.Button, onClickLabel = changeAccount, onClick = onClick)
+            .padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
+    ) {
+        IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 32)
+        Text(
+            name,
+            style = MaterialTheme.typography.labelLarge,
+            color = if (account == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 180.dp),
+        )
+        if (balance != null) {
+            Text(formatMoney(balance, symbols), style = AmountStyle.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        }
+        Icon(AppIcons.SwapVertical, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+    }
+}
+
+/** The +10/+25/+50 quick-add pills and, while an amount is typed, the clear pill. */
 @Composable
 internal fun QuickAmountRow(amountText: String, currencySymbol: String, onAmountChange: (String) -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -256,89 +260,178 @@ internal fun QuickAmountRow(amountText: String, currencySymbol: String, onAmount
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+/** A compact pill button; the 48dp touch target surrounds a 32dp visual pill. */
 @Composable
-internal fun NumberPad(
-    decimalLabel: String,
-    decimalEnabled: Boolean,
-    onKey: (String) -> Unit,
-    onClear: () -> Unit,
+internal fun SmallPill(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    text: String? = null,
+    icon: (@Composable () -> Unit)? = null,
 ) {
-    val haptics = LocalHapticFeedback.current
-    val backspaceLabel = stringResource(R.string.transaction_form_backspace)
-    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", AmountKeypad.DECIMAL, "0", AmountKeypad.BACKSPACE)
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        keys.chunked(3).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { key ->
-                    val isDecimal = key == AmountKeypad.DECIMAL
-                    val isBackspace = key == AmountKeypad.BACKSPACE
-                    val keyEnabled = !isDecimal || decimalEnabled
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(56.dp)
-                            .combinedClickable(
-                                interactionSource = null,
-                                // Borderless keys: a circular wash on press instead of a filled tile.
-                                indication = ripple(bounded = false, radius = 32.dp),
-                                enabled = keyEnabled,
-                                role = Role.Button,
-                                onClickLabel = if (isBackspace) backspaceLabel else null,
-                                onClick = {
-                                    haptics.performHapticFeedback(HapticFeedbackType.KeyboardTap)
-                                    onKey(key)
-                                },
-                                // Long-press on backspace clears the whole amount.
-                                onLongClick = if (isBackspace) {
-                                    {
-                                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onClear()
-                                    }
-                                } else {
-                                    null
-                                },
-                            )
-                            .semantics { if (isBackspace) contentDescription = backspaceLabel },
-                    ) {
-                        when {
-                            isBackspace -> Icon(AppIcons.Backspace, contentDescription = null)
-                            isDecimal && !decimalEnabled -> Unit
-                            else -> Text(
-                                if (isDecimal) decimalLabel else key,
-                                style = KeypadNumStyle,
-                            )
-                        }
-                    }
-                }
+    Box(
+        modifier = modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            Modifier
+                .heightIn(min = 32.dp)
+                .background(MaterialTheme.colorScheme.surfaceContainerLow, PillShape)
+                .border(hairline(MaterialTheme.finance.isDark), PillShape)
+                .padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (text != null) {
+                Text(text, style = AmountStyle.copy(fontSize = 14.sp), color = MaterialTheme.colorScheme.onSurface)
             }
+            icon?.invoke()
         }
     }
 }
 
 // ---------------------------------------------------------------------------
-// Grouped field cards shared by both modes
+// Shelf rows (one GroupedCard)
 // ---------------------------------------------------------------------------
 
+/**
+ * One row of the details card: round icon, muted [label], [trailing] value at the end; [supporting] is a
+ * second line (red when [supportingIsError]); [below] holds extra controls under the row.
+ */
 @Composable
-internal fun CategoryCard(
-    shape: Shape,
+internal fun ShelfRow(
+    icon: @Composable () -> Unit,
+    label: String,
+    onClick: (() -> Unit)?,
+    supporting: String? = null,
+    supportingIsError: Boolean = false,
+    trailing: @Composable RowScope.() -> Unit = {},
+    below: (@Composable () -> Unit)? = null,
+) {
+    val clickModifier = if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .then(clickModifier)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+    ) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 36.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            icon()
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Row(
+                Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                content = trailing,
+            )
+        }
+        if (supporting != null) {
+            Text(
+                supporting,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (supportingIsError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 48.dp, top = 2.dp),
+            )
+        }
+        below?.invoke()
+    }
+}
+
+/** The bold value at the end of a [ShelfRow]. */
+@Composable
+internal fun RowScope.ShelfValue(text: String, muted: Boolean = false, color: Color? = null) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = if (muted) FontWeight.Medium else FontWeight.SemiBold,
+        color = color ?: if (muted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = TextAlign.End,
+        modifier = Modifier.weight(1f, fill = false),
+    )
+}
+
+@Composable
+internal fun ShelfDivider() {
+    val color = (hairline(MaterialTheme.finance.isDark).brush as SolidColor).value
+    HorizontalDivider(Modifier.padding(start = 62.dp, end = 14.dp), thickness = 1.dp, color = color)
+}
+
+/** Neutral 34dp round icon for the field rows. */
+@Composable
+internal fun ShelfIcon(icon: ImageVector) {
+    Box(
+        Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Small))
+    }
+}
+
+/** An account row: name and balance at the end; [supporting] carries the "after saving" line or an error. */
+@Composable
+internal fun AccountShelfRow(
+    label: String,
+    account: Account?,
+    balance: Money?,
+    symbols: DecimalFormatSymbols,
+    supporting: String?,
+    supportingIsError: Boolean,
+    onClick: () -> Unit,
+    extraTrailing: (@Composable () -> Unit)? = null,
+) {
+    ShelfRow(
+        icon = { IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 34) },
+        label = label,
+        onClick = onClick,
+        supporting = supporting,
+        supportingIsError = supportingIsError,
+        trailing = {
+            if (account == null) {
+                Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                ShelfValue(account.name)
+                if (balance != null) {
+                    Text(
+                        "· " + formatMoney(balance, symbols),
+                        style = AmountStyle.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                    )
+                }
+            }
+            extraTrailing?.invoke()
+        },
+    )
+}
+
+/** "Balance → after saving" or the archived note for an account row, with the red flag for a negative result. */
+@Composable
+internal fun accountSupporting(archived: Boolean, balance: Money?, balanceAfter: Money?, symbols: DecimalFormatSymbols): Pair<String?, Boolean> = when {
+    archived -> stringResource(R.string.account_detail_archived_banner) to false
+    balance != null && balanceAfter != null -> stringResource(
+        R.string.transaction_form_balance_after,
+        formatMoney(balance, symbols),
+        formatMoney(balanceAfter, symbols),
+    ) to (balanceAfter.amountMinor < 0)
+    else -> null to false
+}
+
+@Composable
+internal fun CategoryShelfRow(
     tree: CategoryTree,
     categoryType: CategoryType,
     selectedCategoryId: Long?,
     /** Editing an operation that had no category: show "Uncategorized" instead of the empty prompt. */
     showUncategorized: Boolean,
     showError: Boolean,
-    recentCategoryIds: List<Long>,
     onClick: () -> Unit,
-    onSelectRecent: (Long) -> Unit,
-    onCreateCategory: (() -> Unit)?,
 ) {
-    val hasCategoriesOfKind = remember(tree, categoryType) { tree.rootsOf(categoryType).isNotEmpty() }
     val category = selectedCategoryId?.let { tree.category(it) }
-    // Resolve composable values unconditionally: a composable call nested in `?: if (...)` is skipped once a
-    // category is picked, which shifted the slot table and crashed the next SectionCard on recomposition.
+    // Resolve composable values unconditionally so the composition shape does not depend on the selection.
     val uncategorizedLabel = stringResource(R.string.picker_uncategorized)
     val categoryName = category?.name ?: if (showUncategorized) uncategorizedLabel else null
     val parentPath = remember(category, tree) {
@@ -348,72 +441,93 @@ internal fun CategoryCard(
             .joinToString(" › ") { it.name }
             .ifEmpty { null }
     }
+    val errorText = stringResource(R.string.transaction_form_error_category_missing)
+    val parentText = parentPath?.let { stringResource(R.string.transaction_form_in_parent, it) }
+    ShelfRow(
+        icon = { IconBadge(category?.icon, category?.color, ColorPalette.defaultFor(categoryType), size = 34) },
+        label = stringResource(R.string.transaction_form_category),
+        onClick = onClick,
+        supporting = if (showError) errorText else parentText,
+        supportingIsError = showError,
+        trailing = {
+            if (categoryName != null) {
+                ShelfValue(categoryName)
+            } else {
+                Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+    )
+}
+
+/**
+ * Recent-category shortcuts as round icons under the card, plus "Create category" when the kind has none yet.
+ * Renders nothing when there is nothing to offer.
+ */
+@Composable
+internal fun RecentCategoriesRow(
+    tree: CategoryTree,
+    categoryType: CategoryType,
+    selectedCategoryId: Long?,
+    recentCategoryIds: List<Long>,
+    onSelectRecent: (Long) -> Unit,
+    onCreateCategory: (() -> Unit)?,
+) {
+    val hasCategoriesOfKind = remember(tree, categoryType) { tree.rootsOf(categoryType).isNotEmpty() }
     val recents = recentCategoryIds.mapNotNull { tree.category(it) }.take(6)
-    SectionCard(shape = shape, onClick = onClick, isError = showError) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            IconBadge(category?.icon, category?.color, ColorPalette.defaultFor(categoryType), size = 44)
-            Column(Modifier.weight(1f)) {
-                Text(
-                    categoryName ?: stringResource(R.string.transaction_form_category),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (categoryName == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                when {
-                    showError -> Text(
-                        stringResource(R.string.transaction_form_error_category_missing),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                    parentPath != null -> Text(
-                        stringResource(R.string.transaction_form_in_parent, parentPath),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    val offerCreate = !hasCategoriesOfKind && onCreateCategory != null
+    if (recents.isEmpty() && !offerCreate) return
+    Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        if (recents.isNotEmpty()) {
+            Text(
+                stringResource(R.string.transaction_form_recent),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
+            )
+        }
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            recents.forEach { recent ->
+                val selected = recent.id == selectedCategoryId
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(68.dp)
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(role = Role.Button) { onSelectRecent(recent.id) }
+                        .padding(vertical = 6.dp)
+                        .semantics(mergeDescendants = true) { this.selected = selected },
+                ) {
+                    val ring = if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier
+                    Box(ring.padding(3.dp)) {
+                        IconBadge(recent.icon, recent.color, ColorPalette.defaultFor(categoryType), size = 40)
+                    }
+                    Text(
+                        recent.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
             }
-            Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        if (recents.isNotEmpty() || (!hasCategoriesOfKind && onCreateCategory != null)) {
-            Spacer(Modifier.height(10.dp))
-            Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (recents.isNotEmpty()) {
-                    Text(
-                        stringResource(R.string.transaction_form_recent),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-                recents.forEach { recent ->
-                    FilterChip(
-                        selected = recent.id == selectedCategoryId,
-                        onClick = { onSelectRecent(recent.id) },
-                        label = { Text(recent.name) },
-                    )
-                }
-                if (!hasCategoriesOfKind && onCreateCategory != null) {
-                    FilterChip(
-                        selected = false,
-                        onClick = onCreateCategory,
-                        label = { Text(stringResource(R.string.transaction_form_create_category)) },
-                        leadingIcon = { Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small)) },
-                    )
-                }
+            if (offerCreate) {
+                FilterPill(
+                    label = stringResource(R.string.transaction_form_create_category),
+                    active = false,
+                    onClick = onCreateCategory,
+                )
             }
         }
     }
 }
 
 @Composable
-internal fun DateTimeCard(
-    shape: Shape,
+internal fun DateShelfRow(
     date: LocalDate,
     time: LocalTime,
     isFuture: Boolean,
@@ -422,110 +536,98 @@ internal fun DateTimeCard(
     onTimeChange: (LocalTime) -> Unit,
 ) {
     val today = LocalDate.now()
-    SectionCard(shape = shape, onClick = onOpenPicker, isError = isFuture) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            LeadingIcon(AppIcons.Calendar)
-            Column(Modifier.weight(1f)) {
-                Text(dateLabel(date, today), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    if (isFuture) {
-                        stringResource(R.string.transaction_form_error_future_date)
-                    } else {
-                        stringResource(R.string.transaction_form_time_hint, time.format(rememberTimeFormatter()))
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isFuture) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    val value = shortDateLabel(date, today) + ", " + time.format(rememberTimeFormatter())
+    ShelfRow(
+        icon = { ShelfIcon(AppIcons.Calendar) },
+        label = stringResource(R.string.transaction_form_date),
+        onClick = onOpenPicker,
+        supporting = if (isFuture) stringResource(R.string.transaction_form_error_future_date) else null,
+        supportingIsError = isFuture,
+        trailing = { ShelfValue(value, color = if (isFuture) MaterialTheme.colorScheme.error else null) },
+        below = {
+            Row(Modifier.padding(start = 48.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    today to R.string.transactions_day_today,
+                    today.minusDays(1) to R.string.transactions_day_yesterday,
+                ).forEach { (day, label) ->
+                    FilterPill(
+                        label = stringResource(label),
+                        active = date == day,
+                        onClick = {
+                            onDateChange(day)
+                            // Picking "today" after a later time was chosen for yesterday must not land in the future.
+                            if (day == today && time.isAfter(LocalTime.now())) {
+                                onTimeChange(LocalTime.now().withSecond(0).withNano(0))
+                            }
+                        },
+                    )
+                }
             }
-            Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(
-                today to R.string.transactions_day_today,
-                today.minusDays(1) to R.string.transactions_day_yesterday,
-            ).forEach { (day, label) ->
-                FilterChip(
-                    selected = date == day,
-                    onClick = {
-                        onDateChange(day)
-                        // Picking "today" after a later time was chosen for yesterday must not land in the future.
-                        if (day == today && time.isAfter(LocalTime.now())) {
-                            onTimeChange(LocalTime.now().withSecond(0).withNano(0))
-                        }
-                    },
-                    label = { Text(stringResource(label)) },
-                )
-            }
-        }
-    }
+        },
+    )
 }
 
+/** The note/description row: an inline text field with its validation lines. */
 @Composable
-internal fun DescriptionCard(
-    shape: Shape,
+internal fun NoteShelfRow(
     label: String,
     hint: String,
     description: String,
     isTooLong: Boolean,
     onChange: (String) -> Unit,
 ) {
-    SectionCard(shape = shape, isError = isTooLong) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            LeadingIcon(AppIcons.Merchant)
-            Column(Modifier.weight(1f)) {
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Box(Modifier.padding(top = 1.dp)) { ShelfIcon(AppIcons.Edit) }
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            BasicTextField(
+                value = description,
+                onValueChange = onChange,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                ),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.Sentences,
+                    imeAction = ImeAction.Done,
+                ),
+                maxLines = 3,
+                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                decorationBox = { inner ->
+                    Box {
+                        if (description.isEmpty()) {
+                            Text(hint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        inner()
+                    }
+                },
+            )
+            // The counter only appears when the limit is getting close.
+            if (isTooLong) {
                 Text(
-                    label,
-                    style = MaterialTheme.typography.labelMedium,
+                    stringResource(R.string.transaction_form_error_description_long),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            } else if (description.length > TransactionDraftValidator.DESCRIPTION_MAX - 100) {
+                Text(
+                    "${description.length}/${TransactionDraftValidator.DESCRIPTION_MAX}",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                Spacer(Modifier.height(2.dp))
-                BasicTextField(
-                    value = description,
-                    onValueChange = onChange,
-                    textStyle = MaterialTheme.typography.titleMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Done,
-                    ),
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
-                    decorationBox = { inner ->
-                        Box {
-                            if (description.isEmpty()) {
-                                Text(
-                                    hint,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                )
-                            }
-                            inner()
-                        }
-                    },
-                )
-                // The counter only appears when the limit is getting close.
-                if (isTooLong) {
-                    Text(
-                        stringResource(R.string.transaction_form_error_description_long),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                    )
-                } else if (description.length > TransactionDraftValidator.DESCRIPTION_MAX - 100) {
-                    Text(
-                        "${description.length}/${TransactionDraftValidator.DESCRIPTION_MAX}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun TagsCard(
+internal fun TagsShelfRow(
     allTags: List<Tag>,
     selectedTagIds: Set<Long>,
     pendingTagNames: List<String>,
@@ -534,184 +636,83 @@ internal fun TagsCard(
     onRemovePendingTag: (String) -> Unit,
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
-    SectionCard(shape = FormGroupBottomShape) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                AppIcons.Tag,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                stringResource(R.string.transaction_form_labels_tags),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.weight(1f),
-            )
+    val selected = allTags.filter { it.id in selectedTagIds }
+    ShelfRow(
+        icon = { ShelfIcon(AppIcons.Tag) },
+        label = stringResource(R.string.transaction_form_tags),
+        onClick = if (editing) null else ({ editing = true }),
+        trailing = {
             if (editing) {
                 TextButton(onClick = { editing = false }) { Text(stringResource(R.string.transaction_form_tags_done)) }
+            } else if (selected.isEmpty() && pendingTagNames.isEmpty()) {
+                ShelfValue(stringResource(R.string.transaction_form_add_tag), color = MaterialTheme.colorScheme.primary)
             } else {
-                Text(
-                    stringResource(R.string.transaction_form_tags_note),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Icon(AppIcons.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(IconSize.Small))
             }
-        }
-        Spacer(Modifier.height(8.dp))
-        if (editing) {
-            TagPicker(
-                allTags = allTags,
-                selectedTagIds = selectedTagIds,
-                pendingTagNames = pendingTagNames,
-                onToggleTag = onToggleTag,
-                onAddPendingTag = onAddPendingTag,
-                onRemovePendingTag = onRemovePendingTag,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        } else {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                allTags.filter { it.id in selectedTagIds }.forEach { tag ->
-                    TagChip(tag = tag, onRemove = { onToggleTag(tag.id) })
-                }
-                pendingTagNames.forEach { name ->
-                    InputChip(
-                        selected = true,
-                        onClick = {},
-                        label = { Text(stringResource(R.string.tag_picker_new_suffix, name)) },
-                        trailingIcon = {
-                            IconButton(onClick = { onRemovePendingTag(name) }, modifier = Modifier.size(16.dp)) {
-                                Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
-                            }
-                        },
-                    )
-                }
-                FilterChip(
-                    selected = false,
-                    onClick = { editing = true },
-                    label = { Text(stringResource(R.string.transaction_form_add_tag)) },
-                    leadingIcon = { Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small)) },
+        },
+        below = {
+            if (editing) {
+                TagPicker(
+                    allTags = allTags,
+                    selectedTagIds = selectedTagIds,
+                    pendingTagNames = pendingTagNames,
+                    onToggleTag = onToggleTag,
+                    onAddPendingTag = onAddPendingTag,
+                    onRemovePendingTag = onRemovePendingTag,
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 )
+            } else if (selected.isNotEmpty() || pendingTagNames.isNotEmpty()) {
+                FlowRow(
+                    Modifier.padding(start = 48.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    selected.forEach { tag -> TagChip(tag = tag, onRemove = { onToggleTag(tag.id) }) }
+                    pendingTagNames.forEach { name ->
+                        InputChip(
+                            selected = true,
+                            onClick = {},
+                            label = { Text(stringResource(R.string.tag_picker_new_suffix, name)) },
+                            trailingIcon = {
+                                IconButton(onClick = { onRemovePendingTag(name) }, modifier = Modifier.size(16.dp)) {
+                                    Icon(AppIcons.Close, contentDescription = stringResource(R.string.action_remove))
+                                }
+                            },
+                        )
+                    }
+                }
             }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Reusable pieces
-// ---------------------------------------------------------------------------
-
-@Composable
-internal fun SectionCard(
-    shape: Shape,
-    onClick: (() -> Unit)? = null,
-    isError: Boolean = false,
-    content: @Composable () -> Unit,
-) {
-    // One Surface with a stable structure: the click and error outline are plain modifiers/params,
-    // so toggling them never changes the composition shape.
-    val errorColor = MaterialTheme.colorScheme.error
-    val clickModifier = if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier
-    Surface(
-        shape = shape,
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        border = if (isError) BorderStroke(1.dp, errorColor) else null,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(clickModifier.padding(14.dp)) { content() }
-    }
-}
-
-@Composable
-internal fun LeadingIcon(icon: ImageVector) {
-    Box(
-        Modifier.size(44.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Default))
-    }
-}
-
-@Composable
-internal fun Pill(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
+        },
     )
 }
 
+/** The "Add another after saving" switch under the details card. */
 @Composable
-internal fun SmallPill(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    text: String? = null,
-    icon: (@Composable () -> Unit)? = null,
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-        modifier = modifier.height(32.dp),
+internal fun AddAnotherRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(MaterialTheme.shapes.small)
+            .clickable(role = Role.Switch) { onCheckedChange(!checked) }
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Box(Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
-            if (text != null) Text(text, style = MaterialTheme.typography.labelLarge)
-            icon?.invoke()
-        }
+        // The row handles the toggle so the whole line is the touch target.
+        Switch(checked = checked, onCheckedChange = null)
+        Text(stringResource(R.string.editor_add_another), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
-@Composable
-internal fun dateLabel(date: LocalDate, today: LocalDate): String {
-    val formatted = date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
-    return when (date) {
-        today -> "${stringResource(R.string.transactions_day_today)}, $formatted"
-        today.minusDays(1) -> "${stringResource(R.string.transactions_day_yesterday)}, $formatted"
-        else -> formatted
-    }
-}
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
-/** The bottom CTA bar: a full-width 56dp round button whose label says what is missing while it is disabled. */
 @Composable
-internal fun FormCtaBar(
-    label: String,
-    enabled: Boolean,
-    showCheck: Boolean,
-    onClick: () -> Unit,
-    bottomPadding: androidx.compose.ui.unit.Dp,
-    secondary: (@Composable () -> Unit)? = null,
-) {
-    Surface(color = MaterialTheme.colorScheme.background) {
-        Column(
-            Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = bottomPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(
-                onClick = onClick,
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(28.dp),
-            ) {
-                if (showCheck) {
-                    Icon(AppIcons.Check, contentDescription = null, modifier = Modifier.size(IconSize.Small))
-                    Spacer(Modifier.width(8.dp))
-                }
-                Text(label, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            }
-            secondary?.invoke()
-        }
-    }
+internal fun shortDateLabel(date: LocalDate, today: LocalDate): String = when (date) {
+    today -> stringResource(R.string.transactions_day_today)
+    today.minusDays(1) -> stringResource(R.string.transactions_day_yesterday)
+    else -> date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
 }
 
 /** Money with the symbol in front and locale digit grouping, matching the amount hero. */

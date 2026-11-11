@@ -1,5 +1,41 @@
 package com.yehor.finora.ui.operations
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import com.yehor.finora.R
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.motion.FinoraMotion
+import com.yehor.finora.designsystem.motion.rememberReduceMotion
+import com.yehor.finora.designsystem.theme.KeypadNumStyle
 import java.math.BigDecimal
 
 /**
@@ -61,5 +97,120 @@ object AmountKeypad {
             .joinToString(groupingSeparator.toString())
             .reversed()
         return if (fraction == null) grouped else "$grouped$decimalSeparator$fraction"
+    }
+}
+
+private val KeySize = 58.dp
+
+/**
+ * The borderless 3×4 amount keypad: digits, the decimal key bottom-left and backspace bottom-right.
+ * A press shows a circular wash and a slight springy shrink; long-pressing backspace clears the amount.
+ */
+@Composable
+internal fun NumberPad(
+    decimalLabel: String,
+    decimalEnabled: Boolean,
+    onKey: (String) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", AmountKeypad.DECIMAL, "0", AmountKeypad.BACKSPACE)
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        keys.chunked(3).forEach { row ->
+            Row(Modifier.fillMaxWidth()) {
+                row.forEach { key ->
+                    KeypadKey(
+                        key = key,
+                        decimalLabel = decimalLabel,
+                        enabled = key != AmountKeypad.DECIMAL || decimalEnabled,
+                        onKey = onKey,
+                        onClear = onClear,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun KeypadKey(
+    key: String,
+    decimalLabel: String,
+    enabled: Boolean,
+    onKey: (String) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val haptics = LocalHapticFeedback.current
+    val backspaceLabel = stringResource(R.string.transaction_form_backspace)
+    val isBackspace = key == AmountKeypad.BACKSPACE
+    val isDecimal = key == AmountKeypad.DECIMAL
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+    val reduceMotion = rememberReduceMotion()
+    // The wash appears at once on press and fades out after release, so even a quick tap shows it.
+    val wash by animateFloatAsState(
+        targetValue = if (pressed) 1f else 0f,
+        animationSpec = if (pressed || reduceMotion) snap() else tween(220),
+        label = "keyWash",
+    )
+    val scale by animateFloatAsState(
+        targetValue = if (pressed && !reduceMotion) 0.96f else 1f,
+        animationSpec = if (reduceMotion) snap() else FinoraMotion.press,
+        label = "keyScale",
+    )
+    val washColor = MaterialTheme.colorScheme.surfaceContainerHigh
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .height(KeySize)
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = null,
+                enabled = enabled,
+                role = Role.Button,
+                onClickLabel = if (isBackspace) backspaceLabel else null,
+                onClick = {
+                    haptics.performHapticFeedback(HapticFeedbackType.KeyboardTap)
+                    onKey(key)
+                },
+                onLongClick = if (isBackspace) {
+                    {
+                        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onClear()
+                    }
+                } else {
+                    null
+                },
+            )
+            .semantics { if (isBackspace) contentDescription = backspaceLabel },
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(KeySize)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                }
+                .drawBehind { if (wash > 0f) drawCircle(washColor.copy(alpha = washColor.alpha * wash)) },
+        ) {
+            when {
+                isBackspace -> Icon(
+                    AppIcons.Backspace,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp),
+                )
+                isDecimal && !enabled -> Unit
+                else -> Text(
+                    if (isDecimal) decimalLabel else key,
+                    style = KeypadNumStyle,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
     }
 }

@@ -1,79 +1,67 @@
 package com.yehor.finora.ui.operations
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.AccountType
+import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.money.AmountParseResult
 import com.yehor.finora.domain.money.AmountParser
+import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionDraftError
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.AccountPickerContent
-import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.ui.common.CategoryTreePickerContent
-import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateTimePickerFlow
-import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
-import com.yehor.finora.designsystem.theme.finance
 import java.text.DecimalFormatSymbols
 import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * The unified editor for Expense, Income and Transfer. Two view models back it, both created from the same
  * back-stack entry: [TransactionEditViewModel] (Expense/Income) and [TransferEditViewModel] (Transfer).
  * The screen shows the one that matches the current tab and carries typed values over when the tab changes.
+ *
+ * Layout: a keypad screen ([EditorStage.AMOUNT]) and a details shelf raised over the keypad ([EditorStage.DETAILS]).
+ * New operations start on the keypad, existing ones with the shelf up.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionEditScreen(
     onBack: () -> Unit,
@@ -101,17 +89,23 @@ fun TransactionEditScreen(
     val isEdit = if (isTransfer) transferState.isEdit else state.isEdit
     val operationId = if (isTransfer) transferState.operationId else state.operationId
 
-    val scrollState = rememberScrollState()
+    var stage by rememberSaveable { mutableStateOf(initialStage(isEdit)) }
+    // The view models do not persist the "save and another" choice, so it lives for this editor session.
+    var addAnother by rememberSaveable { mutableStateOf(false) }
+    val shelfScroll = rememberScrollState()
     val snackbarHostState = remember { SnackbarHostState() }
     val savedAnotherMessage = stringResource(R.string.transaction_form_saved_another)
+    // Remembered so a configuration change does not replay the confirmation or drop the shelf again.
+    var handledSavedAnother by rememberSaveable { mutableIntStateOf(0) }
     LaunchedEffect(state.savedAnotherCount) {
-        if (state.savedAnotherCount > 0) {
-            scrollState.animateScrollTo(0)
+        if (state.savedAnotherCount > 0 && state.savedAnotherCount != handledSavedAnother) {
+            handledSavedAnother = state.savedAnotherCount
+            // Ready for the next entry: back to the keypad.
+            stage = EditorStage.AMOUNT
+            shelfScroll.scrollTo(0)
             snackbarHostState.showSnackbar(savedAnotherMessage)
         }
     }
-
-    var menuOpen by remember { mutableStateOf(false) }
 
     fun changeMode(new: EditorMode) {
         if (isEdit || new == mode) return
@@ -142,110 +136,49 @@ fun TransactionEditScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.imePadding(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            when {
-                                !isEdit -> R.string.transaction_form_new_title
-                                isTransfer -> R.string.transfer_form_edit_title
-                                else -> R.string.transaction_form_edit_title
-                            },
-                        ),
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
-                    }
-                },
-                actions = {
-                    if (isEdit) {
-                        Box {
-                            IconButton(onClick = { menuOpen = true }) {
-                                Icon(AppIcons.More, contentDescription = stringResource(R.string.action_more_options))
-                            }
-                            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                                if (onDuplicate != null) {
-                                    DropdownMenuItem(
-                                        text = { Text(stringResource(R.string.transaction_form_duplicate)) },
-                                        onClick = {
-                                            menuOpen = false
-                                            onDuplicate(operationId, mode)
-                                        },
-                                    )
-                                }
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.action_delete)) },
-                                    onClick = {
-                                        menuOpen = false
-                                        if (isTransfer) transferViewModel.onDeleteRequest() else viewModel.onDeleteRequest()
-                                    },
-                                )
-                            }
-                        }
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            if (isTransfer) {
-                val blocker = TransferFormLogic.blocker(transferState.errors)
-                FormCtaBar(
-                    label = transferCtaLabel(transferState, blocker),
-                    enabled = transferState.canSave,
-                    showCheck = blocker == null,
-                    onClick = { transferViewModel.save() },
-                    bottomPadding = 12.dp,
-                )
-            } else {
-                ExpenseIncomeCtaBar(state, viewModel)
-            }
-        },
-    ) { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            val scheduleId = state.recurringScheduleId
-            val scheduleName = state.recurringScheduleName
-            if (!isTransfer && scheduleId != null && scheduleName != null && onOpenSchedule != null) {
-                TextButton(onClick = { onOpenSchedule(scheduleId) }) {
-                    Icon(AppIcons.Recurring, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-                    Text(stringResource(R.string.transaction_form_created_by_schedule, scheduleName))
-                }
-            }
+    val topBar: @Composable () -> Unit = {
+        EditorTopBar(
+            mode = mode,
+            isEdit = isEdit,
+            onClose = onBack,
+            onModeChange = ::changeMode,
+            onDuplicate = onDuplicate?.let { duplicate -> { duplicate(operationId, mode) } },
+            onDelete = { if (isTransfer) transferViewModel.onDeleteRequest() else viewModel.onDeleteRequest() },
+        )
+    }
+    val overlay: @Composable () -> Unit = { SnackbarHost(snackbarHostState) }
 
-            KindTabs(mode = mode, enabled = !isEdit, onModeChange = ::changeMode)
-
-            if (isTransfer) {
-                TransferFormContent(
-                    state = transferState,
-                    target = transferTarget,
-                    onTargetChange = { transferTarget = it },
-                    actions = transferViewModel.formActions(),
-                    onNavigateCreateCategory = onNavigateCreateCategory,
-                )
-            } else {
-                ExpenseIncomeContent(state, viewModel, onNavigateCreateCategory)
-            }
-
-            Spacer(Modifier.height(4.dp))
-        }
-
-        if (isTransfer) {
-            TransferDialogs(transferState, transferViewModel)
-        } else {
-            ExpenseIncomeDialogs(state, viewModel)
-        }
+    if (isTransfer) {
+        TransferEditor(
+            state = transferState,
+            target = transferTarget,
+            onTargetChange = { transferTarget = it },
+            actions = transferViewModel.formActions(),
+            stage = stage,
+            onStageChange = { stage = it },
+            topBar = topBar,
+            onSave = { transferViewModel.save() },
+            shelfScroll = shelfScroll,
+            onNavigateCreateCategory = onNavigateCreateCategory,
+            overlay = overlay,
+        )
+        TransferDialogs(transferState, transferViewModel)
+    } else {
+        ExpenseIncomeEditor(
+            state = state,
+            actions = viewModel.formActions(),
+            stage = stage,
+            onStageChange = { stage = it },
+            topBar = topBar,
+            addAnother = addAnother,
+            onAddAnotherChange = { addAnother = it },
+            onSave = { viewModel.save(createAnother = addAnother && !state.isEdit) },
+            shelfScroll = shelfScroll,
+            onNavigateCreateCategory = onNavigateCreateCategory,
+            onOpenSchedule = onOpenSchedule,
+            overlay = overlay,
+        )
+        ExpenseIncomeDialogs(state, viewModel)
     }
 }
 
@@ -253,53 +186,46 @@ fun TransactionEditScreen(
 // Expense / Income mode
 // ---------------------------------------------------------------------------
 
-@Composable
-private fun ExpenseIncomeCtaBar(state: TransactionEditUiState, viewModel: TransactionEditViewModel) {
-    val isIncome = state.kind == TransactionKind.INCOME
-    val symbols = remember { DecimalFormatSymbols.getInstance() }
-    val amountDisplay = AmountKeypad.format(state.amountText, symbols.groupingSeparator, symbols.decimalSeparator) +
-        " " + state.currency.symbol
-    // A disabled button says what is missing instead of just greying out.
-    val blocker = when {
-        state.canSave -> null
-        TransactionDraftError.AMOUNT_EMPTY in state.errors -> R.string.transaction_form_error_amount_empty
-        state.selectedAccountId == null -> R.string.transaction_form_error_account_missing
-        TransactionDraftError.CATEGORY_MISSING in state.errors -> R.string.transaction_form_error_category_missing
-        else -> null
-    }
-    val ctaLabel = when {
-        blocker != null -> stringResource(blocker)
-        state.isEdit -> stringResource(R.string.transaction_form_cta_save)
-        else -> stringResource(
-            if (isIncome) R.string.transaction_form_cta_add_income else R.string.transaction_form_cta_add_expense,
-        ) + " — " + amountDisplay
-    }
-    FormCtaBar(
-        label = ctaLabel,
-        enabled = state.canSave,
-        showCheck = blocker == null,
-        onClick = { viewModel.save() },
-        bottomPadding = if (state.isEdit) 12.dp else 0.dp,
-        secondary = if (state.isEdit) {
-            null
-        } else {
-            {
-                TextButton(onClick = { viewModel.save(createAnother = true) }, enabled = state.canSave) {
-                    Icon(AppIcons.AddCircle, contentDescription = null, modifier = Modifier.size(IconSize.Small))
-                    Spacer(Modifier.width(6.dp))
-                    Text(stringResource(R.string.transaction_form_save_and_another))
-                }
-            }
-        },
-    )
-}
+internal class ExpenseIncomeActions(
+    val onAmountChange: (String) -> Unit = {},
+    val onAccountChange: (Long) -> Unit = {},
+    val onCategoryChange: (Long?) -> Unit = {},
+    val onDateChange: (LocalDate) -> Unit = {},
+    val onTimeChange: (LocalTime) -> Unit = {},
+    val onDescriptionChange: (String) -> Unit = {},
+    val onToggleTag: (Long) -> Unit = {},
+    val onAddPendingTag: (String) -> Unit = {},
+    val onRemovePendingTag: (String) -> Unit = {},
+)
 
+internal fun TransactionEditViewModel.formActions() = ExpenseIncomeActions(
+    onAmountChange = ::onAmountChange,
+    onAccountChange = ::onAccountChange,
+    onCategoryChange = ::onCategoryChange,
+    onDateChange = ::onDateChange,
+    onTimeChange = ::onTimeChange,
+    onDescriptionChange = ::onDescriptionChange,
+    onToggleTag = ::onToggleTag,
+    onAddPendingTag = ::onAddPendingTag,
+    onRemovePendingTag = ::onRemovePendingTag,
+)
+
+/** Keypad screen + details shelf for Expense and Income, with the pickers that belong to them. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ExpenseIncomeContent(
+internal fun ExpenseIncomeEditor(
     state: TransactionEditUiState,
-    viewModel: TransactionEditViewModel,
-    onNavigateCreateCategory: ((String) -> Unit)?,
+    actions: ExpenseIncomeActions,
+    stage: EditorStage,
+    onStageChange: (EditorStage) -> Unit,
+    topBar: @Composable () -> Unit,
+    addAnother: Boolean,
+    onAddAnotherChange: (Boolean) -> Unit,
+    onSave: () -> Unit,
+    shelfScroll: ScrollState,
+    onNavigateCreateCategory: ((String) -> Unit)? = null,
+    onOpenSchedule: ((Long) -> Unit)? = null,
+    overlay: @Composable () -> Unit = {},
 ) {
     var pickAccount by rememberSaveable { mutableStateOf(false) }
     var pickCategory by rememberSaveable { mutableStateOf(false) }
@@ -308,13 +234,9 @@ private fun ExpenseIncomeContent(
     val isIncome = state.kind == TransactionKind.INCOME
     val categoryType = if (isIncome) CategoryType.INCOME else CategoryType.EXPENSE
     val tree = remember(state.categories) { CategoryTree(state.categories) }
-
     val selectedAccount = state.selectedAccount
     val currency = state.currency
-    val kindColor = if (isIncome) MaterialTheme.finance.income else MaterialTheme.finance.expense
     val symbols = remember { DecimalFormatSymbols.getInstance() }
-    val amountDisplay = AmountKeypad.format(state.amountText, symbols.groupingSeparator, symbols.decimalSeparator) +
-        " " + currency.symbol
 
     val parsedMinor = (AmountParser.parse(state.amountText, currency) as? AmountParseResult.Value)?.minor
     val balance = selectedAccount?.let { state.balances[it.id] }
@@ -327,119 +249,132 @@ private fun ExpenseIncomeContent(
         null
     }
 
-    AmountCard(
-        amountText = state.amountText,
-        amountDisplay = amountDisplay,
-        sign = if (isIncome) "+" else FORM_MINUS,
-        signColor = kindColor,
-        currencyScale = currency.scale,
-        currencySymbol = currency.symbol,
-        accountLabel = selectedAccount?.let { "${it.currency.code} (${it.currency.symbol}) • ${it.name}" },
-        errorText = when {
-            state.isOverflow || TransactionDraftError.AMOUNT_OUT_OF_RANGE in state.errors ->
-                stringResource(R.string.transaction_form_error_amount_range)
-            TransactionDraftError.AMOUNT_INVALID in state.errors ->
-                stringResource(R.string.transaction_form_error_amount_invalid)
-            TransactionDraftError.AMOUNT_TOO_PRECISE in state.errors ->
-                stringResource(R.string.transaction_form_error_amount_precise)
-            TransactionDraftError.AMOUNT_NOT_POSITIVE in state.errors ->
-                stringResource(R.string.transaction_form_error_amount_positive)
-            else -> null
-        },
-        decimalSeparator = symbols.decimalSeparator,
-        onAccountClick = { pickAccount = true },
-        onAmountChange = viewModel::onAmountChange,
-    )
-
-    // Account → tags: one connected group with a thin divider gap between rows.
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        SectionCard(shape = FormGroupTopShape, onClick = { pickAccount = true }) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                IconBadge(selectedAccount?.icon, selectedAccount?.color, ColorPalette.ACCOUNT_DEFAULT, size = 44)
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            selectedAccount?.name ?: stringResource(R.string.transaction_form_account),
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        selectedAccount?.let {
-                            Spacer(Modifier.width(8.dp))
-                            Pill(it.currency.code)
-                        }
-                    }
-                    val subtitle = when {
-                        selectedAccount?.status == AccountStatus.ARCHIVED ->
-                            stringResource(R.string.account_detail_archived_banner)
-                        balance != null && balanceAfter != null -> stringResource(
-                            R.string.transaction_form_balance_after,
-                            formatMoney(balance, symbols),
-                            formatMoney(balanceAfter, symbols),
-                        )
-                        balance != null -> stringResource(R.string.transaction_form_balance, formatMoney(balance, symbols))
-                        else -> null
-                    }
-                    if (subtitle != null) {
-                        Text(
-                            subtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (balanceAfter != null && balanceAfter.amountMinor < 0) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-
-        CategoryCard(
-            shape = FormGroupMiddleShape,
-            tree = tree,
-            categoryType = categoryType,
-            selectedCategoryId = state.selectedCategoryId,
-            showUncategorized = state.isEdit && !state.hadCategoryBefore,
-            showError = TransactionDraftError.CATEGORY_MISSING in state.errors && state.amountText.isNotBlank(),
-            recentCategoryIds = state.recentCategoryIds,
-            onClick = { pickCategory = true },
-            onSelectRecent = viewModel::onCategoryChange,
-            onCreateCategory = onNavigateCreateCategory?.let { create -> { create(categoryType.name) } },
-        )
-
-        DateTimeCard(
-            shape = FormGroupMiddleShape,
-            date = state.date,
-            time = state.time,
-            isFuture = TransactionDraftError.DATE_IN_FUTURE in state.errors,
-            onOpenPicker = { pickDateTime = true },
-            onDateChange = viewModel::onDateChange,
-            onTimeChange = viewModel::onTimeChange,
-        )
-
-        DescriptionCard(
-            shape = FormGroupMiddleShape,
-            label = stringResource(R.string.transaction_form_merchant_description),
-            hint = stringResource(R.string.transaction_form_description_hint),
-            description = state.description,
-            isTooLong = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors,
-            onChange = viewModel::onDescriptionChange,
-        )
-
-        TagsCard(
-            allTags = state.allTags,
-            selectedTagIds = state.selectedTagIds,
-            pendingTagNames = state.pendingTagNames,
-            onToggleTag = viewModel::onToggleTag,
-            onAddPendingTag = viewModel::onAddPendingTag,
-            onRemovePendingTag = viewModel::onRemovePendingTag,
-        )
+    val amountError = when {
+        state.isOverflow || TransactionDraftError.AMOUNT_OUT_OF_RANGE in state.errors ->
+            stringResource(R.string.transaction_form_error_amount_range)
+        TransactionDraftError.AMOUNT_INVALID in state.errors ->
+            stringResource(R.string.transaction_form_error_amount_invalid)
+        TransactionDraftError.AMOUNT_TOO_PRECISE in state.errors ->
+            stringResource(R.string.transaction_form_error_amount_precise)
+        TransactionDraftError.AMOUNT_NOT_POSITIVE in state.errors ->
+            stringResource(R.string.transaction_form_error_amount_positive)
+        else -> null
     }
+    // A disabled button says what is missing instead of just greying out.
+    val blocker = when {
+        state.canSave -> null
+        TransactionDraftError.AMOUNT_EMPTY in state.errors -> R.string.transaction_form_error_amount_empty
+        state.selectedAccountId == null -> R.string.transaction_form_error_account_missing
+        TransactionDraftError.CATEGORY_MISSING in state.errors -> R.string.transaction_form_error_category_missing
+        else -> null
+    }
+    val ctaLabel = stringResource(blocker ?: if (isIncome) R.string.editor_save_income else R.string.editor_save_expense)
+
+    EditorScaffold(
+        stage = stage,
+        onStageChange = onStageChange,
+        topBar = topBar,
+        amount = {
+            EditorAmount(
+                sign = if (isIncome) "+" else FORM_MINUS,
+                amountText = state.amountText,
+                currencySymbol = currency.symbol,
+                symbols = symbols,
+                isError = amountError != null,
+            )
+            if (amountError != null) {
+                Text(amountError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+            AccountPill(selectedAccount, balance, symbols, onClick = { pickAccount = true })
+        },
+        keypad = {
+            QuickAmountRow(state.amountText, currency.symbol, actions.onAmountChange)
+            NumberPad(
+                decimalLabel = symbols.decimalSeparator.toString(),
+                decimalEnabled = currency.scale > 0,
+                onKey = { actions.onAmountChange(AmountKeypad.applyKey(state.amountText, it, currency.scale)) },
+                onClear = { actions.onAmountChange("") },
+            )
+        },
+        shelfKindLabel = stringResource(if (isIncome) R.string.transaction_kind_income else R.string.transaction_kind_expense),
+        shelfScroll = shelfScroll,
+        shelfContent = {
+            val scheduleId = state.recurringScheduleId
+            val scheduleName = state.recurringScheduleName
+            if (scheduleId != null && scheduleName != null && onOpenSchedule != null) {
+                TextButton(onClick = { onOpenSchedule(scheduleId) }) {
+                    Icon(AppIcons.Recurring, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.transaction_form_created_by_schedule, scheduleName))
+                }
+            }
+            GroupedCard(Modifier.fillMaxWidth()) {
+                val (accountNote, accountNoteIsError) = accountSupporting(
+                    archived = selectedAccount?.status == AccountStatus.ARCHIVED,
+                    balance = balance,
+                    balanceAfter = balanceAfter,
+                    symbols = symbols,
+                )
+                AccountShelfRow(
+                    label = stringResource(R.string.transaction_form_account),
+                    account = selectedAccount,
+                    balance = balance,
+                    symbols = symbols,
+                    supporting = accountNote,
+                    supportingIsError = accountNoteIsError,
+                    onClick = { pickAccount = true },
+                )
+                ShelfDivider()
+                CategoryShelfRow(
+                    tree = tree,
+                    categoryType = categoryType,
+                    selectedCategoryId = state.selectedCategoryId,
+                    showUncategorized = state.isEdit && !state.hadCategoryBefore,
+                    showError = TransactionDraftError.CATEGORY_MISSING in state.errors && state.amountText.isNotBlank(),
+                    onClick = { pickCategory = true },
+                )
+                ShelfDivider()
+                DateShelfRow(
+                    date = state.date,
+                    time = state.time,
+                    isFuture = TransactionDraftError.DATE_IN_FUTURE in state.errors,
+                    onOpenPicker = { pickDateTime = true },
+                    onDateChange = actions.onDateChange,
+                    onTimeChange = actions.onTimeChange,
+                )
+                ShelfDivider()
+                NoteShelfRow(
+                    label = stringResource(R.string.transaction_form_merchant_description),
+                    hint = stringResource(R.string.transaction_form_description_hint),
+                    description = state.description,
+                    isTooLong = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors,
+                    onChange = actions.onDescriptionChange,
+                )
+                ShelfDivider()
+                TagsShelfRow(
+                    allTags = state.allTags,
+                    selectedTagIds = state.selectedTagIds,
+                    pendingTagNames = state.pendingTagNames,
+                    onToggleTag = actions.onToggleTag,
+                    onAddPendingTag = actions.onAddPendingTag,
+                    onRemovePendingTag = actions.onRemovePendingTag,
+                )
+            }
+            RecentCategoriesRow(
+                tree = tree,
+                categoryType = categoryType,
+                selectedCategoryId = state.selectedCategoryId,
+                recentCategoryIds = state.recentCategoryIds,
+                onSelectRecent = actions.onCategoryChange,
+                onCreateCategory = onNavigateCreateCategory?.let { create -> { create(categoryType.name) } },
+            )
+        },
+        shelfFooter = {
+            if (!state.isEdit) AddAnotherRow(addAnother, onAddAnotherChange)
+            Spacer(Modifier.height(8.dp))
+            PrimaryButton(ctaLabel, onClick = onSave, enabled = state.canSave)
+        },
+        overlay = overlay,
+    )
 
     DateTimePickerFlow(
         open = pickDateTime,
@@ -448,8 +383,8 @@ private fun ExpenseIncomeContent(
         maxDate = LocalDate.now(),
         onDismiss = { pickDateTime = false },
         onPicked = { date, time ->
-            viewModel.onDateChange(date)
-            viewModel.onTimeChange(time)
+            actions.onDateChange(date)
+            actions.onTimeChange(time)
             pickDateTime = false
         },
     )
@@ -460,7 +395,7 @@ private fun ExpenseIncomeContent(
                 accounts = state.accounts,
                 selectedAccountId = state.selectedAccountId,
                 onSelect = {
-                    viewModel.onAccountChange(it)
+                    actions.onAccountChange(it)
                     pickAccount = false
                 },
                 modifier = Modifier.padding(bottom = 16.dp),
@@ -477,7 +412,7 @@ private fun ExpenseIncomeContent(
                 selectedId = state.selectedCategoryId,
                 onCreate = onNavigateCreateCategory?.let { nav -> { pickCategory = false; nav(categoryType.name) } },
                 onSelect = {
-                    viewModel.onCategoryChange(it)
+                    actions.onCategoryChange(it)
                     pickCategory = false
                 },
                 modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp),
@@ -563,80 +498,46 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
 }
 
 // ---------------------------------------------------------------------------
-// Amount hero + keypad (Expense / Income)
+// Previews
 // ---------------------------------------------------------------------------
 
+@Preview(name = "New expense · light", showBackground = true, widthDp = 380, heightDp = 800)
 @Composable
-private fun AmountCard(
-    amountText: String,
-    amountDisplay: String,
-    sign: String,
-    signColor: Color,
-    currencyScale: Int,
-    currencySymbol: String,
-    accountLabel: String?,
-    errorText: String?,
-    decimalSeparator: Char,
-    onAccountClick: () -> Unit,
-    onAmountChange: (String) -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-    ) {
-        Column(
-            Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            val changeAccount = stringResource(R.string.transaction_form_change_account)
-            Surface(
-                onClick = onAccountClick,
-                shape = RoundedCornerShape(50),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                modifier = Modifier.semantics { contentDescription = "${accountLabel.orEmpty()}. $changeAccount" },
-            ) {
-                Row(
-                    Modifier.padding(start = 14.dp, end = 10.dp, top = 6.dp, bottom = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        accountLabel ?: stringResource(R.string.transaction_form_account),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
-                    )
-                    Icon(
-                        AppIcons.Dropdown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
-                    )
-                }
-            }
+private fun NewExpenseLightPreview() = ExpenseIncomePreviewContent(dark = false, stage = EditorStage.AMOUNT)
 
-            AmountDisplay(
-                sign = sign,
-                signColor = signColor,
-                amountDisplay = amountDisplay,
-                isError = errorText != null,
-                isEmpty = amountText.isEmpty(),
-            )
-            if (errorText != null) {
-                Text(errorText, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-            }
+@Preview(name = "New expense · dark", showBackground = true, widthDp = 380, heightDp = 800)
+@Composable
+private fun NewExpenseDarkPreview() = ExpenseIncomePreviewContent(dark = true, stage = EditorStage.AMOUNT)
 
-            QuickAmountRow(amountText, currencySymbol, onAmountChange)
+@Preview(name = "Shelf open · light", showBackground = true, widthDp = 380, heightDp = 800)
+@Composable
+private fun ShelfOpenLightPreview() = ExpenseIncomePreviewContent(dark = false, stage = EditorStage.DETAILS)
 
-            NumberPad(
-                decimalLabel = decimalSeparator.toString(),
-                decimalEnabled = currencyScale > 0,
-                onKey = { onAmountChange(AmountKeypad.applyKey(amountText, it, currencyScale)) },
-                onClear = { onAmountChange("") },
-            )
-        }
+@Preview(name = "Shelf open · dark", showBackground = true, widthDp = 380, heightDp = 800)
+@Composable
+private fun ShelfOpenDarkPreview() = ExpenseIncomePreviewContent(dark = true, stage = EditorStage.DETAILS)
+
+@Composable
+private fun ExpenseIncomePreviewContent(dark: Boolean, stage: EditorStage) {
+    val usd = Currency("USD", 2, "$", "US Dollar")
+    val account = Account(1, "Monobank", usd, AccountType.CASH, null, null, null, AccountStatus.ACTIVE, 0L)
+    val state = TransactionEditUiState(
+        amountText = "64.20",
+        selectedAccountId = 1,
+        accounts = listOf(PickableAccount(account, false)),
+        balances = mapOf(1L to Money(112_000, usd)),
+    )
+    PreviewTheme(dark) {
+        ExpenseIncomeEditor(
+            state = state,
+            actions = ExpenseIncomeActions(),
+            stage = stage,
+            onStageChange = {},
+            topBar = { EditorTopBar(EditorMode.EXPENSE, isEdit = false, onClose = {}, onModeChange = {}, onDuplicate = null, onDelete = {}) },
+            addAnother = false,
+            onAddAnotherChange = {},
+            onSave = {},
+            shelfScroll = rememberScrollState(),
+        )
     }
 }

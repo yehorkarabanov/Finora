@@ -911,4 +911,12 @@
     <string name="range_in_future">In the future</string>
     <string name="range_today">Today</string>
     <string name="range_custom_days">Custom days…</string>
+    <!-- Editor: keypad screen + details shelf -->
+    <string name="editor_next">Next</string>
+    <string name="editor_details">Details</string>
+    <string name="editor_add_another">Add another after saving</string>
+    <string name="editor_save_expense">Save expense</string>
+    <string name="editor_save_income">Save income</string>
+    <string name="editor_save_transfer">Save transfer</string>
+    <string name="editor_they_receive">They receive</string>
 </resources>

@@ -924,4 +924,12 @@
     <string name="range_in_future">В будущем</string>
     <string name="range_today">Сегодня</string>
     <string name="range_custom_days">Свои дни…</string>
+    <!-- Editor: keypad screen + details shelf -->
+    <string name="editor_next">Далее</string>
+    <string name="editor_details">Детали</string>
+    <string name="editor_add_another">Добавить ещё после сохранения</string>
+    <string name="editor_save_expense">Сохранить расход</string>
+    <string name="editor_save_income">Сохранить доход</string>
+    <string name="editor_save_transfer">Сохранить перевод</string>
+    <string name="editor_they_receive">Получатель получит</string>
 </resources>

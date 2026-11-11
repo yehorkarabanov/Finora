@@ -23,4 +23,10 @@ class EditorModeTest {
     fun argRoundTrips() {
         EditorMode.entries.forEach { assertEquals(it, EditorMode.fromArg(it.arg)) }
     }
+
+    @Test
+    fun newOpensOnAmount() = assertEquals(EditorStage.AMOUNT, initialStage(isEdit = false))
+
+    @Test
+    fun editOpensWithShelf() = assertEquals(EditorStage.DETAILS, initialStage(isEdit = true))
 }
