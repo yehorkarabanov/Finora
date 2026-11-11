@@ -9,7 +9,7 @@ import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.analytics.AccountPeriodRow
 import com.yehor.finora.domain.analytics.BucketPlan
 import com.yehor.finora.domain.analytics.BucketUnit
-import com.yehor.finora.domain.analytics.PeriodState
+import com.yehor.finora.domain.analytics.Period
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Measure
@@ -24,8 +24,8 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.tag.TagMatchMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.Flow
@@ -144,24 +144,22 @@ class StatisticsViewModel @Inject constructor(
         .flatMapLatest { (env, controls) -> content(env, controls) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatisticsUiState())
 
-    /** A window the trend chart is being panned or pinched to; [base] is the period it started from. */
-    private data class Preview(val window: ChartWindow, val base: PeriodState?)
-
-    private val preview = MutableStateFlow<Preview?>(null)
+    private val preview = MutableStateFlow<TrendPreview?>(null)
 
     /** The bucket unit last drawn, so a window in the 93 to 99 day band keeps it while pinching. */
     @Volatile private var lastUnit: BucketUnit? = null
 
     /**
      * The trend wave of Expenses or Income (null on the other tabs): the selected period or, while the
-     * chart is being panned or pinched, the window under the fingers. Previews are debounced a little
-     * so a fast gesture does not query on every frame.
+     * chart is being panned or pinched, the window under the fingers. Previews are throttled (the first
+     * at once, then the latest at most every [PREVIEW_THROTTLE_MS]) so a fast gesture neither queries on
+     * every frame nor waits for the fingers to stop.
      */
-    @OptIn(FlowPreview::class)
     val trend: StateFlow<StatsTrend?> = combine(
         env,
         _controls,
-        preview.debounce { if (it == null) 0L else PREVIEW_DEBOUNCE_MS },
+        // A StateFlow is conflated: while the delay runs, only the newest window waits.
+        preview.transform { emit(it); delay(PREVIEW_THROTTLE_MS) },
     ) { env, controls, preview -> Triple(env, controls, preview) }
         .flatMapLatest { (env, controls, preview) -> trend(env, controls, preview) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -186,15 +184,14 @@ class StatisticsViewModel @Inject constructor(
 
     /** Redraws the trend over [window] without changing the selected period. */
     fun previewWindow(window: ChartWindow) {
-        preview.value = Preview(window, latestEnv?.periodState)
+        preview.value = TrendPreview(window, latestEnv?.periodState)
     }
 
     /** Makes [window] the selected period: a calendar week, month or year when it is one, else a custom range. */
     fun commitWindow(window: ChartWindow) {
         val env = latestEnv ?: return
-        if (window == ChartWindow.of(env.period)) return
-        val state = window.toPeriodState(env.firstDayOfWeek, env.today)
-        preview.value = Preview(window, state)
+        val state = commitTarget(window, env.period, env.today, env.firstDayOfWeek) ?: return
+        preview.value = TrendPreview(window, state)
         environment.setPeriod(state)
         change { it.copy(path = emptyList()) }
     }
@@ -219,12 +216,17 @@ class StatisticsViewModel @Inject constructor(
 
     /**
      * The month range picked on the range wheels. One month is that month, January to the current month
-     * is the whole current year (the wheels cannot reach future months), anything else a custom range.
+     * is the whole current year (the wheels cannot reach future months), anything else a custom range
+     * that ends today at the latest.
      */
     fun selectMonths(from: YearMonth, to: YearMonth) {
         val env = latestEnv ?: return
         val wholeYear = from.monthValue == 1 && from.year == to.year && to == YearMonth.from(env.today)
-        val end = if (wholeYear) LocalDate.of(from.year, 12, 31) else to.atEndOfMonth()
+        val end = when {
+            wholeYear -> LocalDate.of(from.year, 12, 31)
+            from == to -> to.atEndOfMonth()
+            else -> minOf(to.atEndOfMonth(), env.today)
+        }
         preview.value = null
         environment.setPeriod(ChartWindow(from.atDay(1), end).toPeriodState(env.firstDayOfWeek, env.today))
         change { it.copy(path = emptyList()) }
@@ -329,21 +331,23 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
-    private fun trend(env: AnalyticsEnv, controls: StatsControls, preview: Preview?): Flow<StatsTrend?> {
+    private fun trend(env: AnalyticsEnv, controls: StatsControls, preview: TrendPreview?): Flow<StatsTrend?> {
         val measure = when (controls.tab) {
             StatsTab.EXPENSES -> Measure.EXPENSE
             StatsTab.INCOME -> Measure.INCOME
             else -> return flowOf(null)
         }
-        val committed = ChartWindow.of(env.period)
-        // A preview counts while the period it started from (or the one it was committed as) is still selected.
-        val window = preview?.takeIf { it.base == env.periodState || it.window == committed }?.window ?: committed
+        val committed = displayWindow(env.period, env.today)
+        val window = shownWindow(committed, env.periodState, preview)
+        // The period the window stands for (its previous one is the dashed curve) ...
         val period = if (window == committed) {
             env.period
         } else {
             window.toPeriodState(env.firstDayOfWeek, env.today).resolve(env.today, env.zone, env.firstDayOfWeek)
         }
-        val (unit, buckets) = trendBuckets(period, env.zone, lastUnit)
+        // ... while the buckets cover only the window: a running period stops at today.
+        val visible = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, window.start, window.end), env.zone, env.firstDayOfWeek)
+        val (unit, buckets) = trendBuckets(visible, env.zone, lastUnit)
         lastUnit = unit
         val previousBuckets = if (controls.compare) {
             val previous = PeriodCalculator.resolve(PeriodCalculator.previous(period.period), env.zone, env.firstDayOfWeek)
@@ -374,6 +378,7 @@ class StatisticsViewModel @Inject constructor(
                 values = trendValues(points, env.today),
                 compare = compare,
                 average = trendAverage(points, env.today, scope.currency()),
+                currency = scope.currency(),
                 base = base,
             )
         }
@@ -477,6 +482,6 @@ class StatisticsViewModel @Inject constructor(
         private const val KEY_TAG_FILTER = "stats_tag_filter"
         private const val KEY_TAG_MEASURE = "stats_tag_measure"
         private const val TAG_RECENT = 5
-        private const val PREVIEW_DEBOUNCE_MS = 50L
+        private const val PREVIEW_THROTTLE_MS = 50L
     }
 }

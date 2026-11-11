@@ -93,7 +93,9 @@ private val Bleed = 16.dp
  * selected index again clears it. [sparkline] draws only a 2dp line (no glow, fill, live point, scrub
  * or bubble). With [gestures], a plain horizontal drag pans and two fingers pinch; vertical drags stay
  * with the parent scroll, and values that change while (or right after) the fingers move redraw at once
- * instead of replaying the draw-in.
+ * instead of replaying the draw-in. [slide] shifts the drawing (not the touch area) sideways by that
+ * fraction of the width, read every frame, so a caller can move the wave with the fingers between
+ * data updates.
  *
  * All paths are built once per (values, compare, size, zeroLine); animation frames only move clips,
  * the selection marker and the live-point pulse. The canvas extends [Bleed] beyond the chart's bounds
@@ -111,6 +113,7 @@ fun WaveChart(
     gestures: WaveGestures? = null,
     sparkline: Boolean = false,
     color: Color? = null,
+    slide: (() -> Float)? = null,
 ) {
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
@@ -228,12 +231,15 @@ fun WaveChart(
 
     val surface = scheme.surface
     val onSurface = scheme.onSurface
+    // Draw-only: the touch handlers stay put, so finger deltas are not skewed by the slide.
+    val slideLayer = if (slide == null) Modifier else Modifier.graphicsLayer { translationX = slide() * w }
     // Pan/zoom is outside the scrub handlers: they see each event first, so a long-press scrub consumes
     // its drag before the pan handler could claim it.
     Box(modifier.then(panZoom).then(scrub).onSizeChanged { size = it }) {
         Canvas(
             Modifier
                 .fillMaxSize()
+                .then(slideLayer)
                 .bleed(bleedPx.roundToInt())
                 .graphicsLayer(compositingStrategy = if (sparkline) CompositingStrategy.Auto else CompositingStrategy.Offscreen),
         ) {
@@ -287,7 +293,7 @@ fun WaveChart(
         // layer above, so it never forces the fill, grain and blur glow to re-render.
         if (!sparkline) {
             // Own (non-offscreen) layer: redrawing it re-records only this node.
-            Canvas(Modifier.fillMaxSize().bleed(bleedPx.roundToInt()).graphicsLayer()) {
+            Canvas(Modifier.fillMaxSize().then(slideLayer).bleed(bleedPx.roundToInt()).graphicsLayer()) {
                 if (w <= 0f || h <= 0f) return@Canvas
                 translate(bleedPx, bleedPx) {
                     val splitY = if (zeroLine) geometry.zeroY else null
@@ -329,6 +335,7 @@ fun WaveChart(
                 style = MaterialTheme.typography.labelLarge.copy(fontFamily = SpaceGrotesk, fontFeatureSettings = "tnum"),
                 color = onSurface,
                 modifier = Modifier
+                    .then(slideLayer)
                     .layout { measurable, constraints ->
                         val p = measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
                         layout(p.width, p.height) {
@@ -361,52 +368,56 @@ private suspend fun PointerInputScope.panZoomGestures(gestures: () -> WaveGestur
         var claimed = false
         var dx = 0f
         var dy = 0f
-        while (true) {
-            val event = awaitPointerEvent()
-            val pressed = event.changes.filter { it.pressed }
-            if (pressed.isEmpty()) break
-            val width = size.width.toFloat().coerceAtLeast(1f)
-            if (pressed.size >= 2) {
-                if (!claimed && event.changes.any { it.isConsumed }) break
-                claimed = true
-                val zoom = event.calculateZoom()
-                val pan = event.calculatePan()
-                val centroid = event.calculateCentroid(useCurrent = true)
-                val g = gestures()
-                if (g != null) {
-                    if (zoom != 1f) g.onZoom(zoom, (centroid.x / width).coerceIn(0f, 1f))
-                    if (pan.x != 0f) g.onPan(-pan.x / width)
-                    onStep()
-                }
-                event.changes.forEach { if (it.positionChange() != Offset.Zero) it.consume() }
-                continue
-            }
-            val change = pressed.first()
-            if (!claimed) {
-                // A scrub (long press) or the parent scroll already owns this drag.
-                if (change.isConsumed) break
-                if (change.uptimeMillis - down.uptimeMillis > longPress) break
-                val delta = change.positionChange()
-                dx += delta.x
-                dy += delta.y
-                if (abs(dx) > slop && abs(dx) > abs(dy)) {
+        // finally: a claimed gesture that is cancelled (the chart leaves composition) still ends.
+        try {
+            while (true) {
+                val event = awaitPointerEvent()
+                val pressed = event.changes.filter { it.pressed }
+                if (pressed.isEmpty()) break
+                val width = size.width.toFloat().coerceAtLeast(1f)
+                if (pressed.size >= 2) {
+                    if (!claimed && event.changes.any { it.isConsumed }) break
                     claimed = true
-                } else if (abs(dy) > slop) {
-                    break
-                } else {
+                    val zoom = event.calculateZoom()
+                    val pan = event.calculatePan()
+                    val centroid = event.calculateCentroid(useCurrent = true)
+                    val g = gestures()
+                    if (g != null) {
+                        if (zoom != 1f) g.onZoom(zoom, (centroid.x / width).coerceIn(0f, 1f))
+                        if (pan.x != 0f) g.onPan(-pan.x / width)
+                        onStep()
+                    }
+                    event.changes.forEach { if (it.positionChange() != Offset.Zero) it.consume() }
                     continue
                 }
+                val change = pressed.first()
+                if (!claimed) {
+                    // A scrub (long press) or the parent scroll already owns this drag.
+                    if (change.isConsumed) break
+                    if (change.uptimeMillis - down.uptimeMillis > longPress) break
+                    val delta = change.positionChange()
+                    dx += delta.x
+                    dy += delta.y
+                    if (abs(dx) > slop && abs(dx) > abs(dy)) {
+                        claimed = true
+                    } else if (abs(dy) > slop) {
+                        break
+                    } else {
+                        continue
+                    }
+                }
+                val delta = change.positionChange()
+                if (delta.x != 0f) {
+                    gestures()?.onPan(-delta.x / width)
+                    onStep()
+                }
+                change.consume()
             }
-            val delta = change.positionChange()
-            if (delta.x != 0f) {
-                gestures()?.onPan(-delta.x / width)
+        } finally {
+            if (claimed) {
                 onStep()
+                gestures()?.onGestureEnd()
             }
-            change.consume()
-        }
-        if (claimed) {
-            onStep()
-            gestures()?.onGestureEnd()
         }
     }
 }

@@ -120,4 +120,57 @@ class StatisticsTrendTest {
         }
         assertEquals(5L, trendAverage(points, nov10.plusDays(1), pln)?.amountMinor)
     }
+
+    // ---- preview vs committed window ----
+
+    private val month = com.yehor.finora.domain.analytics.PeriodState.preset(PeriodKind.MONTH)
+
+    @Test fun currentPeriodIsClippedToToday() = assertEquals(
+        ChartWindow(LocalDate.of(2026, 11, 1), nov10),
+        displayWindow(resolved(MONTH, nov10), nov10),
+    )
+
+    @Test fun pastPeriodIsNotClipped() = assertEquals(
+        ChartWindow(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31)),
+        displayWindow(resolved(MONTH, LocalDate.of(2026, 10, 5)), nov10),
+    )
+
+    @Test fun noOpGestureOnCurrentPeriodCommitsNothing() {
+        val period = resolved(MONTH, nov10)
+        assertNull(commitTarget(displayWindow(period, nov10), period, nov10, DayOfWeek.MONDAY))
+    }
+
+    @Test fun movedWindowCommitsItsPeriod() {
+        val period = resolved(MONTH, nov10)
+        val october = ChartWindow(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31))
+        assertEquals(
+            com.yehor.finora.domain.analytics.PeriodState(PeriodKind.MONTH, offset = -1),
+            commitTarget(october, period, nov10, DayOfWeek.MONDAY),
+        )
+    }
+
+    @Test fun previewIsShownWhileItsBaseIsSelected() {
+        val committed = ChartWindow(LocalDate.of(2026, 11, 1), nov10)
+        val moved = ChartWindow(LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 30))
+        assertEquals(moved, shownWindow(committed, month, TrendPreview(moved, month)))
+    }
+
+    @Test fun previewIsShownOnceCommitted() {
+        val moved = ChartWindow(LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 30))
+        val custom = com.yehor.finora.domain.analytics.PeriodState.custom(moved.start, moved.end)
+        assertEquals(moved, shownWindow(moved, custom, TrendPreview(moved, month)))
+    }
+
+    @Test fun previewIsDroppedWhenThePeriodChangesElsewhere() {
+        val moved = ChartWindow(LocalDate.of(2026, 10, 20), LocalDate.of(2026, 10, 30))
+        val year = ChartWindow(LocalDate.of(2026, 1, 1), nov10)
+        val yearState = com.yehor.finora.domain.analytics.PeriodState.preset(PeriodKind.YEAR)
+        assertEquals(year, shownWindow(year, yearState, TrendPreview(moved, month)))
+    }
+
+    @Test fun pendingDaysKeepsTheSubDayRemainder() {
+        val gesture = WindowGesture()
+        gesture.pan(sep, -0.01f, nov10) // 0.3 day
+        assertEquals(-0.3, gesture.pendingDays, 1e-3)
+    }
 }

@@ -1,10 +1,7 @@
 package com.yehor.finora.ui.analytics
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,9 +27,12 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -54,19 +55,26 @@ import com.yehor.finora.domain.money.Estimate
 import com.yehor.finora.domain.money.EstimateBasis
 import kotlinx.coroutines.delay
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** After the last pan/pinch ends, the visible window becomes the selected period this much later. */
 private const val COMMIT_DELAY_MS = 300L
+
+/** A bucket-unit switch fades the chart in from this alpha over [UNIT_FADE_MS]. */
+private const val UNIT_FADE_FROM = 0.15f
+private const val UNIT_FADE_MS = 250
 
 /**
  * The trend card: a wave of the selected period that the user drags through time and pinches to show
  * fewer or more days. [committed] is the selected period's window; while the fingers move the card
  * keeps its own window, asks for its data through [onPreview], and [onCommit]s it once the gesture has
  * settled. Tapping a point shows its value; the pill under the chart opens that bucket's transactions.
+ *
+ * Between data updates the wave slides with the fingers (a horizontal offset of the drawn data from the
+ * card's window), so a drag moves every frame even while the next window's data is still loading. There
+ * is one chart for the card's lifetime: a bucket-unit switch fades it instead of replacing it, so the
+ * gesture in progress survives the switch.
  */
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 internal fun StatsTrendCard(
     trend: StatsTrend?,
@@ -84,6 +92,8 @@ internal fun StatsTrendCard(
     var gestureEnds by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Int?>(null) }
     val gesture = remember { WindowGesture() }
+    // Sub-day pan not yet turned into a window change, for the frame-by-frame slide.
+    var pendingDays by remember { mutableFloatStateOf(0f) }
     val currentToday by rememberUpdatedState(today)
 
     // A period picked elsewhere (segments, arrows, wheels) or a commit landing moves the card's window.
@@ -91,6 +101,7 @@ internal fun StatsTrendCard(
         if (!active) {
             window = committed
             gesture.reset()
+            pendingDays = 0f
         }
     }
     LaunchedEffect(gestureEnds) {
@@ -114,6 +125,7 @@ internal fun StatsTrendCard(
         onPan = { fraction ->
             active = true
             moveTo(gesture.pan(window, fraction, currentToday))
+            pendingDays = gesture.pendingDays.toFloat()
         },
         onZoom = { scale, focus ->
             active = true
@@ -122,6 +134,7 @@ internal fun StatsTrendCard(
         onGestureEnd = {
             active = false
             gesture.reset()
+            pendingDays = 0f
             gestureEnds++
         },
     )
@@ -131,37 +144,62 @@ internal fun StatsTrendCard(
         Column(Modifier.padding(top = 14.dp, bottom = 12.dp)) {
             TrendHeader(data, Modifier.padding(horizontal = 16.dp))
             val reduceMotion = rememberReduceMotion()
-            // Keyed on the bucket unit: new data of the same unit redraws in place, a unit switch cross-fades.
-            updateTransition(data, label = "trendUnit").Crossfade(
-                animationSpec = if (reduceMotion) snap() else tween(250),
-                contentKey = { it?.unit },
-            ) { t ->
-                Column {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
-                            .padding(top = 6.dp)
-                            .height(150.dp),
-                    ) {
-                        if (t != null && t.values.isNotEmpty()) {
-                            val locale = LocalConfiguration.current.locales[0]
-                            val none = stringResource(R.string.analytics_none)
-                            WaveChart(
-                                values = t.values,
-                                modifier = Modifier.fillMaxSize(),
-                                compare = t.compare,
-                                selectedIndex = selected?.takeIf { it in t.values.indices },
-                                onSelect = { selected = it },
-                                label = { i -> bucketBubble(t, i, locale, today, none) },
-                                gestures = gestures,
-                            )
-                        }
-                    }
-                    if (t != null && t.buckets.isNotEmpty()) {
-                        TrendAxis(t, today, Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-                    }
+            // A bucket-unit switch fades the one chart back in (no second instance, no lost gesture).
+            val unitAlpha = remember { Animatable(1f) }
+            var drawnUnit by remember { mutableStateOf(data?.unit) }
+            LaunchedEffect(data?.unit) {
+                val unit = data?.unit
+                if (unit != null && drawnUnit != null && unit != drawnUnit && !reduceMotion) {
+                    unitAlpha.snapTo(UNIT_FADE_FROM)
+                    unitAlpha.animateTo(1f, tween(UNIT_FADE_MS))
                 }
+                drawnUnit = unit
+            }
+            // Days between the drawn data and the card's window (same length only: a pinch just waits).
+            val slideDays: () -> Float = {
+                val t = data
+                if (t == null || t.window.days != window.days) {
+                    0f
+                } else {
+                    val days = java.time.temporal.ChronoUnit.DAYS.between(t.window.start, window.start) + pendingDays
+                    days.coerceIn(-window.days.toFloat(), window.days.toFloat())
+                }
+            }
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    // Clip only sideways (the slide), keeping the chart's vertical glow; the 16dp padding
+                    // leaves room for its sideways bleed at rest.
+                    .drawWithContent {
+                        clipRect(0f, -size.height, size.width, size.height * 2) { this@drawWithContent.drawContent() }
+                    }
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 6.dp)
+                    .height(150.dp)
+                    .graphicsLayer { alpha = unitAlpha.value },
+            ) {
+                val t = data
+                if (t != null && t.values.isNotEmpty()) {
+                    val locale = LocalConfiguration.current.locales[0]
+                    val none = stringResource(R.string.analytics_none)
+                    WaveChart(
+                        values = t.values,
+                        modifier = Modifier.fillMaxSize(),
+                        compare = t.compare,
+                        selectedIndex = selected?.takeIf { it in t.values.indices },
+                        onSelect = { selected = it },
+                        label = { i -> bucketBubble(t, i, locale, today, none) },
+                        gestures = gestures,
+                        slide = { -slideDays() / (window.days - 1).coerceAtLeast(1) },
+                    )
+                }
+            }
+            if (data != null && data.buckets.isNotEmpty()) {
+                TrendAxis(
+                    data,
+                    today,
+                    Modifier.padding(horizontal = 16.dp, vertical = 4.dp).graphicsLayer { alpha = unitAlpha.value },
+                )
             }
             val pick = selected?.let { i -> data?.buckets?.getOrNull(i) }
             if (data != null && pick != null) {
@@ -265,17 +303,13 @@ private fun LegendSwatch(color: Color, dashed: Boolean) {
     }
 }
 
-private fun pattern(locale: Locale, skeleton: String): DateTimeFormatter =
-    DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, skeleton), locale)
-
 /** "Nov 18" for a day, "November 2026" for a month (clipped months show their date range). */
 private fun bucketName(bucket: Bucket, unit: BucketUnit, today: LocalDate, locale: Locale): String = when (unit) {
     BucketUnit.DAY -> shortDate(bucket.fromDate, today, locale)
     else -> {
         val wholeMonth = bucket.fromDate.dayOfMonth == 1 && bucket.toDateInclusive == bucket.fromDate.withDayOfMonth(bucket.fromDate.lengthOfMonth())
         if (wholeMonth) {
-            bucket.fromDate.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale))
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
+            monthYearName(bucket.fromDate, locale)
         } else {
             "${shortDate(bucket.fromDate, today, locale)} – ${shortDate(bucket.toDateInclusive, today, locale)}"
         }
@@ -286,7 +320,7 @@ private fun axisName(bucket: Bucket, unit: BucketUnit, all: List<Bucket>, today:
     BucketUnit.DAY -> shortDate(bucket.fromDate, today, locale)
     else -> {
         val spansYears = all.first().fromDate.year != all.last().fromDate.year || all.first().fromDate.year != today.year
-        bucket.fromDate.format(pattern(locale, if (spansYears) "MMMyy" else "LLL"))
+        bucket.fromDate.format(bestPattern(locale, if (spansYears) "MMMyy" else "LLL"))
     }
 }
 
@@ -294,7 +328,6 @@ private fun axisName(bucket: Bucket, unit: BucketUnit, all: List<Bucket>, today:
 private fun bucketBubble(trend: StatsTrend, index: Int, locale: Locale, today: LocalDate, none: String): String {
     val bucket = trend.buckets.getOrNull(index) ?: return none
     val minor = trend.values.getOrNull(index)
-    val currency = trend.average?.currency
-    val amount = if (minor == null || currency == null) none else Estimate(minor, currency, EstimateBasis.NATIVE).format()
+    val amount = if (minor == null) none else Estimate(minor, trend.currency, EstimateBasis.NATIVE).format()
     return "${bucketName(bucket, trend.unit, today, locale)} · $amount"
 }

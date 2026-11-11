@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.analytics
 
-import android.text.format.DateFormat
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
@@ -74,8 +73,6 @@ import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.IconBadge
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** "Statistics" and the ☰ button that opens the account filter and Compare switch. */
 @Composable
@@ -398,52 +395,6 @@ internal fun StatsHero(
 
 /** "8%" from tenths of a percent, rounded half up, without a sign. */
 internal fun wholePercent(percentTimesTen: Int): String = "${(Math.abs(percentTimesTen.toLong()) + 5) / 10}%"
-
-private fun bestPattern(locale: Locale, skeleton: String): DateTimeFormatter =
-    DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
-
-private fun String.capitalized(locale: Locale) = replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-
-/** "Nov 9", or "Nov 9, 2025" outside the current year. */
-internal fun shortDate(date: LocalDate, today: LocalDate, locale: Locale): String =
-    date.format(bestPattern(locale, if (date.year == today.year) "MMMd" else "yMMMd"))
-
-/** "Today", "Week of Nov 9", "November 2026", "2026" or "Oct 3 – Nov 18". */
-@Composable
-internal fun stepperName(state: PeriodState, period: ResolvedPeriod, today: LocalDate): String {
-    val locale = LocalConfiguration.current.locales[0]
-    val from = period.fromDate
-    return when (state.kind) {
-        PeriodKind.TODAY -> if (from == today) stringResource(R.string.period_today) else shortDate(from, today, locale)
-        PeriodKind.WEEK -> stringResource(R.string.stats_week_of, shortDate(from, today, locale))
-        PeriodKind.MONTH -> from.format(DateTimeFormatter.ofPattern("LLLL yyyy", locale)).capitalized(locale)
-        PeriodKind.YEAR -> from.year.toString()
-        PeriodKind.CUSTOM -> rangeName(period, today, locale)
-    }
-}
-
-private fun rangeName(period: ResolvedPeriod, today: LocalDate, locale: Locale): String {
-    val from = period.fromDate
-    val to = period.toDateInclusive
-    if (from == to) return shortDate(from, today, locale)
-    val sameYear = from.year == to.year && to.year == today.year
-    val skeleton = if (sameYear) "MMMd" else "yMMMd"
-    return "${from.format(bestPattern(locale, skeleton))} – ${to.format(bestPattern(locale, skeleton))}"
-}
-
-/** "October", "October 2025", "2025", or the stepper name for other periods: the "than …" of the comparison. */
-@Composable
-internal fun periodShortName(period: ResolvedPeriod, today: LocalDate): String {
-    val locale = LocalConfiguration.current.locales[0]
-    val from = period.fromDate
-    return when (period.period.kind) {
-        PeriodKind.MONTH -> from.format(DateTimeFormatter.ofPattern(if (from.year == today.year) "LLLL" else "LLLL yyyy", locale))
-        PeriodKind.YEAR -> from.year.toString()
-        PeriodKind.TODAY -> shortDate(from, today, locale)
-        PeriodKind.WEEK -> stringResource(R.string.stats_week_of, shortDate(from, today, locale))
-        PeriodKind.CUSTOM -> rangeName(period, today, locale)
-    }
-}
 
 /** "Spent in November", "Earned in 2026", "Spent · Oct 3 – Nov 18". */
 @Composable

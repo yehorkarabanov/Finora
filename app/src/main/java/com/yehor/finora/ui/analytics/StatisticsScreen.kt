@@ -178,7 +178,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.flowItems(
     item(key = "trend") {
         StatsTrendCard(
             trend = trend,
-            committed = ChartWindow.of(env.period),
+            committed = displayWindow(env.period, env.today),
             today = env.today,
             currentName = periodShortName(env.period, env.today),
             previousName = state.previousPeriod?.let { periodShortName(it, env.today) },

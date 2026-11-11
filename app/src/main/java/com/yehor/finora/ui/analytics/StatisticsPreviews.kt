@@ -53,17 +53,22 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
     val period = state.resolve(today, zone, DayOfWeek.MONDAY)
     val previous = PeriodCalculator.resolve(PeriodCalculator.previous(period.period), zone, DayOfWeek.MONDAY)
     fun cell(minor: Long) = Cell(Estimate(minor, pln, EstimateBasis.NATIVE), 3, emptySet(), false, null)
-    val (unit, buckets) = trendBuckets(period, zone, null)
+    val window = displayWindow(period, today)
+    val visible = PeriodCalculator.resolve(
+        com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, window.start, window.end), zone, DayOfWeek.MONDAY,
+    )
+    val (unit, buckets) = trendBuckets(visible, zone, null)
     val points = buckets.mapIndexed { i, b -> TrendPoint(b, cell(4_000L + (i * 7_919L) % 21_000L)) }
     val compare = buckets.indices.map { i -> 6_000L + (i * 5_303L) % 15_000L }
     val trend = StatsTrend(
-        window = ChartWindow.of(period),
+        window = window,
         measure = Measure.EXPENSE,
         unit = unit,
         buckets = buckets,
         values = trendValues(points, today),
         compare = compare,
         average = trendAverage(points, today, pln),
+        currency = pln,
         base = TransactionFilter(),
     )
     val total = cell(142_050L)
@@ -95,7 +100,7 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
             )
             StatsTrendCard(
                 trend = trend,
-                committed = ChartWindow.of(period),
+                committed = window,
                 today = today,
                 currentName = periodShortName(period, today),
                 previousName = periodShortName(previous, today),
