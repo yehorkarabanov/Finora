@@ -54,7 +54,7 @@
 
 - [ ] **Step 1: Create branch `chore/ci-lint-hooks` from `master`, then cherry-pick spec commit `8a5b4d2` and this plan's commit onto it.**
 
-Run: `git switch -c chore/ci-lint-hooks master && git cherry-pick 8a5b4d2 <plan-commit>`
+Run: `git switch -c chore/ci-lint-hooks master && git cherry-pick 8a5b4d2 1073bd6`
 Expected: branch contains both docs and nothing from `denys/feat/ui-refurbished`.
 
 - [ ] **Step 2: Add Spotless (ktlint, `.kt` and `.kts`) and detekt to the version catalog and Gradle files.** Pick the newest releases that support Kotlin 2.4.21, AGP 9.5.1 and JDK 25. detekt reads `config/detekt/detekt.yml` on top of its defaults (`buildUponDefaultConfig = true`).
@@ -135,7 +135,7 @@ Expected: each outcome as described.
 - Consumes: Gradle tasks from Tasks 1-4 and the Makefile target names (jobs call `./gradlew` directly, not `make`).
 
 - [ ] **Step 1: Write `ci.yml` with the triggers, concurrency and three jobs from Global Constraints.** All jobs: checkout, Temurin 25, `gradle/actions/setup-gradle` (cache write only on `master`). `lint` runs `spotlessCheck detekt lintDebug`; `unit` runs `testDebugUnitTest`; `instrumented` enables KVM, runs `reactivecircus/android-emulator-runner` with API 33, x86_64, headless, animations off, AVD snapshot cache saved on `master` only, one retry, and a job timeout.
-- [ ] **Step 2: Lint the workflow.**
+- [ ] **Step 2: Lint the workflow, then commit `Add CI workflow`.**
 
 Run: `actionlint .github/workflows/ci.yml` (or `gh workflow` equivalent if actionlint is not installed)
 Expected: no errors.
@@ -149,7 +149,7 @@ Expected: lint, unit, instrumented all pass. Note timings.
 
 Expected: second run is noticeably faster (Gradle cache hit in logs; the emulator snapshot is only written on `master`, so confirm that after merge).
 
-- [ ] **Step 5: Commit** `Add CI workflow` (before Step 3), then share timing results in the PR description.
+- [ ] **Step 5: Add the timing results to the PR description.**
 
 ---
 
