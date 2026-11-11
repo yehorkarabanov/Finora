@@ -30,6 +30,6 @@ fun FinoraTheme(themeMode: ThemeMode, dynamicColor: Boolean = false, content: @C
         else -> FinoraLightColorScheme
     }
     CompositionLocalProvider(LocalFinanceColors provides if (dark) DarkFinanceColors else LightFinanceColors) {
-        MaterialTheme(colorScheme = colors, content = content)
+        MaterialTheme(colorScheme = colors, typography = FinoraTypography, shapes = FinoraShapes, content = content)
     }
 }

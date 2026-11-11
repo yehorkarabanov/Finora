@@ -98,6 +98,7 @@ import java.time.format.FormatStyle
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
+import com.yehor.finora.ui.theme.hairline
 
 // A day of transactions is one connected group: only its outer corners are rounded (design system §5.3).
 private val GroupRadius = 20.dp
@@ -725,7 +726,12 @@ private fun DayHeader(group: DayGroup) {
 @Composable
 private fun SummaryCard(state: TransactionsUiState, modifier: Modifier = Modifier) {
     val count = state.summary.sumOf { it.operationCount }
-    Surface(modifier = modifier.fillMaxWidth(), shape = SectionShape, color = MaterialTheme.colorScheme.surfaceContainer) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = SectionShape,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = hairline(MaterialTheme.finance.isDark),
+    ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
                 pluralStringResource(R.plurals.analytics_operations, count, count),

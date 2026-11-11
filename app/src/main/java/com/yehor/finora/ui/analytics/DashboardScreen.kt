@@ -75,6 +75,7 @@ import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.recurring.formatScheduleDate
 import com.yehor.finora.ui.theme.finance
 import java.time.LocalDate
+import com.yehor.finora.ui.theme.hairline
 
 private val SectionShape = RoundedCornerShape(24.dp)
 private val TileShape = RoundedCornerShape(16.dp)
@@ -674,6 +675,7 @@ private fun DashboardCard(content: @Composable () -> Unit) {
         modifier = Modifier.fillMaxWidth(),
         shape = SectionShape,
         color = MaterialTheme.colorScheme.surfaceContainer,
+        border = hairline(MaterialTheme.finance.isDark),
         content = content,
     )
 }
