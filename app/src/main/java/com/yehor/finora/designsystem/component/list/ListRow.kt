@@ -1,7 +1,9 @@
 package com.yehor.finora.designsystem.component.list
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,14 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.motion.pressScale
 
 /** Standard list row: leading [icon], title/subtitle, [trailing]; tappable and long-pressable when handlers are given. */
 @OptIn(ExperimentalFoundationApi::class)

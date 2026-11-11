@@ -76,10 +76,18 @@ fun TransactionEditScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val transferState by transferViewModel.state.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
-    LaunchedEffect(state.saved, transferState.saved) {
-        if (state.saved || transferState.saved) {
-            haptics.performHapticFeedback(HapticFeedbackType.Confirm)
-            onBack()
+    // Both view models also set `saved` after a delete; remember that the delete dialog was up so only real saves buzz.
+    var deleteRequested by remember { mutableStateOf(false) }
+    val confirmingDelete = state.showDeleteConfirm || transferState.showDeleteConfirm
+    LaunchedEffect(confirmingDelete, state.saved, transferState.saved) {
+        val saved = state.saved || transferState.saved
+        when {
+            confirmingDelete -> deleteRequested = true
+            saved -> {
+                if (!deleteRequested) haptics.performHapticFeedback(HapticFeedbackType.Confirm)
+                onBack()
+            }
+            else -> deleteRequested = false
         }
     }
 

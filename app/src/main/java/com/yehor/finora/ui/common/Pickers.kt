@@ -250,7 +250,7 @@ fun ColorPicker(
     onSelect: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(0.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
         ColorPalette.colors.forEachIndexed { index, argb ->
             val isSelected = argb == selected
             val description = stringResource(R.string.picker_color_item, index + 1)

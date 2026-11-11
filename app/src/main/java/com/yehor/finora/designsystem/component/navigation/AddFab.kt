@@ -1,19 +1,18 @@
 package com.yehor.finora.designsystem.component.navigation
 
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.EnterTransition
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.LocalIndication
-import com.yehor.finora.designsystem.motion.pressScale
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -52,6 +51,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.motion.FinoraMotion
+import com.yehor.finora.designsystem.motion.pressScale
 import com.yehor.finora.designsystem.motion.rememberReduceMotion
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance

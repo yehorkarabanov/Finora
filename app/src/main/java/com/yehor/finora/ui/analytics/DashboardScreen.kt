@@ -1,9 +1,10 @@
 package com.yehor.finora.ui.analytics
 
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import com.yehor.finora.designsystem.motion.pressScale
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import com.yehor.finora.designsystem.component.list.ListRow
 import com.yehor.finora.designsystem.component.list.RoundIcon
 import com.yehor.finora.designsystem.component.list.SectionHeader
 import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.motion.pressScale
 import com.yehor.finora.designsystem.theme.AmountStyle
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
@@ -54,8 +56,8 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.recurring.formatScheduleDate
-import kotlinx.coroutines.flow.Flow
 import java.time.YearMonth
+import kotlinx.coroutines.flow.Flow
 
 private val ScreenMargin = 18.dp
 
@@ -217,13 +219,13 @@ private fun QuickAction(
     onClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
-    val interaction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val interaction = remember { MutableInteractionSource() }
     Column(
         Modifier
             .widthIn(min = 72.dp)
             .pressScale(interaction)
             .clip(MaterialTheme.shapes.medium)
-            .clickable(interactionSource = interaction, indication = androidx.compose.foundation.LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(interactionSource = interaction, indication = LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.38f)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

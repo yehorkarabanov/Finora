@@ -76,7 +76,7 @@ Mint `#00E599` is the accent for primary CTAs, selected states, positive numbers
 - Never use `colorScheme.error` to mean expense or negative; `error` is for validation and failures.
 - `finance.accent(argb)` draws a stored category/account color (lifted 25% toward white in dark). Stored values never change.
 - Contrast (checked): `negative` 5.13:1 / 7.31:1 on `surface` (light/dark), 4.87 / 6.70 on `surfaceContainerLow`; `onSurfaceVariant` 8.8 / 11.0 on `surface`; `onPrimaryContainer` on `primaryContainer` 13.3 / 4.6. Text must stay >= 4.5:1 in both themes.
-- Hairlines: `hairline(isDark)` is 1px white @ ~7% (dark) / black @ ~7% (light). Cards and pills use it instead of shadows.
+- Hairlines: `hairline(isDark)` is 1px white @ 8% (dark) / black @ 6% (light). Cards and pills use it instead of shadows.
 - User colors come from `ColorPalette.colors` (`ui/common/ColorPalette.kt`, 28 entries). Tinted circles are the color at ~14-18% alpha behind an icon in the color.
 
 ### Grain (`theme/Grain.kt`)

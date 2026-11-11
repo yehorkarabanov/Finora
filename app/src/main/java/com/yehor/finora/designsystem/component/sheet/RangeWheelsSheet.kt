@@ -3,6 +3,8 @@ package com.yehor.finora.designsystem.component.sheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,8 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.motion.rememberReduceMotion
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
@@ -228,6 +229,7 @@ private fun Wheel(
 ) {
     val state = rememberLazyListState(initialFirstVisibleItemIndex = selected.coerceIn(0, items.lastIndex))
     val haptics = LocalHapticFeedback.current
+    val reduceMotion = rememberReduceMotion()
     val scope = rememberCoroutineScope()
     val centered by remember(state) {
         derivedStateOf {
@@ -268,7 +270,7 @@ private fun Wheel(
                     .height(ItemHeight)
                     .alpha(if (isFuture(index)) 0.25f else 1f)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                        scope.launch { state.animateScrollToItem(index) }
+                        scope.launch { if (reduceMotion) state.scrollToItem(index) else state.animateScrollToItem(index) }
                     },
                 contentAlignment = Alignment.Center,
             ) {
