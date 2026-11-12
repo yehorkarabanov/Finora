@@ -1,0 +1,111 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.08);padding:18px;user-select:none}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.crumb{display:flex;gap:4px;align-items:center;flex-wrap:wrap;font-size:13px;font-weight:600;margin-top:6px;min-height:28px}
+.crumb span.lk{color:#8b919c;cursor:pointer;padding:4px 8px;border-radius:999px;background:#1b1c1d}
+.crumb span.cur{color:#6dffba;padding:4px 8px;border-radius:999px;background:rgba(0,229,153,.12)}
+.split{display:flex;gap:3px;height:10px;margin-top:12px}.split i{border-radius:99px;transition:flex .45s cubic-bezier(.2,.8,.2,1),background .3s}
+.total{margin-top:10px}
+.grp{background:#1b1c1d;border-radius:22px;padding:0 14px;margin-top:12px;border:1px solid rgba(255,255,255,.05);transition:opacity .2s,transform .25s}
+.grp.out{opacity:0;transform:translateX(24px)}
+.c{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer}
+.c:last-child{border:none}
+.av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700}
+.pct{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;display:inline-block;margin-top:3px}
+.sub{font-size:12px;color:#8b919c}
+.direct .av{background:transparent!important;border:1.5px dashed #47494d;color:#8b919c}
+.wrap{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.lab{text-align:center;font-weight:700;margin-bottom:8px}
+.notes{max-width:300px;font-size:14px;line-height:1.5}
+.trow{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.trow:last-child{border:none}
+.hash{width:38px;height:38px;border-radius:12px;background:#292a2b;display:flex;align-items:center;justify-content:center;font-weight:700;color:#6dffba}
+.bar{height:4px;border-radius:9px;background:#292a2b;margin-top:6px}.bar i{display:block;height:100%;border-radius:9px;background:#00e599}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:3px;font-size:11px;font-weight:700}
+.seg span{padding:5px 10px;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+</style>
+
+<h2>Categories with subcategories, and a better start for Tags</h2>
+<p class="subtitle">Left: click Food &amp; Dining, then Restaurants, to go down 3 levels. Use the trail to go back. Right: what the Tags tab shows before you pick anything.</p>
+
+<div class="wrap">
+
+<div>
+<div class="lab">Categories · drill down, up to 3 levels</div>
+<div class="ph">
+  <div class="row"><b class="g" style="font-size:17px">Categories</b><span class="muted" style="font-size:12px" id="cnt"></span></div>
+  <div class="crumb" id="crumb"></div>
+  <div class="total"><span class="g" style="font-size:24px;font-weight:700" id="tot"></span> <span class="muted" style="font-size:12px" id="totl"></span></div>
+  <div class="split" id="split"></div>
+  <div class="grp" id="list"></div>
+</div></div>
+
+<div>
+<div class="lab">Tags tab · before any tag is picked</div>
+<div class="ph">
+  <div class="row"><b class="g" style="font-size:17px">Your tags in November</b><span class="seg"><span class="on">Spent</span><span>Earned</span></span></div>
+  <div class="grp">
+    <div class="trow"><span class="hash">#</span><div style="flex:1"><div class="row"><b>trip</b><b class="g">$1,610</b></div><div class="bar"><i style="width:100%"></i></div><div class="sub" style="margin-top:4px">31 transactions</div></div></div>
+    <div class="trow"><span class="hash">#</span><div style="flex:1"><div class="row"><b>work</b><b class="g">$700</b></div><div class="bar"><i style="width:44%"></i></div><div class="sub" style="margin-top:4px">17 transactions</div></div></div>
+    <div class="trow"><span class="hash">#</span><div style="flex:1"><div class="row"><b>gifts</b><b class="g">$240</b></div><div class="bar"><i style="width:15%"></i></div><div class="sub" style="margin-top:4px">5 transactions</div></div></div>
+    <div class="trow"><span class="hash">#</span><div style="flex:1"><div class="row"><b>kids</b><b class="g">$96</b></div><div class="bar"><i style="width:6%"></i></div><div class="sub" style="margin-top:4px">8 transactions</div></div></div>
+  </div>
+  <p class="muted" style="font-size:12px;text-align:center;margin-top:12px">Tap a tag to open its stats · long-press to combine several</p>
+</div></div>
+
+<div class="notes">
+  <h3>Categories</h3>
+  <ul>
+    <li><b>Drill down</b> instead of opening rows in place. With 3 levels, opening rows inside rows gets messy. Each tap replaces the list and the colored bar re-forms around the new level.</li>
+    <li>A row with subcategories shows <b>"3 subcategories ›"</b>. A row without any shows its transaction count and opens those transactions.</li>
+    <li><b>"Directly in Food &amp; Dining"</b> (dashed icon) holds money assigned to the parent itself, since the app allows that. It always makes the numbers add up.</li>
+    <li>The trail at the top is <b>All › Food › Restaurants</b>. Tap any step to jump back; the phone's back gesture works too.</li>
+  </ul>
+  <h3>Tags</h3>
+  <ul>
+    <li>Nothing needs picking first. The tab <b>opens on a ranking of your tags</b> for the period, just like categories.</li>
+    <li>Tap one to open the detail you saw before. Long-press to pick several and combine them (Any / All).</li>
+    <li>Coming back to the tab reopens your last tag view. Leaving it with ✕ returns to the ranking.</li>
+  </ul>
+</div>
+</div>
+
+<script>
+const D={
+ root:{name:'All',total:'$1,420.50',items:[
+  {id:'food',n:'Food & Dining',v:'$812.00',p:57,c:'#ff9f6e',kids:3},
+  {id:'tr',n:'Transport',v:'$310.50',p:22,c:'#78b4ff',kids:2},
+  {id:'sub',n:'Subscriptions',v:'$180.00',p:13,c:'#b18cff',cnt:6},
+  {id:'oth',n:'Other',v:'$118.00',p:8,c:'#c3c9d8',cnt:4}]},
+ food:{name:'Food & Dining',total:'$812.00',items:[
+  {id:'rest',n:'Restaurants',v:'$470.00',p:58,c:'#ff9f6e',kids:2},
+  {id:'gro',n:'Groceries',v:'$240.00',p:30,c:'#ffc29e',cnt:14},
+  {id:'cafe',n:'Cafés',v:'$62.00',p:8,c:'#ffd9c2',cnt:9},
+  {id:'d',n:'Directly in Food & Dining',v:'$40.00',p:4,c:'#47494d',cnt:3,direct:1}]},
+ rest:{name:'Restaurants',total:'$470.00',items:[
+  {id:'x1',n:'Delivery',v:'$290.00',p:62,c:'#ff9f6e',cnt:12},
+  {id:'x2',n:'Dine-in',v:'$160.00',p:34,c:'#ffc29e',cnt:5},
+  {id:'d2',n:'Directly in Restaurants',v:'$20.00',p:4,c:'#47494d',cnt:1,direct:1}]}
+};
+let path=['root'];
+function render(){
+  const lvl=D[path[path.length-1]];
+  document.getElementById('crumb').innerHTML=path.map((k,i)=>i===path.length-1?'<span class="cur">'+D[k].name+'</span>':'<span class="lk" data-i="'+i+'">'+D[k].name+'</span><span class="muted">›</span>').join('');
+  document.querySelectorAll('.crumb .lk').forEach(e=>e.onclick=()=>{path=path.slice(0,+e.dataset.i+1);go()});
+  document.getElementById('tot').textContent=lvl.total;
+  document.getElementById('totl').textContent=path.length>1?'level '+path.length+' of 3':'spent this month';
+  document.getElementById('cnt').textContent=lvl.items.length+' items';
+  document.getElementById('split').innerHTML=lvl.items.map(it=>'<i style="flex:'+it.p+';background:'+it.c+'"></i>').join('');
+  document.getElementById('list').innerHTML=lvl.items.map(it=>
+   '<div class="c'+(it.direct?' direct':'')+'" data-id="'+it.id+'"><span class="av" style="background:'+it.c+'26;color:'+it.c+'">'+(it.direct?'•':it.n[0])+'</span>'+
+   '<div style="flex:1;min-width:0"><b style="font-size:14px'+(it.direct?';color:#9aa0a8;font-weight:600':'')+'">'+it.n+'</b><div class="sub">'+(it.kids?it.kids+' subcategories ›':it.cnt+' transactions')+'</div></div>'+
+   '<div style="text-align:right"><b class="g">'+it.v+'</b><br><span class="pct" style="background:'+it.c+'26;color:'+(it.direct?'#9aa0a8':it.c)+'">'+it.p+'%</span></div></div>').join('');
+  document.querySelectorAll('#list .c').forEach(e=>e.onclick=()=>{if(D[e.dataset.id]){path.push(e.dataset.id);go()}});
+}
+function go(){const l=document.getElementById('list');l.classList.add('out');setTimeout(()=>{render();l.classList.remove('out')},180)}
+render();
+</script>

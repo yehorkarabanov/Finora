@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-tertiary-fixed-variant": "#414753", "primary-container": "#00e599", "primary-fixed-dim": "#00e297", "error": "#ffb4ab", "inverse-on-surface": "#303031", "surface-container-lowest": "#0d0e0f", "surface-container-high": "#292a2b", "tertiary-fixed": "#dde2f1", "on-primary-fixed": "#002112", "surface-variant": "#343536", "outline": "#849589", "secondary-container": "#47494d", "on-secondary-container": "#b7b8bd", "surface-tint": "#00e297", "secondary-fixed": "#e2e2e7", "surface": "#121314", "surface-dim": "#121314", "inverse-primary": "#006c46", "on-error-container": "#ffdad6", "tertiary-container": "#c3c9d8", "background": "#121314", "tertiary": "#dfe5f4", "on-secondary-fixed": "#1a1c20", "surface-container-highest": "#343536", "tertiary-fixed-dim": "#c1c6d5", "outline-variant": "#3b4a41", "error-container": "#93000a", "on-error": "#690005", "primary": "#6dffba", "inverse-surface": "#e3e2e3", "on-primary-container": "#00613e", "surface-container": "#1f2021", "on-tertiary-fixed": "#161c26", "on-surface": "#e3e2e3", "on-background": "#e3e2e3", "on-surface-variant": "#bacbbe", "on-tertiary": "#2b313c", "secondary": "#c6c6cb", "surface-container-low": "#1b1c1d", "on-primary-fixed-variant": "#005234", "on-primary": "#003822", "primary-fixed": "#4dffb2", "on-secondary": "#2e3035", "secondary-fixed-dim": "#c6c6cb", "on-secondary-fixed-variant": "#45474b", "on-tertiary-container": "#4e5461", "surface-bright": "#39393a" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "space-xs": "0.25rem", "gutter": "1rem", "space-sm": "0.5rem", "space-xl": "2.25rem", "space-lg": "1.5rem", "margin": "1.25rem", "space-md": "1rem" }, fontFamily: { "headline-md": ["Space Grotesk"], "headline-sm": ["Space Grotesk"], "body-lg": ["Manrope"], "label-sm": ["Manrope"], "display-hero": ["Space Grotesk"], "keypad-num": ["Space Grotesk"], "display-hero-mobile": ["Space Grotesk"], "label-lg": ["Manrope"], "body-sm": ["Manrope"], "body-md": ["Manrope"], "label-md": ["Manrope"], "headline-lg": ["Space Grotesk"] }, fontSize: { "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }], "headline-sm": ["18px", { "lineHeight": "26px", "fontWeight": "600" }], "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }], "label-sm": ["11px", { "lineHeight": "14px", "fontWeight": "600" }], "display-hero": ["56px", { "lineHeight": "64px", "fontWeight": "700" }], "keypad-num": ["26px", { "lineHeight": "32px", "fontWeight": "500" }], "display-hero-mobile": ["44px", { "lineHeight": "52px", "fontWeight": "700" }], "label-lg": ["16px", { "lineHeight": "22px", "fontWeight": "600" }], "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }], "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }], "label-md": ["14px", { "lineHeight": "18px", "fontWeight": "600" }], "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }] } } } }</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#121314;color:#e3e2e3;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased min-h-screen"><header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl"><div class="h-16 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Vault Icon" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrBRm9E5ZUJK1CX2Nc9YEDeRseFq7_oor6PWcGPed_mHxePXvt0kxNuhL6HLcszINFEhCQZxW7IJQ2rGxRwkzm8vlVcCbaJbr_e-LiJFUgRJQFM8RZdQpWeQPHEjSeVU-1eLCmEoK0G4u3Pia4-1Z4OFSgaThIKAKovgWdfng0HK4n0BJzjW7rrSdloe5U4Ju1t82DVNE0p_0V6kinR0TbtUOxljEmJFMcKwv4iz6g"/><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface uppercase">Cards</span></div><div class="flex items-center gap-space-xs"><button aria-label="Search" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[22px]">search</span></button><button aria-label="Notifications" class="w-11 h-11 flex items-center justify-center rounded-full hover:bg-surface-container-high transition-colors text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[22px]">notifications</span></button><button aria-label="Account Profile" class="w-11 h-11 flex items-center justify-center rounded-full ml-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqIOCAmZA7iDXsSttxNm8D59MLtryQOD5bYZ4qql_8za31hnef0ZKyFVFFeP0NPKf40nOAdhey9tNsZp573abpwV-yvmnfYJbkl_xT8nZ9sZ1UK9xcTY3MMSlCCfMvoSv-zMqhh3fEYIs8hoVMYFux61OdVDp4PMh0LLD-1pMDTN-qJkYdyohy8ZBkWV9vAnZ0ZXovRgLj-gs5Q_shdclkvPBX1-QFGz063uiO3Vg"/></button></div></div></header><main class="flex flex-col relative w-full pt-16 pb-28 min-h-screen bg-surface"><div class="flex flex-col w-full px-margin pb-10 space-y-space-lg">
+<!-- Top Switcher: Physical vs Virtual -->
+<div class="flex items-center justify-between pt-space-xs">
+<div class="inline-flex p-1 bg-surface-container-low rounded-full">
+<button class="px-space-md py-1.5 rounded-full bg-surface-container-highest text-on-surface font-label-md text-label-md transition-all" id="tab-virtual">
+        Virtual (2)
+      </button>
+<button class="px-space-md py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-all" id="tab-physical">
+        Physical (1)
+      </button>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>New Card</span>
+</button>
+</div>
+<!-- Hero Card Display (Obsidian Metal Finish with Neon Emerald Accents) -->
+<div class="relative w-full aspect-[1.586/1] rounded-2xl bg-gradient-to-br from-surface-container-highest via-surface-container-low to-surface-container-lowest p-6 flex flex-col justify-between overflow-hidden shadow-2xl">
+<!-- Ambient Luminous Glow behind emerald chip -->
+<div class="absolute -top-10 -right-10 w-44 h-44 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<div class="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-surface-tint/5 blur-2xl pointer-events-none"></div>
+<!-- Card Top Row -->
+<div class="relative z-10 flex items-start justify-between">
+<div class="flex items-center gap-space-sm">
+<!-- EMV Chip graphic with emerald core -->
+<div class="w-10 h-7 rounded-md bg-surface-container-high flex items-center justify-center relative overflow-hidden">
+<div class="w-4 h-3.5 rounded-sm bg-primary/80"></div>
+<span class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent"></span>
+</div>
+<!-- Contactless Wave Icon -->
+<span class="material-symbols-outlined text-on-surface-variant text-[20px] rotate-90">contactless</span>
+</div>
+<div class="text-right">
+<span class="font-headline-sm text-headline-sm tracking-wider uppercase text-on-surface">ONYX</span>
+<span class="block font-label-sm text-label-sm uppercase tracking-widest text-primary-fixed-dim">METAL VIP</span>
+</div>
+</div>
+<!-- Middle: Card Number & Sensory Details -->
+<div class="relative z-10 my-auto flex items-baseline justify-between pt-2">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm tracking-widest text-on-surface-variant">••••</span>
+<span class="font-headline-sm text-headline-sm tracking-widest text-on-surface-variant">••••</span>
+<span class="font-headline-sm text-headline-sm tracking-widest text-on-surface-variant">••••</span>
+<span class="font-headline-sm text-headline-sm tracking-wider text-on-surface">4821</span>
+</div>
+<button aria-label="Copy card number" class="w-8 h-8 rounded-full bg-surface-variant/40 flex items-center justify-center text-on-surface-variant hover:text-on-surface">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+<!-- Card Bottom Row -->
+<div class="relative z-10 flex items-end justify-between">
+<div>
+<span class="block font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Valid Thru</span>
+<span class="font-label-lg text-label-lg tracking-wider text-on-surface">08 / 28</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-full bg-error/90 opacity-90"></div>
+<div class="w-6 h-6 rounded-full bg-primary-container/90 -ml-4 opacity-90"></div>
+</div>
+</div>
+</div>
+<!-- Linked Balance Summary Module -->
+<div class="flex items-center justify-between px-space-md py-3.5 rounded-xl bg-surface-container-low">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Spending Limit &amp; Balance</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">$18,400.00 <span class="font-label-sm text-label-sm text-on-surface-variant font-normal">USD</span></span>
+</div>
+</div>
+<span class="inline-flex items-center px-2 py-1 rounded bg-surface-container-highest text-primary font-label-sm text-label-sm">
+      Active
+    </span>
+</div>
+<!-- Card Quick Controls Grid -->
+<div class="grid grid-cols-4 gap-2.5">
+<!-- Freeze Button -->
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all group" id="freeze-btn">
+<div class="w-11 h-11 rounded-full bg-surface-container-high group-hover:bg-surface-container-highest flex items-center justify-center text-on-surface mb-2 transition-colors" id="freeze-icon-wrap">
+<span class="material-symbols-outlined text-[20px]" id="freeze-icon">lock_open</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface truncate text-center" id="freeze-label">Freeze</span>
+</button>
+<!-- Show PIN -->
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all group">
+<div class="w-11 h-11 rounded-full bg-surface-container-high group-hover:bg-surface-container-highest flex items-center justify-center text-on-surface mb-2 transition-colors">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface truncate text-center">Show PIN</span>
+</button>
+<!-- Set Limits -->
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all group">
+<div class="w-11 h-11 rounded-full bg-surface-container-high group-hover:bg-surface-container-highest flex items-center justify-center text-on-surface mb-2 transition-colors">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface truncate text-center">Limits</span>
+</button>
+<!-- Card Details -->
+<button class="flex flex-col items-center justify-center p-3 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all group">
+<div class="w-11 h-11 rounded-full bg-surface-container-high group-hover:bg-surface-container-highest flex items-center justify-center text-on-surface mb-2 transition-colors">
+<span class="material-symbols-outlined text-[20px]">credit_card</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface truncate text-center">Details</span>
+</button>
+</div>
+<!-- Security & Protection Controls -->
+<div class="flex flex-col space-y-space-sm">
+<div class="flex items-center justify-between px-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Card Security</h3>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">shield</span> Protected
+      </span>
+</div>
+<div class="flex flex-col rounded-2xl bg-surface-container-low overflow-hidden">
+<!-- Item 1: Online Transactions (Enabled) -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-high/50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[18px]">public</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Online Transactions</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">E-commerce, digital checkouts &amp; web stores</span>
+</div>
+</div>
+<button aria-checked="true" class="w-12 h-6 rounded-full bg-primary-container p-0.5 transition-colors focus:outline-none flex items-center justify-end" onclick="toggleSwitch(this)" role="switch">
+<div class="w-5 h-5 rounded-full bg-on-primary-container shadow-sm transition-transform"></div>
+</button>
+</div>
+<!-- Item 2: Location-based Security (Enabled) -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-high/50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[18px]">near_me</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Location-based Security</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Compare phone location against POS swipe</span>
+</div>
+</div>
+<button aria-checked="true" class="w-12 h-6 rounded-full bg-primary-container p-0.5 transition-colors focus:outline-none flex items-center justify-end" onclick="toggleSwitch(this)" role="switch">
+<div class="w-5 h-5 rounded-full bg-on-primary-container shadow-sm transition-transform"></div>
+</button>
+</div>
+<!-- Item 3: ATM Withdrawals (Disabled) -->
+<div class="flex items-center justify-between p-4 bg-surface-container-low hover:bg-surface-container-high/50 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-[18px]">local_atm</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">ATM Withdrawals</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Physical terminal cash dispensing</span>
+</div>
+</div>
+<button aria-checked="false" class="w-12 h-6 rounded-full bg-surface-variant p-0.5 transition-colors focus:outline-none flex items-center justify-start" onclick="toggleSwitch(this)" role="switch">
+<div class="w-5 h-5 rounded-full bg-secondary shadow-sm transition-transform"></div>
+</button>
+</div>
+</div>
+</div>
+<!-- Disposable Virtual Cards Banner -->
+<div class="relative overflow-hidden rounded-2xl bg-surface-container-low p-4 flex items-center justify-between">
+<div class="flex items-center gap-3 relative z-10">
+<div class="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[22px]">auto_delete</span>
+</div>
+<div>
+<span class="font-label-md text-label-md text-on-surface block">Single-use Disposable</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Number regenerates automatically post-charge</span>
+</div>
+</div>
+<button class="relative z-10 px-3 py-1.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-colors">
+      Generate
+    </button>
+</div>
+</div>
+<script>
+  function toggleSwitch(btn) {
+    const isChecked = btn.getAttribute('aria-checked') === 'true';
+    const thumb = btn.firstElementChild;
+    if (isChecked) {
+      btn.setAttribute('aria-checked', 'false');
+      btn.classList.remove('bg-primary-container', 'justify-end');
+      btn.classList.add('bg-surface-variant', 'justify-start');
+      thumb.classList.remove('bg-on-primary-container');
+      thumb.classList.add('bg-secondary');
+    } else {
+      btn.setAttribute('aria-checked', 'true');
+      btn.classList.remove('bg-surface-variant', 'justify-start');
+      btn.classList.add('bg-primary-container', 'justify-end');
+      thumb.classList.remove('bg-secondary');
+      thumb.classList.add('bg-on-primary-container');
+    }
+  }
+
+  const freezeBtn = document.getElementById('freeze-btn');
+  const freezeIcon = document.getElementById('freeze-icon');
+  const freezeLabel = document.getElementById('freeze-label');
+  const freezeIconWrap = document.getElementById('freeze-icon-wrap');
+  let isFrozen = false;
+
+  freezeBtn.addEventListener('click', () => {
+    isFrozen = !isFrozen;
+    if (isFrozen) {
+      freezeIcon.textContent = 'lock';
+      freezeLabel.textContent = 'Unfreeze';
+      freezeIconWrap.classList.remove('bg-surface-container-high', 'text-on-surface');
+      freezeIconWrap.classList.add('bg-error-container', 'text-error');
+    } else {
+      freezeIcon.textContent = 'lock_open';
+      freezeLabel.textContent = 'Freeze';
+      freezeIconWrap.classList.remove('bg-error-container', 'text-error');
+      freezeIconWrap.classList.add('bg-surface-container-high', 'text-on-surface');
+    }
+  });
+
+  const tabVirtual = document.getElementById('tab-virtual');
+  const tabPhysical = document.getElementById('tab-physical');
+  tabVirtual.addEventListener('click', () => {
+    tabVirtual.classList.add('bg-surface-container-highest', 'text-on-surface');
+    tabVirtual.classList.remove('text-on-surface-variant');
+    tabPhysical.classList.remove('bg-surface-container-highest', 'text-on-surface');
+    tabPhysical.classList.add('text-on-surface-variant');
+  });
+  tabPhysical.addEventListener('click', () => {
+    tabPhysical.classList.add('bg-surface-container-highest', 'text-on-surface');
+    tabPhysical.classList.remove('text-on-surface-variant');
+    tabVirtual.classList.remove('bg-surface-container-highest', 'text-on-surface');
+    tabVirtual.classList.add('text-on-surface-variant');
+  });
+</script></main><nav class="fixed bottom-0 w-full z-50 pb-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]" data-active-classes="text-primary font-bold"><div class="flex justify-around items-center h-16 px-gutter max-w-md mx-auto"><a class="flex flex-col items-center justify-center gap-space-xs min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[22px]">account_balance_wallet</span><span class="font-label-sm text-label-sm">Home</span></a><a class="flex flex-col items-center justify-center gap-space-xs min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="analytics" href="#"><span class="material-symbols-outlined text-[22px]">insights</span><span class="font-label-sm text-label-sm">Analytics</span></a><a aria-current="page" class="flex flex-col items-center justify-center gap-space-xs min-w-[56px] min-h-[44px] transition-colors text-primary font-bold" data-path="cards" href="#"><span class="material-symbols-outlined text-[22px]">credit_card</span><span class="font-label-sm text-label-sm">Cards</span></a><a class="flex flex-col items-center justify-center gap-space-xs min-w-[56px] min-h-[44px] text-on-surface-variant hover:text-on-surface transition-colors" data-path="transfer" href="#"><span class="material-symbols-outlined text-[22px]">sync_alt</span><span class="font-label-sm text-label-sm">Transfer</span></a></div></nav></body></html>

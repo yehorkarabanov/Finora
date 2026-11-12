@@ -10,7 +10,14 @@
     <string name="more_categories">Categories</string>
     <string name="more_tags">Tags</string>
     <string name="more_recurring">Recurring</string>
-    <string name="more_transfers">Transfers</string>
+    <string name="more_section_organize">Organize</string>
+    <string name="more_section_app">App</string>
+    <string name="more_categories_subtitle">Group your expenses and income</string>
+    <string name="more_tags_subtitle">Label transactions and analyze by tag</string>
+    <string name="more_recurring_subtitle">Repeating payments and income</string>
+    <string name="more_settings_subtitle">Theme, display currency, about</string>
+    <string name="more_data">Data</string>
+    <string name="more_data_subtitle">Backup, restore, and CSV export</string>
     <string name="more_settings">Settings</string>
 
     <string name="navigate_back">Back</string>
@@ -23,7 +30,21 @@
     <string name="settings_display_currency">Display currency</string>
     <string name="settings_display_currency_automatic">%1$s (automatic)</string>
     <string name="settings_display_currency_choose">Choose display currency</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_choose">Choose language</string>
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_english" translatable="false">English</string>
+    <string name="settings_language_russian" translatable="false">Русский</string>
     <string name="settings_close">Close</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_section_currency">Currency</string>
+    <string name="settings_section_data">Data</string>
+    <string name="settings_section_about">About</string>
+    <string name="settings_automatic">Automatic</string>
+    <string name="settings_display_currency_help">Used for totals and converted estimates across your accounts. Amounts in their own currency are never changed.</string>
+    <string name="settings_currency_no_results">No currencies found</string>
+    <string name="settings_data_title">Backup &amp; restore</string>
+    <string name="settings_app_version">App version</string>
 
     <!-- Common -->
     <string name="action_save">Save</string>
@@ -41,6 +62,127 @@
     <string name="picker_color">Color</string>
     <string name="picker_icon_item">Icon %1$s</string>
     <string name="picker_color_item">Color %1$d</string>
+    <string name="picker_icon_search">Search icons</string>
+    <string name="picker_icon_choose">Choose icon</string>
+    <string name="icon_group_food">Food and drink</string>
+    <string name="icon_group_transport">Transport</string>
+    <string name="icon_group_home">Home and utilities</string>
+    <string name="icon_group_shopping">Shopping</string>
+    <string name="icon_group_health">Health</string>
+    <string name="icon_group_education">Education and kids</string>
+    <string name="icon_group_leisure">Leisure</string>
+    <string name="icon_group_personal">Personal and family</string>
+    <string name="icon_group_finance">Bills and finance</string>
+    <string name="icon_group_income">Income and work</string>
+    <string name="icon_group_other">Other</string>
+    <string name="icon_group_everyday">Everyday</string>
+    <string name="icon_group_banks">Banks and savings</string>
+    <string name="icon_group_investments">Investments</string>
+    <!-- Icon names (picker search and accessibility), one per IconKeys key -->
+    <string name="icon_wallet">Wallet</string>
+    <string name="icon_bank">Bank</string>
+    <string name="icon_card">Card</string>
+    <string name="icon_cash">Cash</string>
+    <string name="icon_savings">Savings</string>
+    <string name="icon_investments">Investments</string>
+    <string name="icon_business">Business</string>
+    <string name="icon_phone">Phone</string>
+    <string name="icon_restaurant">Restaurant</string>
+    <string name="icon_coffee">Coffee</string>
+    <string name="icon_home">Home</string>
+    <string name="icon_car">Car</string>
+    <string name="icon_bus">Bus</string>
+    <string name="icon_flight">Flight</string>
+    <string name="icon_shopping">Shopping bag</string>
+    <string name="icon_entertainment">Entertainment</string>
+    <string name="icon_health">Health</string>
+    <string name="icon_fitness">Fitness</string>
+    <string name="icon_pets">Pets</string>
+    <string name="icon_school">School</string>
+    <string name="icon_repairs">Repair</string>
+    <string name="icon_subscriptions">Subscriptions</string>
+    <string name="icon_fees">Fees</string>
+    <string name="icon_freelance">Freelance</string>
+    <string name="icon_gift">Gift</string>
+    <string name="icon_refund">Refund</string>
+    <string name="icon_transfer">Transfer</string>
+    <string name="icon_exchange">Currency exchange</string>
+    <string name="icon_other">Other</string>
+    <string name="icon_groceries">Groceries</string>
+    <string name="icon_bakery">Bakery</string>
+    <string name="icon_bar">Bar</string>
+    <string name="icon_delivery">Delivery</string>
+    <string name="icon_pizza">Pizza</string>
+    <string name="icon_dessert">Dessert</string>
+    <string name="icon_fuel">Fuel</string>
+    <string name="icon_train">Train</string>
+    <string name="icon_taxi">Taxi</string>
+    <string name="icon_bike">Bicycle</string>
+    <string name="icon_scooter">Scooter</string>
+    <string name="icon_motorcycle">Motorcycle</string>
+    <string name="icon_parking">Parking</string>
+    <string name="icon_ev_charging">EV charging</string>
+    <string name="icon_car_repair">Car repair</string>
+    <string name="icon_ship">Boat</string>
+    <string name="icon_rent">Rent</string>
+    <string name="icon_utilities">Utilities</string>
+    <string name="icon_water">Water</string>
+    <string name="icon_gas">Gas and heating</string>
+    <string name="icon_internet">Internet</string>
+    <string name="icon_tv">Television</string>
+    <string name="icon_furniture">Furniture</string>
+    <string name="icon_cleaning">Cleaning</string>
+    <string name="icon_garden">Garden</string>
+    <string name="icon_kitchen">Kitchen</string>
+    <string name="icon_clothing">Clothing</string>
+    <string name="icon_electronics">Electronics</string>
+    <string name="icon_beauty">Beauty</string>
+    <string name="icon_jewelry">Jewelry</string>
+    <string name="icon_books">Books</string>
+    <string name="icon_pharmacy">Pharmacy</string>
+    <string name="icon_doctor">Doctor</string>
+    <string name="icon_mental_health">Mental health</string>
+    <string name="icon_vaccine">Vaccination</string>
+    <string name="icon_courses">Courses</string>
+    <string name="icon_kids">Kids</string>
+    <string name="icon_toys">Toys</string>
+    <string name="icon_baby">Baby</string>
+    <string name="icon_music">Music</string>
+    <string name="icon_games">Games</string>
+    <string name="icon_sports">Sports</string>
+    <string name="icon_travel">Travel</string>
+    <string name="icon_hotel">Hotel</string>
+    <string name="icon_beach">Beach</string>
+    <string name="icon_camera">Photo</string>
+    <string name="icon_events">Events</string>
+    <string name="icon_tickets">Tickets</string>
+    <string name="icon_hiking">Hiking</string>
+    <string name="icon_charity">Charity</string>
+    <string name="icon_haircut">Haircut</string>
+    <string name="icon_laundry">Laundry</string>
+    <string name="icon_family">Family</string>
+    <string name="icon_taxes">Taxes</string>
+    <string name="icon_insurance">Insurance</string>
+    <string name="icon_loan">Loan</string>
+    <string name="icon_interest">Interest</string>
+    <string name="icon_atm">ATM</string>
+    <string name="icon_salary">Salary</string>
+    <string name="icon_bonus">Bonus</string>
+    <string name="icon_rental_income">Rental income</string>
+    <string name="icon_dividends">Dividends</string>
+    <string name="icon_store">Store</string>
+    <string name="icon_favorite">Favorite</string>
+    <string name="icon_flag">Flag</string>
+    <string name="icon_pos">Terminal</string>
+    <string name="icon_deposit">Deposit</string>
+    <string name="icon_euro">Euro</string>
+    <string name="icon_dollar">Dollar</string>
+    <string name="icon_brokerage">Brokerage</string>
+    <string name="icon_crypto">Crypto</string>
+    <string name="icon_gold">Gold</string>
+    <string name="icon_real_estate">Real estate</string>
+    <string name="icon_pension">Pension</string>
+    <string name="icon_gift_card">Gift card</string>
     <string name="picker_no_parent">No parent (top level)</string>
     <string name="picker_no_results">Nothing found</string>
     <string name="picker_archived_badge">Archived</string>
@@ -48,14 +190,31 @@
 
     <!-- Accounts -->
     <string name="accounts_title">Accounts</string>
+    <string name="accounts_total">Total · %1$s</string>
+    <plurals name="accounts_count">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
+    </plurals>
+    <string name="accounts_archived_row">Archived</string>
+    <plurals name="accounts_hidden_from_totals">
+        <item quantity="one">%1$d account · hidden from totals</item>
+        <item quantity="other">%1$d accounts · hidden from totals</item>
+    </plurals>
+    <string name="accounts_restore">Restore</string>
+    <string name="fab_account">Account</string>
+    <string name="account_detail_this_month">%1$s this month</string>
     <string name="accounts_add">Add account</string>
     <string name="accounts_add_transfer">Add transfer</string>
     <string name="accounts_empty_title">No accounts yet</string>
     <string name="accounts_empty_body">Add your first account to start tracking your money.</string>
     <string name="accounts_archived_section">Archived (%1$d)</string>
     <string name="accounts_balance_overflow">Balance is out of range</string>
-    <string name="valuation_title_native">Total balance</string>
-    <string name="valuation_title_estimate">Total valuation (estimate)</string>
+    <string name="account_list_section_title">Accounts</string>
+    <string name="account_list_no_active_hint">No active accounts. Add one to record new transactions.</string>
+    <string name="account_status_archived">Archived</string>
+    <string name="account_detail_recent_title">Recent transactions</string>
+    <string name="account_list_archived_expanded">Expanded</string>
+    <string name="account_list_archived_collapsed">Collapsed</string>
     <string name="valuation_unavailable">Unavailable</string>
     <string name="valuation_outdated">Rates may be outdated. Last updated %1$s</string>
     <string name="valuation_not_included">Not included: %1$s (no rate)</string>
@@ -105,6 +264,19 @@
     <string name="account_form_error_amount_range">Amount is out of range</string>
     <string name="account_form_error_date_order">The initial balance must be dated on or before the earliest transaction.</string>
     <string name="account_form_error_generic">Could not save. Try again.</string>
+    <string name="account_form_name_placeholder">Account name</string>
+    <string name="account_form_currency_choose">Choose currency</string>
+    <string name="account_form_sign_toggle">Switch between positive and negative</string>
+    <string name="account_form_cta_create">Create account</string>
+    <string name="account_form_cta_save">Save changes</string>
+    <string name="account_form_cta_saving">Saving…</string>
+    <string name="account_form_cta_loading">Loading…</string>
+    <string name="account_form_blocker_name">Enter a name</string>
+    <string name="account_form_blocker_name_long">Shorten the name</string>
+    <string name="account_form_blocker_currency">Choose a currency</string>
+    <string name="account_form_blocker_amount">Fix the initial balance</string>
+    <string name="account_form_blocker_description">Shorten the description</string>
+    <string name="account_form_blocker_date">Choose an earlier date</string>
 
     <!-- Categories -->
     <string name="categories_title">Categories</string>
@@ -117,8 +289,6 @@
     <string name="category_form_new_title">New category</string>
     <string name="category_form_edit_title">Edit category</string>
     <string name="category_form_name">Name</string>
-    <string name="category_form_type">Type: %1$s</string>
-    <string name="category_form_parent">Parent</string>
     <string name="category_form_error_name_empty">Enter a name</string>
     <string name="category_form_error_name_long">Name is too long (50 characters at most)</string>
     <string name="category_form_error_self">A category cannot be its own parent.</string>
@@ -139,6 +309,14 @@
     <string name="category_delete_target">Move transactions to</string>
     <string name="category_delete_choose_other">Choose another category…</string>
     <string name="category_delete_target_chosen">Category: %1$s</string>
+    <string name="category_empty_hint">Add a category to organize your transactions.</string>
+    <string name="category_form_parent_title">Parent category</string>
+    <string name="category_form_name_counter">%1$d/%2$d</string>
+    <string name="category_cta_create">Create category</string>
+    <string name="category_cta_name_missing">Enter a name</string>
+    <string name="category_cta_name_long">Name is too long</string>
+    <string name="category_cta_parent_invalid">Choose a valid parent</string>
+    <string name="category_delete_confirm_hint">This cannot be undone.</string>
 
     <!-- Tags -->
     <string name="tags_title">Tags</string>
@@ -162,6 +340,17 @@
         <item quantity="other">Used in %1$d transactions. They stay, and lose this tag.</item>
     </plurals>
     <string name="tag_delete_body_unused">The tag will be deleted.</string>
+    <string name="tag_delete_title_named">Delete “%1$s”?</string>
+    <plurals name="tag_count">
+        <item quantity="one">%1$d tag</item>
+        <item quantity="other">%1$d tags</item>
+    </plurals>
+    <string name="tag_search_hint">Search tags</string>
+    <string name="tag_no_results">No tags match “%1$s”</string>
+    <string name="tag_sort_most_used">Most used</string>
+    <string name="tag_sort_name">A–Z</string>
+    <string name="tag_form_create">Create tag</string>
+    <string name="tag_form_preview_placeholder">Tag name</string>
     <string name="action_show_transactions">Show transactions</string>
     <string name="action_remove">Remove</string>
     <string name="tag_picker_create">+ Create \"%1$s\"</string>
@@ -182,8 +371,6 @@
     <string name="transactions_day_yesterday">Yesterday</string>
 
     <!-- Transaction Form -->
-    <string name="transaction_form_new_title">New transaction</string>
-    <string name="transaction_form_edit_title">Edit transaction</string>
     <string name="transaction_kind_expense">Expense</string>
     <string name="transaction_kind_income">Income</string>
     <string name="transaction_kind_transfer">Transfer</string>
@@ -195,6 +382,26 @@
     <string name="transaction_form_date_time">Date &amp; time</string>
     <string name="transaction_form_description">Description</string>
     <string name="transaction_form_tags">Tags</string>
+    <string name="transaction_form_cta_save">Save changes</string>
+    <string name="transaction_form_merchant_description">Merchant &amp; Description</string>
+    <string name="transaction_form_labels_tags">Labels &amp; Tags</string>
+    <string name="transaction_form_in_parent">in %1$s</string>
+    <string name="transaction_form_balance_after">%1$s → %2$s after saving</string>
+    <string name="transaction_form_recent">Recent</string>
+    <string name="transaction_form_description_hint">e.g. Whole Foods, Uber, Rent</string>
+    <string name="transaction_form_add_tag">Add tag</string>
+    <string name="transaction_form_tags_done">Done</string>
+    <string name="transaction_form_tags_note">Optional · never affects balances</string>
+    <string name="transaction_form_saved_another">Saved. Ready for the next one.</string>
+    <!-- Transfer mode of the unified editor -->
+    <string name="txn_transfer_same_amount">Same amount</string>
+    <string name="txn_transfer_note_hint">e.g. Move savings, cash withdrawal</string>
+    <string name="txn_error_from_missing">Choose the account to send from</string>
+    <string name="txn_error_to_missing">Choose the account to send to</string>
+    <string name="txn_error_received_empty">Enter the received amount</string>
+    <string name="transaction_form_clear_amount">Clear amount</string>
+    <string name="transaction_form_backspace">Delete last digit</string>
+    <string name="transaction_form_change_account">Change account</string>
     <string name="transaction_form_error_amount_empty">Enter an amount</string>
     <string name="transaction_form_error_amount_invalid">Enter a valid amount</string>
     <string name="transaction_form_error_amount_precise">Too many decimal places for this currency</string>
@@ -211,14 +418,13 @@
 
     <!-- Transfer Form -->
     <string name="transfer_form_new_title">New transfer</string>
-    <string name="transfer_form_edit_title">Edit transfer</string>
     <string name="transfer_form_from">From</string>
     <string name="transfer_form_to">To</string>
     <string name="transfer_form_swap">Swap accounts</string>
     <string name="transfer_form_amount_sent">Amount sent</string>
     <string name="transfer_form_amount_received">Amount received</string>
-    <string name="transfer_form_rate">%1$s · %2$s</string>
     <string name="transfer_form_error_same_accounts">Choose two different accounts</string>
+    <string name="transfer_form_enter_received">Enter the amount received in %1$s</string>
     <string name="transfer_form_delete_title">Delete transfer?</string>
     <string name="transfer_form_delete_body">The transfer will be deleted. %1$s returns to the source account and %2$s is removed from the destination account.</string>
     <string name="transfer_form_opening_order_body">This transfer is dated before the initial balance of one of its accounts. Move the initial balances back so they are not later than this transfer?</string>
@@ -271,6 +477,32 @@
     <string name="filter_chip_search">“%1$s”</string>
     <string name="filter_categories_count">Categories (%1$d)</string>
     <string name="filter_categories_choose">Choose categories</string>
+    <string name="filter_type_all">All</string>
+    <string name="filter_clear">Clear</string>
+    <string name="filter_categories_search">Search categories</string>
+    <string name="filter_tags_search">Search tags</string>
+    <string name="filter_tag_mode_any_short">Any tag</string>
+    <string name="filter_tag_mode_all_short">All tags</string>
+    <string name="filter_tag_mode_any_hint">Transactions with at least one of the selected tags</string>
+    <string name="filter_tag_mode_all_hint">Only transactions that have every selected tag</string>
+    <string name="filter_tags_pill_all">All: %1$s</string>
+    <string name="filter_categories_expand">Show subcategories</string>
+    <string name="filter_categories_collapse">Hide subcategories</string>
+    <plurals name="filter_subcategories_count">
+        <item quantity="one">%1$d subcategory</item>
+        <item quantity="other">%1$d subcategories</item>
+    </plurals>
+    <string name="filter_type_expenses">Expenses</string>
+    <string name="filter_type_income">Income</string>
+    <string name="filter_type_transfers">Transfers</string>
+    <string name="filter_date_any">Any time</string>
+    <string name="filter_date_last_month">Last month</string>
+    <string name="filter_date_last_30_days">Last 30 days</string>
+    <string name="filter_amount_short">Amount</string>
+    <string name="filter_more">%1$s +%2$d</string>
+    <string name="transactions_search_hint">Search descriptions</string>
+    <string name="transactions_summary_income_label">Income</string>
+    <string name="transactions_summary_expense_label">Expenses</string>
 
     <!-- Category Delete Review -->
     <string name="category_delete_review_transactions">Review transactions</string>
@@ -295,6 +527,15 @@
     <string name="recurring_empty_body">A schedule creates an income or an expense for you on a repeating date, such as rent on the 1st of every month.</string>
     <string name="recurring_section_active">Active</string>
     <string name="recurring_section_paused">Paused</string>
+    <string name="recurring_next30_title">Next 30 days</string>
+    <string name="recurring_next30_out">Out</string>
+    <string name="recurring_next30_in">In</string>
+    <string name="recurring_list_upcoming">Upcoming</string>
+    <string name="recurring_due_today">today</string>
+    <plurals name="recurring_due_in_days">
+        <item quantity="one">in %1$d day</item>
+        <item quantity="other">in %1$d days</item>
+    </plurals>
     <string name="recurring_section_ended">Ended</string>
     <string name="recurring_row_subtitle">%1$s · %2$s</string>
     <string name="recurring_status_next">Next: %1$s</string>
@@ -342,6 +583,17 @@
     <string name="recurring_detail_category">Category: %1$s</string>
     <string name="recurring_detail_ends">Ends on %1$s</string>
     <string name="recurring_detail_no_end">No end date</string>
+    <string name="recurring_empty_cta">Add recurring</string>
+    <plurals name="recurring_attention_banner">
+        <item quantity="one">%d schedule needs attention</item>
+        <item quantity="other">%d schedules need attention</item>
+    </plurals>
+    <string name="recurring_detail_more">More options</string>
+    <string name="recurring_label_account">Account</string>
+    <string name="recurring_label_category">Category</string>
+    <string name="recurring_label_repeats">Repeats</string>
+    <string name="recurring_label_ends">Ends</string>
+    <string name="recurring_label_tags">Tags</string>
     <string name="recurring_detail_upcoming">Upcoming</string>
     <string name="recurring_detail_upcoming_paused">Not active while the schedule is paused.</string>
     <string name="recurring_detail_upcoming_none">No more occurrences.</string>
@@ -397,6 +649,21 @@
     <string name="recurring_form_ends_on">Ends on (optional)</string>
     <string name="recurring_form_clear_end">Clear end date</string>
     <string name="recurring_form_preview_next">Next: %1$s</string>
+    <string name="recurring_form_schedule_section">Schedule</string>
+    <string name="recurring_form_repeats">Repeats</string>
+    <string name="recurring_form_end_never">Never</string>
+    <string name="recurring_form_name_hint">e.g. Rent, Netflix</string>
+    <string name="recurring_form_interval_decrease">Decrease interval</string>
+    <string name="recurring_form_interval_increase">Increase interval</string>
+    <string name="recurring_form_cta_save">Save schedule</string>
+    <string name="recurring_form_cta_add_expense">Add recurring expense</string>
+    <string name="recurring_form_cta_add_income">Add recurring income</string>
+    <string name="recurring_form_cta_enter_amount">Enter an amount</string>
+    <string name="recurring_form_cta_enter_name">Enter a name</string>
+    <string name="recurring_form_cta_choose_account">Choose an account</string>
+    <string name="recurring_form_cta_choose_category">Choose a category</string>
+    <string name="recurring_form_cta_fix_errors">Fix the highlighted fields</string>
+    <string name="recurring_form_cta_loading">Loading…</string>
     <plurals name="recurring_form_preview_due">
         <item quantity="one">%1$d transaction dated %2$s will be created now.</item>
         <item quantity="other">%1$d transactions dated %2$s will be created now.</item>
@@ -425,6 +692,30 @@
     <string name="period_month">Month</string>
     <string name="period_year">Year</string>
     <string name="period_custom">Custom</string>
+    <string name="period_sheet_title">Period</string>
+    <string name="period_this_week">This week</string>
+    <string name="period_this_month">This month</string>
+    <string name="period_this_year">This year</string>
+    <string name="period_custom_range">Custom range…</string>
+    <string name="date_range_title">Select dates</string>
+    <string name="date_range_close">Close</string>
+    <string name="date_range_hint_start">Tap a start date, then an end date</string>
+    <string name="date_range_hint_end">Tap an end date, or apply to use this single day</string>
+    <string name="date_range_summary">%1$s · %2$s</string>
+    <string name="date_range_apply">Apply · %1$s</string>
+    <string name="date_range_apply_empty">Choose a start date</string>
+    <string name="date_time_now">Now</string>
+    <string name="date_time_select_time">Select time</string>
+    <string name="date_time_set">Set · %1$s</string>
+    <string name="date_time_set_short">Set</string>
+    <string name="date_time_future">Time is in the future</string>
+    <string name="date_time_choose_date">Choose a date</string>
+    <string name="date_time_time_label">Time, %1$s. Change</string>
+    <plurals name="date_range_days">
+        <item quantity="one">%d day</item>
+        <item quantity="other">%d days</item>
+    </plurals>
+    <string name="selector_done">Done</string>
 
     <!-- Analytics, shared -->
     <string name="analytics_none">—</string>
@@ -438,8 +729,6 @@
     <string name="analytics_note_native">Only %1$s accounts, shown without conversion.</string>
     <string name="analytics_note_converted">Converted at today\'s rates, updated %1$s.</string>
     <string name="analytics_note_overflow">Some amounts are too large to add up.</string>
-    <string name="analytics_direct_suffix">%1$s (direct)</string>
-    <string name="analytics_other">Other</string>
     <plurals name="analytics_operations">
         <item quantity="one">%1$d transaction</item>
         <item quantity="other">%1$d transactions</item>
@@ -450,17 +739,24 @@
     </plurals>
 
     <!-- Dashboard -->
+    <string name="home_net_in">Net in %1$s</string>
+    <string name="home_net_range">Net · %1$s</string>
+    <string name="home_in_out">In %1$s · Out %2$s</string>
+    <string name="home_open_transactions">Open transactions</string>
+    <string name="home_days">Days</string>
+    <string name="home_months">Months</string>
+    <string name="home_today">Today</string>
+    <string name="quick_recurring">Recurring</string>
     <string name="dashboard_first_account_title">Add your first account to see your finances here</string>
     <string name="dashboard_net">Net</string>
     <string name="dashboard_by_currency">By currency</string>
     <string name="dashboard_manage_accounts">Accounts</string>
-    <string name="dashboard_distribution">Expenses by category</string>
-    <string name="dashboard_no_expenses">No expenses in this period</string>
-    <string name="dashboard_details">Details</string>
     <string name="dashboard_recent">Recent transactions</string>
     <string name="dashboard_see_all">See all</string>
     <string name="dashboard_upcoming">Upcoming</string>
     <string name="dashboard_upcoming_none">No upcoming recurring transactions</string>
+    <string name="dashboard_first_account_action">Add account</string>
+    <string name="dashboard_no_recent">No transactions yet. Tap Expense or Income to add one.</string>
     <plurals name="dashboard_schedules_attention">
         <item quantity="one">%1$d schedule needs attention</item>
         <item quantity="other">%1$d schedules need attention</item>
@@ -473,29 +769,54 @@
     <string name="stats_tab_accounts">Accounts</string>
     <string name="stats_compare">Compare with previous period</string>
     <string name="stats_compare_previous">vs. %1$s</string>
-    <string name="stats_all_categories">All categories</string>
-    <string name="stats_back">Up one level</string>
     <string name="stats_by_account">By account</string>
     <string name="stats_by_tag">By tag</string>
     <string name="stats_by_tag_note">A transaction with several tags is counted under each of them, so these rows can add up to more than the total.</string>
-    <string name="stats_trend">Trend</string>
-    <string name="stats_trend_monthly">Monthly</string>
-    <string name="stats_trend_yearly">Yearly</string>
+    <string name="stats_options">Account filter and compare</string>
+    <string name="stats_custom_days">Custom days</string>
+    <string name="stats_week_of">Week of %1$s</string>
+    <string name="stats_spent_in">Spent in %1$s</string>
+    <string name="stats_spent_range">Spent · %1$s</string>
+    <string name="stats_earned_in">Earned in %1$s</string>
+    <string name="stats_earned_range">Earned · %1$s</string>
+    <string name="stats_less_than">%1$s less than %2$s</string>
+    <string name="stats_more_than">%1$s more than %2$s</string>
+    <string name="stats_same_as">Same as %1$s</string>
+    <string name="stats_daily_spending">Daily spending</string>
+    <string name="stats_monthly_spending">Monthly spending</string>
+    <string name="stats_daily_income">Daily income</string>
+    <string name="stats_monthly_income">Monthly income</string>
+    <string name="stats_avg_day">Avg %1$s / day</string>
+    <string name="stats_avg_month">Avg %1$s / month</string>
+    <string name="stats_open_bucket">%1$s transactions</string>
     <string name="stats_show_transactions">Show transactions</string>
     <string name="stats_no_data">Nothing in this period</string>
-    <string name="stats_tags_hint">Choose one or more tags to analyze</string>
+    <string name="stats_directly_in">Directly in %1$s</string>
+    <string name="stats_crumb_all">All</string>
+    <string name="stats_categories">Categories</string>
+    <plurals name="stats_subcategories">
+        <item quantity="one">%1$d subcategory</item>
+        <item quantity="other">%1$d subcategories</item>
+    </plurals>
+    <string name="stats_tags_ranking_title">Tags in %1$s</string>
+    <string name="stats_tags_ranking_hint">Tap a tag to open its stats · long-press to combine several</string>
+    <string name="stats_tags_ranking_empty">No tagged transactions in this period</string>
+    <string name="stats_tags_combine">Combine %1$d</string>
+    <string name="stats_tags_pick">Pick to combine</string>
+    <string name="stats_tags_match">Match</string>
+    <string name="stats_tags_filter_hint">Types, accounts, categories, dates</string>
+    <string name="stats_measure_spent">Spent</string>
+    <string name="stats_measure_earned">Earned</string>
+    <string name="stats_measure_moved">Moved</string>
+    <string name="stats_over_time">Over time</string>
+    <string name="stats_all_n">All %1$d ›</string>
     <string name="stats_no_tag">No tag</string>
     <string name="stats_filter">Filter</string>
-    <string name="stats_measure_expense">Expenses</string>
-    <string name="stats_measure_income">Income</string>
-    <string name="stats_measure_transfer">Transfers</string>
     <string name="stats_total_income">Income</string>
     <string name="stats_total_expense">Expenses</string>
     <string name="stats_total_net">Net</string>
     <string name="stats_total_transferred">Transferred</string>
-    <string name="stats_by_date">By date</string>
     <string name="stats_recent">Recent transactions</string>
-    <string name="stats_show_all">Show all %1$d</string>
     <string name="stats_account_income">Income</string>
     <string name="stats_account_expense">Expenses</string>
     <string name="stats_account_net">Net</string>
@@ -600,4 +921,28 @@
     </plurals>
     <string name="csv_export_failed">Export failed: %1$s</string>
     <string name="transactions_export_csv">Export as CSV</string>
+    <!-- Obsidian shared components -->
+    <string name="fab_add">Add</string>
+    <string name="range_title">Choose range</string>
+    <string name="range_from">From</string>
+    <string name="range_to">To</string>
+    <plurals name="range_months_count">
+        <item quantity="one">%d month</item>
+        <item quantity="other">%d months</item>
+    </plurals>
+    <string name="range_show">Show %1$s – %2$s</string>
+    <string name="range_show_one">Show %1$s</string>
+    <string name="range_invalid_order">End before start</string>
+    <string name="range_in_future">In the future</string>
+    <string name="range_today">Today</string>
+    <string name="range_custom_days">Custom days…</string>
+    <!-- Editor: keypad screen + details shelf -->
+    <string name="editor_next">Next</string>
+    <string name="editor_details">Details</string>
+    <string name="editor_add_another">Add another after saving</string>
+    <string name="editor_save_expense">Save expense</string>
+    <string name="editor_save_income">Save income</string>
+    <string name="editor_save_transfer">Save transfer</string>
+    <string name="editor_they_receive">They receive</string>
+    <string name="editor_different_amount">Different amount</string>
 </resources>

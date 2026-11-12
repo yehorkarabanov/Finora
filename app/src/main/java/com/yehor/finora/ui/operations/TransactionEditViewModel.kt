@@ -12,9 +12,13 @@ import com.yehor.finora.data.repo.RecurringRepository
 import com.yehor.finora.data.repo.TagRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.Balance
 import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
+import kotlinx.coroutines.flow.filterNotNull
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.AmountParseResult
 import com.yehor.finora.domain.money.AmountParser
@@ -57,6 +61,8 @@ data class TransactionEditUiState(
     val hadCategoryBefore: Boolean = true,
     val date: LocalDate = LocalDate.now(),
     val time: LocalTime = LocalTime.now().withSecond(0).withNano(0),
+    /** True once the user picked a date or time, so tab switches know it is worth carrying over. */
+    val dateTouched: Boolean = false,
     val description: String = "",
     val selectedTagIds: Set<Long> = emptySet(),
     val pendingTagNames: List<String> = emptyList(),
@@ -75,6 +81,12 @@ data class TransactionEditUiState(
     /** The schedule that created this transaction, while it still exists. Only set when editing. */
     val recurringScheduleId: Long? = null,
     val recurringScheduleName: String? = null,
+    /** Current balance per account id; absent when the balance overflows. */
+    val balances: Map<Long, Money> = emptyMap(),
+    /** True while a "save and create another" request is in flight (including its confirmation dialogs). */
+    val createAnother: Boolean = false,
+    /** Incremented each time "save and create another" succeeds; the screen shows a confirmation. */
+    val savedAnotherCount: Int = 0,
 ) {
     val selectedAccount: Account?
         get() = accounts.find { it.account.id == selectedAccountId }?.account
@@ -96,10 +108,19 @@ class TransactionEditViewModel @Inject constructor(
     tagRepository: TagRepository,
 ) : ViewModel() {
 
-    private val operationId: Long? = savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 }
-    private val duplicateOf: Long? = savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 }
+    // This VM is created for every mode of the unified editor; in Transfer mode it is a fresh Expense draft.
+    private val mode = EditorMode.fromArg(savedStateHandle.get<String>("kind"))
+
+    /** The tab the route asked for; Expense/Income of an existing operation is only known once it loads. */
+    val initialMode: EditorMode get() = mode
+    private val operationId: Long? =
+        savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
+    private val duplicateOf: Long? =
+        savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
+    /** Account the editor was opened for (account detail actions); only used for a new transaction. */
+    private val presetArg: Long = savedStateHandle.get<Long>("sourceAccountId") ?: -1L
     private val initialKind: TransactionKind =
-        if (savedStateHandle.get<String>("kind") == "INCOME") TransactionKind.INCOME else TransactionKind.EXPENSE
+        if (mode == EditorMode.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE
 
     private val _state = MutableStateFlow(
         TransactionEditUiState(
@@ -123,6 +144,9 @@ class TransactionEditViewModel @Inject constructor(
             accounts = pickable,
             categories = categories,
             allTags = tagsWithUsage.map { it.tag },
+            balances = accountsWithBalance.mapNotNull { row ->
+                (row.balance as? Balance.Value)?.let { row.account.id to it.money }
+            }.toMap(),
         )
         withAccounts.copy(
             errors = TransactionDraftValidator.validate(
@@ -140,6 +164,20 @@ class TransactionEditViewModel @Inject constructor(
 
     init {
         viewModelScope.launch { loadInitialData() }
+        // Category created from the picker: select it once it shows up in the categories flow.
+        viewModelScope.launch {
+            combine(
+                savedStateHandle.getStateFlow<Long?>(CREATED_CATEGORY_ID_KEY, null),
+                categoryRepository.observeAll(),
+            ) { id, categories -> categories.firstOrNull { it.id == id } }
+                .filterNotNull()
+                .collect { created ->
+                    if (created.type == CategoryType.TRANSFER) return@collect // the transfer VM handles it
+                    val kind = if (created.type == CategoryType.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE
+                    if (_state.value.kind == kind) onCategoryChange(created.id)
+                    savedStateHandle.remove<Long>(CREATED_CATEGORY_ID_KEY)
+                }
+        }
     }
 
     private suspend fun loadInitialData() {
@@ -155,7 +193,8 @@ class TransactionEditViewModel @Inject constructor(
                 }
             }
         } else {
-            transactionRepository.defaultAccountId()?.let { accountId ->
+            val accounts = if (presetArg > 0) accountRepository.observeAll().first().map { it.account } else emptyList()
+            presetAccountId(presetArg, accounts, transactionRepository.defaultAccountId())?.let { accountId ->
                 _state.value = _state.value.copy(selectedAccountId = accountId)
             }
         }
@@ -214,11 +253,26 @@ class TransactionEditViewModel @Inject constructor(
     }
 
     fun onDateChange(date: LocalDate) {
-        _state.value = _state.value.copy(date = date)
+        _state.value = _state.value.copy(date = date, dateTouched = true)
     }
 
     fun onTimeChange(time: LocalTime) {
-        _state.value = _state.value.copy(time = time)
+        _state.value = _state.value.copy(time = time, dateTouched = true)
+    }
+
+    /**
+     * Carries over what was typed on the Transfer tab. The amount and description only fill empty fields; the
+     * account replaces the default one, and a date/time is passed only when the user deliberately picked it there.
+     */
+    fun prefill(amountText: String, accountId: Long?, date: LocalDate?, time: LocalTime?, description: String) {
+        val s = _state.value
+        _state.value = s.copy(
+            amountText = if (s.amountText.isEmpty()) amountText else s.amountText,
+            selectedAccountId = accountId ?: s.selectedAccountId,
+            date = date ?: s.date,
+            time = time ?: s.time,
+            description = if (s.description.isEmpty()) description else s.description,
+        )
     }
 
     fun onDescriptionChange(description: String) {
@@ -245,7 +299,22 @@ class TransactionEditViewModel @Inject constructor(
         _state.value = _state.value.copy(pendingTagNames = _state.value.pendingTagNames - name)
     }
 
-    fun save(confirmCurrencyChange: Boolean = false, moveOpeningBalanceBack: Boolean = false) {
+    /** Saves the form. With [createAnother] (new transactions only) the form is reset for the next entry instead of closing. */
+    fun save(createAnother: Boolean = false) {
+        _state.value = _state.value.copy(createAnother = createAnother && !_state.value.isEdit)
+        submit()
+    }
+
+    fun onConfirmCurrencyChange() = submit(confirmCurrencyChange = true)
+
+    fun onConfirmOpeningOrder() {
+        onDismissOpeningOrder()
+        // The currency check runs before the opening-order check, so a currency
+        // change has already been confirmed when this dialog appears.
+        submit(confirmCurrencyChange = true, moveOpeningBalanceBack = true)
+    }
+
+    private fun submit(confirmCurrencyChange: Boolean = false, moveOpeningBalanceBack: Boolean = false) {
         val current = state.value
         if (!current.canSave) return
         val account = current.selectedAccount ?: return
@@ -274,7 +343,11 @@ class TransactionEditViewModel @Inject constructor(
                 } else {
                     transactionRepository.create(draft, moveOpeningBalanceBack)
                 }
-                _state.value = _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                if (current.createAnother) {
+                    resetForNextEntry()
+                } else {
+                    _state.value = _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                }
             } catch (_: CurrencyChangeNotConfirmedException) {
                 val oldMoney = current.originalMoney ?: return@launch
                 _state.value = _state.value.copy(
@@ -294,6 +367,24 @@ class TransactionEditViewModel @Inject constructor(
                 // The form validator rejects future dates; this only happens when the clock passes the chosen minute.
             }
         }
+    }
+
+    /** Keeps kind, account and date (batch entry usually shares them) and clears the rest. */
+    private suspend fun resetForNextEntry() {
+        _state.value = _state.value.copy(
+            amountText = "",
+            selectedCategoryId = null,
+            description = "",
+            selectedTagIds = emptySet(),
+            pendingTagNames = emptyList(),
+            time = LocalTime.now().withSecond(0).withNano(0),
+            isOverflow = false,
+            reassignmentInfo = null,
+            showOpeningOrderDialog = false,
+            createAnother = false,
+            savedAnotherCount = _state.value.savedAnotherCount + 1,
+        )
+        loadRecentCategories(_state.value.kind)
     }
 
     fun onDismissReassignment() {

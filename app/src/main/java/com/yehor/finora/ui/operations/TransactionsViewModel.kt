@@ -27,6 +27,7 @@ import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionSort
 import com.yehor.finora.domain.tag.Tag
+import com.yehor.finora.domain.tag.TagWithUsage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -71,6 +72,8 @@ data class TransactionsUiState(
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
     val tags: List<Tag> = emptyList(),
+    /** Tag id to the number of transactions that carry it. */
+    val tagUsage: Map<Long, Int> = emptyMap(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -111,7 +114,8 @@ class TransactionsViewModel @Inject constructor(
         .map { list -> list.map { it.account } }
         .distinctUntilChanged()
     private val categories: Flow<List<Category>> = categoryRepository.observeAll()
-    private val tags: Flow<List<Tag>> = tagRepository.observeAllWithUsage()
+    private val tagsWithUsage: Flow<List<TagWithUsage>> = tagRepository.observeAllWithUsage().distinctUntilChanged()
+    private val tags: Flow<List<Tag>> = tagsWithUsage
         .map { list -> list.map { it.tag } }
         .distinctUntilChanged()
 
@@ -135,8 +139,8 @@ class TransactionsViewModel @Inject constructor(
     }
 
     val state: StateFlow<TransactionsUiState> = combine(
-        normalized, summaryWithConversion, accounts, categories, tags,
-    ) { n, s, a, c, t ->
+        normalized, summaryWithConversion, accounts, categories, tagsWithUsage,
+    ) { n, s, a, c, tu ->
         TransactionsUiState(
             filter = n.filter,
             sort = n.sort,
@@ -145,7 +149,8 @@ class TransactionsViewModel @Inject constructor(
             convertedSummary = s.second,
             accounts = a,
             categories = c,
-            tags = t,
+            tags = tu.map { it.tag },
+            tagUsage = tu.associate { it.tag.id to it.usageCount },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TransactionsUiState(filter = initialFilter))
 

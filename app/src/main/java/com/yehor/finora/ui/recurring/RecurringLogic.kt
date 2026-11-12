@@ -66,6 +66,10 @@ object RecurringListLogic {
         ScheduleDisplayState.ENDED -> StatusLine.Ended(row.schedule.endDate ?: row.schedule.startDate)
     }
 
+    /** How many schedules are blocked by a generation issue (shown as the attention banner). */
+    fun blockedCount(sections: RecurringSections): Int =
+        sections.active.count { statusLine(it) is StatusLine.Blocked }
+
     /** "+12.50 $" for income, "−12.50 $" for expense. The schedule amount itself is always positive. */
     fun signedAmount(kind: TransactionKind, money: Money): String =
         (if (kind == TransactionKind.INCOME) "+" else "−") + money.format()

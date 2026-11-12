@@ -1,0 +1,123 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:340px;height:740px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden;margin:0 auto}
+.scroll{position:absolute;inset:0;overflow-y:auto;padding:16px 18px 160px;scrollbar-width:none}.scroll::-webkit-scrollbar{display:none}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}.red{color:#ff7a6b}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.round{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center;color:#c6c6cb}
+.hero{text-align:center;margin:18px 0 6px}
+.hero small{font-size:11px;letter-spacing:1.4px;font-weight:700;color:#8b919c}
+.chips{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.chips span{border-radius:999px;padding:6px 11px;font-size:12px;font-weight:600;background:#1b1c1d;border:1px solid rgba(255,255,255,.07)}
+.hero2{background:transparent;border:none!important;padding:4px 4px 0;margin:14px 0 14px;border:1px solid rgba(255,255,255,.05)}
+.hero2 small{font-size:11px;letter-spacing:1.4px;font-weight:700;color:#8b919c}
+.pill{border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600;background:rgba(0,229,153,.1)}
+.dist{display:flex;gap:3px;height:8px;margin-top:14px}.dist i{border-radius:99px}
+.grp{background:#1b1c1d;border-radius:22px;padding:0 14px;border:1px solid rgba(255,255,255,.05)}
+.acc{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.grp .acc:last-child{border:none}
+
+.av{width:36px;height:36px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nm{font-weight:600;font-size:15px}.sub{font-size:12px;color:#8b919c}
+.spk{width:52px;height:22px;flex-shrink:0}
+.arch{display:flex;align-items:center;gap:12px;margin-top:18px;padding:12px 14px;border-radius:20px;background:transparent;border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:background .2s}
+.arch:hover{background:#17181a}
+.aic{width:36px;height:36px;border-radius:12px;background:#1b1c1d;display:flex;align-items:center;justify-content:center;color:#8b919c}
+.chev{color:#8b919c;transition:transform .3s cubic-bezier(.3,1.3,.5,1)}
+.arch.open .chev{transform:rotate(180deg)}
+.archlist{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1),opacity .3s;opacity:0}
+.archlist>div{overflow:hidden}
+.archlist.open{grid-template-rows:1fr;opacity:1}
+.restore{display:inline-block;margin-top:3px;font-size:11px;font-weight:700;color:#6dffba;background:rgba(0,229,153,.1);border-radius:999px;padding:3px 9px}
+.fade{position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(transparent,#121314 55%);pointer-events:none}
+.navA{position:absolute;left:18px;right:18px;bottom:14px;height:56px;box-sizing:border-box;background:rgba(30,32,36,.95);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;align-items:center;justify-content:space-around;padding:0 7px}
+.navA span{display:flex;align-items:center;gap:6px;height:42px;padding:0 11px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.fab{position:absolute;right:22px;bottom:84px;height:52px;padding:0 18px 0 14px;border-radius:999px;background:#00e599;color:#003822;display:flex;align-items:center;gap:6px;font-weight:700;box-shadow:0 6px 20px rgba(0,229,153,.3)}
+.notes{max-width:300px;font-size:14px;line-height:1.5}
+.wrap{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+</style>
+
+<h2>Accounts · archived section</h2>
+<p class="subtitle">Scroll to the bottom and tap "Archived".</p>
+
+<div class="wrap">
+<div class="ph">
+ <div class="scroll">
+  <div class="row"><b class="g" style="font-size:24px">Accounts</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg></span></div>
+
+  <div class="hero2">
+    <div class="row" style="align-items:flex-end">
+      <div><small>TOTAL · USD</small><div class="g" style="font-size:32px;font-weight:700;line-height:1.1;margin-top:4px">$25,180<span class="muted" style="font-size:20px">.40</span></div></div>
+      <span class="sub">4 accounts</span>
+    </div>
+    <div class="dist"><i style="flex:44;background:#00e599"></i><i style="flex:18;background:#c4a0ff"></i><i style="flex:2;background:#ffa05a"></i><i style="flex:36;background:#78b4ff"></i></div>
+    
+  </div>
+
+  <div class="grp">
+<div class="acc"><span class="av" style="background:rgba(0,229,153,.14);color:#6dffba"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M12 10v8M3 20h18"/></svg></span>
+    <div style="flex:1;min-width:0"><div class="nm">Monobank</div><div class="sub">Bank · UAH</div></div>
+    <svg class="spk" viewBox="0 0 64 28"><path d="M0 22 C12 20 18 24 28 16 S48 6 64 4" fill="none" stroke="#00e599" stroke-width="2" stroke-linecap="round"/></svg>
+    <div style="text-align:right;min-width:78px"><div class="g" style="font-weight:600">₴46,200</div><div class="sub mint">+₴3,240</div></div></div>
+
+  <div class="acc"><span class="av" style="background:rgba(196,160,255,.14);color:#c4a0ff"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M12 10v8M3 20h18"/></svg></span>
+    <div style="flex:1;min-width:0"><div class="nm">Revolut</div><div class="sub">Bank · EUR</div></div>
+    <svg class="spk" viewBox="0 0 64 28"><path d="M0 8 C12 6 22 12 34 10 S54 18 64 20" fill="none" stroke="#c4a0ff" stroke-width="2" stroke-linecap="round"/></svg>
+    <div style="text-align:right;min-width:78px"><div class="g" style="font-weight:600">€4,210</div><div class="sub red">−€120</div></div></div>
+
+  <div class="acc"><span class="av" style="background:rgba(255,160,90,.14);color:#ffa05a"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+    <div style="flex:1;min-width:0"><div class="nm">Wallet</div><div class="sub">Cash · USD</div></div>
+    <svg class="spk" viewBox="0 0 64 28"><path d="M0 14 C20 14 40 14 64 14" fill="none" stroke="#ffa05a" stroke-width="2" stroke-linecap="round"/></svg>
+    <div style="text-align:right;min-width:78px"><div class="g" style="font-weight:600">$478</div><div class="sub">—</div></div></div>
+
+  <div class="acc"><span class="av" style="background:rgba(120,180,255,.14);color:#78b4ff"><svg class="ico" viewBox="0 0 24 24"><path d="M5 11a7 6 0 0 1 14 0v4H5zM8 15v3M16 15v3"/></svg></span>
+    <div style="flex:1;min-width:0"><div class="nm">Savings</div><div class="sub">Savings · USD</div></div>
+    <svg class="spk" viewBox="0 0 64 28"><path d="M0 24 C16 22 30 16 44 10 S58 5 64 4" fill="none" stroke="#78b4ff" stroke-width="2" stroke-linecap="round"/></svg>
+    <div style="text-align:right;min-width:78px"><div class="g" style="font-weight:600">$19,012</div><div class="sub mint">+$400</div></div></div>
+</div>
+
+  <div class="arch" id="arch">
+    <span class="aic"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></svg></span>
+    <div style="flex:1"><div style="font-weight:600;font-size:14px;color:#c6c6cb">Archived</div><div class="sub">2 accounts · hidden from totals</div></div>
+    <svg class="ico chev" id="chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+  </div>
+  <div class="archlist" id="al">
+    <div class="grp" style="margin-top:8px">
+      <div class="acc"><span class="av" style="background:#242526;color:#6c727f"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M12 10v8M3 20h18"/></svg></span>
+        <div style="flex:1"><div class="nm" style="color:#9aa0a8">Old PrivatBank</div><div class="sub">Bank · UAH</div></div>
+        <div style="text-align:right"><div class="g" style="color:#9aa0a8">₴0.00</div><span class="restore">Restore</span></div></div>
+      <div class="acc"><span class="av" style="background:#242526;color:#6c727f"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span>
+        <div style="flex:1"><div class="nm" style="color:#9aa0a8">Travel cash</div><div class="sub">Cash · EUR</div></div>
+        <div style="text-align:right"><div class="g" style="color:#9aa0a8">€35.00</div><span class="restore">Restore</span></div></div>
+    </div>
+  </div>
+</div>
+ </div>
+  <div class="fade"></div>
+  <div class="fab"><svg class="ico" viewBox="0 0 24 24" style="stroke-width:2.2"><path d="M12 5v14M5 12h14"/></svg>Account</div>
+  <div class="navA">
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg>Accounts</span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></span>
+  </div>
+</div>
+
+<div class="notes">
+  <h3>Archived, improved</h3>
+  <ul>
+    <li>Closed, it's a quiet row with an archive-box icon and "2 accounts · hidden from totals", so it's clear why they don't count.</li>
+    <li>Tapping it opens the list smoothly, and the arrow flips with a slight bounce.</li>
+    <li>Archived rows use the same shared card but in grey, with no trend line. Each has a mint <b>Restore</b> button, so you don't need to open the account to bring it back.</li>
+    <li>Tapping the row itself still opens the read-only account detail.</li>
+  </ul>
+</div>
+</div>
+</div>
+
+<script>
+document.getElementById('arch').onclick=()=>{document.getElementById('al').classList.toggle('open');document.getElementById('arch').classList.toggle('open')};
+</script>

@@ -9,24 +9,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TriStateCheckbox
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.state.ToggleableState
@@ -34,6 +29,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.clickable
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import com.yehor.finora.designsystem.component.input.FilterPill
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.category.CategoryNode
@@ -67,7 +65,38 @@ internal fun dateOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): LocalD
 /** The parts of the filter sheet a caller can show. */
 enum class FilterSection { TYPE, ACCOUNT, CATEGORY, TAG, DATE, AMOUNT, TEXT }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** All three types selected is the same as no type filter. */
+internal fun TransactionFilter.normalizeTypes(): TransactionFilter =
+    if (types.containsAll(listOf(OperationType.INCOME, OperationType.EXPENSE, OperationType.TRANSFER))) copy(types = emptySet()) else this
+
+/** Clears only the dimensions the sheet shows, so a one-section sheet never wipes the other filters. */
+internal fun TransactionFilter.resetSections(sections: Set<FilterSection>): TransactionFilter {
+    val default = TransactionFilter()
+    return copy(
+        types = if (FilterSection.TYPE in sections) default.types else types,
+        accountIds = if (FilterSection.ACCOUNT in sections) default.accountIds else accountIds,
+        categoryIds = if (FilterSection.CATEGORY in sections) default.categoryIds else categoryIds,
+        exactCategoryIds = if (FilterSection.CATEGORY in sections) default.exactCategoryIds else exactCategoryIds,
+        categoryExact = if (FilterSection.CATEGORY in sections) default.categoryExact else categoryExact,
+        includeUncategorized = if (FilterSection.CATEGORY in sections) default.includeUncategorized else includeUncategorized,
+        tagIds = if (FilterSection.TAG in sections) default.tagIds else tagIds,
+        tagMode = if (FilterSection.TAG in sections) default.tagMode else tagMode,
+        from = if (FilterSection.DATE in sections) default.from else from,
+        toExclusive = if (FilterSection.DATE in sections) default.toExclusive else toExclusive,
+        amount = if (FilterSection.AMOUNT in sections) default.amount else amount,
+    )
+}
+
+private fun FilterSection.titleRes(): Int = when (this) {
+    FilterSection.TYPE -> R.string.filter_type
+    FilterSection.ACCOUNT -> R.string.filter_accounts
+    FilterSection.CATEGORY -> R.string.filter_categories
+    FilterSection.TAG -> R.string.filter_tags
+    FilterSection.DATE -> R.string.filter_date
+    FilterSection.AMOUNT -> R.string.filter_amount
+    FilterSection.TEXT -> R.string.filter_title
+}
+
 @Composable
 fun TransactionFilterSheet(
     filter: TransactionFilter,
@@ -78,41 +107,42 @@ fun TransactionFilterSheet(
     onDismiss: () -> Unit,
     sections: Set<FilterSection> = FilterSection.entries.toSet(),
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var current by remember { mutableStateOf(filter) }
     val scopeCurrency = FilterScope.scopeCurrency(current, accounts)
     val today = remember { LocalDate.now() }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    FinoraSheet(onDismiss) {
         Column(
             Modifier
                 .fillMaxWidth()
+                .weight(1f, fill = false)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .padding(bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge)
+            val single = sections.singleOrNull()
+            Text(
+                stringResource(single?.titleRes() ?: R.string.filter_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
 
             if (FilterSection.TYPE in sections) {
                 Text(stringResource(R.string.filter_type), style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(OperationType.EXPENSE, OperationType.INCOME, OperationType.TRANSFER).forEach { type ->
                         val selected = type in current.types
-                        FilterChip(
-                            selected = selected,
+                        FilterPill(
+                            label = stringResource(
+                                when (type) {
+                                    OperationType.INCOME -> R.string.transaction_kind_income
+                                    OperationType.TRANSFER -> R.string.transaction_kind_transfer
+                                    else -> R.string.transaction_kind_expense
+                                },
+                            ),
+                            active = selected,
                             onClick = {
                                 current = current.copy(types = if (selected) current.types - type else current.types + type)
-                            },
-                            label = {
-                                Text(
-                                    stringResource(
-                                        when (type) {
-                                            OperationType.INCOME -> R.string.transaction_kind_income
-                                            OperationType.TRANSFER -> R.string.transaction_kind_transfer
-                                            else -> R.string.transaction_kind_expense
-                                        },
-                                    ),
-                                )
                             },
                         )
                     }
@@ -124,14 +154,14 @@ fun TransactionFilterSheet(
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     accounts.forEach { account ->
                         val selected = account.id in current.accountIds
-                        FilterChip(
-                            selected = selected,
+                        FilterPill(
+                            label = account.name,
+                            active = selected,
                             onClick = {
                                 current = current.copy(
                                     accountIds = if (selected) current.accountIds - account.id else current.accountIds + account.id,
                                 )
                             },
-                            label = { Text(account.name) },
                         )
                     }
                 }
@@ -187,11 +217,12 @@ fun TransactionFilterSheet(
                         }
                     },
                     onToggleUncategorized = { current = current.copy(includeUncategorized = !current.includeUncategorized) },
+                    initiallyExpanded = single == FilterSection.CATEGORY,
                 )
             }
 
             if (FilterSection.TAG in sections) {
-                Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
+                if (single == null) Text(stringResource(R.string.filter_tags), style = MaterialTheme.typography.labelLarge)
                 TagFilterPicker(
                     allTags = tags,
                     selectedTagIds = current.tagIds,
@@ -231,7 +262,7 @@ fun TransactionFilterSheet(
             }
 
             if (FilterSection.AMOUNT in sections) {
-                Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
+                if (single == null) Text(stringResource(R.string.filter_amount), style = MaterialTheme.typography.labelLarge)
                 if (scopeCurrency != null) {
                     AmountRangeFields(
                         currency = scopeCurrency,
@@ -247,20 +278,24 @@ fun TransactionFilterSheet(
                 }
             }
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedButton(
-                    onClick = { current = TransactionFilter(text = current.text) },
-                    modifier = Modifier.weight(1f),
-                ) { Text(stringResource(R.string.filter_reset)) }
-                Button(
-                    onClick = {
-                        // An amount range only means something while one currency is in scope.
-                        onApply(if (scopeCurrency == null) current.copy(amount = null) else current)
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f),
-                ) { Text(stringResource(R.string.filter_apply)) }
+        }
+        Row(
+            Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(onClick = { current = current.resetSections(sections) }) {
+                Text(stringResource(R.string.filter_reset))
             }
+            PrimaryButton(
+                text = stringResource(R.string.filter_apply),
+                onClick = {
+                    // An amount range only means something while one currency is in scope.
+                    onApply((if (scopeCurrency == null) current.copy(amount = null) else current).normalizeTypes())
+                    onDismiss()
+                },
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -318,9 +353,10 @@ private fun CategoryFilter(
     includeUncategorized: Boolean,
     onCycleCategory: (id: Long, hasChildren: Boolean) -> Unit,
     onToggleUncategorized: () -> Unit,
+    initiallyExpanded: Boolean = false,
 ) {
     val totalCount = selectedIds.size + if (includeUncategorized) 1 else 0
-    var expanded by remember { mutableStateOf(totalCount > 0) }
+    var expanded by remember { mutableStateOf(initiallyExpanded || totalCount > 0) }
     val tree = remember(categories) { CategoryTree(categories) }
 
     TextButton(onClick = { expanded = !expanded }) {
@@ -331,11 +367,6 @@ private fun CategoryFilter(
     }
     if (expanded) {
         Column {
-            ListItem(
-                headlineContent = { Text(stringResource(R.string.picker_uncategorized)) },
-                trailingContent = { Checkbox(checked = includeUncategorized, onCheckedChange = null) },
-                modifier = Modifier.clickable { onToggleUncategorized() },
-            )
             listOf(CategoryType.EXPENSE, CategoryType.INCOME).forEach { type ->
                 tree.rootsOf(type).forEach { node ->
                     CategoryCheckRow(
@@ -348,6 +379,11 @@ private fun CategoryFilter(
                     )
                 }
             }
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.picker_uncategorized)) },
+                trailingContent = { Checkbox(checked = includeUncategorized, onCheckedChange = null) },
+                modifier = Modifier.clickable { onToggleUncategorized() },
+            )
         }
     }
 }

@@ -103,5 +103,7 @@ class AnalyticsEnvironment @Inject constructor(
 
     fun setCustomPeriod(start: LocalDate, end: LocalDate) = selection.setCustom(start, end)
 
+    fun setPeriod(state: PeriodState) = selection.set(state)
+
     fun shiftPeriod(steps: Int) = selection.shift(steps, today())
 }

@@ -1,38 +1,75 @@
 package com.yehor.finora.ui.recurring
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
+import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.AccountType
+import com.yehor.finora.domain.category.Category
+import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.domain.money.CurrencyRegistry
+import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.operation.TransactionKind
+import com.yehor.finora.domain.recurring.GenerationIssue
+import com.yehor.finora.domain.recurring.RecurrenceRule
+import com.yehor.finora.domain.recurring.RecurrenceUnit
+import com.yehor.finora.domain.recurring.RecurringSchedule
+import com.yehor.finora.domain.recurring.ScheduleDisplayState
+import com.yehor.finora.domain.recurring.ScheduleStatus
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.component.button.PrimaryButton
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.yehor.finora.ui.navigation.BindShellFab
+import com.yehor.finora.ui.navigation.ShellFabClearance
+import com.yehor.finora.designsystem.component.display.AmountText
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.ListRow
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.component.list.SectionHeader
+import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.domain.analytics.UpcomingOccurrences
+import com.yehor.finora.ui.common.OrganizeTopBar
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.yehor.finora.designsystem.theme.PillShape
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import java.time.temporal.ChronoUnit
+import com.yehor.finora.ui.common.ColorPalette
+import com.yehor.finora.ui.common.IconBadge
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import java.time.LocalDate
 
 @Composable
 fun RecurringScreen(
@@ -45,107 +82,337 @@ fun RecurringScreen(
     RecurringContent(state, onBack, onAdd, onOpen)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecurringContent(
     state: RecurringListUiState,
     onBack: () -> Unit,
     onAdd: () -> Unit,
     onOpen: (Long) -> Unit,
+    today: LocalDate = LocalDate.now(),
 ) {
+    val sections = state.sections
+    val isEmpty = !state.loading && sections.isEmpty
+    val listState = rememberLazyListState()
+    if (!isEmpty) BindShellFab(listState, null, stringResource(R.string.recurring_add), onAdd)
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.more_recurring)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.navigate_back))
-                    }
-                },
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onAdd) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.recurring_add))
-            }
-        },
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = { OrganizeTopBar(stringResource(R.string.more_recurring), onBack) },
     ) { padding ->
-        val sections = state.sections
-        if (!state.loading && sections.isEmpty) {
-            Column(
-                Modifier.fillMaxSize().padding(padding).padding(32.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(stringResource(R.string.recurring_empty_title), style = MaterialTheme.typography.titleMedium)
-                Text(
-                    stringResource(R.string.recurring_empty_body),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                )
-                TextButton(onClick = onAdd) { Text(stringResource(R.string.recurring_add)) }
-            }
+        if (isEmpty) {
+            RecurringEmptyState(onAdd, Modifier.fillMaxSize().padding(padding).padding(18.dp))
         } else {
-            LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 88.dp)) {
-                section(R.string.recurring_section_active, sections.active, onOpen)
-                section(R.string.recurring_section_paused, sections.paused, onOpen)
-                section(R.string.recurring_section_ended, sections.ended, onOpen)
+            val blocked = RecurringListLogic.blockedCount(sections)
+            val totals = remember(sections.active, today) {
+                val blockedIds = sections.active.filter { it.issue != null }.map { it.schedule.id }.toSet()
+                nextThirtyDaysByCurrency(
+                    UpcomingOccurrences.build(sections.active.map { it.schedule }, blockedIds, today, limit = UPCOMING_LIMIT),
+                    today,
+                )
+            }
+            LazyColumn(
+                Modifier.fillMaxSize().padding(padding),
+                state = listState,
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp + ShellFabClearance),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                if (blocked > 0) {
+                    item(key = "attention") { RecurringAttentionBanner(blocked) }
+                }
+                if (totals.isNotEmpty()) {
+                    item(key = "next30") { NextThirtyDaysCard(totals) }
+                }
+                if (sections.active.isNotEmpty()) {
+                    item(key = "upcoming") {
+                        RecurringGroup(R.string.recurring_list_upcoming, sections.active, today, onOpen)
+                    }
+                }
+                if (sections.paused.isNotEmpty()) {
+                    item(key = "paused") {
+                        RecurringGroup(R.string.recurring_section_paused, sections.paused, today, onOpen)
+                    }
+                }
+                if (sections.ended.isNotEmpty()) {
+                    item(key = "ended") {
+                        RecurringGroup(R.string.recurring_section_ended, sections.ended, today, onOpen)
+                    }
+                }
             }
         }
     }
 }
 
-private fun androidx.compose.foundation.lazy.LazyListScope.section(
-    titleRes: Int,
-    rows: List<RecurringRow>,
-    onOpen: (Long) -> Unit,
-) {
-    if (rows.isEmpty()) return
-    item(key = "header-$titleRes") {
-        Text(
-            stringResource(titleRes),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+/** Schedules per currency with an occurrence inside the horizon; enough for any real list. */
+private const val UPCOMING_LIMIT = 1000
+
+@Composable
+private fun NextThirtyDaysCard(totals: List<ThirtyDayTotals>) {
+    val finance = MaterialTheme.finance
+    GroupedCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            SectionHeader(stringResource(R.string.recurring_next30_title), Modifier.padding(0.dp))
+            totals.forEach { total ->
+                Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) {}, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    NextThirtyDaysFigure(R.string.recurring_next30_out, "−" + total.out.format(), finance.expense, Modifier.weight(1f))
+                    NextThirtyDaysFigure(R.string.recurring_next30_in, "+" + total.income.format(), finance.income, Modifier.weight(1f))
+                }
+            }
+        }
     }
-    items(rows, key = { it.schedule.id }) { RecurringListRow(it, onOpen) }
 }
 
 @Composable
-private fun RecurringListRow(row: RecurringRow, onOpen: (Long) -> Unit) {
+private fun NextThirtyDaysFigure(labelRes: Int, amount: String, color: Color, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            stringResource(labelRes),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        AmountText(amount, MaterialTheme.typography.titleLarge, color, animate = false)
+    }
+}
+
+@Composable
+private fun RecurringAttentionBanner(count: Int, modifier: Modifier = Modifier) {
+    RecurringCard(modifier, color = MaterialTheme.colorScheme.errorContainer) {
+        Row(
+            Modifier.padding(16.dp).semantics(mergeDescendants = true) {},
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Icon(AppIcons.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.onErrorContainer)
+            Text(
+                pluralStringResource(R.plurals.recurring_attention_banner, count, count),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecurringEmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        GroupedCard(Modifier.fillMaxWidth()) {
+            Column(
+                Modifier.fillMaxWidth().padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                RoundIcon(AppIcons.Recurring, MaterialTheme.colorScheme.primary, size = 64.dp)
+                Text(
+                    stringResource(R.string.recurring_empty_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                )
+                Text(
+                    stringResource(R.string.recurring_empty_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+                PrimaryButton(stringResource(R.string.recurring_empty_cta), onAdd)
+            }
+        }
+    }
+}
+
+/** A titled [GroupedCard] with one [RecurringListRow] per schedule. */
+@Composable
+private fun RecurringGroup(
+    titleRes: Int,
+    rows: List<RecurringRow>,
+    today: LocalDate,
+    onOpen: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        SectionHeader(stringResource(titleRes))
+        GroupedCard(Modifier.fillMaxWidth()) {
+            rows.forEachIndexed { index, row ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                RecurringListRow(row, today, onOpen)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun RecurringListRow(
+    row: RecurringRow,
+    today: LocalDate,
+    onOpen: (Long) -> Unit,
+) {
     val schedule = row.schedule
     val line = RecurringListLogic.statusLine(row)
     val isBlocked = line is StatusLine.Blocked
-    ListItem(
-        modifier = Modifier.clickable { onOpen(schedule.id) },
-        leadingContent = {
-            Icon(
-                if (schedule.kind == TransactionKind.INCOME) Icons.Filled.ArrowDownward else Icons.Filled.ArrowUpward,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        },
-        headlineContent = { Text(schedule.name, style = MaterialTheme.typography.bodyLarge) },
-        supportingContent = {
-            Column {
-                Text(
-                    stringResource(R.string.recurring_row_subtitle, schedule.account.name, ruleText(schedule.rule)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    statusLineText(line),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+    val paused = row.state == ScheduleDisplayState.PAUSED
+    val rule = ruleText(schedule.rule)
+    val timing = when (line) {
+        is StatusLine.Next -> dueText(line.date, today)
+        else -> statusLineText(line)
+    }
+    val subtitle = stringResource(
+        R.string.recurring_row_subtitle,
+        stringResource(R.string.recurring_row_subtitle, rule, timing),
+        schedule.account.name,
+    )
+    val faded = row.state != ScheduleDisplayState.ACTIVE
+    val signed = RecurringListLogic.signedAmount(schedule.kind, schedule.money)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+    ListRow(
+        icon = { RecurringScheduleBadge(schedule, 40) },
+        title = schedule.name,
+        subtitle = subtitle,
+        trailing = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        signed,
+                        style = AmountStyle,
+                        color = if (row.state == ScheduleDisplayState.ACTIVE) {
+                            recurringSignedAmountColor(schedule.kind)
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        maxLines = 1,
+                    )
+                    val date = (line as? StatusLine.Next)?.date ?: (line as? StatusLine.Ended)?.date
+                    if (isBlocked) {
+                        Icon(
+                            AppIcons.Warning,
+                            contentDescription = statusLineText(line),
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    } else if (date != null) {
+                        Text(
+                            formatScheduleDate(date),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
+                }
             }
         },
-        trailingContent = {
-            Text(
-                RecurringListLogic.signedAmount(schedule.kind, schedule.money),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        },
+        modifier = Modifier
+            .weight(1f)
+            .alpha(if (faded) 0.6f else 1f)
+            .semantics(mergeDescendants = true) {},
+        onClick = { onOpen(schedule.id) },
     )
+    if (paused) {
+        // Resuming can need a choice about the occurrences that came due, which the detail screen offers.
+        ResumeChip(onClick = { onOpen(schedule.id) }, modifier = Modifier.padding(end = 10.dp))
+    }
+    }
 }
+
+@Composable
+private fun ResumeChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Box(
+        modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            Modifier
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), PillShape)
+                .padding(start = 12.dp, end = 6.dp, top = 7.dp, bottom = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.recurring_action_resume),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+        }
+    }
+}
+
+/** "in 3 days" / "today"; a date already behind [today] (overdue, not yet generated) reads as today. */
+@Composable
+private fun dueText(date: LocalDate, today: LocalDate): String {
+    val days = ChronoUnit.DAYS.between(today, date).toInt()
+    return if (days <= 0) {
+        stringResource(R.string.recurring_due_today)
+    } else {
+        pluralStringResource(R.plurals.recurring_due_in_days, days, days)
+    }
+}
+
+/** Category badge when the schedule has a category, otherwise the Income / Expense kind badge. */
+@Composable
+internal fun RecurringScheduleBadge(schedule: RecurringSchedule, size: Int) {
+    val category = schedule.category
+    if (category != null) {
+        IconBadge(
+            icon = category.icon,
+            color = category.color,
+            fallbackColor = ColorPalette.defaultFor(category.type),
+            size = size,
+        )
+    } else {
+        RecurringKindBadge(schedule.kind, size.dp)
+    }
+}
+
+// ---- Previews ----
+
+private val PreviewUsd = CurrencyRegistry.get("USD")
+
+internal fun previewSchedule(
+    id: Long = 1,
+    name: String = "Rent",
+    kind: TransactionKind = TransactionKind.EXPENSE,
+    category: Category? = Category(1, "Housing", "home", null, CategoryType.EXPENSE, null, 0),
+    status: ScheduleStatus = ScheduleStatus.ACTIVE,
+    next: LocalDate? = LocalDate.of(2026, 12, 1),
+) = RecurringSchedule(
+    id = id,
+    name = name,
+    kind = kind,
+    account = Account(1, "Main", PreviewUsd, AccountType.BANK, null, null, null, AccountStatus.ACTIVE, 0),
+    money = Money(1_250_00, PreviewUsd),
+    category = category,
+    categoryPath = listOfNotNull(category),
+    tags = emptyList(),
+    rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
+    startDate = LocalDate.of(2026, 1, 1),
+    endDate = null,
+    nextDate = next,
+    status = status,
+    createdAt = 0,
+    updatedAt = 0,
+)
+
+@Composable
+private fun RecurringListPreviewContent(dark: Boolean) {
+    PreviewTheme(dark) {
+        val sections = RecurringListLogic.sections(
+            listOf(
+                previewSchedule(1),
+                previewSchedule(2, "Salary", TransactionKind.INCOME, category = null, next = LocalDate.of(2026, 12, 5)),
+                previewSchedule(3, "Gym", status = ScheduleStatus.PAUSED),
+            ),
+            mapOf(1L to GenerationIssue.ACCOUNT_ARCHIVED),
+        )
+        RecurringContent(
+            state = RecurringListUiState(loading = false, sections = sections),
+            onBack = {},
+            onAdd = {},
+            onOpen = {},
+            today = LocalDate.of(2026, 11, 11),
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 700)
+@Composable
+private fun RecurringListPreview() = RecurringListPreviewContent(dark = false)
+
+@Preview(showBackground = true, heightDp = 700, backgroundColor = 0xFF0F1412)
+@Composable
+private fun RecurringListDarkPreview() = RecurringListPreviewContent(dark = true)

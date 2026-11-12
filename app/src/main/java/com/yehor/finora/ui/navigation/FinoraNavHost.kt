@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.navigation
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.LaunchedEffect
@@ -8,23 +7,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.res.pluralStringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.component.navigation.AddFab
+import com.yehor.finora.designsystem.component.navigation.FabMode
+import com.yehor.finora.designsystem.component.navigation.FabScroll
+import com.yehor.finora.designsystem.component.navigation.FinoraNavBar
+import com.yehor.finora.designsystem.component.navigation.NavBarItem
+import com.yehor.finora.designsystem.theme.grainyBackground
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.foundation.clickable
-import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -49,7 +60,6 @@ import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.operations.TransactionsScreen
-import com.yehor.finora.ui.operations.TransferEditScreen
 import com.yehor.finora.ui.recurring.RecurringDetailScreen
 import com.yehor.finora.ui.recurring.RecurringEditScreen
 import com.yehor.finora.ui.recurring.RecurringScreen
@@ -58,12 +68,27 @@ import com.yehor.finora.ui.settings.SettingsScreen
 import com.yehor.finora.ui.data.CsvExportScreen
 import com.yehor.finora.ui.data.DataScreen
 
+// Full-screen forms with their own bottom CTA.
+private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
+    Routes.TRANSACTION_NEW,
+    Routes.TRANSACTION_EDIT,
+    Routes.ACCOUNT_NEW,
+    Routes.ACCOUNT_EDIT,
+    Routes.CATEGORY_NEW,
+    Routes.CATEGORY_EDIT,
+    Routes.RECURRING_NEW,
+    Routes.RECURRING_EDIT,
+)
+
 @Composable
 fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = backStackEntry?.destination
+    val route = backStackEntry?.destination?.route
     val snackbarHostState = remember { SnackbarHostState() }
+    val showBottomBar = route !in ROUTES_WITHOUT_BOTTOM_BAR
+    val fabController = remember { ShellFabController() }
+    var showMore by remember { mutableStateOf(false) }
 
     val outcome = shellViewModel.restoreOutcome
     val accounts = outcome?.summary?.accounts ?: 0
@@ -81,50 +106,133 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
         if (outcomeMessage != null) snackbarHostState.showSnackbar(outcomeMessage)
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        // Each screen has its own Scaffold and handles the top inset itself.
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        bottomBar = {
-            NavigationBar {
-                TopLevelDestination.entries.forEach { dest ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any { isRouteUnder(it.route, dest.route) } == true,
-                        onClick = {
-                            // Always open the tab's root screen. Sub-screens opened earlier in the tab
-                            // are discarded, not saved and restored.
-                            navController.navigate(dest.route) {
-                                popUpTo(navController.graph.findStartDestination().id)
-                                launchSingleTop = true
-                            }
-                        },
-                        icon = { Icon(dest.icon, contentDescription = null) },
-                        label = { Text(stringResource(dest.label)) },
-                    )
-                }
+    CompositionLocalProvider(
+        LocalShellFab provides fabController,
+        LocalOpenMore provides { showMore = true },
+    ) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+            // Content clears the floating bar (and the system nav inset) while it is visible.
+            val contentModifier = if (showBottomBar) {
+                Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = ShellContentBottomPaddingDp.dp)
+            } else {
+                Modifier
             }
-        },
-    ) { padding ->
-        FinoraNavHost(navController, padding)
+            FinoraNavHost(navController, contentModifier)
+
+            if (showBottomBar) {
+                BottomFade(Modifier.align(Alignment.BottomCenter))
+                val items = TopLevelDestination.entries.map {
+                    NavBarItem(stringResource(it.label), it.icon, it.selectedIcon)
+                }
+                FinoraNavBar(
+                    items = items,
+                    selectedIndex = tabFor(route)?.ordinal ?: -1,
+                    onSelect = { index ->
+                        // Always open the tab's root screen. Sub-screens opened earlier in the tab
+                        // are discarded, not saved and restored.
+                        navController.navigate(TopLevelDestination.entries[index].route) {
+                            popUpTo(navController.graph.findStartDestination().id)
+                            launchSingleTop = true
+                        }
+                    },
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+                ShellFabHost(fabController)
+            }
+
+            // Drawn after the FAB host so it stays on top; lifted over the FAB while a screen binds one.
+            SnackbarHost(
+                snackbarHostState,
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(
+                        bottom = if (showBottomBar) shellSnackbarBottom(fabBound = fabController.registration != null) else 0.dp,
+                    ),
+            )
+        }
+
+        if (showMore) {
+            MoreSheet(
+                onDismiss = { showMore = false },
+                onNavigate = { target ->
+                    showMore = false
+                    navController.navigate(target) { launchSingleTop = true }
+                },
+            )
+        }
     }
 }
 
+/** Fade from the page background so scrolling content dissolves behind the floating bar. */
 @Composable
-private fun FinoraNavHost(navController: NavHostController, padding: PaddingValues) {
+private fun BottomFade(modifier: Modifier = Modifier) {
+    val background = MaterialTheme.colorScheme.background
+    val inset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(110.dp + inset)
+            .grainyBackground(Brush.verticalGradient(listOf(Color.Transparent, background))),
+    )
+}
+
+/** Renders the FAB registered by the current screen; owns the speed-dial expanded state and scroll-driven mode. */
+@Composable
+private fun ShellFabHost(controller: ShellFabController) {
+    val registration = controller.registration ?: return
+    var mode by remember { mutableStateOf(FabMode.EXTENDED) }
+    var expanded by remember { mutableStateOf(false) }
+
+    LaunchedEffect(registration.listState) {
+        val list = registration.listState
+        mode = FabMode.EXTENDED
+        expanded = false
+        var prevIndex = list.firstVisibleItemIndex
+        var prevOffset = list.firstVisibleItemScrollOffset
+        snapshotFlow { list.firstVisibleItemIndex to list.firstVisibleItemScrollOffset }.collect { (index, offset) ->
+            val delta = when {
+                index == prevIndex -> (offset - prevOffset).toFloat()
+                index > prevIndex -> FabScroll.FLING_PX + 1f
+                else -> -FabScroll.FLING_PX - 1f
+            }
+            prevIndex = index
+            prevOffset = offset
+            mode = FabScroll.next(mode, index == 0, offset, delta)
+            if (mode == FabMode.HIDDEN) expanded = false
+        }
+    }
+
+    val dial = registration.items?.map { item ->
+        item.copy(onClick = {
+            expanded = false
+            item.onClick()
+        })
+    }
+    AddFab(
+        mode = mode,
+        expanded = expanded,
+        onToggle = { if (dial == null) registration.onClick() else expanded = !expanded },
+        label = registration.label,
+        speedDial = dial,
+    )
+}
+
+@Composable
+private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) {
     NavHost(
         navController = navController,
         startDestination = Routes.DASHBOARD,
-        modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+        modifier = modifier,
     ) {
         composable(Routes.DASHBOARD) {
             DashboardScreen(
                 DashboardActions(
                     onAddTransaction = { navController.navigate(Routes.transactionNew()) },
+                    onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME")) },
+                    onAddTransfer = { navController.navigate(Routes.transferNew()) },
                     onAddAccount = { navController.navigate(Routes.ACCOUNT_NEW) },
-                    onOpenAccounts = { navController.navigate(Routes.ACCOUNTS) },
-                    onOpenAccountHistory = { navController.navigate(Routes.accountDetail(it)) },
                     onOpenTransactions = { navController.openTransactions(it) },
-                    onOpenStatistics = { navController.navigate(Routes.statisticsTab("EXPENSES")) },
                     onOpenTransaction = { navController.navigate(openRoute(it)) },
                     onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
                     onOpenRecurring = { navController.navigate(Routes.RECURRING) },
@@ -142,18 +250,9 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             ),
         ) {
             TransactionsScreen(
-                onAdd = { navController.navigate(Routes.transactionNew()) },
-                onOpenTransaction = { navController.navigate(openRoute(it)) },
-                onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
-            )
-        }
-        // More -> Transfers: the same history screen, preset to TRANSFER operations.
-        composable(
-            Routes.TRANSFERS_PRESET,
-            arguments = listOf(navArgument("types") { type = NavType.StringType; defaultValue = "TRANSFER" }),
-        ) {
-            TransactionsScreen(
-                onAdd = { navController.navigate(Routes.transactionNew()) },
+                onAddExpense = { navController.navigate(Routes.transactionNew()) },
+                onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME")) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
             )
@@ -176,6 +275,8 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.accountEdit(it)) },
                 onTransfer = { navController.navigate(Routes.transferNew(sourceAccountId = it)) },
+                onAddExpense = { navController.navigate(Routes.transactionNew(sourceAccountId = it)) },
+                onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME", sourceAccountId = it)) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
                 onOpenStatistics = { navController.navigate(Routes.accountAnalytics(it)) },
                 onShowAllTransactions = { accountId ->
@@ -197,53 +298,30 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
             arguments = listOf(
                 navArgument("kind") { type = NavType.StringType; defaultValue = "EXPENSE" },
                 navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
+                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
             ),
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
-                onSelectTransfer = {
-                    navController.navigate(Routes.transferNew()) {
-                        popUpTo(Routes.TRANSACTION_NEW) { inclusive = true }
-                    }
-                },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
             )
         }
         composable(
             Routes.TRANSACTION_EDIT,
-            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
+            arguments = listOf(
+                navArgument("operationId") { type = NavType.LongType },
+                navArgument("kind") { type = NavType.StringType; defaultValue = "" },
+            ),
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
-                onDuplicate = { id ->
-                    navController.navigate(Routes.transactionNew(duplicateOf = id)) {
+                onDuplicate = { id, mode ->
+                    navController.navigate(Routes.transactionNew(kind = mode.arg, duplicateOf = id)) {
                         popUpTo(Routes.TRANSACTION_EDIT) { inclusive = true }
                     }
                 },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
                 onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
-            )
-        }
-        composable(
-            Routes.TRANSFER_NEW,
-            arguments = listOf(
-                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
-            ),
-        ) {
-            TransferEditScreen(onBack = { navController.popBackStack() })
-        }
-        composable(
-            Routes.TRANSFER_EDIT,
-            arguments = listOf(navArgument("operationId") { type = NavType.LongType }),
-        ) {
-            TransferEditScreen(
-                onBack = { navController.popBackStack() },
-                onDuplicate = { id ->
-                    navController.navigate(Routes.transferNew(duplicateOf = id)) {
-                        popUpTo(Routes.TRANSFER_EDIT) { inclusive = true }
-                    }
-                },
             )
         }
         composable(
@@ -271,9 +349,6 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 onShowAll = { navController.openTransactions(it) },
             )
         }
-        composable(Routes.MORE) {
-            MoreScreen(onNavigate = { navController.navigate(it) })
-        }
         composable(Routes.CATEGORIES) {
             CategoriesScreen(
                 onBack = { navController.popBackStack() },
@@ -294,7 +369,13 @@ private fun FinoraNavHost(navController: NavHostController, padding: PaddingValu
                 navArgument("parentId") { type = NavType.LongType; defaultValue = -1L },
             ),
         ) {
-            CategoryEditScreen(onBack = { navController.popBackStack() })
+            CategoryEditScreen(
+                onBack = { navController.popBackStack() },
+                onCreated = { id ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(CREATED_CATEGORY_ID_KEY, id)
+                    navController.popBackStack()
+                },
+            )
         }
         composable(
             Routes.CATEGORY_EDIT,
@@ -381,27 +462,4 @@ private fun NavHostController.openTransactions(filter: TransactionFilter) {
 }
 
 private fun openRoute(item: TransactionItem): String =
-    if (item.type == OperationType.TRANSFER) Routes.transferEdit(item.id) else Routes.transactionEdit(item.id)
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MoreScreen(onNavigate: (String) -> Unit) {
-    val items = listOf(
-        R.string.more_categories to Routes.CATEGORIES,
-        R.string.more_tags to Routes.TAGS,
-        R.string.more_recurring to Routes.RECURRING,
-        R.string.more_transfers to Routes.TRANSFERS,
-        R.string.more_settings to Routes.SETTINGS,
-    )
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.nav_more)) }) }) { padding ->
-        LazyColumn(Modifier.padding(padding)) {
-            items(items.size) { index ->
-                val (label, route) = items[index]
-                ListItem(
-                    headlineContent = { Text(stringResource(label)) },
-                    modifier = Modifier.clickable { onNavigate(route) },
-                )
-            }
-        }
-    }
-}
+    if (item.type == OperationType.TRANSFER) Routes.transactionEdit(item.id, kind = "TRANSFER") else Routes.transactionEdit(item.id)
