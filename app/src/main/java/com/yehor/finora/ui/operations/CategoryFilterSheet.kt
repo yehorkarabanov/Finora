@@ -248,9 +248,10 @@ private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
             Modifier
                 .clickable(role = Role.Checkbox, onClick = onToggle)
                 .heightIn(min = 60.dp)
-                .padding(start = 12.dp, end = 8.dp),
+                .padding(start = 12.dp, end = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.padding(end = 12.dp))
             Box(
                 Modifier.size(36.dp).background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
                 contentAlignment = Alignment.Center,
@@ -268,7 +269,6 @@ private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f).padding(start = 12.dp),
             )
-            Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.padding(end = 4.dp))
         }
     }
 }
@@ -303,6 +303,13 @@ private fun CategoryRow(
                 .alpha(if (covered) 0.6f else 1f),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // Leading checkbox: one column per depth, whether or not the row has a chevron.
+            Checkbox(
+                checked = selected || covered,
+                enabled = !covered,
+                onCheckedChange = null,
+                modifier = Modifier.padding(end = 12.dp),
+            )
             IconBadge(
                 icon = category.icon,
                 color = category.color,
@@ -323,7 +330,6 @@ private fun CategoryRow(
                     hasChildren -> SecondaryLine(pluralStringResource(R.plurals.filter_subcategories_count, childCount, childCount))
                 }
             }
-            Checkbox(checked = selected || covered, enabled = !covered, onCheckedChange = null)
             if (hasChildren && row.parentName == null) {
                 IconButton(onClick = onToggleExpanded, modifier = Modifier.size(48.dp)) {
                     Icon(
@@ -334,7 +340,7 @@ private fun CategoryRow(
                     )
                 }
             } else {
-                Box(Modifier.size(width = 8.dp, height = 44.dp))
+                Box(Modifier.size(width = 12.dp, height = 44.dp))
             }
         }
     }

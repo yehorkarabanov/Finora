@@ -45,7 +45,9 @@ import com.yehor.finora.domain.recurring.ScheduleDisplayState
 import com.yehor.finora.domain.recurring.ScheduleStatus
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.component.button.PrimaryButton
-import com.yehor.finora.designsystem.component.button.RoundIconButton
+import androidx.compose.foundation.lazy.rememberLazyListState
+import com.yehor.finora.ui.navigation.BindShellFab
+import com.yehor.finora.ui.navigation.ShellFabClearance
 import com.yehor.finora.designsystem.component.display.AmountText
 import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.component.list.ListRow
@@ -88,16 +90,16 @@ fun RecurringContent(
     onOpen: (Long) -> Unit,
     today: LocalDate = LocalDate.now(),
 ) {
+    val sections = state.sections
+    val isEmpty = !state.loading && sections.isEmpty
+    val listState = rememberLazyListState()
+    if (!isEmpty) BindShellFab(listState, null, stringResource(R.string.recurring_add), onAdd)
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            OrganizeTopBar(stringResource(R.string.more_recurring), onBack) {
-                RoundIconButton(AppIcons.Add, stringResource(R.string.recurring_add), onAdd)
-            }
-        },
+        topBar = { OrganizeTopBar(stringResource(R.string.more_recurring), onBack) },
     ) { padding ->
-        val sections = state.sections
-        if (!state.loading && sections.isEmpty) {
+        if (isEmpty) {
             RecurringEmptyState(onAdd, Modifier.fillMaxSize().padding(padding).padding(18.dp))
         } else {
             val blocked = RecurringListLogic.blockedCount(sections)
@@ -110,7 +112,8 @@ fun RecurringContent(
             }
             LazyColumn(
                 Modifier.fillMaxSize().padding(padding),
-                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 24.dp),
+                state = listState,
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp + ShellFabClearance),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
                 if (blocked > 0) {
