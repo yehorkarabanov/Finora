@@ -19,8 +19,21 @@ fun SplitBar(
     modifier: Modifier = Modifier,
     height: Dp = 10.dp,
 ) {
+    SplitBar(parts = { parts }, modifier = modifier, height = height)
+}
+
+/**
+ * [SplitBar] whose [parts] are read only while drawing, so animated weights redraw the bar without
+ * recomposing it.
+ */
+@Composable
+fun SplitBar(
+    parts: () -> List<Pair<Float, Color>>,
+    modifier: Modifier = Modifier,
+    height: Dp = 10.dp,
+) {
     Canvas(modifier.fillMaxWidth().height(height)) {
-        val visible = parts.filter { it.first > 0f }
+        val visible = parts().filter { it.first > 0f }
         val total = visible.sumOf { it.first.toDouble() }.toFloat()
         if (visible.isEmpty() || total <= 0f) return@Canvas
         val gap = 3.dp.toPx()

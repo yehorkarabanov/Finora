@@ -5,9 +5,7 @@ import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -27,13 +25,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -95,10 +93,12 @@ private val Bleed = 16.dp
  * with the parent scroll, and values that change while (or right after) the fingers move redraw at once
  * instead of replaying the draw-in. [slide] shifts the drawing (not the touch area) sideways by that
  * fraction of the width, read every frame, so a caller can move the wave with the fingers between
- * data updates.
+ * data updates. The live point breathes only while [live] (e.g. only on a pager's settled page), so an
+ * idle or off-screen chart stops asking for frames.
  *
- * All paths are built once per (values, compare, size, zeroLine); animation frames only move clips,
- * the selection marker and the live-point pulse. The canvas extends [Bleed] beyond the chart's bounds
+ * All paths are built once per (values, compare, size, zeroLine) and drawn into a cached offscreen
+ * layer; animation frames only move the draw-in clip around that layer, the selection marker and the
+ * live-point pulse. The canvas extends [Bleed] beyond the chart's bounds
  * so glow and halos can spill over the edges instead of being cut off.
  */
 @Composable
@@ -114,6 +114,7 @@ fun WaveChart(
     sparkline: Boolean = false,
     color: Color? = null,
     slide: (() -> Float)? = null,
+    live: Boolean = true,
 ) {
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
@@ -134,15 +135,15 @@ fun WaveChart(
             progress.animateTo(1f, tween(FinoraMotion.CHART_DRAW_MS))
         }
     }
-    val pulse: State<Float>? = if (!sparkline && !instant) {
-        rememberInfiniteTransition(label = "livePoint").animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "livePulse",
-        )
-    } else {
-        null
+    // Runs only while live: a paused chart settles back to the resting dot and requests no frames.
+    val pulse = remember { Animatable(0f) }
+    val pulsing = live && !sparkline && !instant
+    LaunchedEffect(pulsing) {
+        if (pulsing) {
+            pulse.animateTo(1f, infiniteRepeatable(tween(PULSE_MS, easing = FastOutSlowInEasing), RepeatMode.Reverse))
+        } else if (pulse.value != 0f) {
+            if (instant) pulse.snapTo(0f) else pulse.animateTo(0f, tween(PULSE_MS / 4))
+        }
     }
 
     var size by remember { mutableStateOf(IntSize.Zero) }
@@ -233,6 +234,22 @@ fun WaveChart(
     val onSurface = scheme.onSurface
     // Draw-only: the touch handlers stay put, so finger deltas are not skewed by the slide.
     val slideLayer = if (slide == null) Modifier else Modifier.graphicsLayer { translationX = slide() * w }
+    // The draw-in clip and the (unclipped) zero line sit outside the offscreen layer: the layer's content
+    // never reads progress, so its fill, grain and blur glow are rendered once and only the clip moves.
+    val reveal = Modifier.drawWithContent {
+        val p = progress.value
+        if (p >= 1f) drawContent() else clipRect(right = p * size.width) { this@drawWithContent.drawContent() }
+        val zeroY = geometry.zeroY
+        if (zeroLine && zeroY != null && !sparkline && w > 0f && h > 0f) {
+            drawLine(
+                onSurface.copy(alpha = 0.22f),
+                Offset(bleedPx, bleedPx + zeroY),
+                Offset(bleedPx + w, bleedPx + zeroY),
+                strokeWidth = 1.dp.toPx(),
+                pathEffect = paints.zeroDash,
+            )
+        }
+    }
     // Pan/zoom is outside the scrub handlers: they see each event first, so a long-press scrub consumes
     // its drag before the pan handler could claim it.
     Box(modifier.then(panZoom).then(scrub).onSizeChanged { size = it }) {
@@ -241,51 +258,40 @@ fun WaveChart(
                 .fillMaxSize()
                 .then(slideLayer)
                 .bleed(bleedPx.roundToInt())
+                .then(reveal)
                 .graphicsLayer(compositingStrategy = if (sparkline) CompositingStrategy.Auto else CompositingStrategy.Offscreen),
         ) {
             if (w <= 0f || h <= 0f) return@Canvas
             translate(bleedPx, bleedPx) {
                 val b = bleedPx
-                val zeroY = geometry.zeroY
-                val splitY = if (zeroLine) zeroY else null
-                clipRect(-b, -b, -b + progress.value * (w + 2 * b), h + b) {
-                    geometry.compare.forEach { drawPath(it, paints.compareColor, style = paints.compareStroke) }
-                    if (!sparkline) {
-                        geometry.runs.forEach { run ->
-                            val fill = run.fill ?: return@forEach
-                            sides(splitY, w, h, b) { aboveZero ->
-                                drawPath(fill, if (aboveZero) paints.fillAbove else paints.fillBelow)
-                                drawGrain(GrainBrush, grainAlpha, fill)
-                            }
+                val splitY = if (zeroLine) geometry.zeroY else null
+                geometry.compare.forEach { drawPath(it, paints.compareColor, style = paints.compareStroke) }
+                if (!sparkline) {
+                    geometry.runs.forEach { run ->
+                        val fill = run.fill ?: return@forEach
+                        sides(splitY, w, h, b) { aboveZero ->
+                            drawPath(fill, if (aboveZero) paints.fillAbove else paints.fillBelow)
+                            drawGrain(GrainBrush, grainAlpha, fill)
                         }
-                        if (!reduceMotion) {
-                            drawIntoCanvas { canvas ->
-                                geometry.runs.forEach { run ->
-                                    val native = run.line.asAndroidPath()
-                                    sides(splitY, w, h, b) { aboveZero ->
-                                        canvas.nativeCanvas.drawPath(native, if (aboveZero) paints.glowAbove else paints.glowBelow)
-                                    }
+                    }
+                    if (!reduceMotion) {
+                        drawIntoCanvas { canvas ->
+                            geometry.runs.forEach { run ->
+                                val native = run.line.asAndroidPath()
+                                sides(splitY, w, h, b) { aboveZero ->
+                                    canvas.nativeCanvas.drawPath(native, if (aboveZero) paints.glowAbove else paints.glowBelow)
                                 }
                             }
                         }
                     }
-                    geometry.runs.forEach { run ->
-                        sides(splitY, w, h, b) { aboveZero ->
-                            drawPath(run.line, if (aboveZero) paints.strokeAbove else paints.strokeBelow, style = paints.stroke)
-                        }
-                    }
-                    geometry.dots.forEach { p ->
-                        drawCircle(colorAt(p.y, splitY, lineColor, below), strokePx, Offset(p.x, p.y))
+                }
+                geometry.runs.forEach { run ->
+                    sides(splitY, w, h, b) { aboveZero ->
+                        drawPath(run.line, if (aboveZero) paints.strokeAbove else paints.strokeBelow, style = paints.stroke)
                     }
                 }
-                if (zeroLine && zeroY != null && !sparkline) {
-                    drawLine(
-                        onSurface.copy(alpha = 0.22f),
-                        Offset(0f, zeroY),
-                        Offset(w, zeroY),
-                        strokeWidth = 1.dp.toPx(),
-                        pathEffect = paints.zeroDash,
-                    )
+                geometry.dots.forEach { p ->
+                    drawCircle(colorAt(p.y, splitY, lineColor, below), strokePx, Offset(p.x, p.y))
                 }
             }
         }
@@ -301,7 +307,7 @@ fun WaveChart(
                     if (latest != null && geometry.latestIndex != selectedIndex) {
                         val appear = ((progress.value - 0.85f) / 0.15f).coerceIn(0f, 1f)
                         if (appear > 0f) {
-                            val t = pulse?.value ?: 0f
+                            val t = pulse.value
                             val c = colorAt(latest.y, splitY, lineColor, below)
                             val center = Offset(latest.x, latest.y)
                             drawCircle(c.copy(alpha = (0.35f + (0.10f - 0.35f) * t) * appear), 8.dp.toPx() * (1f + 0.6f * t), center)
@@ -351,6 +357,9 @@ fun WaveChart(
         }
     }
 }
+
+/** One half-breath of the live point (it eases out and back over twice this). */
+private const val PULSE_MS = 1800
 
 /** Data that arrives this soon after a pan/pinch step is following the fingers: no draw-in. */
 private const val GESTURE_SETTLE_MS = 1_000L

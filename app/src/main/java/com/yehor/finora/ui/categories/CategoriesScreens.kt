@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -74,7 +75,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Offset
 import com.yehor.finora.ui.common.CategoryPickerModel
 import com.yehor.finora.ui.common.CategoryTreePicker
@@ -197,15 +198,19 @@ internal fun CategoriesContent(
                             }
                             group.forEachIndexed { index, row ->
                                 val nextLevel = group.getOrNull(index + 1)?.level ?: 0
-                                CategoryListRow(
-                                    row = row,
-                                    subcategories = state.tree.node(row.category.id)?.children?.size ?: 0,
-                                    isLastSibling = nextLevel < row.level,
-                                    onToggle = { onToggle(row.category.id) },
-                                    onAddChild = { onAdd(row.category.type, row.category.id) },
-                                    onEdit = { onEdit(row.category.id) },
-                                    onDelete = { onDelete(row.category.id) },
-                                )
+                                // Keyed by id: expanding a parent inserts rows without re-running (or
+                                // handing their menu/chevron state to) every row below it.
+                                key(row.category.id) {
+                                    CategoryListRow(
+                                        row = row,
+                                        subcategories = state.tree.node(row.category.id)?.children?.size ?: 0,
+                                        isLastSibling = nextLevel < row.level,
+                                        onToggle = { onToggle(row.category.id) },
+                                        onAddChild = { onAdd(row.category.type, row.category.id) },
+                                        onEdit = { onEdit(row.category.id) },
+                                        onDelete = { onDelete(row.category.id) },
+                                    )
+                                }
                             }
                         }
                     }
@@ -262,7 +267,7 @@ private fun CategoryListRow(
     }
     val connector = MaterialTheme.colorScheme.outlineVariant
     val reduceMotion = rememberReduceMotion()
-    val chevron by animateFloatAsState(
+    val chevron = animateFloatAsState(
         targetValue = if (row.expanded) 180f else 0f,
         animationSpec = if (reduceMotion) snap() else FinoraMotion.bouncy,
         label = "chevron",
@@ -292,7 +297,7 @@ private fun CategoryListRow(
                             Icon(
                                 AppIcons.Expand,
                                 contentDescription = stringResource(if (row.expanded) R.string.action_collapse else R.string.action_expand),
-                                modifier = Modifier.rotate(chevron),
+                                modifier = Modifier.graphicsLayer { rotationZ = chevron.value },
                             )
                         }
                     }

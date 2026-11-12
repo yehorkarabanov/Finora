@@ -31,6 +31,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -187,7 +190,8 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
     val scheme = MaterialTheme.colorScheme
     val tint = tagTint(row.tag)
     val reduceMotion = rememberReduceMotion()
-    val fraction by animateFloatAsState(
+    // Read only while drawing the bar: the 450ms grow never recomposes the row's text and icons.
+    val fraction = animateFloatAsState(
         row.fraction,
         if (reduceMotion) snap() else tween(BAR_MS),
         label = "tagBar",
@@ -236,10 +240,14 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
                     .fillMaxWidth()
                     .height(4.dp)
                     .clip(PillShape)
-                    .background(scheme.surfaceContainerHighest),
-            ) {
-                if (fraction > 0f) Box(Modifier.fillMaxWidth(fraction).height(4.dp).clip(PillShape).background(tint))
-            }
+                    .background(scheme.surfaceContainerHighest)
+                    .drawBehind {
+                        val f = fraction.value.coerceIn(0f, 1f)
+                        if (f > 0f) {
+                            drawRoundRect(tint, size = Size(size.width * f, size.height), cornerRadius = CornerRadius(size.height / 2f))
+                        }
+                    },
+            )
             Text(
                 pluralStringResource(R.plurals.analytics_operations, row.cell.operationCount, row.cell.operationCount),
                 style = MaterialTheme.typography.bodySmall,

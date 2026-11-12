@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +33,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
@@ -113,7 +113,8 @@ internal fun HomeChartPager(
                 key = { it },
                 modifier = Modifier.fillMaxWidth(),
             ) { index ->
-                HomeChartPage(anchor.shifted(-index), today, display, chartFor)
+                // Only the settled page breathes; the pre-composed neighbours stay idle.
+                HomeChartPage(anchor.shifted(-index), today, display, chartFor, live = pagerState.settledPage == index)
             }
             PageDots(pagerState.currentPage, Modifier.fillMaxWidth().padding(top = 4.dp))
         }
@@ -126,6 +127,7 @@ private fun HomeChartPage(
     today: LocalDate,
     display: Currency?,
     chartFor: (HomePeriod) -> Flow<HomeChart>,
+    live: Boolean,
 ) {
     val flow = remember(period) { chartFor(period) }
     val chart by flow.collectAsStateWithLifecycle(initialValue = null)
@@ -145,6 +147,7 @@ private fun HomeChartPage(
                     selectedIndex = selected,
                     onSelect = { selected = it },
                     label = { i -> bubbleLabel(c, i, currency, locale, none) },
+                    live = live,
                 )
             }
         }
@@ -219,14 +222,19 @@ private fun PageDots(page: Int, modifier: Modifier = Modifier) {
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(5.dp, androidx.compose.ui.Alignment.CenterHorizontally)) {
         for (i in DOT_COUNT - 1 downTo 0) {
             val on = i == active
-            val width by animateDpAsState(
+            val width = animateDpAsState(
                 if (on) 18.dp else 6.dp,
                 animationSpec = if (reduce) snap() else spring(),
                 label = "dot",
             )
             Box(
                 Modifier
-                    .size(width = width, height = 6.dp)
+                    // Width read in layout only: the spring re-measures the dot, never recomposes it.
+                    .layout { measurable, _ ->
+                        val px = width.value.roundToPx()
+                        val p = measurable.measure(Constraints.fixed(px, 6.dp.roundToPx()))
+                        layout(p.width, p.height) { p.place(0, 0) }
+                    }
                     .background(
                         if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
                         PillShape,

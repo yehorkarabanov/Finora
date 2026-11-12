@@ -32,15 +32,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -90,16 +88,18 @@ fun AddFab(
     BackHandler(enabled = open, onBack = onToggle)
 
     Box(modifier.fillMaxSize()) {
-        val scrim by animateFloatAsState(
+        val scrim = animateFloatAsState(
             if (open) 1f else 0f,
             animationSpec = if (reduce) snap() else spring(),
             label = "fabScrim",
         )
-        if (scrim > 0f) {
+        // Composition only sees the shown/gone flip; the fade itself is read in the layer.
+        val scrimShown by remember { derivedStateOf { scrim.value > 0f } }
+        if (scrimShown) {
             Box(
                 Modifier
                     .fillMaxSize()
-                    .alpha(scrim)
+                    .graphicsLayer { alpha = scrim.value }
                     .background(Color.Black.copy(alpha = 0.55f))
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onToggle),
             )
@@ -126,12 +126,13 @@ fun AddFab(
 @Composable
 private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
-    val hidden by animateFloatAsState(
+    // Hide/rotate are read only in layer blocks: a scroll-driven hide never recomposes the FAB.
+    val hidden = animateFloatAsState(
         if (mode == FabMode.HIDDEN) 1f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
         label = "fabHidden",
     )
-    val rotation by animateFloatAsState(
+    val rotation = animateFloatAsState(
         if (open) 135f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
         label = "fabRotation",
@@ -146,16 +147,17 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
         animationSpec = if (reduce) snap() else spring(),
         label = "fabFg",
     )
-    val coerced = hidden.coerceIn(0f, 1f)
     val interaction = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .pressScale(interaction)
             .graphicsLayer {
+                val coerced = hidden.value.coerceIn(0f, 1f)
                 translationY = coerced * 80.dp.toPx()
                 alpha = 1f - coerced
+                scaleX = 1f - 0.6f * coerced
+                scaleY = 1f - 0.6f * coerced
             }
-            .scale(1f - 0.6f * coerced)
             .shadow(if (open) 0.dp else 8.dp, PillShape, spotColor = MaterialTheme.finance.accentGlow)
             .heightIn(min = AddFabHeightDp.dp)
             .background(container, PillShape)
@@ -167,7 +169,7 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
             AppIcons.Add,
             contentDescription = if (mode == FabMode.EXTENDED) null else label,
             tint = content,
-            modifier = Modifier.size(24.dp).rotate(rotation),
+            modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = rotation.value },
         )
         AnimatedVisibility(
             visible = mode == FabMode.EXTENDED,
@@ -192,16 +194,19 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
             shown = false
         }
     }
-    val progress by animateFloatAsState(
+    val animated = animateFloatAsState(
         if (shown) 1f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
         label = "dialItem",
     )
-    if (progress <= 0.001f && !shown) return
+    // Composition only sees the row leaving; the spring itself is read in the layer.
+    val gone by remember { derivedStateOf { !shown && animated.value <= 0.001f } }
+    if (gone) return
     Row(
         modifier = Modifier
             .pressScale(interaction)
             .graphicsLayer {
+                val progress = animated.value
                 translationY = (1f - progress) * 20.dp.toPx()
                 alpha = progress.coerceIn(0f, 1f)
                 scaleX = 0.8f + 0.2f * progress

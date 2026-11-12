@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
@@ -34,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalConfiguration
@@ -44,6 +43,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -133,14 +133,16 @@ internal fun StatsTabs(selected: StatsTab, onSelect: (StatsTab) -> Unit, modifie
         val target = bounds[selected]
         if (target != null) {
             val spec = if (reduceMotion) snap<Dp>() else androidx.compose.animation.core.spring(stiffness = 500f)
-            val x by animateDpAsState(target.first, spec, label = "tabX")
-            val w by animateDpAsState(target.second, spec, label = "tabW")
+            val x = animateDpAsState(target.first, spec, label = "tabX")
+            val w = animateDpAsState(target.second, spec, label = "tabW")
+            // Slide and stretch are read in layout only: the spring never recomposes the header.
             Box(
                 Modifier
                     .align(Alignment.BottomStart)
-                    .offset(x = x)
-                    .width(w)
-                    .height(3.dp)
+                    .layout { measurable, _ ->
+                        val p = measurable.measure(Constraints.fixed(w.value.roundToPx(), 3.dp.roundToPx()))
+                        layout(p.width, p.height) { p.place(x.value.roundToPx(), 0) }
+                    }
                     .background(scheme.primary, RoundedCornerShape(3.dp)),
             )
         }

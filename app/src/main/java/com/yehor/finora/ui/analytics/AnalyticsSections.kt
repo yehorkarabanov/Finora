@@ -163,11 +163,14 @@ fun AnimatedSplitBar(parts: List<SplitPart>, modifier: Modifier = Modifier) {
             order.remove(key)
         }
     }
+    // Weights are read inside the draw: the 450ms grow redraws the bar without recomposing it.
     SplitBar(
-        parts = order.mapNotNull { key ->
-            val weight = weights[key]?.value ?: return@mapNotNull null
-            val color = colors[key] ?: return@mapNotNull null
-            weight to color
+        parts = {
+            order.mapNotNull { key ->
+                val weight = weights[key]?.value ?: return@mapNotNull null
+                val color = colors[key] ?: return@mapNotNull null
+                weight to color
+            }
         },
         modifier = modifier,
     )
