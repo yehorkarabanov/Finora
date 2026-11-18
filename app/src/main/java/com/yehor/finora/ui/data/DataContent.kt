@@ -56,12 +56,12 @@ internal fun DataContent(
     onBack: () -> Unit,
     onBackup: () -> Unit,
     onRestore: () -> Unit,
-    onOpenCsvExport: () -> Unit
+    onOpenCsvExport: () -> Unit,
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = { OrganizeTopBar(stringResource(R.string.data_title), onBack) }
+        topBar = { OrganizeTopBar(stringResource(R.string.data_title), onBack) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -69,7 +69,7 @@ internal fun DataContent(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             DataSummaryCard(state.summary, state.appVersion)
 
@@ -79,7 +79,7 @@ internal fun DataContent(
                         icon = AppIcons.Data,
                         title = stringResource(R.string.data_backup_button),
                         enabled = !state.isBusy,
-                        onClick = onBackup
+                        onClick = onBackup,
                     )
                     when (val exp = state.exportState) {
                         is ExportState.Exporting -> DataStatus {
@@ -94,13 +94,13 @@ internal fun DataContent(
                                     Spacer(Modifier.width(8.dp))
                                     Text(
                                         stringResource(R.string.data_backup_done_title) + " (${exp.fileName})",
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
                                     )
                                 }
                                 Text(
                                     stringResource(R.string.data_backup_notice),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -109,7 +109,7 @@ internal fun DataContent(
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 stringResource(R.string.data_backup_failed, exp.message),
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                         ExportState.Idle -> Unit
@@ -123,7 +123,7 @@ internal fun DataContent(
                         icon = AppIcons.Archive,
                         title = stringResource(R.string.data_restore_button),
                         enabled = !state.isBusy,
-                        onClick = onRestore
+                        onClick = onRestore,
                     )
                 }
             }
@@ -134,7 +134,7 @@ internal fun DataContent(
                         icon = AppIcons.Export,
                         title = stringResource(R.string.data_export_csv_button),
                         enabled = !state.isBusy,
-                        onClick = onOpenCsvExport
+                        onClick = onOpenCsvExport,
                     )
                 }
             }
@@ -157,10 +157,8 @@ private fun DataActionRow(icon: ImageVector, title: String, enabled: Boolean, on
         title = title,
         subtitle = null,
         trailing = { Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
-        modifier = Modifier
-            .heightIn(min = 64.dp)
-            .alpha(if (enabled) 1f else 0.38f),
-        onClick = if (enabled) onClick else null
+        modifier = Modifier.heightIn(min = 64.dp).alpha(if (enabled) 1f else 0.38f),
+        onClick = if (enabled) onClick else null,
     )
 }
 
@@ -168,11 +166,9 @@ private fun DataActionRow(icon: ImageVector, title: String, enabled: Boolean, on
 private fun DataStatus(content: @Composable RowScope.() -> Unit) {
     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        content = content
+        content = content,
     )
 }
 
@@ -231,19 +227,16 @@ private fun DataPreviewBody(dark: Boolean) {
             state = DataUiState(
                 summary = DataSummary(
                     accounts = 4, activeAccounts = 3, transactions = 128, transfers = 12, categories = 24, tags = 6, schedules = 3,
-                    firstOperationAt = null,
-                    lastOperationAt = null,
-                    databaseBytes = 120_000L,
-                    schemaVersion = 7
+                    firstOperationAt = null, lastOperationAt = null, databaseBytes = 120_000L, schemaVersion = 7,
                 ),
                 appVersion = "1.0",
-                exportState = ExportState.Done("finora-backup.db", 0L)
+                exportState = ExportState.Done("finora-backup.db", 0L),
             ),
             snackbarHostState = remember { SnackbarHostState() },
             onBack = {},
             onBackup = {},
             onRestore = {},
-            onOpenCsvExport = {}
+            onOpenCsvExport = {},
         )
     }
 }

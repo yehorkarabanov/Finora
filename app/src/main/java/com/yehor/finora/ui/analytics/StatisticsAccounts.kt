@@ -34,7 +34,7 @@ internal fun LazyListScope.accountItems(rows: List<AccountPeriodView>, actions: 
             Text(
                 stringResource(R.string.stats_accounts_empty),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         return
@@ -79,23 +79,23 @@ internal fun AccountPeriodCard(views: List<AccountPeriodView>, onOpen: (Long) ->
                                     net < 0 -> finance.negative
                                     else -> scheme.onSurface
                                 },
-                                animate = false
+                                animate = false,
                             )
                             Text(
                                 stringResource(R.string.stats_account_net),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = scheme.onSurfaceVariant
+                                color = scheme.onSurfaceVariant,
                             )
                         }
                         Icon(
                             AppIcons.Next,
                             contentDescription = null,
                             tint = scheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 4.dp)
+                            modifier = Modifier.padding(start = 4.dp),
                         )
                     }
                 },
-                onClick = { onOpen(account.id) }
+                onClick = { onOpen(account.id) },
             )
         }
     }

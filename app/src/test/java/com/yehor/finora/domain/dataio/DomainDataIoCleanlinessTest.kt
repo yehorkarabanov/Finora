@@ -8,8 +8,7 @@ import java.io.File
 class DomainDataIoCleanlinessTest {
 
     private val floating = Regex("""\b(Float|Double)\b|\d[fF]\b|toDouble|toFloat|\.double\b""")
-    private val systemClock =
-        Regex("""System\.(currentTimeMillis|nanoTime)|Instant\.now|LocalDate\.now|LocalDateTime\.now|Clock\.system""")
+    private val systemClock = Regex("""System\.(currentTimeMillis|nanoTime)|Instant\.now|LocalDate\.now|LocalDateTime\.now|Clock\.system""")
 
     private fun appDir(): File {
         var appDir = File(".")

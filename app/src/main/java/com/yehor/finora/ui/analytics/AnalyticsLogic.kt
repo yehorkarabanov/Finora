@@ -35,7 +35,11 @@ fun CurrencyScope.currency(): Currency = when (this) {
  * If all selected accounts (or all accounts when none are selected) share the same currency,
  * that currency is used. If multiple currencies are present, the system display currency is used.
  */
-fun resolveScope(selectedAccountIds: Set<Long>, accounts: List<Account>, displayCurrency: Currency): CurrencyScope {
+fun resolveScope(
+    selectedAccountIds: Set<Long>,
+    accounts: List<Account>,
+    displayCurrency: Currency,
+): CurrencyScope {
     val effective = if (selectedAccountIds.isEmpty()) accounts else accounts.filter { it.id in selectedAccountIds }
     val currencies = effective.map { it.currency }.distinct()
     val currency = if (currencies.size == 1) currencies.single() else displayCurrency
@@ -51,9 +55,10 @@ sealed interface Rows {
     val overflowed: Boolean get() = this is Overflow
 }
 
-fun Flow<List<NativeRow>>.asRows(): Flow<Rows> = map<List<NativeRow>, Rows> { Rows.Ok(it) }.catch { e ->
-    if (e is MoneyOverflowException) emit(Rows.Overflow) else throw e
-}
+fun Flow<List<NativeRow>>.asRows(): Flow<Rows> =
+    map<List<NativeRow>, Rows> { Rows.Ok(it) }.catch { e ->
+        if (e is MoneyOverflowException) emit(Rows.Overflow) else throw e
+    }
 
 /** The filters analytics rows hand to the Transactions screen (R15). */
 object AnalyticsFilters {
@@ -82,11 +87,12 @@ object AnalyticsFilters {
     }
 
     /** One trend bucket, keeping the category the trend follows. */
-    fun bucket(trendBase: TransactionFilter, measure: Measure, bucket: Bucket): TransactionFilter = trendBase.copy(
-        types = setOf(measure.operationType()),
-        from = bucket.from,
-        toExclusive = bucket.toExclusive
-    )
+    fun bucket(trendBase: TransactionFilter, measure: Measure, bucket: Bucket): TransactionFilter =
+        trendBase.copy(
+            types = setOf(measure.operationType()),
+            from = bucket.from,
+            toExclusive = bucket.toExclusive,
+        )
 }
 
 /** What the conversion note under a screen must say (R5, R6, R9). */
@@ -95,7 +101,7 @@ data class ConversionInfo(
     val outdated: Boolean,
     val oldestFetchedAt: Long?,
     val excluded: List<Currency>,
-    val overflowed: Boolean
+    val overflowed: Boolean,
 ) {
     companion object {
         val NONE = ConversionInfo(false, false, null, emptyList(), false)
@@ -152,20 +158,8 @@ fun currencyFlows(income: List<NativeRow>, expense: List<NativeRow>): List<Curre
         .map { currency ->
             CurrencyFlow(
                 currency = currency,
-                income = if (currency in
-                    incomeByCurrency
-                ) {
-                    incomeByCurrency.getValue(currency).money
-                } else {
-                    Money.zero(currency)
-                },
-                expense = if (currency in
-                    expenseByCurrency
-                ) {
-                    expenseByCurrency.getValue(currency).money
-                } else {
-                    Money.zero(currency)
-                }
+                income = if (currency in incomeByCurrency) incomeByCurrency.getValue(currency).money else Money.zero(currency),
+                expense = if (currency in expenseByCurrency) expenseByCurrency.getValue(currency).money else Money.zero(currency),
             )
         }
 }

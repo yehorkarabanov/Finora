@@ -7,7 +7,8 @@ enum class ThemeMode(val storageValue: String) {
 
     companion object {
         /** A missing or unknown value means [SYSTEM]. */
-        fun fromStorage(value: String?): ThemeMode = entries.firstOrNull { it.storageValue == value } ?: SYSTEM
+        fun fromStorage(value: String?): ThemeMode =
+            entries.firstOrNull { it.storageValue == value } ?: SYSTEM
     }
 }
 

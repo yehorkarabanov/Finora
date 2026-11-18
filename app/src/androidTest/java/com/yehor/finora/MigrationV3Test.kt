@@ -105,11 +105,11 @@ class MigrationV3Test {
         // Valid schedule and occurrence
         db.execSQL(
             "INSERT INTO recurring_schedule (id, name, kind, account_id, amount_minor, category_id, unit, interval_count, start_date, end_date, next_date, status, created_at, updated_at) " +
-                "VALUES (1, 'Salary', 'INCOME', 1, 100000, 1, 'MONTH', 1, 20000, 21000, 20030, 'ACTIVE', 100, 100)"
+                "VALUES (1, 'Salary', 'INCOME', 1, 100000, 1, 'MONTH', 1, 20000, 21000, 20030, 'ACTIVE', 100, 100)",
         )
         db.execSQL(
             "INSERT INTO recurring_occurrence (id, schedule_id, occurrence_date, status, operation_id, handled_at) " +
-                "VALUES (1, 1, 20000, 'GENERATED', NULL, 100)"
+                "VALUES (1, 1, 20000, 'GENERATED', NULL, 100)",
         )
 
         assertEquals(emptyList<String>(), InvariantChecker.check(db).filter { it.startsWith("recurring") })

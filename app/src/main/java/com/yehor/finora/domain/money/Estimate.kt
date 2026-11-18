@@ -6,7 +6,7 @@ import java.math.BigDecimal
 data class EstimateBasis(val usesConversion: Boolean, val hasOutdatedRate: Boolean) {
     operator fun plus(other: EstimateBasis): EstimateBasis = EstimateBasis(
         usesConversion = usesConversion || other.usesConversion,
-        hasOutdatedRate = hasOutdatedRate || other.hasOutdatedRate
+        hasOutdatedRate = hasOutdatedRate || other.hasOutdatedRate,
     )
 
     companion object {
@@ -18,7 +18,11 @@ data class EstimateBasis(val usesConversion: Boolean, val hasOutdatedRate: Boole
  * A converted value. It is deliberately not a [Money]: it cannot be passed where Money is
  * required, and there is no way back to Money.
  */
-data class Estimate(val amountMinor: Long, val currency: Currency, val basis: EstimateBasis) {
+data class Estimate(
+    val amountMinor: Long,
+    val currency: Currency,
+    val basis: EstimateBasis,
+) {
     operator fun plus(other: Estimate): Estimate {
         if (currency != other.currency) throw CurrencyMismatchException(currency, other.currency)
         val sum = try {

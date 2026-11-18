@@ -10,7 +10,8 @@ import com.yehor.finora.domain.dataio.ImportProblem
  */
 object InvariantChecker {
 
-    fun check(db: SupportSQLiteDatabase): List<String> = checkDetailed(db).map { "${it.check}: ${it.subject}" }
+    fun check(db: SupportSQLiteDatabase): List<String> =
+        checkDetailed(db).map { "${it.check}: ${it.subject}" }
 
     fun checkDetailed(db: SupportSQLiteDatabase): List<ImportProblem> {
         val violations = mutableListOf<ImportProblem>()
@@ -217,6 +218,6 @@ object InvariantChecker {
                OR typeof(interval_count) <> 'integer'
                OR (end_date IS NOT NULL AND typeof(end_date) <> 'integer')
                OR (next_date IS NOT NULL AND typeof(next_date) <> 'integer')
-        """
+        """,
     )
 }

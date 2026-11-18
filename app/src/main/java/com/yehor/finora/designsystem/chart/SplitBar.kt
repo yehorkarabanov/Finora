@@ -14,7 +14,11 @@ import androidx.compose.ui.unit.dp
 
 /** Horizontal bar split into rounded segments sized by normalised weight, 3dp gaps between. */
 @Composable
-fun SplitBar(parts: List<Pair<Float, Color>>, modifier: Modifier = Modifier, height: Dp = 10.dp) {
+fun SplitBar(
+    parts: List<Pair<Float, Color>>,
+    modifier: Modifier = Modifier,
+    height: Dp = 10.dp,
+) {
     SplitBar(parts = { parts }, modifier = modifier, height = height)
 }
 
@@ -23,12 +27,12 @@ fun SplitBar(parts: List<Pair<Float, Color>>, modifier: Modifier = Modifier, hei
  * recomposing it.
  */
 @Composable
-fun SplitBar(parts: () -> List<Pair<Float, Color>>, modifier: Modifier = Modifier, height: Dp = 10.dp) {
-    Canvas(
-        modifier
-            .fillMaxWidth()
-            .height(height)
-    ) {
+fun SplitBar(
+    parts: () -> List<Pair<Float, Color>>,
+    modifier: Modifier = Modifier,
+    height: Dp = 10.dp,
+) {
+    Canvas(modifier.fillMaxWidth().height(height)) {
         val visible = parts().filter { it.first > 0f }
         val total = visible.sumOf { it.first.toDouble() }.toFloat()
         if (visible.isEmpty() || total <= 0f) return@Canvas

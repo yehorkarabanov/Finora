@@ -16,7 +16,7 @@ class RecurringCtaLogicTest {
         errors: Set<ScheduleDraftError> = emptySet(),
         handledConflict: LocalDate? = null,
         isEdit: Boolean = false,
-        kind: TransactionKind = TransactionKind.EXPENSE
+        kind: TransactionKind = TransactionKind.EXPENSE,
     ) = RecurringCtaLogic.cta(loading, accountId, amountText, errors, handledConflict, isEdit, kind)
 
     private fun missing(reason: RecurringCtaMissing) = RecurringCta.Missing(reason)
@@ -26,23 +26,19 @@ class RecurringCtaLogicTest {
         assertEquals(RecurringCta.Ready(false, TransactionKind.EXPENSE), cta())
         assertEquals(
             RecurringCta.Ready(true, TransactionKind.INCOME),
-            cta(isEdit = true, kind = TransactionKind.INCOME)
+            cta(isEdit = true, kind = TransactionKind.INCOME),
         )
     }
 
     @Test
     fun loadingComesFirst() {
         val all = setOf(ScheduleDraftError.AMOUNT_EMPTY, ScheduleDraftError.NAME_EMPTY)
-        assertEquals(
-            missing(RecurringCtaMissing.LOADING),
-            cta(loading = true, accountId = null, amountText = "", errors = all)
-        )
+        assertEquals(missing(RecurringCtaMissing.LOADING), cta(loading = true, accountId = null, amountText = "", errors = all))
     }
 
     @Test
     fun emptyAmountBeforeAccountAndName() {
-        val errors =
-            setOf(ScheduleDraftError.AMOUNT_EMPTY, ScheduleDraftError.NAME_EMPTY, ScheduleDraftError.CATEGORY_MISSING)
+        val errors = setOf(ScheduleDraftError.AMOUNT_EMPTY, ScheduleDraftError.NAME_EMPTY, ScheduleDraftError.CATEGORY_MISSING)
         assertEquals(missing(RecurringCtaMissing.ENTER_AMOUNT), cta(accountId = null, amountText = "", errors = errors))
     }
 
@@ -62,7 +58,7 @@ class RecurringCtaLogicTest {
     fun missingCategory() {
         assertEquals(
             missing(RecurringCtaMissing.CHOOSE_CATEGORY),
-            cta(errors = setOf(ScheduleDraftError.CATEGORY_MISSING))
+            cta(errors = setOf(ScheduleDraftError.CATEGORY_MISSING)),
         )
     }
 
@@ -74,13 +70,13 @@ class RecurringCtaLogicTest {
             ScheduleDraftError.INTERVAL_OUT_OF_RANGE,
             ScheduleDraftError.DATE_OUT_OF_RANGE,
             ScheduleDraftError.END_BEFORE_START,
-            ScheduleDraftError.TOO_MANY_PAST_OCCURRENCES
+            ScheduleDraftError.TOO_MANY_PAST_OCCURRENCES,
         )) {
             assertEquals(missing(RecurringCtaMissing.FIX_ERRORS), cta(errors = setOf(error)))
         }
         assertEquals(
             missing(RecurringCtaMissing.FIX_ERRORS),
-            cta(handledConflict = LocalDate.of(2026, 11, 1))
+            cta(handledConflict = LocalDate.of(2026, 11, 1)),
         )
     }
 
@@ -94,19 +90,19 @@ class RecurringCtaLogicTest {
             RecurringFormState(accountId = 1, amountText = "5", name = "Rent", categoryId = 3),
             RecurringFormState(accountId = 1, amountText = "5", name = "Rent"),
             RecurringFormState(accountId = 1, amountText = "0", name = "Rent", categoryId = 3),
-            RecurringFormState(accountId = 1, amountText = "5", name = "", categoryId = 3)
+            RecurringFormState(accountId = 1, amountText = "5", name = "", categoryId = 3),
         )
         for (loading in listOf(true, false)) {
             for (form in forms) {
                 val state = RecurringEditUiState(
                     form = form,
                     loading = loading,
-                    errors = RecurringFormLogic.errors(form, usd, now, zone)
+                    errors = RecurringFormLogic.errors(form, usd, now, zone),
                 )
                 assertEquals(
                     "loading=$loading form=$form",
                     state.canSave,
-                    RecurringCtaLogic.cta(state) is RecurringCta.Ready
+                    RecurringCtaLogic.cta(state) is RecurringCta.Ready,
                 )
             }
         }

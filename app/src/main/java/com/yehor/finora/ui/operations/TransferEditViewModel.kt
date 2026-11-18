@@ -16,6 +16,8 @@ import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
+import kotlinx.coroutines.flow.filterNotNull
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.domain.money.MoneyOverflowException
@@ -28,13 +30,11 @@ import com.yehor.finora.domain.operation.TransferDraftValidator
 import com.yehor.finora.domain.operation.TransferItem
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagNameRules
-import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -82,7 +82,7 @@ data class TransferEditUiState(
     val showDeleteConfirm: Boolean = false,
     val deleteSentBack: Money? = null,
     val deleteReceivedRemoved: Money? = null,
-    val saved: Boolean = false
+    val saved: Boolean = false,
 ) {
     val sourceAccount: Account? get() = allAccounts.find { it.id == sourceAccountId }
     val destAccount: Account? get() = allAccounts.find { it.id == destAccountId }
@@ -95,7 +95,7 @@ class TransferEditViewModel @Inject constructor(
     private val transferRepository: TransferRepository,
     private val accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
-    tagRepository: TagRepository
+    tagRepository: TagRepository,
 ) : ViewModel() {
 
     // The transfer VM is created for every mode of the unified editor; it only edits or duplicates in Transfer mode.
@@ -107,21 +107,19 @@ class TransferEditViewModel @Inject constructor(
     private val presetSourceId: Long? = savedStateHandle.get<Long>("sourceAccountId")?.takeIf { it > 0 }
 
     private val _state = MutableStateFlow(
-        TransferEditUiState(isEdit = operationId != null, operationId = operationId ?: 0)
+        TransferEditUiState(isEdit = operationId != null, operationId = operationId ?: 0),
     )
 
     val state: StateFlow<TransferEditUiState> = combine(
         _state,
         accountRepository.observeAll(),
         categoryRepository.observeAll(),
-        tagRepository.observeAllWithUsage()
+        tagRepository.observeAllWithUsage(),
     ) { current, accountsWithBalance, categories, tagsWithUsage ->
         val accounts = accountsWithBalance.map { it.account }
         fun choices(originalId: Long?) = accounts
             .filter { it.status == AccountStatus.ACTIVE || it.id == originalId }
-            .map {
-                PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId)
-            }
+            .map { PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId) }
 
         val sourceCurrency = accounts.find { it.id == current.sourceAccountId }?.currency
         val destCurrency = accounts.find { it.id == current.destAccountId }?.currency
@@ -134,12 +132,7 @@ class TransferEditViewModel @Inject constructor(
             destChoices = choices(current.originalDestId),
             categories = categories,
             allTags = tagsWithUsage.map { it.tag },
-            effectiveRate = TransferFormLogic.effectiveRate(
-                current.sentText,
-                current.receivedText,
-                sourceCurrency,
-                destCurrency
-            ),
+            effectiveRate = TransferFormLogic.effectiveRate(current.sentText, current.receivedText, sourceCurrency, destCurrency),
             errors = TransferDraftValidator.validate(
                 sentText = current.sentText,
                 receivedText = current.receivedText,
@@ -151,8 +144,8 @@ class TransferEditViewModel @Inject constructor(
                 occurredAt = instantOf(current.date, current.time),
                 description = current.description,
                 isEdit = current.isEdit,
-                hadCategoryBefore = current.hadCategoryBefore
-            )
+                hadCategoryBefore = current.hadCategoryBefore,
+            ),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
@@ -162,7 +155,7 @@ class TransferEditViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 savedStateHandle.getStateFlow<Long?>(CREATED_CATEGORY_ID_KEY, null),
-                categoryRepository.observeAll()
+                categoryRepository.observeAll(),
             ) { id, categories -> categories.firstOrNull { it.id == id } }
                 .filterNotNull()
                 .collect { created ->
@@ -186,7 +179,7 @@ class TransferEditViewModel @Inject constructor(
             }
             _state.value = _state.value.copy(
                 sourceAccountId = presetSource?.id ?: _state.value.sourceAccountId,
-                selectedCategoryId = _state.value.selectedCategoryId ?: recent.firstOrNull()
+                selectedCategoryId = _state.value.selectedCategoryId ?: recent.firstOrNull(),
             )
         }
         _state.value = _state.value.copy(recentCategoryIds = recent)
@@ -199,7 +192,7 @@ class TransferEditViewModel @Inject constructor(
             selectedCategoryId = item.category?.id,
             description = item.description.orEmpty(),
             selectedTagIds = item.tags.map { it.id }.toSet(),
-            receivedLinked = TransferFormLogic.isLinked(item.sentMoney, item.receivedMoney)
+            receivedLinked = TransferFormLogic.isLinked(item.sentMoney, item.receivedMoney),
         )
         _state.value = if (operationId != null) {
             val split = TransactionDateTime.split(item.occurredAt, ZoneId.systemDefault())
@@ -214,13 +207,13 @@ class TransferEditViewModel @Inject constructor(
                 date = split.date,
                 time = split.time,
                 deleteSentBack = item.sentMoney,
-                deleteReceivedRemoved = item.receivedMoney
+                deleteReceivedRemoved = item.receivedMoney,
             )
         } else {
             // Duplicate: date and time default to now, and an archived account is not carried over.
             common.copy(
                 sourceAccountId = item.sourceAccount.takeIf { it.status == AccountStatus.ACTIVE }?.id,
-                destAccountId = item.destAccount.takeIf { it.status == AccountStatus.ACTIVE }?.id
+                destAccountId = item.destAccount.takeIf { it.status == AccountStatus.ACTIVE }?.id,
             )
         }
     }
@@ -237,8 +230,8 @@ class TransferEditViewModel @Inject constructor(
                 receivedText = next.receivedText,
                 linked = next.receivedLinked,
                 sourceCurrency = currencyOf(next.sourceAccountId),
-                destCurrency = currencyOf(next.destAccountId)
-            )
+                destCurrency = currencyOf(next.destAccountId),
+            ),
         )
     }
 
@@ -260,7 +253,7 @@ class TransferEditViewModel @Inject constructor(
             TransferSides(current.sourceAccountId, current.destAccountId, current.sentText, current.receivedText),
             currencyOf(current.sourceAccountId),
             currencyOf(current.destAccountId),
-            current.receivedLinked
+            current.receivedLinked,
         )
         update {
             it.copy(
@@ -268,7 +261,7 @@ class TransferEditViewModel @Inject constructor(
                 destAccountId = swapped.destAccountId,
                 sentText = swapped.sentText,
                 receivedText = swapped.receivedText,
-                isOverflow = false
+                isOverflow = false,
             )
         }
     }
@@ -286,7 +279,7 @@ class TransferEditViewModel @Inject constructor(
                 // The screen only passes a date/time the user deliberately picked on the other tab.
                 date = date ?: s.date,
                 time = time ?: s.time,
-                description = if (s.description.isEmpty()) description else s.description
+                description = if (s.description.isEmpty()) description else s.description,
             )
         }
     }
@@ -310,7 +303,7 @@ class TransferEditViewModel @Inject constructor(
     fun onToggleTag(tagId: Long) {
         val current = _state.value.selectedTagIds
         _state.value = _state.value.copy(
-            selectedTagIds = if (tagId in current) current - tagId else current + tagId
+            selectedTagIds = if (tagId in current) current - tagId else current + tagId,
         )
     }
 
@@ -332,17 +325,8 @@ class TransferEditViewModel @Inject constructor(
         if (!current.canSave) return
         val source = current.sourceAccount ?: return
         val dest = current.destAccount ?: return
-        val sent =
-            (TransferAmountParser.parse(current.sentText, source.currency) as? TransferAmountParser.Result.Value)?.minor
-                ?: return
-        val received =
-            (
-                TransferAmountParser.parse(
-                    current.receivedText,
-                    dest.currency
-                ) as? TransferAmountParser.Result.Value
-                )?.minor
-                ?: return
+        val sent = (TransferAmountParser.parse(current.sentText, source.currency) as? TransferAmountParser.Result.Value)?.minor ?: return
+        val received = (TransferAmountParser.parse(current.receivedText, dest.currency) as? TransferAmountParser.Result.Value)?.minor ?: return
 
         val draft = TransferDraft(
             sourceAccountId = source.id,
@@ -353,7 +337,7 @@ class TransferEditViewModel @Inject constructor(
             occurredAt = instantOf(current.date, current.time),
             description = current.description,
             tagIds = current.selectedTagIds,
-            newTagNames = current.pendingTagNames
+            newTagNames = current.pendingTagNames,
         )
 
         viewModelScope.launch {
@@ -363,22 +347,20 @@ class TransferEditViewModel @Inject constructor(
                         id = current.operationId,
                         draft = draft,
                         moveOpeningBalanceBack = moveOpeningBalanceBack,
-                        confirmCurrencyChange = confirmCurrencyChange
+                        confirmCurrencyChange = confirmCurrencyChange,
                     )
                 } else {
                     transferRepository.create(draft, moveOpeningBalanceBack)
                 }
-                _state.value =
-                    _state.value.copy(saved = true, currencyChangeLines = null, showOpeningOrderDialog = false)
+                _state.value = _state.value.copy(saved = true, currencyChangeLines = null, showOpeningOrderDialog = false)
             } catch (_: CurrencyChangeNotConfirmedException) {
                 _state.value = _state.value.copy(
-                    currencyChangeLines = currencyChangeLines(current, source.currency, sent, dest.currency, received)
+                    currencyChangeLines = currencyChangeLines(current, source.currency, sent, dest.currency, received),
                 )
             } catch (_: OpeningBalanceOrderException) {
                 _state.value = _state.value.copy(showOpeningOrderDialog = true, currencyChangeLines = null)
             } catch (_: MoneyOverflowException) {
-                _state.value =
-                    _state.value.copy(isOverflow = true, currencyChangeLines = null, showOpeningOrderDialog = false)
+                _state.value = _state.value.copy(isOverflow = true, currencyChangeLines = null, showOpeningOrderDialog = false)
             } catch (_: FutureDateException) {
                 // The form validator rejects future dates; this only happens when the clock passes the chosen minute.
             }
@@ -390,10 +372,10 @@ class TransferEditViewModel @Inject constructor(
         sourceCurrency: Currency,
         sentMinor: Long,
         destCurrency: Currency,
-        receivedMinor: Long
+        receivedMinor: Long,
     ): List<String> = listOfNotNull(
         changeLine(current.originalSentMoney, sourceCurrency, sentMinor),
-        changeLine(current.originalReceivedMoney, destCurrency, receivedMinor)
+        changeLine(current.originalReceivedMoney, destCurrency, receivedMinor),
     )
 
     private fun changeLine(old: Money?, newCurrency: Currency, newMinor: Long): String? {
@@ -426,10 +408,11 @@ class TransferEditViewModel @Inject constructor(
         }
     }
 
-    private fun instantOf(date: LocalDate, time: LocalTime): Long = TransactionDateTime.combine(
-        TransactionDateTime.pickerUtcMidnight(date),
-        time.hour,
-        time.minute,
-        ZoneId.systemDefault()
-    )
+    private fun instantOf(date: LocalDate, time: LocalTime): Long =
+        TransactionDateTime.combine(
+            TransactionDateTime.pickerUtcMidnight(date),
+            time.hour,
+            time.minute,
+            ZoneId.systemDefault(),
+        )
 }

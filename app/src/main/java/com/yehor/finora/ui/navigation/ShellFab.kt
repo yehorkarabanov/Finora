@@ -30,7 +30,8 @@ private const val FAB_GAP_DP = 22
 val ShellFabClearance: Dp = (AddFabBottomOffsetDp + AddFabHeightDp + FAB_GAP_DP - ShellContentBottomPaddingDp).dp
 
 /** Snackbar bottom offset above the nav inset: just over the nav bar, or over the FAB when a screen binds one. */
-fun shellSnackbarBottom(fabBound: Boolean): Dp = if (fabBound) (AddFabBottomOffsetDp + AddFabHeightDp + 8).dp else 76.dp
+fun shellSnackbarBottom(fabBound: Boolean): Dp =
+    if (fabBound) (AddFabBottomOffsetDp + AddFabHeightDp + 8).dp else 76.dp
 
 /** A screen's FAB registration. */
 @Stable
@@ -38,7 +39,7 @@ class ShellFabRegistration(
     val listState: LazyListState,
     val items: List<SpeedDialItem>?,
     val label: String,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
 )
 
 /**
@@ -55,12 +56,7 @@ class ShellFabController {
      * Registers a FAB. With [items] == null a tap calls [onClick] directly; otherwise it opens the speed dial.
      * Dispose the returned handle to clear the registration (a newer registration is left untouched).
      */
-    fun bind(
-        listState: LazyListState,
-        items: List<SpeedDialItem>?,
-        label: String,
-        onClick: () -> Unit
-    ): DisposableHandle {
+    fun bind(listState: LazyListState, items: List<SpeedDialItem>?, label: String, onClick: () -> Unit): DisposableHandle {
         val mine = ShellFabRegistration(listState, items, label, onClick)
         registration = mine
         return DisposableHandle { if (registration === mine) registration = null }

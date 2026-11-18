@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
@@ -59,7 +59,7 @@ import com.yehor.finora.ui.operations.ShelfValue
 fun CategoryEditScreen(
     onBack: () -> Unit,
     onCreated: ((Long) -> Unit)? = null,
-    viewModel: CategoryEditViewModel = hiltViewModel()
+    viewModel: CategoryEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.saved) {
@@ -77,7 +77,7 @@ fun CategoryEditScreen(
         onIcon = viewModel::onIcon,
         onColor = viewModel::onColor,
         onPickParent = { pickParent = true },
-        onSave = viewModel::save
+        onSave = viewModel::save,
     )
 
     if (pickParent) {
@@ -86,11 +86,8 @@ fun CategoryEditScreen(
                 type = state.type,
                 mode = PickerMode.Parent(movingId = state.categoryId),
                 selectedId = state.parentId,
-                onSelect = {
-                    viewModel.onParent(it)
-                    pickParent = false
-                },
-                modifier = Modifier.padding(bottom = 16.dp)
+                onSelect = { viewModel.onParent(it); pickParent = false },
+                modifier = Modifier.padding(bottom = 16.dp),
             )
         }
     }
@@ -104,7 +101,7 @@ internal fun CategoryFormContent(
     onIcon: (String) -> Unit,
     onColor: (Long) -> Unit,
     onPickParent: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
 ) {
     val rejection = state.parentRejected ?: state.parentCheck.takeIf { it != ParentCheck.OK }
     val parentName = state.parentId?.let { state.tree.category(it)?.name }
@@ -116,31 +113,25 @@ internal fun CategoryFormContent(
             CategoryFormLogic.CtaState.NAME_MISSING -> R.string.category_cta_name_missing
             CategoryFormLogic.CtaState.NAME_TOO_LONG -> R.string.category_cta_name_long
             CategoryFormLogic.CtaState.PARENT_INVALID -> R.string.category_cta_parent_invalid
-        }
+        },
     )
 
     FormScreen(
-        title = stringResource(
-            if (state.isEdit) R.string.category_form_edit_title else R.string.category_form_new_title
-        ),
+        title = stringResource(if (state.isEdit) R.string.category_form_edit_title else R.string.category_form_new_title),
         onBack = onBack,
         bottomBar = {
             FormCtaBar(
                 label = ctaLabel,
                 enabled = state.canSave,
                 onClick = onSave,
-                error = if (state.saveFailed) stringResource(R.string.category_form_error_generic) else null
+                error = if (state.saveFailed) stringResource(R.string.category_form_error_generic) else null,
             )
-        }
+        },
     ) {
         NameGroup(state, onName)
 
         Spacer(Modifier.height(4.dp))
-        GroupedCard(
-            Modifier
-                .fillMaxWidth()
-                .errorOutline(rejection != null)
-        ) {
+        GroupedCard(Modifier.fillMaxWidth().errorOutline(rejection != null)) {
             val parent = state.parentId?.let { state.tree.category(it) }
             ShelfRow(
                 icon = {
@@ -160,21 +151,18 @@ internal fun CategoryFormContent(
                             ParentCheck.TYPE_MISMATCH -> R.string.category_form_error_type
                             ParentCheck.TOO_DEEP -> R.string.category_form_error_deep
                             ParentCheck.OK -> R.string.category_form_error_generic
-                        }
+                        },
                     )
                 },
                 supportingIsError = true,
                 trailing = {
                     ShelfValue(parentName ?: stringResource(R.string.picker_no_parent), muted = parentName == null)
                     Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                },
             )
         }
 
-        SectionHeader(
-            stringResource(R.string.picker_icon) + " · " + stringResource(R.string.picker_color),
-            Modifier.padding(top = 8.dp)
-        )
+        SectionHeader(stringResource(R.string.picker_icon) + " · " + stringResource(R.string.picker_color), Modifier.padding(top = 8.dp))
         GroupedCard(Modifier.fillMaxWidth()) {
             IconPicker(IconKeys.categoryGroups, state.icon, state.color, ColorPalette.defaultFor(state.type), onIcon)
             ShelfDivider()
@@ -183,9 +171,7 @@ internal fun CategoryFormContent(
                     stringResource(R.string.picker_color),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .semantics { heading() }
+                    modifier = Modifier.padding(bottom = 10.dp).semantics { heading() },
                 )
                 ColorPicker(state.color, onColor)
             }
@@ -199,11 +185,7 @@ private fun NameGroup(state: CategoryFormState, onName: (String) -> Unit) {
     val error = state.nameError
     val showError = error == CategoryFormLogic.NameError.TOO_LONG ||
         (error == CategoryFormLogic.NameError.EMPTY && state.name.isNotEmpty())
-    GroupedCard(
-        Modifier
-            .fillMaxWidth()
-            .errorOutline(showError)
-    ) {
+    GroupedCard(Modifier.fillMaxWidth().errorOutline(showError)) {
         FormTextRow(
             icon = { IconBadge(state.icon, state.color, ColorPalette.defaultFor(state.type), size = 40) },
             label = stringResource(R.string.category_form_name),
@@ -211,40 +193,31 @@ private fun NameGroup(state: CategoryFormState, onName: (String) -> Unit) {
             onValueChange = onName,
             hint = stringResource(R.string.category_form_name),
             textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            keyboardOptions = KeyboardOptions(
-                capitalization = KeyboardCapitalization.Sentences,
-                imeAction = ImeAction.Done
-            ),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
             notes = {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     FieldNote(
                         when {
-                            error == CategoryFormLogic.NameError.TOO_LONG -> stringResource(
-                                R.string.category_form_error_name_long
-                            )
+                            error == CategoryFormLogic.NameError.TOO_LONG -> stringResource(R.string.category_form_error_name_long)
                             showError -> stringResource(R.string.category_form_error_name_empty)
                             else -> ""
                         },
                         isError = true,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     FieldNote(
-                        stringResource(
-                            R.string.category_form_name_counter,
-                            state.name.trim().length,
-                            CategoryFormLogic.NAME_MAX
-                        ),
-                        isError = error == CategoryFormLogic.NameError.TOO_LONG
+                        stringResource(R.string.category_form_name_counter, state.name.trim().length, CategoryFormLogic.NAME_MAX),
+                        isError = error == CategoryFormLogic.NameError.TOO_LONG,
                     )
                 }
-            }
+            },
         )
         ShelfDivider()
         ShelfRow(
             icon = { ShelfIcon(AppIcons.Tag) },
             label = stringResource(R.string.account_form_type),
             onClick = null,
-            trailing = { CategoryPill(stringResource(state.type.labelRes()), state.type.kindColor()) }
+            trailing = { CategoryPill(stringResource(state.type.labelRes()), state.type.kindColor()) },
         )
     }
 }
@@ -260,7 +233,7 @@ private fun previewFormState(name: String, parentId: Long? = 1L, saveFailed: Boo
     color = ColorPalette.colors[4],
     parentId = parentId,
     tree = CategoryTree(listOf(Category(1, "Food", "restaurant", null, CategoryType.EXPENSE, null, 0))),
-    saveFailed = saveFailed
+    saveFailed = saveFailed,
 )
 
 @Composable

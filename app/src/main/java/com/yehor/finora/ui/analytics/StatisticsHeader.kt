@@ -79,19 +79,13 @@ import java.time.YearMonth
 /** "Statistics" and the ☰ button that opens the account filter and Compare switch. */
 @Composable
 internal fun StatsTopBar(onOptions: (() -> Unit)?, modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             stringResource(R.string.nav_statistics),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() }
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         if (onOptions != null) RoundIconButton(AppIcons.Filter, stringResource(R.string.stats_options), onOptions)
     }
@@ -110,7 +104,7 @@ internal fun StatsTabs(selected: StatsTab, onSelect: (StatsTab) -> Unit, modifie
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(scheme.outlineVariant.copy(alpha = 0.4f))
+                .background(scheme.outlineVariant.copy(alpha = 0.4f)),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             StatsTab.entries.forEach { tab ->
@@ -124,14 +118,14 @@ internal fun StatsTabs(selected: StatsTab, onSelect: (StatsTab) -> Unit, modifie
                                 bounds[tab] = coordinates.positionInParent().x.toDp() to coordinates.size.width.toDp()
                             }
                         },
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
                         stringResource(tab.titleRes()),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelected) scheme.onSurface else scheme.onSurfaceVariant,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
             }
@@ -149,7 +143,7 @@ internal fun StatsTabs(selected: StatsTab, onSelect: (StatsTab) -> Unit, modifie
                         val p = measurable.measure(Constraints.fixed(w.value.roundToPx(), 3.dp.roundToPx()))
                         layout(p.width, p.height) { p.place(x.value.roundToPx(), 0) }
                     }
-                    .background(scheme.primary, RoundedCornerShape(3.dp))
+                    .background(scheme.primary, RoundedCornerShape(3.dp)),
             )
         }
     }
@@ -178,7 +172,7 @@ internal fun StatsPeriodBlock(
     onShift: (Int) -> Unit,
     onMonths: (YearMonth, YearMonth) -> Unit,
     onCustom: (LocalDate, LocalDate) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showRange by rememberSaveable { mutableStateOf(false) }
     var showPicker by rememberSaveable { mutableStateOf(false) }
@@ -187,10 +181,10 @@ internal fun StatsPeriodBlock(
             options = listOf(
                 stringResource(R.string.period_week),
                 stringResource(R.string.period_month),
-                stringResource(R.string.period_year)
+                stringResource(R.string.period_year),
             ),
             selected = PeriodSegments.indexOf(state.kind),
-            onSelect = { onSelect(PeriodSegments[it]) }
+            onSelect = { onSelect(PeriodSegments[it]) },
         )
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             RoundIconButton(AppIcons.Previous, stringResource(R.string.analytics_period_previous), { onShift(-1) })
@@ -199,12 +193,9 @@ internal fun StatsPeriodBlock(
                     Modifier
                         .heightIn(min = 48.dp)
                         .clip(PillShape)
-                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.range_title)) {
-                            showRange =
-                                true
-                        }
+                        .clickable(role = Role.Button, onClickLabel = stringResource(R.string.range_title)) { showRange = true }
                         .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         stepperName(state, period, today),
@@ -213,13 +204,13 @@ internal fun StatsPeriodBlock(
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                     Icon(
                         AppIcons.Dropdown,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(IconSize.Medium)
+                        modifier = Modifier.size(IconSize.Medium),
                     )
                 }
             }
@@ -227,7 +218,7 @@ internal fun StatsPeriodBlock(
                 AppIcons.Next,
                 stringResource(R.string.analytics_period_next),
                 { onShift(1) },
-                enabled = canShiftForward
+                enabled = canShiftForward,
             )
         }
     }
@@ -248,13 +239,13 @@ internal fun StatsPeriodBlock(
                 customText to {
                     showRange = false
                     showPicker = true
-                }
+                },
             ),
             onConfirm = { from, to ->
                 showRange = false
                 onMonths(from, to)
             },
-            onDismiss = { showRange = false }
+            onDismiss = { showRange = false },
         )
     }
     if (showPicker) {
@@ -266,7 +257,7 @@ internal fun StatsPeriodBlock(
                 showPicker = false
                 onCustom(start, end)
             },
-            maxDate = today
+            maxDate = today,
         )
     }
 }
@@ -282,29 +273,18 @@ internal fun StatsOptionsSheet(
     previousLabel: String?,
     onCompare: ((Boolean) -> Unit)?,
     onDismiss: () -> Unit,
-    onFilter: (() -> Unit)? = null
+    onFilter: (() -> Unit)? = null,
 ) {
     FinoraSheet(onDismiss = onDismiss) {
-        Column(
-            Modifier
-                .padding(horizontal = 18.dp)
-                .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+        Column(Modifier.padding(horizontal = 18.dp).padding(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             if (onFilter != null) {
                 GroupedCard {
                     ListRow(
                         icon = { RoundIcon(AppIcons.Filter, MaterialTheme.colorScheme.primary, size = 36.dp) },
                         title = stringResource(R.string.stats_filter),
                         subtitle = stringResource(R.string.stats_tags_filter_hint),
-                        trailing = {
-                            Icon(
-                                AppIcons.Next,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        onClick = onFilter
+                        trailing = { Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                        onClick = onFilter,
                     )
                 }
             }
@@ -316,7 +296,7 @@ internal fun StatsOptionsSheet(
                             .heightIn(min = 56.dp)
                             .clickable(role = Role.Switch) { onCompare(!compare) }
                             .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column(Modifier.weight(1f)) {
                             Text(stringResource(R.string.stats_compare), style = MaterialTheme.typography.bodyLarge)
@@ -324,7 +304,7 @@ internal fun StatsOptionsSheet(
                                 Text(
                                     stringResource(R.string.stats_compare_previous, previousLabel),
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -340,7 +320,7 @@ internal fun StatsOptionsSheet(
                         title = stringResource(R.string.filter_all_accounts_selected),
                         subtitle = null,
                         trailing = { Checkbox(checked = selectedAccountIds.isEmpty(), onCheckedChange = null) },
-                        onClick = onClearAccounts
+                        onClick = onClearAccounts,
                     )
                     accounts.forEach { account ->
                         ListRow(
@@ -348,7 +328,7 @@ internal fun StatsOptionsSheet(
                             title = account.name,
                             subtitle = null,
                             trailing = { Checkbox(checked = account.id in selectedAccountIds, onCheckedChange = null) },
-                            onClick = { onToggleAccount(account.id) }
+                            onClick = { onToggleAccount(account.id) },
                         )
                     }
                 }
@@ -367,39 +347,33 @@ internal fun StatsHero(
     today: LocalDate,
     total: Cell,
     delta: Delta?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val scheme = MaterialTheme.colorScheme
     val finance = MaterialTheme.finance
     val locale = LocalConfiguration.current.locales[0]
-    Column(
-        modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier.fillMaxWidth().padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             heroLabel(measure, state, period, today).uppercase(locale),
             style = MaterialTheme.typography.labelSmall,
             letterSpacing = 1.4.sp,
             fontWeight = FontWeight.Bold,
             color = scheme.onSurfaceVariant,
-            modifier = Modifier.semantics { heading() }
+            modifier = Modifier.semantics { heading() },
         )
         Row(Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
             val converted = total.estimate?.basis?.usesConversion == true && !total.overflowed
             AmountText(
                 (if (converted) "≈ " else "") + cellText(total),
                 style = MaterialTheme.typography.displaySmall.copy(fontSize = 40.sp, lineHeight = 48.sp),
-                color = scheme.onSurface
+                color = scheme.onSurface,
             )
             if (total.partial) {
                 Icon(
                     AppIcons.Warning,
                     contentDescription = stringResource(R.string.analytics_partial_warning),
                     tint = scheme.error,
-                    modifier = Modifier
-                        .padding(start = 6.dp)
-                        .size(20.dp)
+                    modifier = Modifier.padding(start = 6.dp).size(20.dp),
                 )
             }
         }
@@ -414,7 +388,7 @@ internal fun StatsHero(
                     .padding(top = 8.dp)
                     .background(tint.copy(alpha = 0.10f), PillShape)
                     .border(hairline(finance.isDark), PillShape)
-                    .padding(horizontal = 12.dp, vertical = 5.dp)
+                    .padding(horizontal = 12.dp, vertical = 5.dp),
             )
         }
     }
@@ -422,12 +396,7 @@ internal fun StatsHero(
 
 /** "↘ 8% less than October" and its tint: mint for the good direction, red for the other, grey for no change. */
 @Composable
-internal fun comparison(
-    measure: Measure,
-    delta: Delta,
-    previous: ResolvedPeriod,
-    today: LocalDate
-): Pair<String, Color> {
+internal fun comparison(measure: Measure, delta: Delta, previous: ResolvedPeriod, today: LocalDate): Pair<String, Color> {
     val scheme = MaterialTheme.colorScheme
     val finance = MaterialTheme.finance
     val percent = delta.percentTimesTen
@@ -458,14 +427,8 @@ private fun heroLabel(measure: Measure, state: PeriodState, period: ResolvedPeri
     val income = measure == Measure.INCOME
     return when (state.kind) {
         PeriodKind.MONTH, PeriodKind.YEAR ->
-            stringResource(
-                if (income) R.string.stats_earned_in else R.string.stats_spent_in,
-                periodShortName(period, today)
-            )
+            stringResource(if (income) R.string.stats_earned_in else R.string.stats_spent_in, periodShortName(period, today))
         else ->
-            stringResource(
-                if (income) R.string.stats_earned_range else R.string.stats_spent_range,
-                stepperName(state, period, today)
-            )
+            stringResource(if (income) R.string.stats_earned_range else R.string.stats_spent_range, stepperName(state, period, today))
     }
 }

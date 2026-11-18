@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.analytics
 
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
-import com.yehor.finora.designsystem.chart.BalanceLine
-import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.domain.analytics.BucketUnit
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -41,6 +40,7 @@ import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.TransactionRow
+import com.yehor.finora.designsystem.chart.BalanceLine
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -48,7 +48,7 @@ fun AccountAnalyticsScreen(
     onBack: () -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
     onShowAll: (TransactionFilter) -> Unit,
-    viewModel: AccountAnalyticsViewModel = hiltViewModel()
+    viewModel: AccountAnalyticsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state) {
@@ -64,7 +64,7 @@ private fun AccountAnalyticsContent(
     vm: AccountAnalyticsViewModel,
     onBack: () -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
-    onShowAll: (TransactionFilter) -> Unit
+    onShowAll: (TransactionFilter) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -74,35 +74,27 @@ private fun AccountAnalyticsContent(
                     IconButton(onClick = onBack) {
                         Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         val loaded = state as? AccountAnalyticsUiState.Loaded
         if (loaded == null) {
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-            )
+            Box(Modifier.fillMaxSize().padding(padding))
             return@Scaffold
         }
         val env = loaded.env
         val account = loaded.detail.account
         Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             if (account.status == AccountStatus.ARCHIVED) {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
                     Text(
                         stringResource(R.string.stats_account_archived),
                         modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
             }
@@ -113,7 +105,7 @@ private fun AccountAnalyticsContent(
                     Text(
                         account.currency.code,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -121,7 +113,7 @@ private fun AccountAnalyticsContent(
                 Text(
                     stringResource(R.string.stats_account_current_balance),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 BalanceText(loaded.detail.balance, large = true)
             }
@@ -132,7 +124,7 @@ private fun AccountAnalyticsContent(
                     stringResource(R.string.account_detail_no_initial_balance)
                 } else {
                     "${opening.money.format()} · ${formatDate(opening.occurredAt)}"
-                }
+                },
             )
 
             HorizontalDivider()
@@ -144,7 +136,7 @@ private fun AccountAnalyticsContent(
                 modifier = Modifier.fillMaxWidth(),
                 arrows = true,
                 canShiftForward = env.canShiftForward,
-                onShift = vm::shiftPeriod
+                onShift = vm::shiftPeriod,
             )
             val figures = loaded.figures
             if (figures == null) {
@@ -158,7 +150,7 @@ private fun AccountAnalyticsContent(
                 if (figures.initialBalanceInPeriod.amountMinor != 0L) {
                     LabeledValue(
                         stringResource(R.string.stats_account_initial_balance),
-                        figures.initialBalanceInPeriod.format()
+                        figures.initialBalanceInPeriod.format(),
                     )
                 }
                 LabeledValue(stringResource(R.string.stats_account_balance_end), figures.balanceAtEnd.format())
@@ -179,7 +171,7 @@ private fun AccountAnalyticsContent(
                 Text(
                     stringResource(R.string.stats_no_data),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             } else {
                 loaded.recent.forEach { item -> TransactionRow(item, onClick = { onOpenTransaction(item) }) }
@@ -201,7 +193,7 @@ private fun BalanceSeriesSection(loaded: AccountAnalyticsUiState.Loaded) {
         values = values,
         color = MaterialTheme.colorScheme.primary,
         description = description,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 8.dp),
     )
     // The numbers behind the line, as text.
     series.forEachIndexed { i, point ->

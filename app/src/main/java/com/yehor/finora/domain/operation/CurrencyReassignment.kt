@@ -8,12 +8,13 @@ data class ReassignmentDialogInfo(
     val newFormatted: String,
     val oldAccountName: String,
     val newAccountName: String,
-    val isExpense: Boolean
+    val isExpense: Boolean,
 )
 
 object CurrencyReassignment {
 
-    fun needsConfirmation(fromCurrency: Currency, toCurrency: Currency): Boolean = fromCurrency.code != toCurrency.code
+    fun needsConfirmation(fromCurrency: Currency, toCurrency: Currency): Boolean =
+        fromCurrency.code != toCurrency.code
 
     fun buildInfo(
         oldAmountMinor: Long,
@@ -21,7 +22,7 @@ object CurrencyReassignment {
         newCurrency: Currency,
         oldAccountName: String,
         newAccountName: String,
-        isExpense: Boolean
+        isExpense: Boolean,
     ): ReassignmentDialogInfo {
         val oldMoney = Money(oldAmountMinor, oldCurrency)
         val newMoney = Money(oldAmountMinor, newCurrency)
@@ -30,7 +31,7 @@ object CurrencyReassignment {
             newFormatted = "${newMoney.toPlainString()} ${newCurrency.code}",
             oldAccountName = oldAccountName,
             newAccountName = newAccountName,
-            isExpense = isExpense
+            isExpense = isExpense,
         )
     }
 }

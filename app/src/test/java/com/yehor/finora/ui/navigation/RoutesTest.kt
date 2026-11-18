@@ -8,7 +8,7 @@ class RoutesTest {
     fun patternsCarryKind() {
         assertEquals(
             "transactions/new?kind={kind}&duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}",
-            Routes.TRANSACTION_NEW
+            Routes.TRANSACTION_NEW,
         )
         assertEquals("transactions/{operationId}?kind={kind}", Routes.TRANSACTION_EDIT)
     }
@@ -20,7 +20,7 @@ class RoutesTest {
         assertEquals("transactions/new?kind=EXPENSE&duplicateOf=7", Routes.transactionNew(duplicateOf = 7))
         assertEquals(
             "transactions/new?kind=TRANSFER&duplicateOf=7&sourceAccountId=3",
-            Routes.transactionNew("TRANSFER", 7, 3)
+            Routes.transactionNew("TRANSFER", 7, 3),
         )
     }
 

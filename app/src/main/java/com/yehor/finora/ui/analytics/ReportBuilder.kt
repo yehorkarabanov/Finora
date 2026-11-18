@@ -1,19 +1,19 @@
 package com.yehor.finora.ui.analytics
 
 import com.yehor.finora.domain.analytics.BucketUnit
+import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CategoryDrill
 import com.yehor.finora.domain.analytics.CategoryEstimateRollup
-import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CompareRow
 import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Delta
 import com.yehor.finora.domain.analytics.DrillRow
 import com.yehor.finora.domain.analytics.Measure
-import com.yehor.finora.domain.analytics.Reports
 import com.yehor.finora.domain.analytics.ScopeConverter
 import com.yehor.finora.domain.analytics.Share
 import com.yehor.finora.domain.analytics.TopSplit
 import com.yehor.finora.domain.analytics.TrendPoint
+import com.yehor.finora.domain.analytics.Reports
 import com.yehor.finora.domain.analytics.delta
 import com.yehor.finora.domain.analytics.netCashFlow
 import com.yehor.finora.domain.analytics.orZero
@@ -36,7 +36,7 @@ data class CategoryReport(
     val breadcrumb: List<Category>,
     val lines: List<CategoryLine>,
     /** The current rows (without previous-only rows) for the donut. */
-    val split: TopSplit
+    val split: TopSplit,
 )
 
 /** A row of the by-account, by-tag or by-category-of-a-tag breakdown. [id] is null for "No tag". */
@@ -55,32 +55,25 @@ data class TagsReport(
     val category: CategoryReport,
     val byAccount: List<BreakdownLine>,
     val byDate: List<TrendPoint>,
-    val dateUnit: BucketUnit
+    val dateUnit: BucketUnit,
 )
 
 data class FlowReport(
     val measure: Measure,
     val category: CategoryReport,
     val byAccount: List<BreakdownLine>,
-    val byTag: List<BreakdownLine>
+    val byTag: List<BreakdownLine>,
 )
 
 /** Pure assembly of the numbers the analytics screens show. Everything converted goes through [ScopeConverter]. */
 object ReportBuilder {
 
     /** A figure whose sum did not fit in a Long: shown as "Unavailable" (R13). */
-    val OVERFLOW =
-        Cell(estimate = null, operationCount = 0, excluded = emptySet(), overflowed = true, oldestFetchedAt = null)
+    val OVERFLOW = Cell(estimate = null, operationCount = 0, excluded = emptySet(), overflowed = true, oldestFetchedAt = null)
 
     private class Level(val total: Cell, val rows: List<DrillRow>)
 
-    private fun level(
-        tree: CategoryTree,
-        converter: ScopeConverter,
-        measure: Measure,
-        rows: Rows,
-        path: List<Long>
-    ): Level {
+    private fun level(tree: CategoryTree, converter: ScopeConverter, measure: Measure, rows: Rows, path: List<Long>): Level {
         if (rows is Rows.Overflow) return Level(OVERFLOW, emptyList())
         val direct = Reports.cells(rows.list(), converter)
         val rolled = CategoryEstimateRollup.rollUp(tree, direct)
@@ -94,7 +87,7 @@ object ReportBuilder {
         measure: Measure,
         current: Rows,
         previous: Rows?,
-        path: List<Long>
+        path: List<Long>,
     ): CategoryReport {
         val tree = CategoryTree(env.categories)
         val converter = ScopeConverter(scope, env.table, env.now)
@@ -114,7 +107,7 @@ object ReportBuilder {
                 row = compareRow.row,
                 share = shareOf(compareRow.row.cell, levelTotal),
                 previous = compareRow.previous,
-                delta = if (prev != null) delta(compareRow.row.cell.estimate, compareRow.previous?.estimate) else null
+                delta = if (prev != null) delta(compareRow.row.cell.estimate, compareRow.previous?.estimate) else null,
             )
         }
         val total = cur.total.orZero(currency)
@@ -126,7 +119,7 @@ object ReportBuilder {
             levelTotal = levelTotal,
             breadcrumb = valid.mapNotNull { tree.category(it) },
             lines = lines,
-            split = Reports.topSplit(cur.rows)
+            split = Reports.topSplit(cur.rows),
         )
     }
 
@@ -145,23 +138,17 @@ object ReportBuilder {
         previousRows: Rows?,
         accountRows: Rows,
         tagRows: Rows,
-        path: List<Long>
+        path: List<Long>,
     ): FlowReport {
         val converter = ScopeConverter(scope, env.table, env.now)
         val category = category(env, scope, measure, categoryRows, previousRows, path)
         // Account and tag rows are shown against the period total, not against a drill-down level.
-        val periodTotal = if (categoryRows is Rows.Ok) {
-            Reports.total(
-                Reports.cells(categoryRows.rows, converter)
-            )
-        } else {
-            OVERFLOW
-        }
+        val periodTotal = if (categoryRows is Rows.Ok) Reports.total(Reports.cells(categoryRows.rows, converter)) else OVERFLOW
         return FlowReport(
             measure = measure,
             category = category,
             byAccount = breakdown(accountRows, converter, periodTotal),
-            byTag = breakdown(tagRows, converter, periodTotal)
+            byTag = breakdown(tagRows, converter, periodTotal),
         )
     }
 
@@ -172,7 +159,7 @@ object ReportBuilder {
         types: Set<OperationType>,
         income: Rows,
         expense: Rows,
-        transfer: Rows
+        transfer: Rows,
     ): Figures {
         val converter = ScopeConverter(scope, env.table, env.now)
         val currency = scope.currency()
@@ -187,7 +174,7 @@ object ReportBuilder {
             income = inc,
             expense = exp,
             net = if (inc != null && exp != null) netCashFlow(inc, exp) else null,
-            transferred = total(transfer, OperationType.TRANSFER)
+            transferred = total(transfer, OperationType.TRANSFER),
         )
     }
 

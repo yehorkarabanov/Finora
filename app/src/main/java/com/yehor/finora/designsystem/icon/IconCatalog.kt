@@ -2,110 +2,8 @@ package com.yehor.finora.designsystem.icon
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ReceiptLong
-import androidx.compose.material.icons.rounded.AccountBalance
-import androidx.compose.material.icons.rounded.AccountBalanceWallet
-import androidx.compose.material.icons.rounded.AddCard
-import androidx.compose.material.icons.rounded.Apartment
-import androidx.compose.material.icons.rounded.AttachMoney
-import androidx.compose.material.icons.rounded.BakeryDining
-import androidx.compose.material.icons.rounded.BeachAccess
-import androidx.compose.material.icons.rounded.Build
-import androidx.compose.material.icons.rounded.Business
-import androidx.compose.material.icons.rounded.CandlestickChart
-import androidx.compose.material.icons.rounded.CarRepair
-import androidx.compose.material.icons.rounded.CardGiftcard
-import androidx.compose.material.icons.rounded.Category
-import androidx.compose.material.icons.rounded.Celebration
-import androidx.compose.material.icons.rounded.Chair
-import androidx.compose.material.icons.rounded.Checkroom
-import androidx.compose.material.icons.rounded.ChildCare
-import androidx.compose.material.icons.rounded.ChildFriendly
-import androidx.compose.material.icons.rounded.Class
-import androidx.compose.material.icons.rounded.CleaningServices
-import androidx.compose.material.icons.rounded.ConfirmationNumber
-import androidx.compose.material.icons.rounded.ContentCut
-import androidx.compose.material.icons.rounded.CreditCard
-import androidx.compose.material.icons.rounded.CreditScore
-import androidx.compose.material.icons.rounded.CurrencyBitcoin
-import androidx.compose.material.icons.rounded.CurrencyExchange
-import androidx.compose.material.icons.rounded.DeliveryDining
-import androidx.compose.material.icons.rounded.Devices
-import androidx.compose.material.icons.rounded.Diamond
-import androidx.compose.material.icons.rounded.DirectionsBoat
-import androidx.compose.material.icons.rounded.DirectionsBus
-import androidx.compose.material.icons.rounded.DirectionsCar
-import androidx.compose.material.icons.rounded.Elderly
-import androidx.compose.material.icons.rounded.ElectricScooter
-import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.EuroSymbol
-import androidx.compose.material.icons.rounded.EvStation
-import androidx.compose.material.icons.rounded.FamilyRestroom
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FitnessCenter
-import androidx.compose.material.icons.rounded.Flag
-import androidx.compose.material.icons.rounded.Flight
-import androidx.compose.material.icons.rounded.Hiking
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.HomeWork
-import androidx.compose.material.icons.rounded.Hotel
-import androidx.compose.material.icons.rounded.Icecream
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.Kitchen
-import androidx.compose.material.icons.rounded.Laptop
-import androidx.compose.material.icons.rounded.Lightbulb
-import androidx.compose.material.icons.rounded.LocalAtm
-import androidx.compose.material.icons.rounded.LocalBar
-import androidx.compose.material.icons.rounded.LocalCafe
-import androidx.compose.material.icons.rounded.LocalFireDepartment
-import androidx.compose.material.icons.rounded.LocalGasStation
-import androidx.compose.material.icons.rounded.LocalGroceryStore
-import androidx.compose.material.icons.rounded.LocalHospital
-import androidx.compose.material.icons.rounded.LocalLaundryService
-import androidx.compose.material.icons.rounded.LocalParking
-import androidx.compose.material.icons.rounded.LocalPizza
-import androidx.compose.material.icons.rounded.LocalTaxi
-import androidx.compose.material.icons.rounded.Luggage
-import androidx.compose.material.icons.rounded.MedicalServices
-import androidx.compose.material.icons.rounded.Medication
-import androidx.compose.material.icons.rounded.MenuBook
-import androidx.compose.material.icons.rounded.Money
-import androidx.compose.material.icons.rounded.Movie
-import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material.icons.rounded.Payments
-import androidx.compose.material.icons.rounded.PedalBike
-import androidx.compose.material.icons.rounded.Percent
-import androidx.compose.material.icons.rounded.Pets
-import androidx.compose.material.icons.rounded.PhoneAndroid
-import androidx.compose.material.icons.rounded.PhotoCamera
-import androidx.compose.material.icons.rounded.PieChart
-import androidx.compose.material.icons.rounded.PointOfSale
-import androidx.compose.material.icons.rounded.Redeem
-import androidx.compose.material.icons.rounded.Replay
-import androidx.compose.material.icons.rounded.RequestQuote
-import androidx.compose.material.icons.rounded.Restaurant
-import androidx.compose.material.icons.rounded.Savings
-import androidx.compose.material.icons.rounded.School
-import androidx.compose.material.icons.rounded.SelfImprovement
-import androidx.compose.material.icons.rounded.Shield
-import androidx.compose.material.icons.rounded.ShoppingBag
-import androidx.compose.material.icons.rounded.Spa
-import androidx.compose.material.icons.rounded.SportsEsports
-import androidx.compose.material.icons.rounded.SportsSoccer
-import androidx.compose.material.icons.rounded.Storefront
-import androidx.compose.material.icons.rounded.Subscriptions
-import androidx.compose.material.icons.rounded.SwapHoriz
-import androidx.compose.material.icons.rounded.Toll
-import androidx.compose.material.icons.rounded.Toys
-import androidx.compose.material.icons.rounded.Train
-import androidx.compose.material.icons.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.Tv
-import androidx.compose.material.icons.rounded.TwoWheeler
-import androidx.compose.material.icons.rounded.Vaccines
-import androidx.compose.material.icons.rounded.VolunteerActivism
-import androidx.compose.material.icons.rounded.WaterDrop
-import androidx.compose.material.icons.rounded.Wifi
-import androidx.compose.material.icons.rounded.Yard
+import androidx.compose.material.icons.automirrored.rounded.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.yehor.finora.R
 
@@ -222,7 +120,7 @@ object IconCatalog {
         "gold" to IconEntry(Icons.Rounded.Toll, R.string.icon_gold),
         "real_estate" to IconEntry(Icons.Rounded.HomeWork, R.string.icon_real_estate),
         "pension" to IconEntry(Icons.Rounded.Elderly, R.string.icon_pension),
-        "gift_card" to IconEntry(Icons.Rounded.Redeem, R.string.icon_gift_card)
+        "gift_card" to IconEntry(Icons.Rounded.Redeem, R.string.icon_gift_card),
     )
 
     fun get(key: String?): ImageVector = icons.getValue(IconKeys.resolve(key)).vector

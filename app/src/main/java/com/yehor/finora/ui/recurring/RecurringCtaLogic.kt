@@ -11,7 +11,7 @@ enum class RecurringCtaMissing {
     CHOOSE_ACCOUNT,
     ENTER_NAME,
     CHOOSE_CATEGORY,
-    FIX_ERRORS
+    FIX_ERRORS,
 }
 
 /** State of the bottom button: ready to save, or disabled with a reason. */
@@ -33,7 +33,7 @@ object RecurringCtaLogic {
         errors: Set<ScheduleDraftError>,
         handledConflict: LocalDate?,
         isEdit: Boolean,
-        kind: TransactionKind
+        kind: TransactionKind,
     ): RecurringCta = when {
         loading -> RecurringCta.Missing(RecurringCtaMissing.LOADING)
         amountText.isBlank() || ScheduleDraftError.AMOUNT_EMPTY in errors ->
@@ -52,6 +52,6 @@ object RecurringCtaLogic {
         errors = state.errors,
         handledConflict = state.handledConflict,
         isEdit = state.isEdit,
-        kind = state.form.kind
+        kind = state.form.kind,
     )
 }

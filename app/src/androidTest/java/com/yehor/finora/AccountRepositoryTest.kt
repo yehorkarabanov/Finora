@@ -45,15 +45,19 @@ class AccountRepositoryTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun create(currency: String = "USD", opening: Long? = null, name: String = "Acc"): Long =
-        repo.create(
+    private suspend fun create(
+        currency: String = "USD",
+        opening: Long? = null,
+        name: String = "Acc",
+    ): Long = repo.create(
         name = name, currencyCode = currency, type = "BANK", icon = null, color = null,
-            description = null, openingMinor = opening, openingDate = null, now = now
+        description = null, openingMinor = opening, openingDate = null, now = now,
     )
 
     private fun violations() = InvariantChecker.check(db.openHelper.writableDatabase)
 
-    private suspend fun balanceOf(id: Long): Balance = repo.observeAll().first().first { it.account.id == id }.balance
+    private suspend fun balanceOf(id: Long): Balance =
+        repo.observeAll().first().first { it.account.id == id }.balance
 
     private suspend fun minorOf(id: Long): Long = (balanceOf(id) as Balance.Value).money.amountMinor
 
@@ -82,10 +86,7 @@ class AccountRepositoryTest {
         val openingAt = db.operationDao().openingBalanceOf(id)!!.occurredAt
         assertTrue(openingAt <= now)
         assertTrue(now - openingAt < day + 3_600_000)
-        assertEquals(
-            openingAt,
-            db.ledgerEntryDao().entriesOf(db.operationDao().openingBalanceOf(id)!!.id).single().occurredAt
-        )
+        assertEquals(openingAt, db.ledgerEntryDao().entriesOf(db.operationDao().openingBalanceOf(id)!!.id).single().occurredAt)
     }
 
     @Test
@@ -112,10 +113,7 @@ class AccountRepositoryTest {
 
         val count = db.openHelper.writableDatabase
             .query("SELECT COUNT(*) FROM operation WHERE type = 'OPENING_BALANCE'")
-            .use {
-                it.moveToFirst()
-                it.getInt(0)
-            }
+            .use { it.moveToFirst(); it.getInt(0) }
         assertEquals(1, count)
 
         ops.setOpeningBalance(id, 0, now, now)
@@ -189,10 +187,8 @@ class AccountRepositoryTest {
         val a = create(opening = 1_000)
         val b = create()
         ops.insertOperation(
-            OperationType.TRANSFER,
-            now,
-            listOf(EntryDraft(a, -300), EntryDraft(b, 300)),
-            now = now
+            OperationType.TRANSFER, now,
+            listOf(EntryDraft(a, -300), EntryDraft(b, 300)), now = now,
         )
         ops.insertOperation(OperationType.EXPENSE, now, listOf(EntryDraft(a, -50)), now = now)
         assertEquals(650L, minorOf(a))
@@ -208,11 +204,11 @@ class AccountRepositoryTest {
         // insertOperation refuses to overflow, so the overflowing row is written directly.
         val raw = db.openHelper.writableDatabase
         raw.execSQL(
-            "INSERT INTO operation (type, occurred_at, created_at, updated_at) VALUES ('INCOME', $badDay, $now, $now)"
+            "INSERT INTO operation (type, occurred_at, created_at, updated_at) VALUES ('INCOME', $badDay, $now, $now)",
         )
         raw.execSQL(
             "INSERT INTO ledger_entry (operation_id, account_id, currency_code, amount_minor, occurred_at) " +
-                "VALUES (last_insert_rowid(), $bad, 'USD', 1, $badDay)"
+                "VALUES (last_insert_rowid(), $bad, 'USD', 1, $badDay)",
         )
         val list = repo.observeAll().first()
         assertEquals(Balance.Overflow, list.single { it.account.id == bad }.balance)
@@ -230,7 +226,7 @@ class AccountRepositoryTest {
             LEFT JOIN ledger_entry e ON e.account_id = a.id
             GROUP BY a.id
             ORDER BY a.id
-            """.trimIndent()
+            """.trimIndent(),
         ).use { c ->
             while (c.moveToNext()) plan += c.getString(c.getColumnIndexOrThrow("detail"))
         }
@@ -250,15 +246,9 @@ class AccountRepositoryTest {
         assertNull(db.accountDao().getById(withOpening))
         assertNull(db.accountDao().getById(empty))
         val ledgerRows = db.openHelper.writableDatabase.query("SELECT COUNT(*) FROM ledger_entry")
-            .use {
-                it.moveToFirst()
-                it.getInt(0)
-            }
+            .use { it.moveToFirst(); it.getInt(0) }
         val opRows = db.openHelper.writableDatabase.query("SELECT COUNT(*) FROM operation")
-            .use {
-                it.moveToFirst()
-                it.getInt(0)
-            }
+            .use { it.moveToFirst(); it.getInt(0) }
         assertEquals(0, ledgerRows)
         assertEquals(0, opRows)
     }
@@ -269,10 +259,8 @@ class AccountRepositoryTest {
         val b = create(opening = 500, name = "b")
         ops.insertOperation(OperationType.EXPENSE, now, listOf(EntryDraft(a, -10)), now = now)
         ops.insertOperation(
-            OperationType.TRANSFER,
-            now,
-            listOf(EntryDraft(a, -100), EntryDraft(b, 100)),
-            now = now
+            OperationType.TRANSFER, now,
+            listOf(EntryDraft(a, -100), EntryDraft(b, 100)), now = now,
         )
 
         repo.delete(a)
@@ -282,10 +270,7 @@ class AccountRepositoryTest {
         // The transfer is gone as a whole, so b is back to its opening balance.
         assertEquals(500L, minorOf(b))
         val opRows = db.openHelper.writableDatabase.query("SELECT COUNT(*) FROM operation")
-            .use {
-                it.moveToFirst()
-                it.getInt(0)
-            }
+            .use { it.moveToFirst(); it.getInt(0) }
         assertEquals(1, opRows)
         assertTrue(violations().toString(), violations().isEmpty())
     }

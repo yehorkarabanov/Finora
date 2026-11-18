@@ -28,7 +28,7 @@ object DefaultCategorySeedCallback : RoomDatabase.Callback() {
         category: DefaultCategory,
         type: CategoryType,
         parentId: Long?,
-        now: Long
+        now: Long,
     ): Long {
         val values = ContentValues().apply {
             put("name", category.name)

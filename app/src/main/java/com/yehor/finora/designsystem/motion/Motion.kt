@@ -46,7 +46,7 @@ fun Modifier.pressScale(interactionSource: InteractionSource): Modifier = compos
     val scale by animateFloatAsState(
         targetValue = if (pressed && !reduce) 0.96f else 1f,
         animationSpec = if (reduce) snap() else FinoraMotion.press,
-        label = "pressScale"
+        label = "pressScale",
     )
     graphicsLayer {
         scaleX = scale

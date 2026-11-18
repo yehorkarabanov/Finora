@@ -65,15 +65,15 @@ private val DialogShape = RoundedCornerShape(28.dp)
 private fun RestoreDialog(
     onDismiss: () -> Unit,
     dismissible: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = dismissible,
             dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
-        )
+            usePlatformDefaultWidth = false,
+        ),
     ) {
         RestoreCard(Modifier.padding(horizontal = 20.dp, vertical = 24.dp), content)
     }
@@ -88,7 +88,7 @@ private fun RestoreCard(modifier: Modifier = Modifier, content: @Composable Colu
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, DialogShape)
             .border(hairline(MaterialTheme.finance.isDark), DialogShape)
             .padding(24.dp),
-        content = content
+        content = content,
     )
 }
 
@@ -101,7 +101,7 @@ private fun DialogHeader(icon: ImageVector, tint: Color, title: String) {
         title,
         style = MaterialTheme.typography.headlineSmall,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.semantics { heading() }
+        modifier = Modifier.semantics { heading() },
     )
 }
 
@@ -116,20 +116,20 @@ internal fun RestoreProgressDialog(title: String, note: String?, onCancel: (() -
 private fun ColumnScope.RestoreProgressBody(title: String, note: String?, onCancel: (() -> Unit)?) {
     Column(
         Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         CircularProgressIndicator(
             color = MaterialTheme.colorScheme.primary,
             trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
             strokeWidth = 3.dp,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(40.dp),
         )
         Spacer(Modifier.height(20.dp))
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         if (note != null) {
             Spacer(Modifier.height(6.dp))
@@ -137,7 +137,7 @@ private fun ColumnScope.RestoreProgressBody(title: String, note: String?, onCanc
                 note,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
         if (onCancel != null) {
@@ -154,7 +154,7 @@ internal fun RestoreRejectedDialog(
     headline: String,
     problems: List<String>,
     onChooseAnother: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     RestoreDialog(onDismiss = onClose) {
         RestoreRejectedBody(headline, problems, onChooseAnother, onClose)
@@ -166,12 +166,12 @@ private fun ColumnScope.RestoreRejectedBody(
     headline: String,
     problems: List<String>,
     onChooseAnother: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
 ) {
     Column(
         Modifier
             .weight(1f, fill = false)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         DialogHeader(AppIcons.Error, MaterialTheme.colorScheme.error, stringResource(R.string.data_restore_reject_title))
         Spacer(Modifier.height(8.dp))
@@ -182,7 +182,7 @@ private fun ColumnScope.RestoreRejectedBody(
                 SelectionContainer {
                     Column(
                         Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         problems.forEach { line ->
                             Text(line, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
@@ -206,7 +206,7 @@ internal fun RestorePreviewDialog(
     backedUpFirst: Boolean,
     onBackUpFirst: () -> Unit,
     onReplace: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     RestoreDialog(onDismiss = onCancel) {
         RestorePreviewBody(current, incoming, upgradedFrom, backedUpFirst, onBackUpFirst, onReplace, onCancel)
@@ -221,19 +221,19 @@ private fun ColumnScope.RestorePreviewBody(
     backedUpFirst: Boolean,
     onBackUpFirst: () -> Unit,
     onReplace: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
 ) {
     Column(
         Modifier
             .weight(1f, fill = false)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
         DialogHeader(AppIcons.Warning, MaterialTheme.colorScheme.error, stringResource(R.string.data_restore_preview_title))
         Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.data_restore_preview_warning),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (upgradedFrom != null) {
             Spacer(Modifier.height(12.dp))
@@ -243,7 +243,7 @@ private fun ColumnScope.RestorePreviewBody(
                 Text(
                     stringResource(R.string.data_restore_preview_upgrade_note),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -259,16 +259,14 @@ private fun ColumnScope.RestorePreviewBody(
             onClick = onBackUpFirst,
             shape = PillShape,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
+            modifier = Modifier.fillMaxWidth().height(52.dp),
         ) {
             Icon(AppIcons.Export, null, modifier = Modifier.size(IconSize.Small), tint = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.width(8.dp))
             Text(
                 stringResource(R.string.data_restore_action_backup_first),
                 style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
     }
@@ -288,7 +286,7 @@ private fun BackedUpChip() {
             .height(52.dp)
             .background(primary.copy(alpha = 0.12f), PillShape),
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(AppIcons.Success, null, tint = primary, modifier = Modifier.size(IconSize.Small))
         Spacer(Modifier.width(8.dp))
@@ -298,11 +296,7 @@ private fun BackedUpChip() {
 
 @Composable
 private fun DialogTextButton(text: String, onClick: () -> Unit) {
-    TextButton(
-        onClick = onClick, shape = PillShape, modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-    ) {
+    TextButton(onClick = onClick, shape = PillShape, modifier = Modifier.fillMaxWidth().height(48.dp)) {
         Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
@@ -321,15 +315,13 @@ private fun ComparisonTable(current: DataSummary?, incoming: DataSummary, upgrad
         Triple(stringResource(R.string.data_tags), count(current?.tags), count(incoming.tags)),
         Triple(stringResource(R.string.data_schedules), count(current?.schedules), count(incoming.schedules)),
         Triple(stringResource(R.string.data_period), period(current), period(incoming)),
-        Triple(stringResource(R.string.data_schema_version), current?.schemaVersion?.toString() ?: "—", version)
+        Triple(stringResource(R.string.data_schema_version), current?.schemaVersion?.toString() ?: "—", version),
     )
 
     GroupedCard(Modifier.fillMaxWidth()) {
         Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.Bottom
+            Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 12.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.Bottom,
         ) {
             Spacer(Modifier.weight(LabelWeight))
             ColumnLabel(stringResource(R.string.data_restore_preview_current_col), Modifier.weight(ValueWeight))
@@ -338,7 +330,7 @@ private fun ComparisonTable(current: DataSummary?, incoming: DataSummary, upgrad
         rows.forEach { (label, now, backup) ->
             HorizontalDivider(
                 Modifier.padding(horizontal = 14.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
             )
             ComparisonRow(label, now, backup)
         }
@@ -355,7 +347,7 @@ private fun ColumnLabel(text: String, modifier: Modifier) {
         modifier = modifier,
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.End
+        textAlign = TextAlign.End,
     )
 }
 
@@ -363,16 +355,14 @@ private fun ColumnLabel(text: String, modifier: Modifier) {
 private fun ComparisonRow(label: String, current: String, incoming: String) {
     val valueStyle = AmountStyle.copy(fontSize = 14.sp, lineHeight = 18.sp, textAlign = TextAlign.End)
     Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             modifier = Modifier.weight(LabelWeight),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Text(current, Modifier.weight(ValueWeight), style = valueStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
@@ -380,7 +370,7 @@ private fun ComparisonRow(label: String, current: String, incoming: String) {
             Modifier.weight(ValueWeight),
             style = valueStyle,
             // What changes stands out; identical values stay quiet.
-            color = if (incoming != current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            color = if (incoming != current) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -400,18 +390,14 @@ private fun period(summary: DataSummary?): String {
 private val PreviewCurrent = DataSummary(
     accounts = 9, activeAccounts = 8, categories = 31, tags = 12, transactions = 4874, transfers = 124,
     schedules = 8, firstOperationAt = 1_698_883_200_000, lastOperationAt = 1_794_441_600_000,
-    databaseBytes = 2_400_000, schemaVersion = 3
+    databaseBytes = 2_400_000, schemaVersion = 3,
 )
 private val PreviewIncoming = PreviewCurrent.copy(transactions = 4612, tags = 10, lastOperationAt = 1_788_000_000_000)
 
 @Composable
 private fun RestorePreviewSample(dark: Boolean, backedUp: Boolean) {
     PreviewTheme(dark = dark) {
-        Column(
-            Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp)
-        ) {
+        Column(Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
             RestoreCard {
                 RestorePreviewBody(PreviewCurrent, PreviewIncoming, upgradedFrom = if (backedUp) null else 2, backedUp, {}, {}, {})
             }
@@ -430,17 +416,13 @@ private fun RestorePreviewDark() = RestorePreviewSample(dark = true, backedUp = 
 @Composable
 private fun RestoreRejectedSample(dark: Boolean) {
     PreviewTheme(dark = dark) {
-        Column(
-            Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp)
-        ) {
+        Column(Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
             RestoreCard {
                 RestoreRejectedBody(
                     "This file is not a Finora backup.",
                     listOf("transactions #12: account missing", "transactions #40: account missing"),
                     {},
-                    {}
+                    {},
                 )
             }
         }
@@ -458,11 +440,7 @@ private fun RestoreRejectedDark() = RestoreRejectedSample(dark = true)
 @Composable
 private fun RestoreProgressSample(dark: Boolean) {
     PreviewTheme(dark = dark) {
-        Column(
-            Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(20.dp)
-        ) {
+        Column(Modifier.background(MaterialTheme.colorScheme.background).padding(20.dp)) {
             RestoreCard { RestoreProgressBody("Checking structure", null, onCancel = {}) }
         }
     }

@@ -34,7 +34,7 @@ class AnalyticsPlanTest {
     fun explainByCategory() {
         val query = AnalyticsQuery.byCategory(TransactionFilter(), Measure.EXPENSE, emptySet())
         val plan = explain(query)
-
+        
         // Assert no full scan of ledger_entry
         assertTrue(plan.toString(), plan.none { it.startsWith("SCAN ledger_entry") })
         // Assert uses operation or ledger_entry index/search
@@ -86,7 +86,7 @@ class AnalyticsPlanTest {
         // Wait! How do we run explain plan for parameterized queries?
         // We can just run it with hardcoded arguments! This is extremely simple and avoids any reflection/bind problems!
         // Let's do that! That's 100% reliable and extremely simple.
-
+        
         // Let's construct explain statements with hardcoded parameters instead.
         // For example:
         // byCategory: SELECT o.category_id, e.currency_code ... WHERE o.type = 'EXPENSE' GROUP BY ...
@@ -104,7 +104,7 @@ class AnalyticsPlanTest {
             }
             else -> "EXPLAIN QUERY PLAN " + query.sql
         }
-
+        
         db.openHelper.writableDatabase.query(sql).use { c ->
             while (c.moveToNext()) {
                 plan += c.getString(c.getColumnIndexOrThrow("detail"))

@@ -61,16 +61,16 @@ class CategoryLogicTest {
         assertEquals(DeleteTargetOption.SUGGESTED, DeleteDialogLogic.selectedOption(state(impact)))
         assertEquals(
             DeleteTargetOption.UNCATEGORIZED,
-            DeleteDialogLogic.selectedOption(state(impact, ReassignTarget.Uncategorized))
+            DeleteDialogLogic.selectedOption(state(impact, ReassignTarget.Uncategorized)),
         )
         assertEquals(
             DeleteTargetOption.OTHER,
-            DeleteDialogLogic.selectedOption(state(impact, ReassignTarget.To(99)))
+            DeleteDialogLogic.selectedOption(state(impact, ReassignTarget.To(99))),
         )
         // Without a parent, Uncategorized is the suggestion and any category is "other".
         assertEquals(
             DeleteTargetOption.OTHER,
-            DeleteDialogLogic.selectedOption(state(DeletionImpact(2, 0, null), ReassignTarget.To(5)))
+            DeleteDialogLogic.selectedOption(state(DeletionImpact(2, 0, null), ReassignTarget.To(5))),
         )
     }
 }

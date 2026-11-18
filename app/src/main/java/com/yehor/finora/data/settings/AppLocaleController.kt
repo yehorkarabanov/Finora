@@ -13,7 +13,9 @@ import javax.inject.Singleton
 
 /** Wraps the framework per-app locale API; the system persists the choice and recreates the activity. */
 @Singleton
-class AppLocaleController @Inject constructor(@ApplicationContext context: Context) {
+class AppLocaleController @Inject constructor(
+    @ApplicationContext context: Context,
+) {
     private val localeManager: LocaleManager = context.getSystemService(LocaleManager::class.java)
 
     private val _language = MutableStateFlow(read())

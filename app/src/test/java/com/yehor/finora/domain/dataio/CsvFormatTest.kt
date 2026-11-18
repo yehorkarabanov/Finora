@@ -30,7 +30,7 @@ class CsvFormatTest {
             "tags",
             "description",
             "created_at_utc",
-            "updated_at_utc"
+            "updated_at_utc",
         )
         assertEquals(expected, CsvFormat.HEADER)
     }

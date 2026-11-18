@@ -14,7 +14,12 @@ data class NativeRow(val key: Long?, val money: Money, val operationCount: Int) 
 }
 
 /** Period figures of one account, in its own currency. [netChange] counts every entry, transfers and opening balance included. */
-data class AccountPeriodRow(val accountId: Long, val income: Money, val expense: Money, val netChange: Money)
+data class AccountPeriodRow(
+    val accountId: Long,
+    val income: Money,
+    val expense: Money,
+    val netChange: Money,
+)
 
 /**
  * What the user picked. A preset with [offset] 0 is the current period and follows the calendar, so
@@ -24,7 +29,7 @@ data class PeriodState(
     val kind: PeriodKind = PeriodKind.MONTH,
     val offset: Int = 0,
     val customStart: LocalDate? = null,
-    val customEnd: LocalDate? = null
+    val customEnd: LocalDate? = null,
 ) {
     fun toPeriod(today: LocalDate): Period = when (kind) {
         PeriodKind.CUSTOM -> {
@@ -50,10 +55,8 @@ data class PeriodState(
 
     companion object {
         fun preset(kind: PeriodKind) = PeriodState(kind = kind)
-        fun custom(start: LocalDate, end: LocalDate) = if (end.isBefore(start)) {
-            PeriodState(PeriodKind.CUSTOM, customStart = start, customEnd = start)
-        } else {
-            PeriodState(PeriodKind.CUSTOM, customStart = start, customEnd = end)
-        }
+        fun custom(start: LocalDate, end: LocalDate) =
+            if (end.isBefore(start)) PeriodState(PeriodKind.CUSTOM, customStart = start, customEnd = start)
+            else PeriodState(PeriodKind.CUSTOM, customStart = start, customEnd = end)
     }
 }

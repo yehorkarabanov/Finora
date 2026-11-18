@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.data.settings.LocaleResolution
@@ -68,12 +69,7 @@ import com.yehor.finora.ui.common.OrganizeTopBar
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenData: () -> Unit,
-    viewModel: SettingsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(
-        checkNotNull<androidx.lifecycle.ViewModelStoreOwner>(LocalViewModelStoreOwner.current) {
-            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-        },
-        null
-    )
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -85,16 +81,17 @@ fun SettingsScreen(
         onOpenData = onOpenData,
         onThemeSelected = viewModel::onThemeSelected,
         onCurrencySelected = viewModel::onDisplayCurrencySelected,
-        onLanguageSelected = viewModel::onLanguageSelected
+        onLanguageSelected = viewModel::onLanguageSelected,
     )
 }
 
 @Suppress("DEPRECATION")
-private fun settingsAppVersion(context: Context): String = try {
-    context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
-} catch (_: Exception) {
-    ""
-}
+private fun settingsAppVersion(context: Context): String =
+    try {
+        context.packageManager.getPackageInfo(context.packageName, 0).versionName.orEmpty()
+    } catch (_: Exception) {
+        ""
+    }
 
 @Composable
 internal fun SettingsContent(
@@ -104,21 +101,21 @@ internal fun SettingsContent(
     onOpenData: () -> Unit,
     onThemeSelected: (ThemeMode) -> Unit,
     onCurrencySelected: (Currency) -> Unit,
-    onLanguageSelected: (AppLanguage) -> Unit
+    onLanguageSelected: (AppLanguage) -> Unit,
 ) {
     var showLanguageSheet by rememberSaveable { mutableStateOf(false) }
     var showCurrencySheet by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        topBar = { OrganizeTopBar(stringResource(R.string.settings_title), onBack) }
+        topBar = { OrganizeTopBar(stringResource(R.string.settings_title), onBack) },
     ) { padding ->
         Column(
             Modifier
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
                 .padding(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             SettingsSection(R.string.settings_section_appearance) {
                 GroupedCard(Modifier.fillMaxWidth()) {
@@ -133,7 +130,7 @@ internal fun SettingsContent(
                         } else {
                             stringResource(state.language.labelRes())
                         },
-                        onClick = { showLanguageSheet = true }
+                        onClick = { showLanguageSheet = true },
                     )
                 }
             }
@@ -145,21 +142,15 @@ internal fun SettingsContent(
                         icon = AppIcons.Currency,
                         title = stringResource(R.string.settings_display_currency),
                         value = "${currency.code} · ${currency.name}",
-                        badge = if (state.displayCurrencyIsAutomatic) {
-                            stringResource(
-                                R.string.settings_automatic
-                            )
-                        } else {
-                            null
-                        },
-                        onClick = { showCurrencySheet = true }
+                        badge = if (state.displayCurrencyIsAutomatic) stringResource(R.string.settings_automatic) else null,
+                        onClick = { showCurrencySheet = true },
                     )
                 }
                 Text(
                     stringResource(R.string.settings_display_currency_help),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+                    modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
 
@@ -169,7 +160,7 @@ internal fun SettingsContent(
                         icon = AppIcons.Data,
                         title = stringResource(R.string.settings_data_title),
                         value = stringResource(R.string.settings_data_subtitle),
-                        onClick = onOpenData
+                        onClick = onOpenData,
                     )
                 }
             }
@@ -179,7 +170,7 @@ internal fun SettingsContent(
                     SettingsRow(
                         icon = AppIcons.Info,
                         title = stringResource(R.string.settings_app_version),
-                        value = appVersion.ifEmpty { null }
+                        value = appVersion.ifEmpty { null },
                     )
                 }
             }
@@ -193,7 +184,7 @@ internal fun SettingsContent(
                 onLanguageSelected(it)
                 showLanguageSheet = false
             },
-            onDismiss = { showLanguageSheet = false }
+            onDismiss = { showLanguageSheet = false },
         )
     }
 
@@ -205,7 +196,7 @@ internal fun SettingsContent(
                 onCurrencySelected(it)
                 showCurrencySheet = false
             },
-            onDismiss = { showCurrencySheet = false }
+            onDismiss = { showCurrencySheet = false },
         )
     }
 }
@@ -232,7 +223,7 @@ private fun SettingsBadge(text: String, container: Color = MaterialTheme.colorSc
         modifier = Modifier
             .clip(PillShape)
             .background(container)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
 
@@ -242,7 +233,7 @@ private fun SettingsRow(
     title: String,
     value: String? = null,
     badge: String? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
 ) {
     ListRow(
         icon = { RoundIcon(icon, MaterialTheme.colorScheme.primary) },
@@ -257,7 +248,7 @@ private fun SettingsRow(
             }
         },
         modifier = Modifier.heightIn(min = 64.dp),
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -267,7 +258,7 @@ private fun SettingsThemeBlock(selected: ThemeMode, onSelected: (ThemeMode) -> U
     val labels = listOf(
         stringResource(R.string.settings_theme_system),
         stringResource(R.string.settings_theme_light),
-        stringResource(R.string.settings_theme_dark)
+        stringResource(R.string.settings_theme_dark),
     )
     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -277,13 +268,17 @@ private fun SettingsThemeBlock(selected: ThemeMode, onSelected: (ThemeMode) -> U
         SegmentedPill(
             options = labels,
             selected = modes.indexOf(selected),
-            onSelect = { onSelected(modes[it]) }
+            onSelect = { onSelected(modes[it]) },
         )
     }
 }
 
 @Composable
-private fun SettingsPickerRow(selected: Boolean, onClick: () -> Unit, content: @Composable (Modifier) -> Unit) {
+private fun SettingsPickerRow(
+    selected: Boolean,
+    onClick: () -> Unit,
+    content: @Composable (Modifier) -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()
@@ -292,7 +287,7 @@ private fun SettingsPickerRow(selected: Boolean, onClick: () -> Unit, content: @
             .heightIn(min = 56.dp)
             .padding(horizontal = 4.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         content(Modifier.weight(1f))
         if (selected) {
@@ -306,7 +301,7 @@ private fun SettingsCurrencySheet(
     all: List<Currency>,
     selected: Currency,
     onSelect: (Currency) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val matches = remember(query, all) { SettingsLogic.filterCurrencies(all, query) }
@@ -314,7 +309,7 @@ private fun SettingsCurrencySheet(
         Text(
             stringResource(R.string.settings_display_currency_choose),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() }
+            modifier = Modifier.semantics { heading() },
         )
         TextField(
             value = query,
@@ -340,30 +335,30 @@ private fun SettingsCurrencySheet(
                 focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                 focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
-            )
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
         )
         if (matches.isEmpty()) {
             Text(
                 stringResource(R.string.settings_currency_no_results),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
             )
         } else {
             LazyColumn(
                 Modifier.selectableGroup(),
-                contentPadding = PaddingValues(vertical = 4.dp)
+                contentPadding = PaddingValues(vertical = 4.dp),
             ) {
                 items(matches, key = { it.code }) { currency ->
                     SettingsPickerRow(
                         selected = currency.code == selected.code,
-                        onClick = { onSelect(currency) }
+                        onClick = { onSelect(currency) },
                     ) { weight ->
                         Row(
                             weight,
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             SettingsBadge(currency.code, MaterialTheme.colorScheme.surfaceContainerHigh)
                             Text(currency.name, style = MaterialTheme.typography.bodyLarge)
@@ -382,19 +377,19 @@ private fun AppLanguage.labelRes(): Int = when (this) {
 }
 
 @Composable
-private fun SettingsLanguageSheet(selected: AppLanguage, onSelect: (AppLanguage) -> Unit, onDismiss: () -> Unit) {
+private fun SettingsLanguageSheet(
+    selected: AppLanguage,
+    onSelect: (AppLanguage) -> Unit,
+    onDismiss: () -> Unit,
+) {
     val resolvedSystem = remember { LocaleResolution.resolvedSystemLanguage() }
     FinoraSheet(onDismiss = onDismiss) {
         Text(
             stringResource(R.string.settings_language_choose),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.semantics { heading() }
+            modifier = Modifier.semantics { heading() },
         )
-        Column(
-            Modifier
-                .padding(vertical = 12.dp)
-                .selectableGroup()
-        ) {
+        Column(Modifier.padding(vertical = 12.dp).selectableGroup()) {
             AppLanguage.entries.forEach { lang ->
                 SettingsPickerRow(selected = lang == selected, onClick = { onSelect(lang) }) { weight ->
                     Column(weight) {
@@ -403,7 +398,7 @@ private fun SettingsLanguageSheet(selected: AppLanguage, onSelect: (AppLanguage)
                             Text(
                                 stringResource(resolvedSystem.labelRes()),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
@@ -419,16 +414,13 @@ private fun SettingsPreviewBody(dark: Boolean, mode: ThemeMode) {
         Surface(color = MaterialTheme.colorScheme.background) {
             val inspection = LocalInspectionMode.current
             SettingsContent(
-                state = SettingsUiState(
-                    themeMode = mode,
-                    language = if (dark) AppLanguage.RUSSIAN else AppLanguage.SYSTEM
-                ),
+                state = SettingsUiState(themeMode = mode, language = if (dark) AppLanguage.RUSSIAN else AppLanguage.SYSTEM),
                 appVersion = if (inspection) "1.0" else "",
                 onBack = {},
                 onOpenData = {},
                 onThemeSelected = {},
                 onCurrencySelected = {},
-                onLanguageSelected = {}
+                onLanguageSelected = {},
             )
         }
     }

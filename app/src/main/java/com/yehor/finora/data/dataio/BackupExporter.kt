@@ -18,7 +18,10 @@ data class BackupExportResult(val fileName: String, val sizeBytes: Long)
 
 class BackupException(val failure: ImportFailure, message: String) : Exception(message)
 
-class BackupExporter(private val context: Context, private val db: FinoraDatabase) {
+class BackupExporter(
+    private val context: Context,
+    private val db: FinoraDatabase,
+) {
 
     suspend fun export(destination: Uri, fileName: String = "Finora-backup.db"): BackupExportResult =
         withContext(Dispatchers.IO) {
@@ -42,7 +45,7 @@ class BackupExporter(private val context: Context, private val db: FinoraDatabas
                 // Step 2: VACUUM INTO
                 db.openHelper.writableDatabase.execSQL(
                     "VACUUM INTO ?",
-                    arrayOf<Any>(tempFile.absolutePath)
+                    arrayOf<Any>(tempFile.absolutePath),
                 )
 
                 // Step 3: Verify snapshot
@@ -112,10 +115,7 @@ class BackupExporter(private val context: Context, private val db: FinoraDatabas
                 if (c.moveToFirst()) c.getInt(0) else -1
             }
             if (version != FinoraDatabase.VERSION) {
-                throw BackupException(
-                    ImportFailure.UNKNOWN_SCHEMA,
-                    "Snapshot user_version ($version) != ${FinoraDatabase.VERSION}"
-                )
+                throw BackupException(ImportFailure.UNKNOWN_SCHEMA, "Snapshot user_version ($version) != ${FinoraDatabase.VERSION}")
             }
 
             // room_master_table check

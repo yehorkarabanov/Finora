@@ -27,14 +27,12 @@ fun OrganizeTopBar(
     title: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    actions: @Composable RowScope.() -> Unit = {}
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         // Scaffold leaves the top inset to its topBar (edge-to-edge), so the bar clears the status bar itself.
-        modifier
-            .statusBarsPadding()
-            .padding(start = 12.dp, end = 12.dp, top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier.statusBarsPadding().padding(start = 12.dp, end = 12.dp, top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         RoundIconButton(AppIcons.Back, stringResource(R.string.navigate_back), onBack)
         Text(
@@ -43,10 +41,7 @@ fun OrganizeTopBar(
             color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
-                .semantics { heading() }
+            modifier = Modifier.weight(1f).padding(horizontal = 8.dp).semantics { heading() },
         )
         actions()
     }

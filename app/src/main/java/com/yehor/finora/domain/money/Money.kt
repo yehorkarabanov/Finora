@@ -17,7 +17,8 @@ data class Money(val amountMinor: Long, val currency: Currency) {
 
     operator fun unaryMinus(): Money = Money(exact { Math.negateExact(amountMinor) }, currency)
 
-    operator fun times(factor: Long): Money = Money(exact { Math.multiplyExact(amountMinor, factor) }, currency)
+    operator fun times(factor: Long): Money =
+        Money(exact { Math.multiplyExact(amountMinor, factor) }, currency)
 
     /** Plain decimal text without symbol, for example `-12.50`, `1000` (scale 0) or `0.005`. */
     fun toPlainString(): String = BigDecimal.valueOf(amountMinor, currency.scale).toPlainString()
@@ -50,7 +51,7 @@ data class Money(val amountMinor: Long, val currency: Currency) {
             }
             if (decimal.stripTrailingZeros().scale() > currency.scale) {
                 throw InvalidMoneyException(
-                    "'$text' has more than ${currency.scale} fractional digits for ${currency.code}"
+                    "'$text' has more than ${currency.scale} fractional digits for ${currency.code}",
                 )
             }
             val minor = try {

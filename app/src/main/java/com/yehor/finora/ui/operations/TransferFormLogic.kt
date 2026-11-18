@@ -12,7 +12,7 @@ data class TransferSides(
     val sourceAccountId: Long?,
     val destAccountId: Long?,
     val sentText: String,
-    val receivedText: String
+    val receivedText: String,
 )
 
 /** What a disabled Transfer CTA tells the user is missing, in priority order. */
@@ -42,7 +42,7 @@ object TransferFormLogic {
             sourceAccountId = sides.destAccountId,
             destAccountId = sides.sourceAccountId,
             sentText = if (sameCurrency) sides.sentText else sides.receivedText,
-            receivedText = if (sameCurrency) sides.receivedText else sides.sentText
+            receivedText = if (sameCurrency) sides.receivedText else sides.sentText,
         )
     }
 
@@ -56,7 +56,7 @@ object TransferFormLogic {
             sourceAccountId = sides.destAccountId,
             destAccountId = sides.sourceAccountId,
             sentText = sides.sentText,
-            receivedText = syncReceived(sides.sentText, sides.receivedText, true, destCurrency, sourceCurrency)
+            receivedText = syncReceived(sides.sentText, sides.receivedText, true, destCurrency, sourceCurrency),
         )
     }
 
@@ -70,7 +70,7 @@ object TransferFormLogic {
         receivedText: String,
         linked: Boolean,
         sourceCurrency: Currency?,
-        destCurrency: Currency?
+        destCurrency: Currency?,
     ): String {
         if (!linked) return receivedText
         val sameOrUnknown = sourceCurrency == null || destCurrency == null || sourceCurrency.code == destCurrency.code
@@ -102,16 +102,14 @@ object TransferFormLogic {
         sentText: String,
         receivedText: String,
         sourceCurrency: Currency?,
-        destCurrency: Currency?
+        destCurrency: Currency?,
     ): EffectiveRate? {
         if (sourceCurrency == null || destCurrency == null) return null
-        val sent =
-            TransferAmountParser.parse(sentText, sourceCurrency) as? TransferAmountParser.Result.Value ?: return null
-        val received =
-            TransferAmountParser.parse(receivedText, destCurrency) as? TransferAmountParser.Result.Value ?: return null
+        val sent = TransferAmountParser.parse(sentText, sourceCurrency) as? TransferAmountParser.Result.Value ?: return null
+        val received = TransferAmountParser.parse(receivedText, destCurrency) as? TransferAmountParser.Result.Value ?: return null
         return EffectiveRateCalculator.calculate(
             Money(sent.minor, sourceCurrency),
-            Money(received.minor, destCurrency)
+            Money(received.minor, destCurrency),
         )
     }
 }

@@ -38,12 +38,12 @@ private data class MoreEntry(val icon: ImageVector, val title: Int, val subtitle
 private val OrganizeEntries = listOf(
     MoreEntry(AppIcons.Category, R.string.more_categories, R.string.more_categories_subtitle, Routes.CATEGORIES),
     MoreEntry(AppIcons.Tag, R.string.more_tags, R.string.more_tags_subtitle, Routes.TAGS),
-    MoreEntry(AppIcons.Recurring, R.string.more_recurring, R.string.more_recurring_subtitle, Routes.RECURRING)
+    MoreEntry(AppIcons.Recurring, R.string.more_recurring, R.string.more_recurring_subtitle, Routes.RECURRING),
 )
 
 private val AppEntries = listOf(
     MoreEntry(AppIcons.Data, R.string.more_data, R.string.more_data_subtitle, Routes.DATA),
-    MoreEntry(AppIcons.Settings, R.string.more_settings, R.string.more_settings_subtitle, Routes.SETTINGS)
+    MoreEntry(AppIcons.Settings, R.string.more_settings, R.string.more_settings_subtitle, Routes.SETTINGS),
 )
 
 /** Slide-up "More" panel: ORGANIZE tiles and APP rows. [onNavigate] receives the chosen route. */
@@ -69,14 +69,9 @@ private fun MoreSheetContent(onNavigate: (String) -> Unit) {
                 title = stringResource(entry.title),
                 subtitle = stringResource(entry.subtitle),
                 trailing = {
-                    Icon(
-                        AppIcons.Next,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
                 },
-                onClick = { onNavigate(entry.route) }
+                onClick = { onNavigate(entry.route) },
             )
         }
     }
@@ -93,7 +88,7 @@ private fun OrganizeTile(entry: MoreEntry, modifier: Modifier, onClick: () -> Un
             .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 14.dp, horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         RoundIcon(entry.icon, MaterialTheme.colorScheme.primary)
         Text(
@@ -101,7 +96,7 @@ private fun OrganizeTile(entry: MoreEntry, modifier: Modifier, onClick: () -> Un
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }

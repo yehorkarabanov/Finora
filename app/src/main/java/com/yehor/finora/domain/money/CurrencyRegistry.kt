@@ -167,7 +167,7 @@ object CurrencyRegistry {
         Entry("YER", 2, "YER", "Yemeni Rial"),
         Entry("ZAR", 2, "ZAR", "Rand"),
         Entry("ZMW", 2, "ZMW", "Zambian Kwacha"),
-        Entry("ZWG", 2, "ZWG", "Zimbabwe Gold")
+        Entry("ZWG", 2, "ZWG", "Zimbabwe Gold"),
     )
 
     private val byCode: Map<String, Currency> =

@@ -74,7 +74,7 @@ class CategoryTree(categories: List<Category>) {
         for (id in order.asReversed()) {
             built[id] = CategoryNode(
                 byId.getValue(id),
-                childrenIds[id].orEmpty().map { built.getValue(it) }
+                childrenIds[id].orEmpty().map { built.getValue(it) },
             )
         }
         return built

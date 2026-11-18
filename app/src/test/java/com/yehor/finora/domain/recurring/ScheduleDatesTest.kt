@@ -13,12 +13,12 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = LocalDate.of(2026, 3, 1)
+            nextDate = LocalDate.of(2026, 3, 1),
         )
         val edited = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 3, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
-            endDate = null
+            endDate = null,
         )
         val lastHandled = LocalDate.of(2026, 2, 1)
 
@@ -35,12 +35,12 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = LocalDate.of(2026, 3, 1)
+            nextDate = LocalDate.of(2026, 3, 1),
         )
         val edited = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 3, 15),
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 2),
-            endDate = null
+            endDate = null,
         )
         val lastHandled = LocalDate.of(2026, 2, 1)
 
@@ -57,12 +57,12 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = LocalDate.of(2026, 3, 1)
+            nextDate = LocalDate.of(2026, 3, 1),
         )
         val edited = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 3, 10),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
-            endDate = null
+            endDate = null,
         )
         val lastHandled = LocalDate.of(2026, 2, 1)
 
@@ -79,14 +79,14 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = LocalDate.of(2026, 3, 1)
+            nextDate = LocalDate.of(2026, 3, 1),
         )
         val lastHandled = LocalDate.of(2026, 2, 1)
 
         val editedEqual = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 2, 1),
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
-            endDate = null
+            endDate = null,
         )
         val resultEqual = ScheduleDates.reschedule(anchor, editedEqual, lastHandled)
         assertEquals(ScheduleDates.Result.Rejected(ScheduleDates.Result.Reason.NEXT_NOT_AFTER_HANDLED), resultEqual)
@@ -94,7 +94,7 @@ class ScheduleDatesTest {
         val editedBefore = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 1, 15),
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
-            endDate = null
+            endDate = null,
         )
         val resultBefore = ScheduleDates.reschedule(anchor, editedBefore, lastHandled)
         assertEquals(ScheduleDates.Result.Rejected(ScheduleDates.Result.Reason.NEXT_NOT_AFTER_HANDLED), resultBefore)
@@ -106,12 +106,12 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = LocalDate.of(2026, 12, 1),
-            nextDate = LocalDate.of(2026, 5, 1)
+            nextDate = LocalDate.of(2026, 5, 1),
         )
         val edited = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 5, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
-            endDate = LocalDate.of(2026, 4, 1) // Shortened before nextDate
+            endDate = LocalDate.of(2026, 4, 1), // Shortened before nextDate
         )
         val lastHandled = LocalDate.of(2026, 4, 1)
 
@@ -128,7 +128,7 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = LocalDate.of(2026, 3, 1),
-            nextDate = null // Ended
+            nextDate = null, // Ended
         )
         val lastHandled = LocalDate.of(2026, 3, 1)
         val naturalNext = LocalDate.of(2026, 4, 1)
@@ -136,7 +136,7 @@ class ScheduleDatesTest {
         val edited = ScheduleDates.Edited(
             firstDate = naturalNext,
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
-            endDate = LocalDate.of(2026, 6, 1)
+            endDate = LocalDate.of(2026, 6, 1),
         )
 
         val result = ScheduleDates.reschedule(anchor, edited, lastHandled)
@@ -152,12 +152,12 @@ class ScheduleDatesTest {
             startDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = LocalDate.of(2026, 1, 1)
+            nextDate = LocalDate.of(2026, 1, 1),
         )
         val edited = ScheduleDates.Edited(
             firstDate = LocalDate.of(2026, 1, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
-            endDate = null
+            endDate = null,
         )
 
         val result = ScheduleDates.reschedule(anchor, edited, lastHandled = null)

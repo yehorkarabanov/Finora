@@ -17,29 +17,12 @@ class AnalyticsQueryTest {
 
     private class RecordingProgram : SupportSQLiteProgram {
         val bound = sortedMapOf<Int, Any?>()
-        override fun bindNull(index: Int) {
-            bound[index] = null
-        }
-
-        override fun bindLong(index: Int, value: Long) {
-            bound[index] = value
-        }
-
-        override fun bindDouble(index: Int, value: Double) {
-            bound[index] = value
-        }
-
-        override fun bindString(index: Int, value: String) {
-            bound[index] = value
-        }
-
-        override fun bindBlob(index: Int, value: ByteArray) {
-            bound[index] = value
-        }
-
-        override fun clearBindings() {
-            bound.clear()
-        }
+        override fun bindNull(index: Int) { bound[index] = null }
+        override fun bindLong(index: Int, value: Long) { bound[index] = value }
+        override fun bindDouble(index: Int, value: Double) { bound[index] = value }
+        override fun bindString(index: Int, value: String) { bound[index] = value }
+        override fun bindBlob(index: Int, value: ByteArray) { bound[index] = value }
+        override fun clearBindings() { bound.clear() }
         override fun close() {}
     }
 
@@ -61,14 +44,14 @@ class AnalyticsQueryTest {
         tagIds = setOf(1, 2),
         tagMode = TagMatchMode.ALL,
         from = 100,
-        toExclusive = 200
+        toExclusive = 200,
     )
 
     private fun allBuilders(f: TransactionFilter, m: Measure): List<SimpleSQLiteQuery> = listOf(
         AnalyticsQuery.byCategory(f, m, setOf(7, 8)),
         AnalyticsQuery.byAccount(f, m, setOf(7, 8)),
         AnalyticsQuery.byTag(f, m, setOf(7, 8)),
-        AnalyticsQuery.byBucket(f, m, setOf(7, 8), buckets(3))
+        AnalyticsQuery.byBucket(f, m, setOf(7, 8), buckets(3)),
     )
 
     @Test
@@ -97,11 +80,7 @@ class AnalyticsQueryTest {
 
     @Test
     fun filterTypesStillApplyWhenTheyContradictTheMeasure() {
-        val sql = AnalyticsQuery.byCategory(
-            TransactionFilter(types = setOf(OperationType.EXPENSE)),
-            Measure.INCOME,
-            emptySet()
-        ).sql
+        val sql = AnalyticsQuery.byCategory(TransactionFilter(types = setOf(OperationType.EXPENSE)), Measure.INCOME, emptySet()).sql
         assertTrue(sql.contains("o.type IN (?)"))
         assertTrue(sql.contains("o.type = 'INCOME'"))
     }
@@ -139,7 +118,7 @@ class AnalyticsQueryTest {
             AnalyticsQuery.accountFigures(1, 10, 20),
             AnalyticsQuery.accountsOverview(10, 20),
             AnalyticsQuery.balanceBefore(1, 10),
-            AnalyticsQuery.balanceDeltas(1, buckets(4))
+            AnalyticsQuery.balanceDeltas(1, buckets(4)),
         )
         others.forEach { assertEquals(it.sql, it.placeholders(), it.args().size) }
     }
@@ -152,7 +131,7 @@ class AnalyticsQueryTest {
             categoryIds = setOf(555555),
             tagIds = setOf(424242),
             from = 1122334455,
-            toExclusive = 9988776655
+            toExclusive = 9988776655,
         )
         for (measure in Measure.entries) {
             allBuilders(hostile, measure).forEach { q ->

@@ -56,8 +56,8 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.ui.common.TransactionRow
 import com.yehor.finora.ui.recurring.formatScheduleDate
-import kotlinx.coroutines.flow.Flow
 import java.time.YearMonth
+import kotlinx.coroutines.flow.Flow
 
 private val ScreenMargin = 18.dp
 
@@ -70,7 +70,7 @@ data class DashboardActions(
     val onOpenTransactions: (TransactionFilter) -> Unit,
     val onOpenTransaction: (TransactionItem) -> Unit,
     val onOpenSchedule: (Long) -> Unit,
-    val onOpenRecurring: () -> Unit
+    val onOpenRecurring: () -> Unit,
 )
 
 @Composable
@@ -84,7 +84,7 @@ fun DashboardScreen(actions: DashboardActions, viewModel: DashboardViewModel = h
         onShow = viewModel::showHomePeriod,
         onRange = viewModel::setHomeRange,
         onToggleAccount = viewModel::toggleAccount,
-        onClearAccountSelection = viewModel::clearAccountSelection
+        onClearAccountSelection = viewModel::clearAccountSelection,
     )
 }
 
@@ -97,7 +97,7 @@ fun DashboardContent(
     onShow: (HomePeriod) -> Unit,
     onRange: (YearMonth, YearMonth) -> Unit,
     onToggleAccount: (Long) -> Unit,
-    onClearAccountSelection: () -> Unit
+    onClearAccountSelection: () -> Unit,
 ) {
     // No FAB on Home (quick actions instead); the shell already keeps content clear of the floating bar.
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
@@ -106,20 +106,16 @@ fun DashboardContent(
         when {
             state.loading || period == null || today == null -> Unit
             !state.hasAccounts -> Column(
-                Modifier
-                    .padding(padding)
-                    .padding(horizontal = ScreenMargin),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                Modifier.padding(padding).padding(horizontal = ScreenMargin),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 HomeTopBar()
                 FirstAccountCard(actions.onAddAccount)
             }
             else -> LazyColumn(
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding),
+                Modifier.fillMaxSize().padding(padding),
                 contentPadding = PaddingValues(start = ScreenMargin, end = ScreenMargin, top = 4.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 item(key = "top") { HomeTopBar() }
                 item(key = "period") {
@@ -131,7 +127,7 @@ fun DashboardContent(
                         onMode = onMode,
                         onRange = onRange,
                         onToggleAccount = onToggleAccount,
-                        onClearAccounts = onClearAccountSelection
+                        onClearAccounts = onClearAccountSelection,
                     )
                 }
                 item(key = "hero") {
@@ -148,7 +144,7 @@ fun DashboardContent(
                             ConversionNote(
                                 chart.conversion,
                                 resolveScope(state.selectedAccountIds, state.accounts, display),
-                                Modifier.padding(horizontal = 4.dp)
+                                Modifier.padding(horizontal = 4.dp),
                             )
                         }
                     }
@@ -170,7 +166,7 @@ private fun periodFilter(state: DashboardUiState): TransactionFilter? {
         types = setOf(OperationType.INCOME, OperationType.EXPENSE),
         from = buckets.first().from,
         toExclusive = buckets.last().toExclusive,
-        accountIds = state.selectedAccountIds
+        accountIds = state.selectedAccountIds,
     )
 }
 
@@ -180,24 +176,22 @@ private fun periodFilter(state: DashboardUiState): TransactionFilter? {
 private fun FirstAccountCard(onAdd: () -> Unit) {
     GroupedCard(Modifier.fillMaxWidth()) {
         Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
+            Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             RoundIcon(AppIcons.Account, MaterialTheme.colorScheme.primary, size = 64.dp)
             Text(
                 stringResource(R.string.dashboard_first_account_title),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 stringResource(R.string.accounts_empty_body),
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             PrimaryButton(stringResource(R.string.dashboard_first_account_action), onAdd, Modifier.padding(top = 4.dp))
         }
@@ -208,24 +202,10 @@ private fun FirstAccountCard(onAdd: () -> Unit) {
 
 @Composable
 private fun QuickActions(canTransfer: Boolean, actions: DashboardActions) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        QuickAction(
-            stringResource(R.string.transaction_kind_expense),
-            AppIcons.Expense,
-            primary = true,
-            onClick = actions.onAddTransaction
-        )
+    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceEvenly) {
+        QuickAction(stringResource(R.string.transaction_kind_expense), AppIcons.Expense, primary = true, onClick = actions.onAddTransaction)
         QuickAction(stringResource(R.string.transaction_kind_income), AppIcons.Income, onClick = actions.onAddIncome)
-        QuickAction(
-            stringResource(R.string.transaction_kind_transfer),
-            AppIcons.Transfer,
-            enabled = canTransfer,
-            onClick = actions.onAddTransfer
-        )
+        QuickAction(stringResource(R.string.transaction_kind_transfer), AppIcons.Transfer, enabled = canTransfer, onClick = actions.onAddTransfer)
         QuickAction(stringResource(R.string.quick_recurring), AppIcons.Recurring, onClick = actions.onOpenRecurring)
     }
 }
@@ -236,7 +216,7 @@ private fun QuickAction(
     icon: ImageVector,
     primary: Boolean = false,
     enabled: Boolean = true,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val scheme = MaterialTheme.colorScheme
     val interaction = remember { MutableInteractionSource() }
@@ -245,37 +225,27 @@ private fun QuickAction(
             .widthIn(min = 72.dp)
             .pressScale(interaction)
             .clip(MaterialTheme.shapes.medium)
-            .clickable(
-                interactionSource = interaction,
-                indication = LocalIndication.current,
-                enabled = enabled,
-                role = Role.Button,
-                onClick = onClick
-            )
+            .clickable(interactionSource = interaction, indication = LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.38f)
             .padding(vertical = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Box(
             Modifier
                 .size(56.dp)
                 .background(if (primary) scheme.primaryContainer else scheme.surfaceContainer, CircleShape)
                 .then(if (primary) Modifier else Modifier.border(hairline(MaterialTheme.finance.isDark), CircleShape)),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = if (primary) MaterialTheme.finance.onMint else scheme.onSurface
-            )
+            Icon(icon, contentDescription = null, tint = if (primary) MaterialTheme.finance.onMint else scheme.onSurface)
         }
         Text(
             label,
             style = MaterialTheme.typography.labelMedium,
             color = scheme.onSurface,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -290,14 +260,10 @@ private fun UpcomingSection(upcoming: UpcomingState, actions: DashboardActions) 
             if (upcoming.attentionCount > 0) {
                 ListRow(
                     icon = { RoundIcon(AppIcons.Warning, MaterialTheme.colorScheme.error) },
-                    title = pluralStringResource(
-                        R.plurals.dashboard_schedules_attention,
-                        upcoming.attentionCount,
-                        upcoming.attentionCount
-                    ),
+                    title = pluralStringResource(R.plurals.dashboard_schedules_attention, upcoming.attentionCount, upcoming.attentionCount),
                     subtitle = null,
                     trailing = {},
-                    onClick = actions.onOpenRecurring
+                    onClick = actions.onOpenRecurring,
                 )
             }
             if (upcoming.items.isEmpty()) {
@@ -315,9 +281,7 @@ private fun UpcomingRow(item: UpcomingItem, onOpen: (Long) -> Unit) {
     val income = schedule.kind == TransactionKind.INCOME
     val finance = MaterialTheme.finance
     ListRow(
-        icon = {
-            RoundIcon(AppIcons.Recurring, if (income) finance.income else MaterialTheme.colorScheme.onSurfaceVariant)
-        },
+        icon = { RoundIcon(AppIcons.Recurring, if (income) finance.income else MaterialTheme.colorScheme.onSurfaceVariant) },
         title = schedule.name,
         subtitle = "${formatScheduleDate(item.date)} · ${schedule.account.name}",
         trailing = {
@@ -325,10 +289,10 @@ private fun UpcomingRow(item: UpcomingItem, onOpen: (Long) -> Unit) {
                 if (income) "+${money.format()}" else "−${money.format()}",
                 style = AmountStyle,
                 color = if (income) finance.income else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1
+                maxLines = 1,
             )
         },
-        onClick = { onOpen(schedule.id) }
+        onClick = { onOpen(schedule.id) },
     )
 }
 
@@ -343,7 +307,7 @@ private fun RecentSection(recent: List<TransactionItem>, selectedAccountIds: Set
                 null
             } else {
                 { SeeAll { actions.onOpenTransactions(TransactionFilter(accountIds = selectedAccountIds)) } }
-            }
+            },
         )
         GroupedCard(Modifier.fillMaxWidth()) {
             if (recent.isEmpty()) {
@@ -351,13 +315,13 @@ private fun RecentSection(recent: List<TransactionItem>, selectedAccountIds: Set
                     icon = { RoundIcon(AppIcons.Receipt, MaterialTheme.colorScheme.onSurfaceVariant) },
                     title = stringResource(R.string.dashboard_no_recent),
                     subtitle = null,
-                    trailing = {}
+                    trailing = {},
                 )
             } else {
                 recent.forEach { item ->
                     TransactionRow(
                         item,
-                        onClick = { actions.onOpenTransaction(item) }
+                        onClick = { actions.onOpenTransaction(item) },
                     )
                 }
             }
@@ -380,6 +344,6 @@ private fun EmptyLine(text: String) {
         text,
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
     )
 }

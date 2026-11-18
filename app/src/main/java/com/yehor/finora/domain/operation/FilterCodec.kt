@@ -58,5 +58,6 @@ object FilterCodec {
     private fun parseType(name: String): OperationType? =
         OperationType.entries.firstOrNull { it.name == name && it in ENCODABLE_TYPES }
 
-    private fun parseIds(value: String): Set<Long> = value.split(',').mapNotNull { it.toLongOrNull() }.toSet()
+    private fun parseIds(value: String): Set<Long> =
+        value.split(',').mapNotNull { it.toLongOrNull() }.toSet()
 }

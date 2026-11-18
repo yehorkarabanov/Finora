@@ -1,7 +1,7 @@
 package com.yehor.finora.ui.accounts
 
-import com.yehor.finora.domain.analytics.BalancePoint
 import com.yehor.finora.domain.analytics.Bucket
+import com.yehor.finora.domain.analytics.BalancePoint
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
 import org.junit.Assert.assertEquals
@@ -11,12 +11,10 @@ import org.junit.Test
 import java.time.LocalDate
 
 class AccountsListLogicTest {
-    @Test
-    fun sharesSumToOne() =
+    @Test fun sharesSumToOne() =
         assertEquals(1f, accountShares(listOf(1L to 300L, 2L to 100L)).sumOf { it.second.toDouble() }.toFloat(), 0.001f)
 
-    @Test
-    fun negativeIgnored() =
+    @Test fun negativeIgnored() =
         assertEquals(listOf(1L to 1f), accountShares(listOf(1L to 50L, 2L to -20L)).filter { it.second > 0f })
 
     @Test fun allZeroEmpty() = assertTrue(accountShares(listOf(1L to 0L, 2L to null)).isEmpty())

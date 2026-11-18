@@ -80,7 +80,7 @@ import kotlin.math.roundToInt
 data class WaveGestures(
     val onPan: (deltaFraction: Float) -> Unit,
     val onZoom: (scale: Float, focusFraction: Float) -> Unit,
-    val onGestureEnd: () -> Unit
+    val onGestureEnd: () -> Unit,
 )
 
 /** Extra drawing room around the chart so the glow, halos and round caps are never clipped at its edges. */
@@ -114,7 +114,7 @@ fun WaveChart(
     sparkline: Boolean = false,
     color: Color? = null,
     slide: (() -> Float)? = null,
-    live: Boolean = true
+    live: Boolean = true,
 ) {
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
@@ -199,7 +199,7 @@ fun WaveChart(
         Modifier.pointerInput(Unit) {
             panZoomGestures(
                 gestures = { currentGestures },
-                onStep = { lastGestureAt[0] = SystemClock.uptimeMillis() }
+                onStep = { lastGestureAt[0] = SystemClock.uptimeMillis() },
             )
         }
     }
@@ -225,7 +225,7 @@ fun WaveChart(
                         change.consume()
                     },
                     onDragEnd = {},
-                    onDragCancel = {}
+                    onDragCancel = {},
                 )
             }
     }
@@ -246,26 +246,20 @@ fun WaveChart(
                 Offset(bleedPx, bleedPx + zeroY),
                 Offset(bleedPx + w, bleedPx + zeroY),
                 strokeWidth = 1.dp.toPx(),
-                pathEffect = paints.zeroDash
+                pathEffect = paints.zeroDash,
             )
         }
     }
     // Pan/zoom is outside the scrub handlers: they see each event first, so a long-press scrub consumes
     // its drag before the pan handler could claim it.
-    Box(
-        modifier
-            .then(panZoom)
-            .then(scrub)
-            .onSizeChanged { size = it }) {
+    Box(modifier.then(panZoom).then(scrub).onSizeChanged { size = it }) {
         Canvas(
             Modifier
                 .fillMaxSize()
                 .then(slideLayer)
                 .bleed(bleedPx.roundToInt())
                 .then(reveal)
-                .graphicsLayer(
-                    compositingStrategy = if (sparkline) CompositingStrategy.Auto else CompositingStrategy.Offscreen
-                )
+                .graphicsLayer(compositingStrategy = if (sparkline) CompositingStrategy.Auto else CompositingStrategy.Offscreen),
         ) {
             if (w <= 0f || h <= 0f) return@Canvas
             translate(bleedPx, bleedPx) {
@@ -285,10 +279,7 @@ fun WaveChart(
                             geometry.runs.forEach { run ->
                                 val native = run.line.asAndroidPath()
                                 sides(splitY, w, h, b) { aboveZero ->
-                                    canvas.nativeCanvas.drawPath(
-                                        native,
-                                        if (aboveZero) paints.glowAbove else paints.glowBelow
-                                    )
+                                    canvas.nativeCanvas.drawPath(native, if (aboveZero) paints.glowAbove else paints.glowBelow)
                                 }
                             }
                         }
@@ -296,11 +287,7 @@ fun WaveChart(
                 }
                 geometry.runs.forEach { run ->
                     sides(splitY, w, h, b) { aboveZero ->
-                        drawPath(
-                            run.line,
-                            if (aboveZero) paints.strokeAbove else paints.strokeBelow,
-                            style = paints.stroke
-                        )
+                        drawPath(run.line, if (aboveZero) paints.strokeAbove else paints.strokeBelow, style = paints.stroke)
                     }
                 }
                 geometry.dots.forEach { p ->
@@ -312,13 +299,7 @@ fun WaveChart(
         // layer above, so it never forces the fill, grain and blur glow to re-render.
         if (!sparkline) {
             // Own (non-offscreen) layer: redrawing it re-records only this node.
-            Canvas(
-                Modifier
-                    .fillMaxSize()
-                    .then(slideLayer)
-                    .bleed(bleedPx.roundToInt())
-                    .graphicsLayer()
-            ) {
+            Canvas(Modifier.fillMaxSize().then(slideLayer).bleed(bleedPx.roundToInt()).graphicsLayer()) {
                 if (w <= 0f || h <= 0f) return@Canvas
                 translate(bleedPx, bleedPx) {
                     val splitY = if (zeroLine) geometry.zeroY else null
@@ -329,11 +310,7 @@ fun WaveChart(
                             val t = pulse.value
                             val c = colorAt(latest.y, splitY, lineColor, below)
                             val center = Offset(latest.x, latest.y)
-                            drawCircle(
-                                c.copy(alpha = (0.35f + (0.10f - 0.35f) * t) * appear),
-                                8.dp.toPx() * (1f + 0.6f * t),
-                                center
-                            )
+                            drawCircle(c.copy(alpha = (0.35f + (0.10f - 0.35f) * t) * appear), 8.dp.toPx() * (1f + 0.6f * t), center)
                             drawCircle(surface.copy(alpha = appear), 6.dp.toPx(), center)
                             drawCircle(c.copy(alpha = appear), 4.dp.toPx(), center)
                         }
@@ -347,7 +324,7 @@ fun WaveChart(
                             Offset(x, padTop),
                             Offset(x, h),
                             strokeWidth = 1.dp.toPx(),
-                            pathEffect = paints.guideDash
+                            pathEffect = paints.guideDash,
                         )
                         drawCircle(c.copy(alpha = 0.22f), 9.dp.toPx(), Offset(x, y))
                         drawCircle(onSurface, 5.dp.toPx(), Offset(x, y))
@@ -361,10 +338,7 @@ fun WaveChart(
             val shape = RoundedCornerShape(12.dp)
             Text(
                 label(sel),
-                style = MaterialTheme.typography.labelLarge.copy(
-                    fontFamily = SpaceGrotesk,
-                    fontFeatureSettings = "tnum"
-                ),
+                style = MaterialTheme.typography.labelLarge.copy(fontFamily = SpaceGrotesk, fontFeatureSettings = "tnum"),
                 color = onSurface,
                 modifier = Modifier
                     .then(slideLayer)
@@ -378,7 +352,7 @@ fun WaveChart(
                     }
                     .background(scheme.surfaceContainerHighest, shape)
                     .border(hairline(finance.isDark), shape)
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
     }
@@ -475,7 +449,7 @@ private class WaveGeometryCache(
     val peakY: Float,
     val troughY: Float,
     private val points: Array<WavePoint?>,
-    val width: Float
+    val width: Float,
 ) {
     /** The last drawn point (trailing nulls are future buckets), so "today" carries the live point. */
     val latestIndex: Int? = points.indexOfLast { it != null }.takeIf { it >= 0 }
@@ -494,7 +468,7 @@ private class WaveGeometryCache(
             padTop: Float,
             padBottom: Float,
             zeroLine: Boolean,
-            sparkline: Boolean
+            sparkline: Boolean,
         ): WaveGeometryCache {
             val layout = WaveGeometry.layout(values, w, h, padTop, padBottom, zeroLine, compare.orEmpty())
             val zeroY = layout.zeroY
@@ -535,15 +509,13 @@ private class WaveGeometryCache(
                 peakY = flat.minOfOrNull { it.y } ?: 0f,
                 troughY = flat.maxOfOrNull { it.y } ?: h,
                 points = points,
-                width = w
+                width = w,
             )
         }
 
         private fun smoothPath(run: List<WavePoint>, zeroY: Float?, h: Float): Path = Path().apply {
             moveTo(run[0].x, run[0].y)
-            WaveGeometry.smooth(run, zeroY, 0f, h).forEach {
-                cubicTo(it.c1.x, it.c1.y, it.c2.x, it.c2.y, it.to.x, it.to.y)
-            }
+            WaveGeometry.smooth(run, zeroY, 0f, h).forEach { cubicTo(it.c1.x, it.c1.y, it.c2.x, it.c2.y, it.to.x, it.to.y) }
         }
     }
 }
@@ -556,18 +528,10 @@ private class WavePaints(
     glow: Color,
     variant: Color,
     strokePx: Float,
-    density: Float
+    density: Float,
 ) {
-    val strokeAbove: Brush = Brush.horizontalGradient(
-        listOf(line.copy(alpha = 0.7f), line),
-        0f,
-        g.width.coerceAtLeast(1f)
-    )
-    val strokeBelow: Brush = Brush.horizontalGradient(
-        listOf(below.copy(alpha = 0.7f), below),
-        0f,
-        g.width.coerceAtLeast(1f)
-    )
+    val strokeAbove: Brush = Brush.horizontalGradient(listOf(line.copy(alpha = 0.7f), line), 0f, g.width.coerceAtLeast(1f))
+    val strokeBelow: Brush = Brush.horizontalGradient(listOf(below.copy(alpha = 0.7f), below), 0f, g.width.coerceAtLeast(1f))
     val fillAbove: Brush = easedFade(line, g.peakY, g.baseline)
     val fillBelow: Brush = easedFade(below, g.troughY, g.zeroY ?: g.baseline)
     val stroke = Stroke(strokePx, cap = StrokeCap.Round, join = StrokeJoin.Round)
@@ -580,7 +544,7 @@ private class WavePaints(
     val compareStroke = Stroke(
         1.5f * density,
         cap = StrokeCap.Round,
-        pathEffect = PathEffect.dashPathEffect(floatArrayOf(3f * density, 5f * density))
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(3f * density, 5f * density)),
     )
 
     private fun easedFade(color: Color, from: Float, to: Float): Brush {
@@ -592,7 +556,7 @@ private class WavePaints(
             0.8f to color.copy(alpha = 0.04f),
             1f to color.copy(alpha = 0f),
             startY = from,
-            endY = end
+            endY = end,
         )
     }
 
@@ -607,13 +571,7 @@ private class WavePaints(
 }
 
 /** Runs [block] once (no split) or twice, clipped above and below [zeroY]; the flag says which side. */
-private inline fun DrawScope.sides(
-    zeroY: Float?,
-    w: Float,
-    h: Float,
-    b: Float,
-    block: DrawScope.(aboveZero: Boolean) -> Unit
-) {
+private inline fun DrawScope.sides(zeroY: Float?, w: Float, h: Float, b: Float, block: DrawScope.(aboveZero: Boolean) -> Unit) {
     if (zeroY == null) {
         block(true)
     } else {

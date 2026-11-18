@@ -37,12 +37,7 @@ class AmountKeypadTest {
     fun `integer part is capped`() {
         assertEquals("1".repeat(AmountKeypad.MAX_INTEGER_DIGITS), type("1".repeat(AmountKeypad.MAX_INTEGER_DIGITS + 3)))
         // The fraction can still be typed after a capped integer part.
-        assertEquals(
-            "1".repeat(AmountKeypad.MAX_INTEGER_DIGITS) + ".5",
-            type(
-                "1".repeat(AmountKeypad.MAX_INTEGER_DIGITS) + ".5"
-            )
-        )
+        assertEquals("1".repeat(AmountKeypad.MAX_INTEGER_DIGITS) + ".5", type("1".repeat(AmountKeypad.MAX_INTEGER_DIGITS) + ".5"))
     }
 
     @Test

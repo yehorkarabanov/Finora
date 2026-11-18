@@ -10,7 +10,7 @@ enum class AccountDraftError {
     DESCRIPTION_TOO_LONG,
     AMOUNT_INVALID,
     AMOUNT_TOO_PRECISE,
-    AMOUNT_OUT_OF_RANGE
+    AMOUNT_OUT_OF_RANGE,
 }
 
 /** Result of parsing the unsigned amount text of the opening balance field. */
@@ -30,7 +30,12 @@ object AccountDraftValidator {
      * [amountText] is the signed amount: digits, one decimal separator (`.` or `,`) and an optional
      * leading `-` for a negative balance.
      */
-    fun validate(name: String, description: String?, amountText: String, currency: Currency): Set<AccountDraftError> {
+    fun validate(
+        name: String,
+        description: String?,
+        amountText: String,
+        currency: Currency,
+    ): Set<AccountDraftError> {
         val errors = mutableSetOf<AccountDraftError>()
         val trimmedName = name.trim()
         if (trimmedName.isEmpty()) errors += AccountDraftError.NAME_EMPTY

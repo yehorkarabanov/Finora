@@ -28,11 +28,7 @@ class StatisticsTrendTest {
         Bucket(i, day, day, 0L, 0L)
     }
 
-    @Test
-    fun monthUsesDayBuckets() = assertEquals(
-        BucketUnit.DAY,
-        trendBuckets(resolved(MONTH, nov10), UTC, null).first
-    )
+    @Test fun monthUsesDayBuckets() = assertEquals(BucketUnit.DAY, trendBuckets(resolved(MONTH, nov10), UTC, null).first)
 
     @Test fun yearUsesMonthBuckets() = assertEquals(12, trendBuckets(resolved(YEAR, nov10), UTC, null).second.size)
 
@@ -50,9 +46,7 @@ class StatisticsTrendTest {
     @Test fun customBandKeepsThePreviousUnit() {
         val start = LocalDate.of(2026, 7, 1)
         val period = PeriodCalculator.resolve(
-            com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, start, start.plusDays(94)),
-            UTC,
-            DayOfWeek.MONDAY
+            com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, start, start.plusDays(94)), UTC, DayOfWeek.MONDAY,
         )
         assertEquals(BucketUnit.MONTH, trendBuckets(period, UTC, BucketUnit.MONTH).first)
         assertEquals(BucketUnit.DAY, trendBuckets(period, UTC, BucketUnit.DAY).first)
@@ -60,13 +54,8 @@ class StatisticsTrendTest {
 
     @Test fun monthBucketsAreClippedToThePeriod() {
         val period = PeriodCalculator.resolve(
-            com.yehor.finora.domain.analytics.Period(
-                PeriodKind.CUSTOM,
-                LocalDate.of(2026, 3, 15),
-                LocalDate.of(2026, 9, 10)
-            ),
-            UTC,
-            DayOfWeek.MONDAY
+            com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 15), LocalDate.of(2026, 9, 10)),
+            UTC, DayOfWeek.MONDAY,
         )
         val (unit, list) = trendBuckets(period, UTC, null)
         assertEquals(BucketUnit.MONTH, unit)
@@ -110,13 +99,11 @@ class StatisticsTrendTest {
     // ---- values ----
 
     private fun cell(minor: Long?, count: Int = 1) = com.yehor.finora.domain.analytics.Cell(
-        estimate = minor?.let {
-            com.yehor.finora.domain.money.Estimate(it, pln, com.yehor.finora.domain.money.EstimateBasis.NATIVE)
-        },
+        estimate = minor?.let { com.yehor.finora.domain.money.Estimate(it, pln, com.yehor.finora.domain.money.EstimateBasis.NATIVE) },
         operationCount = count,
         excluded = emptySet(),
         overflowed = false,
-        oldestFetchedAt = null
+        oldestFetchedAt = null,
     )
     private val pln = com.yehor.finora.domain.money.CurrencyRegistry.get("PLN")
 
@@ -140,12 +127,12 @@ class StatisticsTrendTest {
 
     @Test fun currentPeriodIsClippedToToday() = assertEquals(
         ChartWindow(LocalDate.of(2026, 11, 1), nov10),
-        displayWindow(resolved(MONTH, nov10), nov10)
+        displayWindow(resolved(MONTH, nov10), nov10),
     )
 
     @Test fun pastPeriodIsNotClipped() = assertEquals(
         ChartWindow(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31)),
-        displayWindow(resolved(MONTH, LocalDate.of(2026, 10, 5)), nov10)
+        displayWindow(resolved(MONTH, LocalDate.of(2026, 10, 5)), nov10),
     )
 
     @Test fun noOpGestureOnCurrentPeriodCommitsNothing() {
@@ -158,7 +145,7 @@ class StatisticsTrendTest {
         val october = ChartWindow(LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31))
         assertEquals(
             com.yehor.finora.domain.analytics.PeriodState(PeriodKind.MONTH, offset = -1),
-            commitTarget(october, period, nov10, DayOfWeek.MONDAY)
+            commitTarget(october, period, nov10, DayOfWeek.MONDAY),
         )
     }
 

@@ -13,47 +13,20 @@ class RecurrenceCalculatorTest {
     @Test
     fun `nth with each unit and interval 1`() {
         val anchor = LocalDate.of(2026, 1, 15)
-        assertEquals(
-            LocalDate.of(2026, 1, 15),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 1), 0)
-        )
-        assertEquals(
-            LocalDate.of(2026, 1, 16),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 1), 1)
-        )
-        assertEquals(
-            LocalDate.of(2026, 1, 22),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.WEEK, 1), 1)
-        )
-        assertEquals(
-            LocalDate.of(2026, 2, 15),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.MONTH, 1), 1)
-        )
-        assertEquals(
-            LocalDate.of(2027, 1, 15),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.YEAR, 1), 1)
-        )
+        assertEquals(LocalDate.of(2026, 1, 15), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 1), 0))
+        assertEquals(LocalDate.of(2026, 1, 16), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 1), 1))
+        assertEquals(LocalDate.of(2026, 1, 22), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.WEEK, 1), 1))
+        assertEquals(LocalDate.of(2026, 2, 15), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.MONTH, 1), 1))
+        assertEquals(LocalDate.of(2027, 1, 15), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.YEAR, 1), 1))
     }
 
     @Test
     fun `nth with each unit and interval N`() {
         val anchor = LocalDate.of(2026, 1, 15)
-        assertEquals(
-            LocalDate.of(2026, 1, 21),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 3), 2)
-        )
-        assertEquals(
-            LocalDate.of(2026, 2, 12),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.WEEK, 2), 2)
-        )
-        assertEquals(
-            LocalDate.of(2026, 7, 15),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.MONTH, 3), 2)
-        )
-        assertEquals(
-            LocalDate.of(2036, 1, 15),
-            RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.YEAR, 5), 2)
-        )
+        assertEquals(LocalDate.of(2026, 1, 21), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.DAY, 3), 2))
+        assertEquals(LocalDate.of(2026, 2, 12), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.WEEK, 2), 2))
+        assertEquals(LocalDate.of(2026, 7, 15), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.MONTH, 3), 2))
+        assertEquals(LocalDate.of(2036, 1, 15), RecurrenceCalculator.nth(anchor, RecurrenceRule(RecurrenceUnit.YEAR, 5), 2))
     }
 
     @Test
@@ -110,25 +83,16 @@ class RecurrenceCalculatorTest {
         assertEquals(LocalDate.of(2026, 1, 10), RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 1, 1)))
 
         // Exactly on anchor (Jan 10) -> next is Feb 10
-        assertEquals(
-            LocalDate.of(2026, 2, 10),
-            RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 1, 10))
-        )
+        assertEquals(LocalDate.of(2026, 2, 10), RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 1, 10)))
 
         // One day before occurrence (Feb 9) -> next is Feb 10
         assertEquals(LocalDate.of(2026, 2, 10), RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 2, 9)))
 
         // One day after occurrence (Feb 11) -> next is Mar 10
-        assertEquals(
-            LocalDate.of(2026, 3, 10),
-            RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 2, 11))
-        )
+        assertEquals(LocalDate.of(2026, 3, 10), RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2026, 2, 11)))
 
         // Far from anchor (e.g. 5 years later, 2031-06-15) -> next is 2031-07-10
-        assertEquals(
-            LocalDate.of(2031, 7, 10),
-            RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2031, 6, 15))
-        )
+        assertEquals(LocalDate.of(2031, 7, 10), RecurrenceCalculator.firstAfter(anchor, rule, LocalDate.of(2031, 6, 15)))
     }
 
     @Test
@@ -152,15 +116,15 @@ class RecurrenceCalculatorTest {
             rule = rule,
             from = LocalDate.of(2026, 2, 15),
             toInclusive = LocalDate.of(2026, 6, 1),
-            limit = 3
+            limit = 3,
         )
         assertEquals(
             listOf(
                 LocalDate.of(2026, 3, 1),
                 LocalDate.of(2026, 4, 1),
-                LocalDate.of(2026, 5, 1)
+                LocalDate.of(2026, 5, 1),
             ),
-            list
+            list,
         )
     }
 

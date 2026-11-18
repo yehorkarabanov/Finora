@@ -3,11 +3,11 @@ package com.yehor.finora.ui.common
 import com.yehor.finora.ui.operations.dateOf
 import com.yehor.finora.ui.operations.endExclusiveMillis
 import com.yehor.finora.ui.operations.startOfDayMillis
-import org.junit.Assert.assertEquals
-import org.junit.Test
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
+import org.junit.Assert.assertEquals
+import org.junit.Test
 
 class DateRangePickerDialogTest {
 
@@ -41,9 +41,6 @@ class DateRangePickerDialogTest {
         val l = Locale.ENGLISH
         assertEquals("9 Nov 2026", compactRangeLabel(LocalDate.of(2026, 11, 9), LocalDate.of(2026, 11, 9), l))
         assertEquals("3 Nov – 9 Nov 2026", compactRangeLabel(LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 9), l))
-        assertEquals(
-            "3 Nov 2025 – 9 Nov 2026",
-            compactRangeLabel(LocalDate.of(2025, 11, 3), LocalDate.of(2026, 11, 9), l)
-        )
+        assertEquals("3 Nov 2025 – 9 Nov 2026", compactRangeLabel(LocalDate.of(2025, 11, 3), LocalDate.of(2026, 11, 9), l))
     }
 }

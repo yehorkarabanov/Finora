@@ -13,7 +13,7 @@ data class DrillRow(
     val category: Category?,
     val cell: Cell,
     val isDirect: Boolean,
-    val hasChildren: Boolean
+    val hasChildren: Boolean,
 )
 
 object CategoryDrill {
@@ -29,7 +29,7 @@ object CategoryDrill {
         direct: Map<Long?, Cell>,
         rolled: Map<Long?, Cell>,
         path: List<Long>,
-        type: CategoryType
+        type: CategoryType,
     ): List<DrillRow> {
         val rows = ArrayList<DrillRow>()
         val current = path.lastOrNull()?.let { tree.node(it) }
@@ -47,7 +47,7 @@ object CategoryDrill {
             .filter { it.cell.hasAmount || it.cell.partial || it.cell.overflowed }
             .sortedWith(
                 compareByDescending<DrillRow> { it.cell.estimate?.amountMinor ?: Long.MIN_VALUE }
-                    .thenBy { it.category?.name ?: "" }
+                    .thenBy { it.category?.name ?: "" },
             )
     }
 
@@ -56,6 +56,6 @@ object CategoryDrill {
         category = category,
         cell = rolled[category.id] ?: Cell.NONE,
         isDirect = false,
-        hasChildren = hasChildren
+        hasChildren = hasChildren,
     )
 }

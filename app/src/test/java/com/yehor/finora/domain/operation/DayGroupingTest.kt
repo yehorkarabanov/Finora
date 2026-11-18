@@ -16,16 +16,8 @@ class DayGroupingTest {
         val now = ZonedDateTime.of(today, java.time.LocalTime.of(12, 0), zone).toInstant().toEpochMilli()
 
         val todayInstant = ZonedDateTime.of(today, java.time.LocalTime.of(9, 0), zone).toInstant().toEpochMilli()
-        val yesterdayInstant = ZonedDateTime.of(
-            today.minusDays(1),
-            java.time.LocalTime.of(18, 0),
-            zone
-        ).toInstant().toEpochMilli()
-        val olderInstant = ZonedDateTime.of(
-            today.minusDays(3),
-            java.time.LocalTime.of(10, 0),
-            zone
-        ).toInstant().toEpochMilli()
+        val yesterdayInstant = ZonedDateTime.of(today.minusDays(1), java.time.LocalTime.of(18, 0), zone).toInstant().toEpochMilli()
+        val olderInstant = ZonedDateTime.of(today.minusDays(3), java.time.LocalTime.of(10, 0), zone).toInstant().toEpochMilli()
 
         assertEquals(DayGroup.Today, DayGrouping.group(todayInstant, now, zone))
         assertEquals(DayGroup.Yesterday, DayGrouping.group(yesterdayInstant, now, zone))

@@ -58,7 +58,7 @@ fun DonutChart(
     strokeWidth: Dp = 18.dp,
     selectedIndex: Int? = null,
     onSliceClick: ((Int?) -> Unit)? = null,
-    center: (@Composable () -> Unit)? = null
+    center: (@Composable () -> Unit)? = null,
 ) {
     val track = MaterialTheme.colorScheme.surfaceContainerHighest
     // Previews and screenshots render a single frame, so they start fully drawn.
@@ -66,13 +66,7 @@ fun DonutChart(
     val progress = remember { Animatable(if (inspection) 1f else 0f) }
     val reduceMotion = rememberReduceMotion()
     LaunchedEffect(Unit) {
-        if (reduceMotion) {
-            progress.snapTo(
-                1f
-            )
-        } else {
-            progress.animateTo(1f, tween(durationMillis = FinoraMotion.CHART_DRAW_MS))
-        }
+        if (reduceMotion) progress.snapTo(1f) else progress.animateTo(1f, tween(durationMillis = FinoraMotion.CHART_DRAW_MS))
     }
     val total = slices.sumOf { it.value.coerceAtLeast(0L) }
     // Start and sweep in degrees, clockwise from 12 o'clock, for drawing and hit testing.
@@ -97,9 +91,9 @@ fun DonutChart(
                             onSliceClick(hitTest(offset, size.width.toFloat(), strokeWidth.toPx(), arcs))
                         }
                     }
-                }
+                },
             ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Canvas(Modifier.size(diameter)) {
             val baseStroke = strokeWidth.toPx()
@@ -134,7 +128,7 @@ fun DonutChart(
                     useCenter = false,
                     topLeft = topLeft,
                     size = arcSize,
-                    style = Stroke(stroke, cap = if (visible > 1) StrokeCap.Round else StrokeCap.Butt)
+                    style = Stroke(stroke, cap = if (visible > 1) StrokeCap.Round else StrokeCap.Butt),
                 )
             }
         }
@@ -169,12 +163,9 @@ fun TrendBars(
     description: String,
     modifier: Modifier = Modifier,
     onBarClick: ((Int) -> Unit)? = null,
-    showLabels: Boolean = true
+    showLabels: Boolean = true,
 ) {
-    Column(
-        modifier
-            .fillMaxWidth()
-            .clearAndSetSemantics { contentDescription = description }) {
+    Column(modifier.fillMaxWidth().clearAndSetSemantics { contentDescription = description }) {
         Canvas(
             Modifier
                 .fillMaxWidth()
@@ -186,7 +177,7 @@ fun TrendBars(
                             onBarClick(index.coerceIn(0, bars.lastIndex))
                         }
                     }
-                }
+                },
         ) {
             if (bars.isEmpty()) return@Canvas
             val max = bars.maxOf { it.value.coerceAtLeast(0L) }
@@ -200,7 +191,7 @@ fun TrendBars(
                 drawRect(
                     color = color,
                     topLeft = Offset(slot * i + (slot - barWidth) / 2, size.height - h),
-                    size = Size(barWidth, h)
+                    size = Size(barWidth, h),
                 )
             }
         }
@@ -213,7 +204,7 @@ fun TrendBars(
                         maxLines = 1,
                         overflow = TextOverflow.Clip,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -223,13 +214,18 @@ fun TrendBars(
 
 /** A line through [values], with a zero line when the values cross zero. */
 @Composable
-fun BalanceLine(values: List<Long>, color: Color, description: String, modifier: Modifier = Modifier) {
+fun BalanceLine(
+    values: List<Long>,
+    color: Color,
+    description: String,
+    modifier: Modifier = Modifier,
+) {
     val axis = MaterialTheme.colorScheme.outlineVariant
     Canvas(
         modifier
             .fillMaxWidth()
             .height(140.dp)
-            .clearAndSetSemantics { contentDescription = description }
+            .clearAndSetSemantics { contentDescription = description },
     ) {
         if (values.isEmpty()) return@Canvas
         val min = minOf(values.min(), 0L)

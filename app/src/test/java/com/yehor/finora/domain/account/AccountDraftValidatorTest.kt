@@ -14,7 +14,7 @@ class AccountDraftValidatorTest {
         name: String = "Main",
         description: String? = null,
         amount: String = "",
-        currency: com.yehor.finora.domain.money.Currency = usd
+        currency: com.yehor.finora.domain.money.Currency = usd,
     ) = AccountDraftValidator.validate(name, description, amount, currency)
 
     @Test
@@ -41,7 +41,7 @@ class AccountDraftValidatorTest {
         assertTrue(validate(description = "d".repeat(500)).isEmpty())
         assertEquals(
             setOf(AccountDraftError.DESCRIPTION_TOO_LONG),
-            validate(description = "d".repeat(501))
+            validate(description = "d".repeat(501)),
         )
         assertTrue(validate(description = null).isEmpty())
     }
@@ -73,7 +73,7 @@ class AccountDraftValidatorTest {
             assertEquals(
                 it,
                 AmountParse.Invalid(AccountDraftError.AMOUNT_INVALID),
-                AccountDraftValidator.parseAmount(it, usd)
+                AccountDraftValidator.parseAmount(it, usd),
             )
         }
         assertEquals(setOf(AccountDraftError.AMOUNT_INVALID), validate(amount = "abc"))
@@ -83,15 +83,15 @@ class AccountDraftValidatorTest {
     fun tooManyFractionalDigitsAreRejectedForEachScale() {
         assertEquals(
             AmountParse.Invalid(AccountDraftError.AMOUNT_TOO_PRECISE),
-            AccountDraftValidator.parseAmount("1.5", jpy)
+            AccountDraftValidator.parseAmount("1.5", jpy),
         )
         assertEquals(
             AmountParse.Invalid(AccountDraftError.AMOUNT_TOO_PRECISE),
-            AccountDraftValidator.parseAmount("1.005", usd)
+            AccountDraftValidator.parseAmount("1.005", usd),
         )
         assertEquals(
             AmountParse.Invalid(AccountDraftError.AMOUNT_TOO_PRECISE),
-            AccountDraftValidator.parseAmount("1.0005", kwd)
+            AccountDraftValidator.parseAmount("1.0005", kwd),
         )
         assertEquals(AmountParse.Value(1005), AccountDraftValidator.parseAmount("1.005", kwd))
     }
@@ -106,15 +106,15 @@ class AccountDraftValidatorTest {
     fun overflowIsOutOfRange() {
         assertEquals(
             AmountParse.Invalid(AccountDraftError.AMOUNT_OUT_OF_RANGE),
-            AccountDraftValidator.parseAmount("92233720368547758.08", usd)
+            AccountDraftValidator.parseAmount("92233720368547758.08", usd),
         )
         assertEquals(
             AmountParse.Invalid(AccountDraftError.AMOUNT_OUT_OF_RANGE),
-            AccountDraftValidator.parseAmount("9".repeat(30), jpy)
+            AccountDraftValidator.parseAmount("9".repeat(30), jpy),
         )
         assertEquals(
             AmountParse.Value(Long.MAX_VALUE),
-            AccountDraftValidator.parseAmount("92233720368547758.07", usd)
+            AccountDraftValidator.parseAmount("92233720368547758.07", usd),
         )
     }
 
@@ -122,7 +122,7 @@ class AccountDraftValidatorTest {
     fun errorsAreCombined() {
         assertEquals(
             setOf(AccountDraftError.NAME_EMPTY, AccountDraftError.AMOUNT_INVALID),
-            validate(name = "", amount = "x")
+            validate(name = "", amount = "x"),
         )
     }
 }

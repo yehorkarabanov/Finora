@@ -42,21 +42,11 @@ class OperationRepositoryEditTest {
 
     private suspend fun account(code: String, status: AccountStatus = AccountStatus.ACTIVE): Long =
         db.accountDao().insert(
-            AccountEntity(
-                name = "Account $code",
-                currencyCode = code,
-                type = "CASH",
-                icon = null,
-                color = null,
-                description = null,
-                status = status,
-                createdAt = 0
-            )
+            AccountEntity(name = "Account $code", currencyCode = code, type = "CASH", icon = null, color = null, description = null, status = status, createdAt = 0)
         )
 
-    private suspend fun category(type: CategoryType): Long = db.categoryDao().insert(
-        CategoryEntity(name = "cat", icon = null, color = null, type = type, parentId = null, createdAt = 0)
-    )
+    private suspend fun category(type: CategoryType): Long =
+        db.categoryDao().insert(CategoryEntity(name = "cat", icon = null, color = null, type = type, parentId = null, createdAt = 0))
 
     private inline fun <reified T : Throwable> assertFails(block: () -> Unit) {
         try {
@@ -81,7 +71,7 @@ class OperationRepositoryEditTest {
             categoryId = catId,
             tagIds = setOf(tagId),
             newTagNames = listOf("New Tag"),
-            now = 2000L
+            now = 2000L,
         )
 
         val tags = db.operationTagDao().tagIdsOf(opId)
@@ -102,7 +92,7 @@ class OperationRepositoryEditTest {
                     occurredAt = 2001L,
                     entries = listOf(EntryDraft(accId, 500L)),
                     categoryId = catId,
-                    now = now
+                    now = now,
                 )
             }
         }
@@ -119,7 +109,7 @@ class OperationRepositoryEditTest {
             occurredAt = 1000L,
             entries = listOf(EntryDraft(plnAcc, -10000L)), // -100.00 PLN
             categoryId = catId,
-            now = 1000L
+            now = 1000L,
         )
         assertEquals(-10000L, repo.balanceMinor(plnAcc))
 
@@ -134,7 +124,7 @@ class OperationRepositoryEditTest {
                     occurredAt = 1000L,
                     description = null,
                     confirmCurrencyChange = false,
-                    now = 2000L
+                    now = 2000L,
                 )
             }
         }
@@ -148,7 +138,7 @@ class OperationRepositoryEditTest {
             occurredAt = 1000L,
             description = null,
             confirmCurrencyChange = true,
-            now = 2000L
+            now = 2000L,
         )
 
         assertEquals(0L, repo.balanceMinor(plnAcc))
@@ -171,7 +161,7 @@ class OperationRepositoryEditTest {
             occurredAt = 1000L,
             entries = listOf(EntryDraft(accId, 1000L)),
             categoryId = catId,
-            now = 1000L
+            now = 1000L,
         )
         assertEquals(1000L, repo.balanceMinor(accId))
 

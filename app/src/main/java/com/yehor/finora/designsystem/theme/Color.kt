@@ -118,7 +118,7 @@ val FinoraLightColorScheme = lightColorScheme(
     surfaceContainerLow = LightSurfaceContainerLow,
     surfaceContainer = LightSurfaceContainer,
     surfaceContainerHigh = LightSurfaceContainerHigh,
-    surfaceContainerHighest = LightSurfaceContainerHighest
+    surfaceContainerHighest = LightSurfaceContainerHighest,
 )
 
 val FinoraDarkColorScheme = darkColorScheme(
@@ -157,5 +157,5 @@ val FinoraDarkColorScheme = darkColorScheme(
     surfaceContainerLow = DarkSurfaceContainerLow,
     surfaceContainer = DarkSurfaceContainer,
     surfaceContainerHigh = DarkSurfaceContainerHigh,
-    surfaceContainerHighest = DarkSurfaceContainerHighest
+    surfaceContainerHighest = DarkSurfaceContainerHighest,
 )

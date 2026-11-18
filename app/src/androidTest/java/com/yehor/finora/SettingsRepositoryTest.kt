@@ -2,12 +2,12 @@ package com.yehor.finora
 
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yehor.finora.data.db.AccountEntity
 import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.db.FinoraDatabaseCallback
 import com.yehor.finora.data.repo.SettingsRepository
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.ThemeMode
+import com.yehor.finora.data.db.AccountEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -53,15 +53,9 @@ class SettingsRepositoryTest {
 
         db.accountDao().insert(
             AccountEntity(
-                name = "a",
-                currencyCode = "PLN",
-                type = "CASH",
-                icon = null,
-                color = null,
-                description = null,
-                status = AccountStatus.ACTIVE,
-                createdAt = 0
-            )
+                name = "a", currencyCode = "PLN", type = "CASH", icon = null, color = null,
+                description = null, status = AccountStatus.ACTIVE, createdAt = 0,
+            ),
         )
         val fromAccount = repo.displayCurrency.first()
         assertEquals("PLN", fromAccount.currency.code)

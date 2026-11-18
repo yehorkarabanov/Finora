@@ -56,27 +56,15 @@ class PeriodCalculatorTest {
 
     @Test
     fun customOneDayAndManyDays() {
-        val one = PeriodCalculator.resolve(
-            Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 5), LocalDate.of(2026, 3, 5)),
-            utc,
-            monday
-        )
+        val one = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 5), LocalDate.of(2026, 3, 5)), utc, monday)
         assertEquals(1, one.dayCount)
-        val many = PeriodCalculator.resolve(
-            Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 5), LocalDate.of(2026, 3, 14)),
-            utc,
-            monday
-        )
+        val many = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 5), LocalDate.of(2026, 3, 14)), utc, monday)
         assertEquals(10, many.dayCount)
     }
 
     @Test
     fun invalidCustomPairIsCoercedToOneDay() {
-        val r = PeriodCalculator.resolve(
-            Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1)),
-            utc,
-            monday
-        )
+        val r = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, LocalDate.of(2026, 3, 10), LocalDate.of(2026, 3, 1)), utc, monday)
         assertEquals(LocalDate.of(2026, 3, 10), r.fromDate)
         assertEquals(LocalDate.of(2026, 3, 10), r.toDateInclusive)
     }
@@ -93,24 +81,15 @@ class PeriodCalculatorTest {
     @Test
     fun shiftAcrossYearEnd() {
         val january = PeriodCalculator.preset(PeriodKind.MONTH, LocalDate.of(2027, 1, 15))
-        assertEquals(
-            LocalDate.of(2026, 12, 1),
-            PeriodCalculator.resolve(PeriodCalculator.previous(january), utc, monday).fromDate
-        )
+        assertEquals(LocalDate.of(2026, 12, 1), PeriodCalculator.resolve(PeriodCalculator.previous(january), utc, monday).fromDate)
         val year = PeriodCalculator.preset(PeriodKind.YEAR, LocalDate.of(2027, 5, 5))
-        assertEquals(
-            LocalDate.of(2026, 1, 1),
-            PeriodCalculator.resolve(PeriodCalculator.previous(year), utc, monday).fromDate
-        )
+        assertEquals(LocalDate.of(2026, 1, 1), PeriodCalculator.resolve(PeriodCalculator.previous(year), utc, monday).fromDate)
     }
 
     @Test
     fun shiftWeekAndDay() {
         val week = PeriodCalculator.preset(PeriodKind.WEEK, LocalDate.of(2026, 11, 7))
-        assertEquals(
-            LocalDate.of(2026, 10, 26),
-            PeriodCalculator.resolve(PeriodCalculator.previous(week), utc, monday).fromDate
-        )
+        assertEquals(LocalDate.of(2026, 10, 26), PeriodCalculator.resolve(PeriodCalculator.previous(week), utc, monday).fromDate)
         val day = PeriodCalculator.preset(PeriodKind.TODAY, LocalDate.of(2026, 11, 1))
         assertEquals(LocalDate.of(2026, 10, 31), PeriodCalculator.previous(day).anchor)
     }

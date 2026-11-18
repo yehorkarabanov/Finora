@@ -13,30 +13,4 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.room) apply false
-    alias(libs.plugins.spotless)
-}
-// Compose/Android conventions that ktlint's naming rules reject: PascalCase `val`
-// tokens (Typography, FabSize), `_state` backing fields, Room migration objects,
-// multi-declaration files.
-val ktlintOverrides = mapOf(
-    "ktlint_code_style" to "android_studio",
-    "max_line_length" to "120",
-    "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
-    "ktlint_standard_property-naming" to "disabled",
-    "ktlint_standard_backing-property-naming" to "disabled",
-    "ktlint_standard_class-naming" to "disabled",
-    "ktlint_standard_filename" to "disabled",
-    // The formatter still wraps to 120; what remains long is SQL/string literals.
-    "ktlint_standard_max-line-length" to "disabled"
-)
-
-spotless {
-    kotlin {
-        target("app/src/**/*.kt")
-        ktlint(libs.versions.ktlint.get()).editorConfigOverride(ktlintOverrides)
-    }
-    kotlinGradle {
-        target("*.gradle.kts", "app/*.gradle.kts")
-        ktlint(libs.versions.ktlint.get()).editorConfigOverride(ktlintOverrides)
-    }
 }

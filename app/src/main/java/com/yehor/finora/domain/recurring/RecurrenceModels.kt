@@ -11,8 +11,7 @@ enum class RecurrenceUnit { DAY, WEEK, MONTH, YEAR }
 
 data class RecurrenceRule(
     val unit: RecurrenceUnit,
-    // interval in 1..365
-    val interval: Int
+    val interval: Int, // interval in 1..365
 )
 
 enum class ScheduleStatus { ACTIVE, PAUSED }
@@ -29,7 +28,7 @@ data class ScheduleDraft(
     val newTagNames: List<String>,
     val rule: RecurrenceRule,
     val firstDate: LocalDate, // create: "Starts on". edit: "Next occurrence"
-    val endDate: LocalDate?
+    val endDate: LocalDate?,
 )
 
 data class RecurringSchedule(
@@ -47,7 +46,7 @@ data class RecurringSchedule(
     val nextDate: LocalDate?,
     val status: ScheduleStatus,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
 )
 
 data class OccurrenceItem(
@@ -56,19 +55,19 @@ data class OccurrenceItem(
     val operationId: Long?,
     val handledAt: Long,
     /** Signed ledger amount of the generated transaction, null when there is none. */
-    val money: Money? = null
+    val money: Money? = null,
 )
 
 enum class GenerationIssue {
     ACCOUNT_ARCHIVED,
     BEFORE_OPENING_BALANCE,
-    BALANCE_OVERFLOW
+    BALANCE_OVERFLOW,
 }
 
 enum class ScheduleDisplayState {
     ACTIVE,
     PAUSED,
-    ENDED
+    ENDED,
 }
 
 fun RecurringSchedule.displayState(): ScheduleDisplayState = when {

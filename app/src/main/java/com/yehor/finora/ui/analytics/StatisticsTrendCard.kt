@@ -85,7 +85,7 @@ internal fun StatsTrendCard(
     onPreview: (ChartWindow) -> Unit,
     onCommit: (ChartWindow) -> Unit,
     onOpenBucket: (StatsTrend, Bucket) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var window by remember { mutableStateOf(committed) }
     var active by remember { mutableStateOf(false) }
@@ -136,7 +136,7 @@ internal fun StatsTrendCard(
             gesture.reset()
             pendingDays = 0f
             gestureEnds++
-        }
+        },
     )
 
     val data = shown
@@ -176,7 +176,7 @@ internal fun StatsTrendCard(
                     .padding(horizontal = 16.dp)
                     .padding(top = 6.dp)
                     .height(150.dp)
-                    .graphicsLayer { alpha = unitAlpha.value }
+                    .graphicsLayer { alpha = unitAlpha.value },
             ) {
                 val t = data
                 if (t != null && t.values.isNotEmpty()) {
@@ -190,7 +190,7 @@ internal fun StatsTrendCard(
                         onSelect = { selected = it },
                         label = { i -> bucketBubble(t, i, locale, today, none) },
                         gestures = gestures,
-                        slide = { -slideDays() / (window.days - 1).coerceAtLeast(1) }
+                        slide = { -slideDays() / (window.days - 1).coerceAtLeast(1) },
                     )
                 }
             }
@@ -198,9 +198,7 @@ internal fun StatsTrendCard(
                 TrendAxis(
                     data,
                     today,
-                    Modifier
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                        .graphicsLayer { alpha = unitAlpha.value }
+                    Modifier.padding(horizontal = 16.dp, vertical = 4.dp).graphicsLayer { alpha = unitAlpha.value },
                 )
             }
             val pick = selected?.let { i -> data?.buckets?.getOrNull(i) }
@@ -210,15 +208,11 @@ internal fun StatsTrendCard(
                     label = stringResource(R.string.stats_open_bucket, bucketName(pick, data.unit, today, locale)),
                     active = false,
                     onClick = { onOpenBucket(data, pick) },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
             if (data?.compare != null && previousName != null) {
-                TrendLegend(
-                    currentName, previousName, Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 6.dp)
-                )
+                TrendLegend(currentName, previousName, Modifier.padding(horizontal = 16.dp).padding(top = 6.dp))
             }
         }
     }
@@ -236,15 +230,10 @@ private fun TrendHeader(trend: StatsTrend?, modifier: Modifier = Modifier) {
             income -> R.string.stats_daily_income
             monthly -> R.string.stats_monthly_spending
             else -> R.string.stats_daily_spending
-        }
+        },
     )
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            title,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.weight(1f)
-        )
+        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
         val average = trend?.average
         if (average != null) {
             val amount = (if (average.basis.usesConversion) "≈ " else "") + average.format()
@@ -256,9 +245,7 @@ private fun TrendHeader(trend: StatsTrend?, modifier: Modifier = Modifier) {
                         append(line)
                     } else {
                         append(line.substring(0, at))
-                        withStyle(
-                            SpanStyle(color = scheme.onSurface, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold)
-                        ) {
+                        withStyle(SpanStyle(color = scheme.onSurface, fontFamily = SpaceGrotesk, fontWeight = FontWeight.Bold)) {
                             append(amount)
                         }
                         append(line.substring(at + amount.length))
@@ -266,7 +253,7 @@ private fun TrendHeader(trend: StatsTrend?, modifier: Modifier = Modifier) {
                 },
                 style = MaterialTheme.typography.labelMedium.copy(fontFeatureSettings = "tnum"),
                 color = scheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 1,
             )
         }
     }
@@ -278,21 +265,12 @@ private fun TrendAxis(trend: StatsTrend, today: LocalDate, modifier: Modifier = 
     val locale = LocalConfiguration.current.locales[0]
     val buckets = trend.buckets
     val picks = listOf(0, buckets.lastIndex / 2, buckets.lastIndex).distinct()
-    Row(
-        modifier.fillMaxWidth(),
-        horizontalArrangement = if (picks.size ==
-            1
-        ) {
-            Arrangement.Center
-        } else {
-            Arrangement.SpaceBetween
-        }
-    ) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = if (picks.size == 1) Arrangement.Center else Arrangement.SpaceBetween) {
         picks.forEach { i ->
             Text(
                 axisName(buckets[i], trend.unit, buckets, today, locale),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -305,20 +283,10 @@ private fun TrendLegend(current: String, previous: String, modifier: Modifier = 
     val line = MaterialTheme.finance.income
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         LegendSwatch(line, dashed = false)
-        Text(
-            current,
-            style = MaterialTheme.typography.labelSmall,
-            color = variant,
-            modifier = Modifier.padding(start = 6.dp)
-        )
+        Text(current, style = MaterialTheme.typography.labelSmall, color = variant, modifier = Modifier.padding(start = 6.dp))
         Spacer(Modifier.width(14.dp))
         LegendSwatch(variant, dashed = true)
-        Text(
-            previous,
-            style = MaterialTheme.typography.labelSmall,
-            color = variant,
-            modifier = Modifier.padding(start = 6.dp)
-        )
+        Text(previous, style = MaterialTheme.typography.labelSmall, color = variant, modifier = Modifier.padding(start = 6.dp))
     }
 }
 
@@ -330,7 +298,7 @@ private fun LegendSwatch(color: Color, dashed: Boolean) {
             Offset(0f, size.height / 2),
             Offset(size.width, size.height / 2),
             strokeWidth = 2.dp.toPx(),
-            pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.dp.toPx())) else null
+            pathEffect = if (dashed) PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(), 2.dp.toPx())) else null,
         )
     }
 }
@@ -339,9 +307,7 @@ private fun LegendSwatch(color: Color, dashed: Boolean) {
 private fun bucketName(bucket: Bucket, unit: BucketUnit, today: LocalDate, locale: Locale): String = when (unit) {
     BucketUnit.DAY -> shortDate(bucket.fromDate, today, locale)
     else -> {
-        val wholeMonth =
-            bucket.fromDate.dayOfMonth == 1 &&
-                bucket.toDateInclusive == bucket.fromDate.withDayOfMonth(bucket.fromDate.lengthOfMonth())
+        val wholeMonth = bucket.fromDate.dayOfMonth == 1 && bucket.toDateInclusive == bucket.fromDate.withDayOfMonth(bucket.fromDate.lengthOfMonth())
         if (wholeMonth) {
             monthYearName(bucket.fromDate, locale)
         } else {
@@ -353,8 +319,7 @@ private fun bucketName(bucket: Bucket, unit: BucketUnit, today: LocalDate, local
 private fun axisName(bucket: Bucket, unit: BucketUnit, all: List<Bucket>, today: LocalDate, locale: Locale): String = when (unit) {
     BucketUnit.DAY -> shortDate(bucket.fromDate, today, locale)
     else -> {
-        val spansYears =
-            all.first().fromDate.year != all.last().fromDate.year || all.first().fromDate.year != today.year
+        val spansYears = all.first().fromDate.year != all.last().fromDate.year || all.first().fromDate.year != today.year
         bucket.fromDate.format(bestPattern(locale, if (spansYears) "MMMyy" else "LLL"))
     }
 }

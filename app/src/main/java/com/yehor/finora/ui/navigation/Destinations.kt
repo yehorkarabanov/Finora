@@ -3,8 +3,8 @@ package com.yehor.finora.ui.navigation
 import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.yehor.finora.R
 import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.R
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter
 
@@ -35,7 +35,6 @@ object Routes {
     const val SETTINGS = "more/settings"
     const val DATA = "more/settings/data"
     const val DATA_CSV = "more/settings/data/csv?filter={filter}"
-
     // One unified editor (Expense / Income / Transfer); `kind` picks the tab.
     const val TRANSACTION_NEW = "transactions/new?kind={kind}&duplicateOf={duplicateOf}&sourceAccountId={sourceAccountId}"
     const val TRANSACTION_EDIT = "transactions/{operationId}?kind={kind}"
@@ -52,15 +51,15 @@ object Routes {
     /** History preset from an analytics row. An empty filter opens the plain list. */
     fun transactions(filter: TransactionFilter): String =
         "transactions?filter=" + Uri.encode(FilterCodec.encode(filter))
-
-    fun statisticsTab(tab: String, tagId: Long? = null) = "statistics?tab=$tab" + (tagId?.let { "&tagId=$it" } ?: "")
+    fun statisticsTab(tab: String, tagId: Long? = null) =
+        "statistics?tab=$tab" + (tagId?.let { "&tagId=$it" } ?: "")
     fun accountAnalytics(accountId: Long) = "statistics/accounts/$accountId"
     fun transactionNew(kind: String = "EXPENSE", duplicateOf: Long? = null, sourceAccountId: Long? = null) =
         "transactions/new?kind=$kind" +
             (duplicateOf?.let { "&duplicateOf=$it" } ?: "") +
             (sourceAccountId?.let { "&sourceAccountId=$it" } ?: "")
-
-    fun transactionEdit(id: Long, kind: String? = null) = "transactions/$id" + (kind?.let { "?kind=$it" } ?: "")
+    fun transactionEdit(id: Long, kind: String? = null) =
+        "transactions/$id" + (kind?.let { "?kind=$it" } ?: "")
     fun transferNew(duplicateOf: Long? = null, sourceAccountId: Long? = null) =
         transactionNew(kind = "TRANSFER", duplicateOf = duplicateOf, sourceAccountId = sourceAccountId)
     fun transferEdit(id: Long) = transactionEdit(id, kind = "TRANSFER")
@@ -74,12 +73,12 @@ enum class TopLevelDestination(
     val route: String,
     @StringRes val label: Int,
     val icon: ImageVector,
-    val selectedIcon: ImageVector
+    val selectedIcon: ImageVector,
 ) {
     DASHBOARD(Routes.DASHBOARD, R.string.nav_dashboard, AppIcons.NavDashboard, AppIcons.NavDashboardSelected),
     TRANSACTIONS(Routes.TRANSACTIONS, R.string.nav_transactions, AppIcons.NavTransactions, AppIcons.NavTransactionsSelected),
     ACCOUNTS(Routes.ACCOUNTS, R.string.nav_accounts, AppIcons.NavAccounts, AppIcons.NavAccountsSelected),
-    STATISTICS(Routes.STATISTICS, R.string.nav_statistics, AppIcons.NavStatistics, AppIcons.NavStatisticsSelected)
+    STATISTICS(Routes.STATISTICS, R.string.nav_statistics, AppIcons.NavStatistics, AppIcons.NavStatisticsSelected),
 }
 
 /**

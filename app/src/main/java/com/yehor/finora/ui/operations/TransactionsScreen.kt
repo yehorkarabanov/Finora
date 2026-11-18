@@ -64,7 +64,7 @@ fun TransactionsScreen(
     onAddTransfer: () -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
     onExportCsv: (TransactionFilter) -> Unit = {},
-    viewModel: TransactionsViewModel = hiltViewModel()
+    viewModel: TransactionsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pagedItems = viewModel.pagedTransactions.collectAsLazyPagingItems()
@@ -97,13 +97,7 @@ fun TransactionsScreen(
     val speedDial = remember(canTransfer, expenseLabel, incomeLabel, transferLabel) {
         // Listed top to bottom; the last item sits nearest the button.
         buildList {
-            if (canTransfer) {
-                add(
-                    SpeedDialItem(transferLabel, AppIcons.Transfer, {
-                        latestAddTransfer()
-                    }, primary = false)
-                )
-            }
+            if (canTransfer) add(SpeedDialItem(transferLabel, AppIcons.Transfer, { latestAddTransfer() }, primary = false))
             add(SpeedDialItem(incomeLabel, AppIcons.Add, { latestAddIncome() }, primary = false))
             add(SpeedDialItem(expenseLabel, AppIcons.Remove, { latestAddExpense() }, primary = true))
         }
@@ -114,7 +108,7 @@ fun TransactionsScreen(
         count = pagedItems.itemCount,
         peek = { pagedItems.peek(it) },
         get = { pagedItems[it] },
-        endReached = pagedItems.loadState.append.endOfPaginationReached
+        endReached = pagedItems.loadState.append.endOfPaginationReached,
     )
 
     Box(Modifier.fillMaxSize()) {
@@ -137,14 +131,10 @@ fun TransactionsScreen(
             onOpenSection = { sectionSheet = it },
             onAdd = onAddExpense,
             onOpenTransaction = onOpenTransaction,
-            onExportCsv = { onExportCsv(state.filter) }
+            onExportCsv = { onExportCsv(state.filter) },
         )
         // Above the shell FAB (drawn over this screen), so the message never hides under it.
-        SnackbarHost(
-            snackbarHostState, Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = ShellFabClearance)
-        )
+        SnackbarHost(snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(bottom = ShellFabClearance))
     }
 
     if (categorySheetOpen) {
@@ -152,7 +142,7 @@ fun TransactionsScreen(
             filter = state.filter,
             categories = state.categories,
             onFilterChange = viewModel::onFilterChange,
-            onDismiss = { categorySheetOpen = false }
+            onDismiss = { categorySheetOpen = false },
         )
     }
     if (tagSheetOpen) {
@@ -161,7 +151,7 @@ fun TransactionsScreen(
             tags = state.tags,
             usage = state.tagUsage,
             onFilterChange = viewModel::onFilterChange,
-            onDismiss = { tagSheetOpen = false }
+            onDismiss = { tagSheetOpen = false },
         )
     }
     if (sortSheetOpen) {
@@ -169,7 +159,7 @@ fun TransactionsScreen(
             sort = state.sort,
             amountAvailable = state.scopeCurrency != null,
             onSelect = viewModel::onSortChange,
-            onDismiss = { sortSheetOpen = false }
+            onDismiss = { sortSheetOpen = false },
         )
     }
     sectionSheet?.let { section ->
@@ -180,14 +170,14 @@ fun TransactionsScreen(
             tags = state.tags,
             onApply = viewModel::onFilterChange,
             onDismiss = { sectionSheet = null },
-            sections = setOf(section)
+            sections = setOf(section),
         )
     }
     if (dateSheetOpen) {
         DateFilterSheet(
             filter = state.filter,
             onApply = { from, to -> viewModel.onFilterChange(state.filter.copy(from = from, toExclusive = to)) },
-            onDismiss = { dateSheetOpen = false }
+            onDismiss = { dateSheetOpen = false },
         )
     }
 }
@@ -210,18 +200,14 @@ internal fun TransactionsContent(
     onOpenSection: (FilterSection) -> Unit,
     onAdd: () -> Unit,
     onOpenTransaction: (TransactionItem) -> Unit,
-    onExportCsv: () -> Unit
+    onExportCsv: () -> Unit,
 ) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .statusBarsPadding()
-    ) {
+    Column(Modifier.fillMaxSize().statusBarsPadding()) {
         TitleRow(onOpenSort = onOpenSort, onExportCsv = onExportCsv)
         SearchField(
             value = searchInput,
             onValueChange = onSearchInput,
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp)
+            modifier = Modifier.padding(horizontal = 18.dp, vertical = 4.dp),
         )
         FilterBar(
             state = state,
@@ -230,7 +216,7 @@ internal fun TransactionsContent(
             onOpenCategories = onOpenCategories,
             onOpenTags = onOpenTags,
             onOpenSection = onOpenSection,
-            onClearAll = onClearFilters
+            onClearAll = onClearFilters,
         )
         val isEmpty = source.count == 0
         when {
@@ -246,15 +232,13 @@ private fun TitleRow(onOpenSort: () -> Unit, onExportCsv: () -> Unit) {
     var menuOpen by remember { mutableStateOf(false) }
     Row(
         Modifier.padding(start = 18.dp, end = 12.dp, top = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             stringResource(R.string.transactions_title),
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() }
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         RoundIconButton(AppIcons.Sort, stringResource(R.string.sort_title), onOpenSort)
         Box {
@@ -265,7 +249,7 @@ private fun TitleRow(onOpenSort: () -> Unit, onExportCsv: () -> Unit) {
                     onClick = {
                         menuOpen = false
                         onExportCsv()
-                    }
+                    },
                 )
             }
         }
@@ -281,7 +265,6 @@ private fun previewData(): Pair<TransactionsUiState, List<TransactionListRow>> {
     val uah = CurrencyRegistry.get("UAH")
     fun account(id: Long, name: String, currency: com.yehor.finora.domain.money.Currency) =
         Account(id, name, currency, AccountType.BANK, null, null, null, AccountStatus.ACTIVE, 0)
-
     fun category(id: Long, name: String, icon: String, color: Long, type: CategoryType = CategoryType.EXPENSE) =
         Category(id, name, icon, color, type, null, 0)
     val mono = account(1, "Monobank", usd)
@@ -299,51 +282,32 @@ private fun previewData(): Pair<TransactionsUiState, List<TransactionListRow>> {
         description: String?,
         category: Category?,
         vararg entries: TransactionEntryView,
-        tags: List<Tag> = emptyList()
+        tags: List<Tag> = emptyList(),
     ) = TransactionItem(
         id, type, now - daysAgo * PREVIEW_DAY_MS, description, category, listOfNotNull(category), tags,
-        entries.toList(), 0, 0
+        entries.toList(), 0, 0,
     )
     fun usd(minor: Long) = Money(minor, usd)
 
     val rows = listOf(
         TransactionListRow.Header(DayGroup.Today),
-        TransactionListRow.Entry(
-            tx(
-                1,
-                OperationType.EXPENSE,
-                0,
-                "Silpo",
-                groceries,
-                TransactionEntryView(mono, usd(-6420)),
-                tags = listOf(trip)
-            )
-        ),
-        TransactionListRow.Entry(
-            tx(2, OperationType.EXPENSE, 0, "Coffee", cafes, TransactionEntryView(cash, usd(-1000)))
-        ),
+        TransactionListRow.Entry(tx(1, OperationType.EXPENSE, 0, "Silpo", groceries, TransactionEntryView(mono, usd(-6420)), tags = listOf(trip))),
+        TransactionListRow.Entry(tx(2, OperationType.EXPENSE, 0, "Coffee", cafes, TransactionEntryView(cash, usd(-1000)))),
         TransactionListRow.Header(DayGroup.Yesterday),
-        TransactionListRow.Entry(
-            tx(3, OperationType.INCOME, 1, "Salary", salary, TransactionEntryView(mono, usd(260000)))
-        ),
+        TransactionListRow.Entry(tx(3, OperationType.INCOME, 1, "Salary", salary, TransactionEntryView(mono, usd(260000)))),
         TransactionListRow.Entry(
             tx(
-                4,
-                OperationType.TRANSFER,
-                1,
-                null,
-                null,
-                TransactionEntryView(uahCard, Money(-400000, uah)),
-                TransactionEntryView(cash, usd(9650))
-            )
+                4, OperationType.TRANSFER, 1, null, null,
+                TransactionEntryView(uahCard, Money(-400000, uah)), TransactionEntryView(cash, usd(9650)),
+            ),
         ),
         TransactionListRow.Header(DayGroup.Date(LocalDate.now().minusDays(5))),
-        TransactionListRow.Entry(tx(5, OperationType.EXPENSE, 5, null, null, TransactionEntryView(cash, usd(-2500))))
+        TransactionListRow.Entry(tx(5, OperationType.EXPENSE, 5, null, null, TransactionEntryView(cash, usd(-2500)))),
     )
     val state = TransactionsUiState(
         accounts = listOf(mono, cash, uahCard),
         categories = listOf(groceries, cafes, salary),
-        tags = listOf(trip)
+        tags = listOf(trip),
     )
     return state to rows
 }
@@ -355,25 +319,19 @@ private fun TransactionsPreviewContent(dark: Boolean, mode: PreviewMode) {
     val state = when (mode) {
         PreviewMode.LIST -> base
         PreviewMode.EMPTY -> base
-        PreviewMode.FILTERED_EMPTY -> base.copy(
-            filter = TransactionFilter(types = setOf(OperationType.INCOME), text = "rent")
-        )
+        PreviewMode.FILTERED_EMPTY -> base.copy(filter = TransactionFilter(types = setOf(OperationType.INCOME), text = "rent"))
     }
     val rows = if (mode == PreviewMode.LIST) allRows else emptyList()
     val withSummary = if (mode == PreviewMode.LIST) {
         state.copy(
             filter = TransactionFilter(types = setOf(OperationType.EXPENSE)),
-            summary = listOf(CurrencySummary(usd, Money(266000, usd), Money(142000, usd), 5))
+            summary = listOf(CurrencySummary(usd, Money(266000, usd), Money(142000, usd), 5)),
         )
     } else {
         state
     }
     PreviewTheme(dark) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-        ) {
+        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             TransactionsContent(
                 state = withSummary,
                 source = RowSource(rows.size, { rows.getOrNull(it) }, { rows.getOrNull(it) }, endReached = true),
@@ -390,7 +348,7 @@ private fun TransactionsPreviewContent(dark: Boolean, mode: PreviewMode) {
                 onOpenSection = {},
                 onAdd = {},
                 onOpenTransaction = {},
-                onExportCsv = {}
+                onExportCsv = {},
             )
         }
     }

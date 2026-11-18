@@ -34,7 +34,7 @@ internal fun obsidianDatePickerColors(container: Color = MaterialTheme.colorSche
         selectedYearContainerColor = scheme.primaryContainer,
         selectedYearContentColor = MaterialTheme.finance.onMint,
         dayInSelectionRangeContainerColor = scheme.primary.copy(alpha = 0.16f),
-        dayInSelectionRangeContentColor = scheme.onSurface
+        dayInSelectionRangeContentColor = scheme.onSurface,
     )
 }
 
@@ -48,7 +48,7 @@ internal fun SingleDateDialog(
     initialUtcMillis: Long?,
     selectableDates: SelectableDates,
     onDismiss: () -> Unit,
-    onConfirm: (utcMillis: Long) -> Unit
+    onConfirm: (utcMillis: Long) -> Unit,
 ) {
     val state = rememberDatePickerState(initialSelectedDateMillis = initialUtcMillis, selectableDates = selectableDates)
     val colors = obsidianDatePickerColors()
@@ -61,12 +61,12 @@ internal fun SingleDateDialog(
                 text = stringResource(R.string.action_confirm),
                 onClick = { state.selectedDateMillis?.let(onConfirm) },
                 enabled = state.selectedDateMillis != null,
-                fillWidth = false
+                fillWidth = false,
             )
         },
         dismissButton = {
             TextButton(onClick = onDismiss, shape = PillShape) { Text(stringResource(R.string.action_cancel)) }
-        }
+        },
     ) {
         DatePicker(state = state, colors = colors)
     }

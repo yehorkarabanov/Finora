@@ -20,8 +20,8 @@ class CategoryRulesTest {
             cat(10), cat(11, 10),
             cat(20),
             cat(30), cat(31, 30), cat(32, 31),
-            cat(100, type = CategoryType.INCOME), cat(101, 100, CategoryType.INCOME)
-        )
+            cat(100, type = CategoryType.INCOME), cat(101, 100, CategoryType.INCOME),
+        ),
     )
 
     private fun check(id: Long?, parent: Long?, type: CategoryType = expense) =

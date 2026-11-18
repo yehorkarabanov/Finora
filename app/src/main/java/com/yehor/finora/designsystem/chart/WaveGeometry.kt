@@ -1,14 +1,17 @@
 package com.yehor.finora.designsystem.chart
 
-import com.yehor.finora.designsystem.chart.WaveGeometry.OVERSHOOT
-import com.yehor.finora.designsystem.chart.WaveGeometry.TENSION
 import kotlin.math.abs
 
 data class WavePoint(val x: Float, val y: Float)
 
 data class CubicSegment(val from: WavePoint, val c1: WavePoint, val c2: WavePoint, val to: WavePoint)
 
-data class WaveLayout(val runs: List<List<WavePoint>>, val zeroY: Float?, val minValue: Long, val maxValue: Long)
+data class WaveLayout(
+    val runs: List<List<WavePoint>>,
+    val zeroY: Float?,
+    val minValue: Long,
+    val maxValue: Long,
+)
 
 /** Pure geometry for the wave chart (no Compose types). y grows downward. */
 object WaveGeometry {
@@ -24,7 +27,7 @@ object WaveGeometry {
         padTop: Float,
         padBottom: Float,
         includeZero: Boolean,
-        sharedScale: List<Long?> = emptyList()
+        sharedScale: List<Long?> = emptyList(),
     ): WaveLayout {
         val present = values.filterNotNull()
         if (present.isEmpty()) return WaveLayout(emptyList(), null, 0L, 0L)
@@ -75,7 +78,7 @@ object WaveGeometry {
         run: List<WavePoint>,
         zeroY: Float? = null,
         top: Float = Float.NEGATIVE_INFINITY,
-        bottom: Float = Float.POSITIVE_INFINITY
+        bottom: Float = Float.POSITIVE_INFINITY,
     ): List<CubicSegment> {
         val n = run.size
         if (n < 2) return emptyList()
@@ -116,7 +119,7 @@ object WaveGeometry {
                 p0,
                 WavePoint((p0.x + tx[j]).coerceIn(p0.x, p1.x), p0.y + ty[j]),
                 WavePoint((p1.x - tx[j + 1]).coerceIn(p0.x, p1.x), p1.y - ty[j + 1]),
-                p1
+                p1,
             )
         }
     }

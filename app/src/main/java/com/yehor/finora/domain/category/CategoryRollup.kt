@@ -7,7 +7,7 @@ data class CategoryDirectTotal(
     val categoryId: Long?,
     val currencyCode: String,
     val totalMinor: Long,
-    val operationCount: Int
+    val operationCount: Int,
 )
 
 /** Result of [CategoryRollup.rollUp]. */
@@ -15,7 +15,7 @@ data class CategoryRollupResult(
     /** Category id (null = Uncategorized) to currency code to rolled-up minor units. Currencies are never mixed. */
     val totals: Map<Long?, Map<String, Long>>,
     /** Category id (null = Uncategorized) to rolled-up operation count. */
-    val counts: Map<Long?, Int>
+    val counts: Map<Long?, Int>,
 )
 
 object CategoryRollup {
@@ -43,7 +43,7 @@ object CategoryRollup {
         totals: MutableMap<Long?, Map<String, Long>>,
         counts: MutableMap<Long?, Int>,
         id: Long?,
-        rows: List<CategoryDirectTotal>
+        rows: List<CategoryDirectTotal>,
     ) {
         val sums = LinkedHashMap<String, Long>()
         var count = 0
@@ -60,7 +60,7 @@ object CategoryRollup {
         root: CategoryNode,
         directByCategory: Map<Long?, List<CategoryDirectTotal>>,
         totals: MutableMap<Long?, Map<String, Long>>,
-        counts: MutableMap<Long?, Int>
+        counts: MutableMap<Long?, Int>,
     ) {
         val order = ArrayList<CategoryNode>()
         val stack = ArrayDeque<CategoryNode>().apply { add(root) }

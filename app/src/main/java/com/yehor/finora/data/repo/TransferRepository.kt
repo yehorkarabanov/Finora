@@ -25,18 +25,19 @@ class TransferRepository @Inject constructor(
     private val db: FinoraDatabase,
     private val operationRepository: OperationRepository,
     private val accountRepository: AccountRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
 ) {
 
     /** Emits null when the operation does not exist or is not a well-formed transfer. */
-    fun observeTransfer(id: Long): Flow<TransferItem?> = combine(
-        db.operationDao().observeWithDetails(id),
-        accountRepository.observeAll().map { list -> list.map { it.account } }.distinctUntilChanged(),
-        categoryRepository.observeAll()
-    ) { details, accounts, cats ->
-        if (details == null) return@combine null
-        toItem(details, accounts.associateBy { it.id }, cats.associateBy { it.id }, CategoryTree(cats))
-    }
+    fun observeTransfer(id: Long): Flow<TransferItem?> =
+        combine(
+            db.operationDao().observeWithDetails(id),
+            accountRepository.observeAll().map { list -> list.map { it.account } }.distinctUntilChanged(),
+            categoryRepository.observeAll(),
+        ) { details, accounts, cats ->
+            if (details == null) return@combine null
+            toItem(details, accounts.associateBy { it.id }, cats.associateBy { it.id }, CategoryTree(cats))
+        }
 
     suspend fun recentCategoryIds(limit: Int = 5): List<Long> =
         db.operationDao().recentCategoryIds(OperationType.TRANSFER, limit)
@@ -52,7 +53,7 @@ class TransferRepository @Inject constructor(
         id: Long,
         draft: TransferDraft,
         moveOpeningBalanceBack: Boolean = false,
-        confirmCurrencyChange: Boolean = false
+        confirmCurrencyChange: Boolean = false,
     ) = operationRepository.updateTransfer(id, draft, moveOpeningBalanceBack, confirmCurrencyChange)
 
     suspend fun delete(id: Long) = operationRepository.deleteTransfer(id)
@@ -61,7 +62,7 @@ class TransferRepository @Inject constructor(
         details: OperationWithDetails,
         accountMap: Map<Long, Account>,
         catMap: Map<Long, Category>,
-        tree: CategoryTree
+        tree: CategoryTree,
     ): TransferItem? {
         val op = details.operation
         if (op.type != OperationType.TRANSFER || details.entries.size != 2) return null
@@ -77,7 +78,7 @@ class TransferRepository @Inject constructor(
             color = null,
             description = null,
             status = AccountStatus.ACTIVE,
-            createdAt = 0L
+            createdAt = 0L,
         )
 
         val source = accountOf(sourceEntry.accountId, sourceEntry.currencyCode)
@@ -98,7 +99,7 @@ class TransferRepository @Inject constructor(
             sentMoney = Money(-sourceEntry.amountMinor, source.currency),
             receivedMoney = Money(destEntry.amountMinor, dest.currency),
             createdAt = op.createdAt,
-            updatedAt = op.updatedAt
+            updatedAt = op.updatedAt,
         )
     }
 }

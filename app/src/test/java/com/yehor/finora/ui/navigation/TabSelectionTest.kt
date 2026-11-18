@@ -19,7 +19,7 @@ class TabSelectionTest {
     @Test
     fun fourTabs() = assertEquals(
         listOf("DASHBOARD", "TRANSACTIONS", "ACCOUNTS", "STATISTICS"),
-        TopLevelDestination.entries.map { it.name }
+        TopLevelDestination.entries.map { it.name },
     )
 
     @Test

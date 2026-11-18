@@ -60,18 +60,7 @@ internal fun periodShortName(period: ResolvedPeriod, today: LocalDate): String {
     val locale = LocalConfiguration.current.locales[0]
     val from = period.fromDate
     return when (period.period.kind) {
-        PeriodKind.MONTH -> from.format(
-            DateTimeFormatter.ofPattern(
-                if (from.year ==
-                    today.year
-                ) {
-                    "LLLL"
-                } else {
-                    "LLLL yyyy"
-                },
-                locale
-            )
-        )
+        PeriodKind.MONTH -> from.format(DateTimeFormatter.ofPattern(if (from.year == today.year) "LLLL" else "LLLL yyyy", locale))
         PeriodKind.YEAR -> from.year.toString()
         PeriodKind.TODAY -> shortDate(from, today, locale)
         PeriodKind.WEEK -> stringResource(R.string.stats_week_of, shortDate(from, today, locale))

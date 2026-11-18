@@ -28,35 +28,23 @@ class CategoryEstimateRollupTest {
     private fun cat(id: Long, name: String, parent: Long? = null) =
         Category(id, name, null, null, CategoryType.EXPENSE, parent, 0)
 
-    private fun table(vararg pairs: Pair<CurrencyPair, String>) = RateTable(
-        pairs.associate { (pair, rate) ->
-            pair to RateQuote(BigDecimal(rate), LocalDate.of(2026, 11, 6), now)
-        }
-    )
+    private fun table(vararg pairs: Pair<CurrencyPair, String>) =
+        RateTable(pairs.associate { (pair, rate) -> pair to RateQuote(BigDecimal(rate), LocalDate.of(2026, 11, 6), now) })
 
-    private fun converter(rates: RateTable = RateTable.EMPTY) = ScopeConverter(CurrencyScope.Display(pln), rates, now)
+    private fun converter(rates: RateTable = RateTable.EMPTY) =
+        ScopeConverter(CurrencyScope.Display(pln), rates, now)
 
-    private fun plnCell(minor: Long, count: Int = 1) = converter().cell(listOf(NativeAmount(Money(minor, pln), count)))
+    private fun plnCell(minor: Long, count: Int = 1) =
+        converter().cell(listOf(NativeAmount(Money(minor, pln), count)))
 
     // Food 1,250 = Groceries 700 + Restaurants 450 + direct 100 (PRD 6.5)
     private val tree = CategoryTree(
-        listOf(
-            cat(1, "Food"),
-            cat(2, "Groceries", 1),
-            cat(3, "Restaurants", 1),
-            cat(4, "Fresh", 2),
-            cat(5, "Transport")
-        )
+        listOf(cat(1, "Food"), cat(2, "Groceries", 1), cat(3, "Restaurants", 1), cat(4, "Fresh", 2), cat(5, "Transport")),
     )
 
     @Test
     fun prdExampleParentEqualsChildrenPlusDirect() {
-        val direct = mapOf<Long?, Cell>(
-            1L to plnCell(10_000),
-            2L to plnCell(30_000),
-            3L to plnCell(45_000),
-            4L to plnCell(40_000)
-        )
+        val direct = mapOf<Long?, Cell>(1L to plnCell(10_000), 2L to plnCell(30_000), 3L to plnCell(45_000), 4L to plnCell(40_000))
         val rolled = CategoryEstimateRollup.rollUp(tree, direct)
         assertEquals(125_000L, rolled.getValue(1).estimate!!.amountMinor)
         assertEquals(70_000L, rolled.getValue(2).estimate!!.amountMinor)
@@ -122,9 +110,7 @@ class CategoryEstimateRollupTest {
         val rates = table(CurrencyPair(usd, pln) to "0.4")
         val usdCell = converter(rates).cell(listOf(NativeAmount(Money(1, usd), 1)))
         val rolled = CategoryEstimateRollup.rollUp(tree, mapOf(1L to usdCell, 3L to usdCell, 4L to usdCell))
-        val shownParts = listOf(1L, 3L, 4L).sumOf {
-            converter(rates).cell(listOf(NativeAmount(Money(1, usd), 1))).estimate!!.amountMinor
-        }
+        val shownParts = listOf(1L, 3L, 4L).sumOf { converter(rates).cell(listOf(NativeAmount(Money(1, usd), 1))).estimate!!.amountMinor }
         assertEquals(shownParts, rolled.getValue(1).estimate!!.amountMinor)
         assertEquals(0L, rolled.getValue(1).estimate!!.amountMinor)
     }
@@ -135,7 +121,7 @@ class CategoryEstimateRollupTest {
             CategoryDirectTotal(1, "PLN", 10_000, 1),
             CategoryDirectTotal(2, "PLN", 30_000, 2),
             CategoryDirectTotal(4, "PLN", 40_000, 3),
-            CategoryDirectTotal(null, "PLN", 700, 1)
+            CategoryDirectTotal(null, "PLN", 700, 1),
         )
         val native = CategoryRollup.rollUp(tree, rows)
         val direct = rows.associate { it.categoryId to plnCell(it.totalMinor, it.operationCount) }

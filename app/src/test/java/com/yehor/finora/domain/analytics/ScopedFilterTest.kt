@@ -45,13 +45,7 @@ class ScopedFilterTest {
 
     @Test
     fun otherFieldsAreKept() {
-        val filter =
-            TransactionFilter(
-                types = setOf(OperationType.EXPENSE),
-                categoryIds = setOf(5),
-                categoryExact = true,
-                from = 10
-            )
+        val filter = TransactionFilter(types = setOf(OperationType.EXPENSE), categoryIds = setOf(5), categoryExact = true, from = 10)
         val scoped = ScopedFilter.forCurrency(filter, accounts, usd)
         assertEquals(filter.copy(accountIds = setOf(2L, 4L)), scoped)
     }

@@ -54,7 +54,7 @@ data class UpcomingState(
     /** Schedules that are blocked by a generation issue. */
     val attentionCount: Int = 0,
     /** False hides the whole card (PRD 11.2 "if applicable"). */
-    val hasActiveSchedules: Boolean = false
+    val hasActiveSchedules: Boolean = false,
 )
 
 data class DashboardUiState(
@@ -69,7 +69,7 @@ data class DashboardUiState(
     val accounts: List<Account> = emptyList(),
     val selectedAccountIds: Set<Long> = emptySet(),
     val recent: List<TransactionItem> = emptyList(),
-    val upcoming: UpcomingState = UpcomingState()
+    val upcoming: UpcomingState = UpcomingState(),
 ) {
     /** A transfer needs two different active accounts. */
     val canTransfer: Boolean get() = accounts.size >= 2
@@ -82,17 +82,14 @@ class DashboardViewModel @Inject constructor(
     private val analytics: AnalyticsRepository,
     private val savedState: SavedStateHandle,
     transactions: TransactionRepository,
-    recurring: RecurringRepository
+    recurring: RecurringRepository,
 ) : ViewModel() {
 
     private val _selectedAccountIds = MutableStateFlow<Set<Long>>(emptySet())
 
     private val _homePeriod = MutableStateFlow(
-        (
-            parseHomePeriod(savedState.get<String>(KEY_HOME_PERIOD))
-                ?: HomePeriod.current(HomeMode.DAYS, environment.today())
-            )
-            .clampedTo(environment.today())
+        (parseHomePeriod(savedState.get<String>(KEY_HOME_PERIOD)) ?: HomePeriod.current(HomeMode.DAYS, environment.today()))
+            .clampedTo(environment.today()),
     )
 
     /** Home's own period (not shared with Statistics). */
@@ -104,7 +101,7 @@ class DashboardViewModel @Inject constructor(
     private val upcoming: Flow<UpcomingState> = combine(
         recurring.observeSchedules(),
         recurring.issues,
-        env.map { it.today }.distinctUntilChanged()
+        env.map { it.today }.distinctUntilChanged(),
     ) { schedules, issues, today ->
         val items = UpcomingOccurrences.build(schedules, issues.keys, today)
         val active = schedules.any { it.nextDate != null && it.status == ScheduleStatus.ACTIVE }
@@ -134,7 +131,7 @@ class DashboardViewModel @Inject constructor(
         _selectedAccountIds,
         currentChart,
         recent,
-        upcoming
+        upcoming,
     ) { env, selectedAccounts, (period, chart), recent, upcoming ->
         DashboardUiState(
             loading = false,
@@ -146,7 +143,7 @@ class DashboardViewModel @Inject constructor(
             accounts = env.activeAccounts(),
             selectedAccountIds = selectedAccounts,
             recent = recent,
-            upcoming = upcoming
+            upcoming = upcoming,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DashboardUiState())
 
@@ -156,7 +153,7 @@ class DashboardViewModel @Inject constructor(
             val job = SupervisorJob(viewModelScope.coroutineContext[Job])
             val flow = combine(
                 env.map { it.today to it.zone }.distinctUntilChanged(),
-                _selectedAccountIds
+                _selectedAccountIds,
             ) { day, accountIds -> day to accountIds }
                 .flatMapLatest { (day, accountIds) ->
                     val (today, zone) = day
@@ -164,22 +161,18 @@ class DashboardViewModel @Inject constructor(
                     val filter = TransactionFilter(
                         from = buckets.first().from,
                         toExclusive = buckets.last().toExclusive,
-                        accountIds = accountIds
+                        accountIds = accountIds,
                     )
                     combine(
                         env,
                         analytics.observeByBucket(filter, Measure.INCOME, buckets).asRows(),
-                        analytics.observeByBucket(filter, Measure.EXPENSE, buckets).asRows()
+                        analytics.observeByBucket(filter, Measure.EXPENSE, buckets).asRows(),
                     ) { env, income, expense ->
                         buildChart(env, accountIds, period, today, unit, buckets, income, expense)
                     }
                 }
                 .distinctUntilChanged()
-                .shareIn(
-                    CoroutineScope(viewModelScope.coroutineContext + job),
-                    SharingStarted.WhileSubscribed(5_000),
-                    replay = 1
-                )
+                .shareIn(CoroutineScope(viewModelScope.coroutineContext + job), SharingStarted.WhileSubscribed(5_000), replay = 1)
             CachedChart(job, flow)
         }.flow
     }
@@ -192,7 +185,7 @@ class DashboardViewModel @Inject constructor(
         unit: BucketUnit,
         buckets: List<Bucket>,
         income: Rows,
-        expense: Rows
+        expense: Rows,
     ): HomeChart {
         val scope = resolveScope(accountIds, env.activeAccounts(), env.display)
         val converter = ScopeConverter(scope, env.table, env.now)
@@ -215,7 +208,7 @@ class DashboardViewModel @Inject constructor(
             income = incomeTotal,
             expense = expenseTotal,
             currencyApprox = conversion.converted,
-            conversion = conversion
+            conversion = conversion,
         )
     }
 

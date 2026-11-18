@@ -1,9 +1,6 @@
 package com.yehor.finora.ui.categories
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -24,7 +22,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,10 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -62,6 +56,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.data.repo.DeletionImpact
 import com.yehor.finora.data.repo.ReassignTarget
+import com.yehor.finora.domain.category.Category
+import com.yehor.finora.domain.category.CategoryTree
+import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.input.SegmentedPill
@@ -69,22 +66,26 @@ import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.component.list.ListRow
 import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.designsystem.motion.FinoraMotion
 import com.yehor.finora.designsystem.motion.rememberReduceMotion
 import com.yehor.finora.designsystem.theme.PillShape
-import com.yehor.finora.designsystem.theme.PreviewTheme
-import com.yehor.finora.designsystem.theme.finance
-import com.yehor.finora.domain.category.Category
-import com.yehor.finora.domain.category.CategoryTree
-import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.ui.common.OrganizeTopBar
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.geometry.Offset
 import com.yehor.finora.ui.common.CategoryPickerModel
 import com.yehor.finora.ui.common.CategoryTreePicker
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.OrganizeTopBar
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.PickerMode
 import com.yehor.finora.ui.common.PickerRow
+import com.yehor.finora.designsystem.theme.PreviewTheme
+import com.yehor.finora.designsystem.theme.finance
 
 private val TabOrder = listOf(CategoryType.EXPENSE, CategoryType.INCOME, CategoryType.TRANSFER)
 
@@ -108,7 +109,7 @@ fun CategoriesScreen(
     onAdd: (type: CategoryType, parentId: Long?) -> Unit,
     onEdit: (Long) -> Unit,
     onReviewTransactions: (Long) -> Unit,
-    viewModel: CategoriesViewModel = hiltViewModel()
+    viewModel: CategoriesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var pickOther by rememberSaveable { mutableStateOf(false) }
@@ -120,7 +121,7 @@ fun CategoriesScreen(
         onToggle = viewModel::toggle,
         onAdd = onAdd,
         onEdit = onEdit,
-        onDelete = viewModel::requestDelete
+        onDelete = viewModel::requestDelete,
     )
 
     state.delete?.let { dialog ->
@@ -134,7 +135,7 @@ fun CategoriesScreen(
                 onReviewTransactions(dialog.categoryId)
             },
             onConfirm = viewModel::confirmDelete,
-            onDismiss = viewModel::dismissDelete
+            onDismiss = viewModel::dismissDelete,
         )
         if (pickOther) {
             FinoraSheet(onDismiss = { pickOther = false }) {
@@ -145,7 +146,7 @@ fun CategoriesScreen(
                         id?.let { viewModel.onTarget(ReassignTarget.To(it)) }
                         pickOther = false
                     },
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp),
                 )
             }
         }
@@ -160,7 +161,7 @@ internal fun CategoriesContent(
     onToggle: (Long) -> Unit,
     onAdd: (CategoryType, Long?) -> Unit,
     onEdit: (Long) -> Unit,
-    onDelete: (Long) -> Unit
+    onDelete: (Long) -> Unit,
 ) {
     val groups = remember(state.rows) { CategoryListLogic.groups(state.rows) }
     val reduceMotion = rememberReduceMotion()
@@ -170,20 +171,18 @@ internal fun CategoriesContent(
             OrganizeTopBar(stringResource(R.string.categories_title), onBack) {
                 RoundIconButton(AppIcons.Add, stringResource(R.string.categories_add), { onAdd(state.type, null) })
             }
-        }
+        },
     ) { padding ->
         LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .padding(padding),
+            Modifier.fillMaxSize().padding(padding),
             contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             item(key = "tabs") {
                 SegmentedPill(
                     options = TabOrder.map { stringResource(it.labelRes()) },
                     selected = TabOrder.indexOf(state.type),
-                    onSelect = { onType(TabOrder[it]) }
+                    onSelect = { onType(TabOrder[it]) },
                 )
             }
             if (groups.isEmpty()) {
@@ -209,7 +208,7 @@ internal fun CategoriesContent(
                                         onToggle = { onToggle(row.category.id) },
                                         onAddChild = { onAdd(row.category.type, row.category.id) },
                                         onEdit = { onEdit(row.category.id) },
-                                        onDelete = { onDelete(row.category.id) }
+                                        onDelete = { onDelete(row.category.id) },
                                     )
                                 }
                             }
@@ -224,28 +223,26 @@ internal fun CategoriesContent(
 @Composable
 private fun EmptyCategories(onAdd: () -> Unit) {
     Column(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 40.dp, horizontal = 16.dp),
+        Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Icon(
             AppIcons.Category,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(48.dp),
         )
         Text(
             stringResource(R.string.categories_empty),
             style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         Text(
             stringResource(R.string.category_empty_hint),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
         PrimaryButton(stringResource(R.string.categories_add), onAdd)
     }
@@ -259,7 +256,7 @@ private fun CategoryListRow(
     onToggle: () -> Unit,
     onAddChild: () -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     val c = row.category
     var menu by rememberSaveable { mutableStateOf(false) }
@@ -273,7 +270,7 @@ private fun CategoryListRow(
     val chevron = animateFloatAsState(
         targetValue = if (row.expanded) 180f else 0f,
         animationSpec = if (reduceMotion) snap() else FinoraMotion.bouncy,
-        label = "chevron"
+        label = "chevron",
     )
     Box(
         Modifier.drawBehind {
@@ -283,7 +280,7 @@ private fun CategoryListRow(
             val mid = size.height / 2
             drawLine(connector, Offset(x, 0f), Offset(x, if (isLastSibling) mid else size.height), strokeWidth = 1.dp.toPx())
             drawLine(connector, Offset(x, mid), Offset((ROW_START + row.level * LEVEL_INDENT).dp.toPx(), mid), strokeWidth = 1.dp.toPx())
-        }
+        },
     ) {
         ListRow(
             icon = { IconBadge(c.icon, c.color, ColorPalette.defaultFor(c.type), size = badge) },
@@ -300,7 +297,7 @@ private fun CategoryListRow(
                             Icon(
                                 AppIcons.Expand,
                                 contentDescription = stringResource(if (row.expanded) R.string.action_collapse else R.string.action_expand),
-                                modifier = Modifier.graphicsLayer { rotationZ = chevron.value }
+                                modifier = Modifier.graphicsLayer { rotationZ = chevron.value },
                             )
                         }
                     }
@@ -313,36 +310,25 @@ private fun CategoryListRow(
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.category_add_subcategory)) },
                                     leadingIcon = { Icon(AppIcons.Add, contentDescription = null) },
-                                    onClick = {
-                                        menu = false
-                                        onAddChild()
-                                    }
+                                    onClick = { menu = false; onAddChild() },
                                 )
                             }
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_edit)) },
                                 leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                                onClick = {
-                                    menu = false
-                                    onEdit()
-                                }
+                                onClick = { menu = false; onEdit() },
                             )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.action_delete)) },
                                 leadingIcon = { Icon(AppIcons.Delete, contentDescription = null) },
-                                onClick = {
-                                    menu = false
-                                    onDelete()
-                                }
+                                onClick = { menu = false; onDelete() },
                             )
                         }
                     }
                 }
             },
-            modifier = Modifier
-                .padding(start = (row.level * LEVEL_INDENT).dp)
-                .heightIn(min = 64.dp),
-            onClick = onEdit
+            modifier = Modifier.padding(start = (row.level * LEVEL_INDENT).dp).heightIn(min = 64.dp),
+            onClick = onEdit,
         )
     }
 }
@@ -363,7 +349,7 @@ private fun DeleteCategoryDialog(
     onChooseOther: () -> Unit,
     onReviewTransactions: () -> Unit,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -377,7 +363,7 @@ private fun DeleteCategoryDialog(
                 onSuggested = onSuggested,
                 onChooseOther = onChooseOther,
                 onReviewTransactions = onReviewTransactions,
-                modifier = Modifier.verticalScroll(rememberScrollState())
+                modifier = Modifier.verticalScroll(rememberScrollState()),
             )
         },
         confirmButton = {
@@ -386,11 +372,11 @@ private fun DeleteCategoryDialog(
                 shape = PillShape,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                )
+                    contentColor = MaterialTheme.colorScheme.onError,
+                ),
             ) { Text(stringResource(R.string.action_delete)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     )
 }
 
@@ -401,7 +387,7 @@ internal fun DeleteDialogBody(
     onSuggested: () -> Unit,
     onChooseOther: () -> Unit,
     onReviewTransactions: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val impact = state.impact
     val selected = DeleteDialogLogic.selectedOption(state)
@@ -417,27 +403,19 @@ internal fun DeleteDialogBody(
             if (impact.directOperationCount > 0) {
                 ImpactLine(
                     AppIcons.Transfer,
-                    pluralStringResource(
-                        R.plurals.category_delete_operations,
-                        impact.directOperationCount,
-                        impact.directOperationCount
-                    )
+                    pluralStringResource(R.plurals.category_delete_operations, impact.directOperationCount, impact.directOperationCount),
                 )
             }
             if (impact.childCount > 0) {
                 ImpactLine(
                     AppIcons.Category,
-                    pluralStringResource(R.plurals.category_delete_children, impact.childCount, impact.childCount)
+                    pluralStringResource(R.plurals.category_delete_children, impact.childCount, impact.childCount),
                 )
             }
             if (impact.scheduleCount > 0) {
                 ImpactLine(
                     AppIcons.Recurring,
-                    pluralStringResource(
-                        R.plurals.category_delete_schedules,
-                        impact.scheduleCount,
-                        impact.scheduleCount
-                    )
+                    pluralStringResource(R.plurals.category_delete_schedules, impact.scheduleCount, impact.scheduleCount),
                 )
             }
         }
@@ -446,7 +424,7 @@ internal fun DeleteDialogBody(
                 Text(
                     stringResource(R.string.category_delete_direct_only_note),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 TextButton(onClick = onReviewTransactions, modifier = Modifier.heightIn(min = 44.dp)) {
                     Text(stringResource(R.string.category_delete_review_transactions))
@@ -455,26 +433,22 @@ internal fun DeleteDialogBody(
             Text(
                 stringResource(R.string.category_delete_target),
                 style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.semantics { heading() }
+                modifier = Modifier.semantics { heading() },
             )
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 val options = buildList<@Composable (Int, Int) -> Unit> {
                     if (impact.suggestedTarget != null && state.suggestedName != null) {
                         add { i, n ->
                             TargetOption(
-                                state.suggestedName,
-                                selected == DeleteTargetOption.SUGGESTED,
-                                onSuggested,
-                                categoryGroupShape(i, n)
+                                state.suggestedName, selected == DeleteTargetOption.SUGGESTED, onSuggested,
+                                categoryGroupShape(i, n),
                             )
                         }
                     }
                     add { i, n ->
                         TargetOption(
                             stringResource(R.string.picker_uncategorized),
-                            selected == DeleteTargetOption.UNCATEGORIZED,
-                            onUncategorized,
-                            categoryGroupShape(i, n)
+                            selected == DeleteTargetOption.UNCATEGORIZED, onUncategorized, categoryGroupShape(i, n),
                         )
                     }
                     add { i, n ->
@@ -484,9 +458,7 @@ internal fun DeleteDialogBody(
                             } else {
                                 stringResource(R.string.category_delete_choose_other)
                             },
-                            selected == DeleteTargetOption.OTHER,
-                            onChooseOther,
-                            categoryGroupShape(i, n)
+                            selected == DeleteTargetOption.OTHER, onChooseOther, categoryGroupShape(i, n),
                         )
                     }
                 }
@@ -496,13 +468,13 @@ internal fun DeleteDialogBody(
         Text(
             stringResource(R.string.category_delete_confirm_hint),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (state.failed) {
             Text(
                 stringResource(R.string.category_form_error_generic),
                 color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -515,9 +487,7 @@ private fun ImpactLine(icon: ImageVector, text: String) {
             icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .padding(top = 2.dp)
-                .size(IconSize.Small)
+            modifier = Modifier.padding(top = 2.dp).size(IconSize.Small),
         )
         Text(text, style = MaterialTheme.typography.bodyMedium)
     }
@@ -531,13 +501,11 @@ private fun TargetOption(label: String, selected: Boolean, onClick: () -> Unit, 
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick),
     ) {
         Row(
-            Modifier
-                .heightIn(min = 48.dp)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
+            Modifier.heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             RadioButton(selected = selected, onClick = null)
             Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(start = 12.dp))
@@ -547,13 +515,8 @@ private fun TargetOption(label: String, selected: Boolean, onClick: () -> Unit, 
 
 // ---- Previews ----
 
-private fun previewCategory(
-    id: Long,
-    name: String,
-    icon: String,
-    parent: Long? = null,
-    type: CategoryType = CategoryType.EXPENSE
-) = Category(id, name, icon, null, type, parent, 0)
+private fun previewCategory(id: Long, name: String, icon: String, parent: Long? = null, type: CategoryType = CategoryType.EXPENSE) =
+    Category(id, name, icon, null, type, parent, 0)
 
 private fun previewState(empty: Boolean = false): CategoriesUiState {
     val tree = CategoryTree(
@@ -565,14 +528,14 @@ private fun previewState(empty: Boolean = false): CategoriesUiState {
                 previewCategory(2, "Groceries", "shopping_cart", 1),
                 previewCategory(3, "Cafes", "coffee", 1),
                 previewCategory(4, "Transport", "directions_bus"),
-                previewCategory(5, "Home", "home")
+                previewCategory(5, "Home", "home"),
             )
-        }
+        },
     )
     return CategoriesUiState(
         tree = tree,
         type = CategoryType.EXPENSE,
-        rows = CategoryPickerModel.rows(tree, CategoryType.EXPENSE, PickerMode.Assign(), setOf(1L), query = "")
+        rows = CategoryPickerModel.rows(tree, CategoryType.EXPENSE, PickerMode.Assign(), setOf(1L), query = ""),
     )
 }
 
@@ -608,14 +571,10 @@ private fun DeletePreview(dark: Boolean) {
                     categoryId = 1, categoryName = "Food", type = CategoryType.EXPENSE,
                     impact = DeletionImpact(directOperationCount = 12, childCount = 2, suggestedTarget = 9, scheduleCount = 1),
                     target = ReassignTarget.To(9), suggestedName = "Living", targetName = "Living",
-                    icon = "restaurant",
-                    color = null
+                    icon = "restaurant", color = null,
                 ),
-                onUncategorized = {},
-                onSuggested = {},
-                onChooseOther = {},
-                onReviewTransactions = {},
-                modifier = Modifier.padding(24.dp)
+                onUncategorized = {}, onSuggested = {}, onChooseOther = {}, onReviewTransactions = {},
+                modifier = Modifier.padding(24.dp),
             )
         }
     }

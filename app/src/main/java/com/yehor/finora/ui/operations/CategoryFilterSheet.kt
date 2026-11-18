@@ -1,5 +1,7 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,18 +41,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
-import com.yehor.finora.designsystem.component.input.SegmentedPill
-import com.yehor.finora.designsystem.component.sheet.FinoraSheet
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.category.CategoryNode
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.designsystem.component.input.SegmentedPill
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
+import com.yehor.finora.designsystem.theme.finance
+
 
 // ---- Selection rules (pure, so they can be unit tested) ----
 
@@ -80,9 +82,10 @@ internal fun TransactionFilter.toggleDirectOnly(id: Long): TransactionFilter {
 }
 
 /** Categories that are implicitly included because an ancestor is selected with its subcategories. */
-internal fun TransactionFilter.coveredCategoryIds(tree: CategoryTree): Set<Long> = categoryIds
-    .filter { !categoryExact && it !in exactCategoryIds }
-    .flatMapTo(HashSet()) { tree.descendantIds(it) }
+internal fun TransactionFilter.coveredCategoryIds(tree: CategoryTree): Set<Long> =
+    categoryIds
+        .filter { !categoryExact && it !in exactCategoryIds }
+        .flatMapTo(HashSet()) { tree.descendantIds(it) }
 
 // ---- Sheet ----
 
@@ -95,14 +98,14 @@ fun CategoryFilterSheet(
     filter: TransactionFilter,
     categories: List<Category>,
     onFilterChange: (TransactionFilter) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val tree = remember(categories) { CategoryTree(categories) }
     val hasIncome = tree.rootsOf(CategoryType.INCOME).isNotEmpty()
     val hasExpense = tree.rootsOf(CategoryType.EXPENSE).isNotEmpty()
     var tab by rememberSaveable {
         mutableStateOf(
-            if (!hasExpense || (filter.types == setOf(OperationType.INCOME) && hasIncome)) CategoryType.INCOME else CategoryType.EXPENSE
+            if (!hasExpense || (filter.types == setOf(OperationType.INCOME) && hasIncome)) CategoryType.INCOME else CategoryType.EXPENSE,
         )
     }
     var query by rememberSaveable { mutableStateOf("") }
@@ -126,10 +129,10 @@ fun CategoryFilterSheet(
                             categoryIds = emptySet(),
                             exactCategoryIds = emptySet(),
                             categoryExact = false,
-                            includeUncategorized = false
-                        )
+                            includeUncategorized = false,
+                        ),
                     )
-                }
+                },
             )
 
             if (hasExpense && hasIncome) {
@@ -138,7 +141,7 @@ fun CategoryFilterSheet(
                     expenseCount = filter.categoryIds.count { tree.category(it)?.type == CategoryType.EXPENSE },
                     incomeCount = filter.categoryIds.count { tree.category(it)?.type == CategoryType.INCOME },
                     onSelect = { tab = it },
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    modifier = Modifier.padding(vertical = 4.dp),
                 )
             }
             if (categories.size > FILTER_SEARCH_THRESHOLD) {
@@ -146,7 +149,7 @@ fun CategoryFilterSheet(
                     query,
                     { query = it },
                     stringResource(R.string.filter_categories_search),
-                    Modifier.padding(vertical = 8.dp)
+                    Modifier.padding(vertical = 8.dp),
                 )
             }
 
@@ -154,7 +157,7 @@ fun CategoryFilterSheet(
             LazyColumn(
                 modifier = Modifier.weight(1f, fill = false),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 rows.forEachIndexed { index, row ->
                     item(key = row.node.category.id) {
@@ -169,7 +172,7 @@ fun CategoryFilterSheet(
                             expanded = id in expanded,
                             onToggle = { onFilterChange(filter.toggleCategory(id, tree)) },
                             onToggleDirectOnly = { onFilterChange(filter.toggleDirectOnly(id)) },
-                            onToggleExpanded = { if (id in expanded) expanded.remove(id) else expanded.add(id) }
+                            onToggleExpanded = { if (id in expanded) expanded.remove(id) else expanded.add(id) },
                         )
                     }
                 }
@@ -179,7 +182,7 @@ fun CategoryFilterSheet(
                             stringResource(R.string.transactions_empty_filter_title),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
                 }
@@ -189,7 +192,7 @@ fun CategoryFilterSheet(
                     item(key = "uncategorized") {
                         UncategorizedRow(
                             checked = filter.includeUncategorized,
-                            onToggle = { onFilterChange(filter.copy(includeUncategorized = !filter.includeUncategorized)) }
+                            onToggle = { onFilterChange(filter.copy(includeUncategorized = !filter.includeUncategorized)) },
                         )
                     }
                 }
@@ -224,17 +227,17 @@ private fun KindTabs(
     expenseCount: Int,
     incomeCount: Int,
     onSelect: (CategoryType) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     fun label(text: String, count: Int) = if (count > 0) "$text · $count" else text
     SegmentedPill(
         options = listOf(
             label(stringResource(R.string.filter_type_expenses), expenseCount),
-            label(stringResource(R.string.filter_type_income), incomeCount)
+            label(stringResource(R.string.filter_type_income), incomeCount),
         ),
         selected = if (selected == CategoryType.EXPENSE) 0 else 1,
         onSelect = { onSelect(if (it == 0) CategoryType.EXPENSE else CategoryType.INCOME) },
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -246,29 +249,25 @@ private fun UncategorizedRow(checked: Boolean, onToggle: () -> Unit) {
                 .clickable(role = Role.Checkbox, onClick = onToggle)
                 .heightIn(min = 60.dp)
                 .padding(start = 12.dp, end = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.padding(end = 12.dp))
             Box(
-                Modifier
-                    .size(36.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
-                contentAlignment = Alignment.Center
+                Modifier.size(36.dp).background(MaterialTheme.colorScheme.surfaceContainer, CircleShape),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     AppIcons.Help,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
             Text(
                 stringResource(R.string.picker_uncategorized),
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp)
+                modifier = Modifier.weight(1f).padding(start = 12.dp),
             )
         }
     }
@@ -284,7 +283,7 @@ private fun CategoryRow(
     expanded: Boolean,
     onToggle: () -> Unit,
     onToggleDirectOnly: () -> Unit,
-    onToggleExpanded: () -> Unit
+    onToggleExpanded: () -> Unit,
 ) {
     val category = row.node.category
     val childCount = row.node.children.size
@@ -294,7 +293,7 @@ private fun CategoryRow(
         shape = shape,
         // Subcategories sit one tone up, so the hierarchy reads without lines.
         color = if (isChild) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerHigh,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Row(
             Modifier
@@ -302,32 +301,28 @@ private fun CategoryRow(
                 .heightIn(min = if (isChild) 52.dp else 60.dp)
                 .padding(start = (12 + row.depth * 24).dp, end = 4.dp, top = 6.dp, bottom = 6.dp)
                 .alpha(if (covered) 0.6f else 1f),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Leading checkbox: one column per depth, whether or not the row has a chevron.
             Checkbox(
                 checked = selected || covered,
                 enabled = !covered,
                 onCheckedChange = null,
-                modifier = Modifier.padding(end = 12.dp)
+                modifier = Modifier.padding(end = 12.dp),
             )
             IconBadge(
                 icon = category.icon,
                 color = category.color,
                 fallbackColor = ColorPalette.defaultFor(category.type),
-                size = if (isChild) 28 else 36
+                size = if (isChild) 28 else 36,
             )
-            Column(
-                Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+            Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     category.name,
                     style = if (isChild) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
                 when {
                     row.parentName != null -> SecondaryLine(row.parentName)
@@ -340,8 +335,8 @@ private fun CategoryRow(
                     Icon(
                         if (expanded) AppIcons.Collapse else AppIcons.Expand,
                         contentDescription = stringResource(
-                            if (expanded) R.string.filter_categories_collapse else R.string.filter_categories_expand
-                        )
+                            if (expanded) R.string.filter_categories_collapse else R.string.filter_categories_expand,
+                        ),
                     )
                 }
             } else {
@@ -364,12 +359,12 @@ private fun ScopePill(directOnly: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.secondaryContainer,
         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-        modifier = Modifier.height(28.dp)
+        modifier = Modifier.height(28.dp),
     ) {
         Row(Modifier.padding(start = 10.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 stringResource(if (directOnly) R.string.filter_category_stage_direct else R.string.filter_category_stage_recursive),
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
             )
             Icon(AppIcons.Expand, contentDescription = null, modifier = Modifier.size(IconSize.Small))
         }

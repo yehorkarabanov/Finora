@@ -50,7 +50,7 @@ data class RecurringEditUiState(
     val gate: SaveGate? = null,
     val showOpeningOrderDialog: Boolean = false,
     val showArchivedError: Boolean = false,
-    val saved: Boolean = false
+    val saved: Boolean = false,
 ) {
     val isEdit: Boolean get() = form.isEdit
 
@@ -71,7 +71,7 @@ class RecurringEditViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
-    tagRepository: TagRepository
+    tagRepository: TagRepository,
 ) : ViewModel() {
 
     private val scheduleId: Long? = savedStateHandle.get<Long>("scheduleId")?.takeIf { it > 0 }
@@ -86,7 +86,7 @@ class RecurringEditViewModel @Inject constructor(
         val gate: SaveGate? = null,
         val openingOrder: Boolean = false,
         val archivedError: Boolean = false,
-        val saved: Boolean = false
+        val saved: Boolean = false,
     )
 
     /** Confirmations the user has given since the last edit of the form. Nothing is written before all pass. */
@@ -101,7 +101,7 @@ class RecurringEditViewModel @Inject constructor(
             id: Long,
             draft: ScheduleDraft,
             moveOpeningBalanceBack: Boolean,
-            confirmCurrencyChange: Boolean
+            confirmCurrencyChange: Boolean,
         ) {
             repository.update(id, draft, moveOpeningBalanceBack, confirmCurrencyChange)
         }
@@ -111,14 +111,12 @@ class RecurringEditViewModel @Inject constructor(
         combine(form, loading, recentCategoryIds, flags) { f, l, r, fl -> Quad(f, l, r, fl) },
         accountRepository.observeAll(),
         categoryRepository.observeAll(),
-        tagRepository.observeAllWithUsage()
+        tagRepository.observeAllWithUsage(),
     ) { (current, isLoading, recents, fl), accountsWithBalance, categories, tagsWithUsage ->
         val originalId = current.original?.accountId
         val pickable = accountsWithBalance.map { it.account }
             .filter { it.status == AccountStatus.ACTIVE || it.id == originalId }
-            .map {
-                PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId)
-            }
+            .map { PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId) }
         val selected = pickable.find { it.account.id == current.accountId }?.account
         val effective = current.copy(accountArchived = selected?.status == AccountStatus.ARCHIVED)
         val currency = selected?.currency ?: pickable.firstOrNull()?.account?.currency ?: CurrencyRegistry.all.first()
@@ -138,16 +136,11 @@ class RecurringEditViewModel @Inject constructor(
             gate = fl.gate,
             showOpeningOrderDialog = fl.openingOrder,
             showArchivedError = fl.archivedError,
-            saved = fl.saved
+            saved = fl.saved,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RecurringEditUiState())
 
-    private data class Quad(
-        val form: RecurringFormState,
-        val loading: Boolean,
-        val recents: List<Long>,
-        val flags: Flags
-    )
+    private data class Quad(val form: RecurringFormState, val loading: Boolean, val recents: List<Long>, val flags: Flags)
 
     init {
         viewModelScope.launch { loadInitialData() }
@@ -158,12 +151,7 @@ class RecurringEditViewModel @Inject constructor(
             val schedule = repository.observeSchedule(scheduleId).first()
             if (schedule != null) {
                 val lastHandled = repository.lastHandledDate(scheduleId)
-                val anchor = ScheduleDates.Anchor(
-                    schedule.startDate,
-                    schedule.rule,
-                    schedule.endDate,
-                    schedule.nextDate
-                )
+                val anchor = ScheduleDates.Anchor(schedule.startDate, schedule.rule, schedule.endDate, schedule.nextDate)
                 // An ended schedule has no next date; show the date its sequence would continue with.
                 val shownDate = schedule.nextDate
                     ?: lastHandled?.let { RecurrenceCalculator.firstAfter(schedule.startDate, schedule.rule, it) }
@@ -185,8 +173,8 @@ class RecurringEditViewModel @Inject constructor(
                         money = schedule.money,
                         anchor = anchor,
                         lastHandled = lastHandled,
-                        active = schedule.status == ScheduleStatus.ACTIVE
-                    )
+                        active = schedule.status == ScheduleStatus.ACTIVE,
+                    ),
                 )
             }
         }
@@ -221,15 +209,7 @@ class RecurringEditViewModel @Inject constructor(
     fun onCategoryChange(categoryId: Long?) = edit { it.copy(categoryId = categoryId) }
 
     fun onToggleTag(tagId: Long) = edit {
-        it.copy(
-            selectedTagIds = if (tagId in
-                it.selectedTagIds
-            ) {
-                it.selectedTagIds - tagId
-            } else {
-                it.selectedTagIds + tagId
-            }
-        )
+        it.copy(selectedTagIds = if (tagId in it.selectedTagIds) it.selectedTagIds - tagId else it.selectedTagIds + tagId)
     }
 
     fun onAddPendingTag(name: String) {
@@ -267,7 +247,7 @@ class RecurringEditViewModel @Inject constructor(
                 now = System.currentTimeMillis(),
                 zone = ZoneId.systemDefault(),
                 confirmed = confirmed,
-                writer = writer
+                writer = writer,
             )
             flags.value = when (result) {
                 SaveResult.Saved -> Flags(saved = true)

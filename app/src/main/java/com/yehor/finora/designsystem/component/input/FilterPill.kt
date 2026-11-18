@@ -39,34 +39,19 @@ fun FilterPill(
     active: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    onClear: (() -> Unit)? = null
+    onClear: (() -> Unit)? = null,
 ) {
     val scheme = MaterialTheme.colorScheme
     val showClear = active && onClear != null
     val content = if (active) scheme.primary else scheme.onSurfaceVariant
-    val border = if (active) {
-        BorderStroke(
-            1.dp,
-            scheme.primary.copy(alpha = 0.4f)
-        )
-    } else {
-        hairline(MaterialTheme.finance.isDark)
-    }
+    val border = if (active) BorderStroke(1.dp, scheme.primary.copy(alpha = 0.4f)) else hairline(MaterialTheme.finance.isDark)
     // The whole 48dp-high outer box is the pill's hit area; the visual pill inside stays compact.
     // The clear glyph is a separate 48dp target layered on top.
     val interaction = remember { MutableInteractionSource() }
     Box(
-        modifier
-            .heightIn(min = 48.dp)
-            .pressScale(interaction)
-            .clip(PillShape)
-            .clickable(
-                interactionSource = interaction,
-                indication = LocalIndication.current,
-                role = Role.Button,
-                onClick = onClick
-            ),
-        contentAlignment = Alignment.CenterStart
+        modifier.heightIn(min = 48.dp).pressScale(interaction).clip(PillShape)
+            .clickable(interactionSource = interaction, indication = LocalIndication.current, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.CenterStart,
     ) {
         Row(
             modifier = Modifier
@@ -74,28 +59,17 @@ fun FilterPill(
                 .background(if (active) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainer, PillShape)
                 .border(border, PillShape)
                 .padding(start = 12.dp, top = 7.dp, bottom = 7.dp, end = if (showClear) 0.dp else 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = content)
             if (showClear) Spacer(Modifier.width(48.dp))
         }
         if (onClear != null && showClear) {
             Box(
-                Modifier
-                    .align(
-                        Alignment.CenterEnd
-                    )
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClick = onClear),
-                contentAlignment = Alignment.Center
+                Modifier.align(Alignment.CenterEnd).size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onClear),
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    AppIcons.Close,
-                    contentDescription = stringResource(R.string.filter_clear),
-                    tint = content,
-                    modifier = Modifier.size(14.dp)
-                )
+                Icon(AppIcons.Close, contentDescription = stringResource(R.string.filter_clear), tint = content, modifier = Modifier.size(14.dp))
             }
         }
     }

@@ -31,7 +31,7 @@ import com.yehor.finora.ui.operations.TransactionFilterSheet
 data class StatisticsActions(
     val onOpenTransactions: (TransactionFilter) -> Unit,
     val onOpenAccountAnalytics: (Long) -> Unit,
-    val onOpenTransaction: (TransactionItem) -> Unit
+    val onOpenTransaction: (TransactionItem) -> Unit,
 )
 
 @Composable
@@ -41,36 +41,25 @@ fun StatisticsScreen(actions: StatisticsActions, viewModel: StatisticsViewModel 
     StatisticsBody(state, trend, viewModel, actions)
 }
 
-private val TagSheetSections =
-    setOf(FilterSection.TYPE, FilterSection.ACCOUNT, FilterSection.CATEGORY, FilterSection.DATE)
+private val TagSheetSections = setOf(FilterSection.TYPE, FilterSection.ACCOUNT, FilterSection.CATEGORY, FilterSection.DATE)
 
 private val ScreenMargin = 18.dp
 
 @Composable
-private fun StatisticsBody(
-    state: StatisticsUiState,
-    trend: StatsTrend?,
-    vm: StatisticsViewModel,
-    actions: StatisticsActions
-) {
+private fun StatisticsBody(state: StatisticsUiState, trend: StatsTrend?, vm: StatisticsViewModel, actions: StatisticsActions) {
     val env = state.env
     val scope = state.scope
     val controls = state.controls
     var filterSheet by rememberSaveable { mutableStateOf(false) }
     var optionsSheet by rememberSaveable { mutableStateOf(false) }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .statusBarsPadding()
-    ) {
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).statusBarsPadding()) {
         if ((state.loading || env == null) || scope == null) return@Box
         val hasOptions = controls.tab != StatsTab.ACCOUNTS
         LazyColumn(
             Modifier.fillMaxSize(),
             contentPadding = PaddingValues(start = ScreenMargin, end = ScreenMargin, top = 4.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             item(key = "top") { StatsTopBar(onOptions = if (hasOptions) ({ optionsSheet = true }) else null) }
             item(key = "tabs") { StatsTabs(controls.tab, vm::selectTab) }
@@ -83,7 +72,7 @@ private fun StatisticsBody(
                     onSelect = vm::selectPeriod,
                     onShift = vm::shiftPeriod,
                     onMonths = vm::selectMonths,
-                    onCustom = vm::setCustomPeriod
+                    onCustom = vm::setCustomPeriod,
                 )
             }
             if (controls.tab != StatsTab.ACCOUNTS) {
@@ -120,7 +109,7 @@ private fun StatisticsBody(
                 }
             } else {
                 null
-            }
+            },
         )
     }
 
@@ -135,7 +124,7 @@ private fun StatisticsBody(
                 vm.applyTagSheet(filter, env.period)
             },
             onDismiss = { filterSheet = false },
-            sections = TagSheetSections
+            sections = TagSheetSections,
         )
     }
 }
@@ -147,7 +136,7 @@ private fun LazyListScope.flowItems(
     trend: StatsTrend?,
     state: StatisticsUiState,
     vm: StatisticsViewModel,
-    actions: StatisticsActions
+    actions: StatisticsActions,
 ) {
     val report = tab.report
     val env = state.env ?: return
@@ -160,7 +149,7 @@ private fun LazyListScope.flowItems(
             previous = state.previousPeriod,
             today = env.today,
             total = report.category.total,
-            delta = if (compare) report.category.totalDelta else null
+            delta = if (compare) report.category.totalDelta else null,
         )
     }
     item(key = "trend") {
@@ -172,9 +161,7 @@ private fun LazyListScope.flowItems(
             previousName = state.previousPeriod?.let { periodShortName(it, env.today) },
             onPreview = vm::previewWindow,
             onCommit = vm::commitWindow,
-            onOpenBucket = { t, bucket ->
-                actions.onOpenTransactions(AnalyticsFilters.bucket(t.base, t.measure, bucket))
-            }
+            onOpenBucket = { t, bucket -> actions.onOpenTransactions(AnalyticsFilters.bucket(t.base, t.measure, bucket)) },
         )
     }
     item(key = "categories") {
@@ -186,7 +173,7 @@ private fun LazyListScope.flowItems(
             categories = env.categories,
             onEnter = vm::enter,
             onBack = { vm.back(it) },
-            onOpen = actions.onOpenTransactions
+            onOpen = actions.onOpenTransactions,
         )
     }
     val type = setOf(report.measure.operationType())
@@ -196,7 +183,7 @@ private fun LazyListScope.flowItems(
                 title = stringResource(R.string.stats_by_account),
                 items = accountBreakdown(report.byAccount, env.allAccounts) { id ->
                     actions.onOpenTransactions(tab.base.copy(types = type, accountIds = setOf(id)))
-                }
+                },
             )
         }
     }
@@ -207,7 +194,7 @@ private fun LazyListScope.flowItems(
                 note = stringResource(R.string.stats_by_tag_note),
                 items = tagBreakdown(report.byTag, env.tags) { id ->
                     actions.onOpenTransactions(tab.base.copy(types = type, tagIds = setOf(id)))
-                }
+                },
             )
         }
     }

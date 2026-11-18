@@ -19,7 +19,7 @@ import com.yehor.finora.R
 private fun variableFamily(resId: Int, vararg weights: Int) = FontFamily(
     weights.map { w ->
         Font(resId, weight = FontWeight(w), variationSettings = FontVariation.Settings(FontVariation.weight(w)))
-    }
+    },
 )
 
 val SpaceGrotesk = variableFamily(R.font.space_grotesk, 300, 400, 500, 600, 700)
@@ -34,7 +34,7 @@ private fun grotesk(size: Int, line: Int, weight: FontWeight, tracking: Float = 
     fontSize = size.sp,
     lineHeight = line.sp,
     letterSpacing = tracking.sp,
-    fontFeatureSettings = TabularNums
+    fontFeatureSettings = TabularNums,
 )
 
 private fun manrope(size: Int, line: Int, weight: FontWeight, tracking: Float = 0f) = TextStyle(
@@ -42,7 +42,7 @@ private fun manrope(size: Int, line: Int, weight: FontWeight, tracking: Float = 
     fontWeight = weight,
     fontSize = size.sp,
     lineHeight = line.sp,
-    letterSpacing = tracking.sp
+    letterSpacing = tracking.sp,
 )
 
 /**
@@ -65,7 +65,7 @@ val FinoraTypography = Typography(
     bodySmall = manrope(12, 16, FontWeight.Normal),
     labelLarge = manrope(14, 18, FontWeight.SemiBold),
     labelMedium = manrope(12, 16, FontWeight.SemiBold),
-    labelSmall = manrope(11, 14, FontWeight.SemiBold, 0.2f)
+    labelSmall = manrope(11, 14, FontWeight.SemiBold, 0.2f),
 )
 
 /** keypad-num: number keys on the amount keypad. */

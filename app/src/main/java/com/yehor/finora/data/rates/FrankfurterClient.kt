@@ -25,7 +25,7 @@ data class FetchedQuote(
     val quote: String,
     val rate: BigDecimal,
     val quoteDate: LocalDate,
-    val source: String
+    val source: String,
 )
 
 enum class RateFetchReason { NO_NETWORK, TIMEOUT, HTTP_ERROR, BAD_PAYLOAD }
@@ -47,16 +47,17 @@ open class FrankfurterClient(private val baseUrl: String) {
      * Requests `base -> quotes`. A quote the server does not know or return is simply absent from
      * the result. Any other failure throws [RateFetchException]; nothing is partially trusted.
      */
-    open suspend fun fetchRates(base: String, quotes: Set<String>): List<FetchedQuote> = withContext(Dispatchers.IO) {
-        if (quotes.isEmpty()) return@withContext emptyList()
-        val ordered = quotes.sorted()
-        val response = get("$baseUrl/v2/rates?base=$base&quotes=${ordered.joinToString(",")}")
-        when (response.status) {
-            200 -> parseFrankfurterPayload(response.body, base, quotes, array = true)
-            404, 422 -> ordered.flatMap { quote -> fetchSingle(base, quote) }
-            else -> throw RateFetchException(RateFetchReason.HTTP_ERROR, "HTTP ${response.status}")
+    open suspend fun fetchRates(base: String, quotes: Set<String>): List<FetchedQuote> =
+        withContext(Dispatchers.IO) {
+            if (quotes.isEmpty()) return@withContext emptyList()
+            val ordered = quotes.sorted()
+            val response = get("$baseUrl/v2/rates?base=$base&quotes=${ordered.joinToString(",")}")
+            when (response.status) {
+                200 -> parseFrankfurterPayload(response.body, base, quotes, array = true)
+                404, 422 -> ordered.flatMap { quote -> fetchSingle(base, quote) }
+                else -> throw RateFetchException(RateFetchReason.HTTP_ERROR, "HTTP ${response.status}")
+            }
         }
-    }
 
     private fun fetchSingle(base: String, quote: String): List<FetchedQuote> {
         val response = get("$baseUrl/v2/rate/$base/$quote")
@@ -131,7 +132,7 @@ internal fun parseFrankfurterPayload(
     body: String,
     base: String,
     quotes: Set<String>,
-    array: Boolean
+    array: Boolean,
 ): List<FetchedQuote> {
     fun bad(message: String): Nothing = throw RateFetchException(RateFetchReason.BAD_PAYLOAD, message)
 

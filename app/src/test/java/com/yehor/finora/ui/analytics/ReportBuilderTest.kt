@@ -37,7 +37,7 @@ class ReportBuilderTest {
     private val categories = listOf(
         Category(1, "Food", null, null, CategoryType.EXPENSE, null, 0),
         Category(2, "Groceries", null, null, CategoryType.EXPENSE, 1, 0),
-        Category(3, "Fun", null, null, CategoryType.EXPENSE, null, 0)
+        Category(3, "Fun", null, null, CategoryType.EXPENSE, null, 0),
     )
 
     private fun env(table: RateTable = RateTable.EMPTY): AnalyticsEnv {
@@ -53,7 +53,7 @@ class ReportBuilderTest {
             tags = emptyList(),
             table = table,
             display = pln,
-            now = now
+            now = now,
         )
     }
 
@@ -67,14 +67,9 @@ class ReportBuilderTest {
         previous: List<NativeRow>? = null,
         path: List<Long> = emptyList(),
         scope: CurrencyScope = display,
-        table: RateTable = RateTable.EMPTY
+        table: RateTable = RateTable.EMPTY,
     ) = ReportBuilder.category(
-        env(table),
-        scope,
-        Measure.EXPENSE,
-        Rows.Ok(current),
-        previous?.let { Rows.Ok(it) },
-        path
+        env(table), scope, Measure.EXPENSE, Rows.Ok(current), previous?.let { Rows.Ok(it) }, path,
     )
 
     // ---- category ----
@@ -178,12 +173,7 @@ class ReportBuilderTest {
     @Test
     fun anOverflowingSumIsUnavailableNotWrapped() {
         val report = ReportBuilder.category(
-            env(),
-            display,
-            Measure.EXPENSE,
-            Rows.Overflow,
-            null,
-            emptyList()
+            env(), display, Measure.EXPENSE, Rows.Overflow, null, emptyList(),
         )
         assertTrue(report.total.overflowed)
         assertNull(report.total.estimate)
@@ -209,7 +199,7 @@ class ReportBuilderTest {
     @Test
     fun aDirectRateConvertsAndIsMarkedAsAnEstimate() {
         val table = RateTable(
-            mapOf(CurrencyPair(usd, pln) to RateQuote(BigDecimal("4.00"), LocalDate.of(2026, 11, 14), now))
+            mapOf(CurrencyPair(usd, pln) to RateQuote(BigDecimal("4.00"), LocalDate.of(2026, 11, 14), now)),
         )
         val report = report(listOf(row(3, 100, pln), row(3, 100, usd)), table = table)
         assertEquals(500L, report.total.estimate!!.amountMinor)
@@ -223,9 +213,7 @@ class ReportBuilderTest {
         val converter = ScopeConverter(display, RateTable.EMPTY, now)
         val total = report(listOf(row(3, 400))).total
         val lines = ReportBuilder.breakdown(
-            Rows.Ok(listOf(row(10, 100), row(11, 300))),
-            converter,
-            total
+            Rows.Ok(listOf(row(10, 100), row(11, 300))), converter, total,
         )
         assertEquals(listOf(11L, 10L), lines.map { it.id })
         assertEquals(750, lines[0].share!!.permille)
@@ -236,9 +224,7 @@ class ReportBuilderTest {
         val converter = ScopeConverter(display, RateTable.EMPTY, now)
         val total = report(listOf(row(3, 100))).total
         val lines = ReportBuilder.breakdown(
-            Rows.Ok(listOf(row(null, 100), row(5, 0))),
-            converter,
-            total
+            Rows.Ok(listOf(row(null, 100), row(5, 0))), converter, total,
         )
         assertEquals(listOf<Long?>(null), lines.map { it.id })
     }
@@ -254,12 +240,10 @@ class ReportBuilderTest {
     @Test
     fun figuresForAllTypesHaveNetAsIncomeMinusExpense() {
         val figures = ReportBuilder.figures(
-            env(),
-            display,
-            emptySet(),
+            env(), display, emptySet(),
             income = Rows.Ok(listOf(row(1, 1000))),
             expense = Rows.Ok(listOf(row(1, 300))),
-            transfer = Rows.Ok(listOf(row(null, 50)))
+            transfer = Rows.Ok(listOf(row(null, 50))),
         )
         assertEquals(1000L, figures.income!!.estimate!!.amountMinor)
         assertEquals(300L, figures.expense!!.estimate!!.amountMinor)
@@ -270,12 +254,10 @@ class ReportBuilderTest {
     @Test
     fun aTypeTheFilterExcludesHasNoFigureAndNoNet() {
         val figures = ReportBuilder.figures(
-            env(),
-            display,
-            setOf(OperationType.EXPENSE),
+            env(), display, setOf(OperationType.EXPENSE),
             income = Rows.Ok(listOf(row(1, 1000))),
             expense = Rows.Ok(listOf(row(1, 300))),
-            transfer = Rows.Ok(emptyList())
+            transfer = Rows.Ok(emptyList()),
         )
         assertNull(figures.income)
         assertNull(figures.net)
@@ -286,12 +268,7 @@ class ReportBuilderTest {
     @Test
     fun aQuietPeriodReadsZeroInTheScopeCurrency() {
         val figures = ReportBuilder.figures(
-            env(),
-            display,
-            emptySet(),
-            Rows.Ok(emptyList()),
-            Rows.Ok(emptyList()),
-            Rows.Ok(emptyList())
+            env(), display, emptySet(), Rows.Ok(emptyList()), Rows.Ok(emptyList()), Rows.Ok(emptyList()),
         )
         assertEquals(0L, figures.income!!.estimate!!.amountMinor)
         assertEquals(pln, figures.net!!.estimate!!.currency)
@@ -300,12 +277,7 @@ class ReportBuilderTest {
     @Test
     fun anOverflowOnOneSideMakesTheNetUnavailable() {
         val figures = ReportBuilder.figures(
-            env(),
-            display,
-            emptySet(),
-            Rows.Overflow,
-            Rows.Ok(listOf(row(1, 5))),
-            Rows.Ok(emptyList())
+            env(), display, emptySet(), Rows.Overflow, Rows.Ok(listOf(row(1, 5))), Rows.Ok(emptyList()),
         )
         assertTrue(figures.income!!.overflowed)
         assertTrue(figures.net!!.overflowed)
@@ -316,12 +288,10 @@ class ReportBuilderTest {
     @Test
     fun figuresCountTheirOperations() {
         val figures = ReportBuilder.figures(
-            env(),
-            display,
-            emptySet(),
+            env(), display, emptySet(),
             income = Rows.Ok(listOf(row(1, 10, count = 2))),
             expense = Rows.Ok(listOf(row(1, 10, count = 3))),
-            transfer = Rows.Ok(listOf(row(null, 10, count = 4)))
+            transfer = Rows.Ok(listOf(row(null, 10, count = 4))),
         )
         assertEquals(9, figures.operationCount)
     }
@@ -338,7 +308,7 @@ class ReportBuilderTest {
             previousRows = null,
             accountRows = Rows.Ok(listOf(row(7, 100))),
             tagRows = Rows.Ok(listOf(row(null, 400))),
-            path = listOf(1)
+            path = listOf(1),
         )
         assertEquals(250, report.byAccount.single().share!!.permille)
         assertEquals(1000, report.byTag.single().share!!.permille)

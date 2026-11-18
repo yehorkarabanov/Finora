@@ -13,7 +13,7 @@ class AllowBackupFlagTest {
         val args = InstrumentationRegistry.getArguments()
         assumeFalse(
             "backupVerification build allows backup on purpose",
-            args.getString("backupVerification") == "true"
+            args.getString("backupVerification") == "true",
         )
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val flags = context.applicationInfo.flags

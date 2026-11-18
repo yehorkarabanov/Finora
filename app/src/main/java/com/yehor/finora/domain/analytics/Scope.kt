@@ -41,7 +41,7 @@ data class Cell(
     val excluded: Set<Currency>,
     val overflowed: Boolean,
     /** Oldest fetch time over the rates actually used. */
-    val oldestFetchedAt: Long?
+    val oldestFetchedAt: Long?,
 ) {
     val partial: Boolean get() = excluded.isNotEmpty()
 
@@ -67,7 +67,7 @@ data class Cell(
                     operationCount = operationCount + other.operationCount,
                     excluded = excluded + other.excluded,
                     overflowed = true,
-                    oldestFetchedAt = oldest(oldestFetchedAt, other.oldestFetchedAt)
+                    oldestFetchedAt = oldest(oldestFetchedAt, other.oldestFetchedAt),
                 )
             }
         }
@@ -76,13 +76,12 @@ data class Cell(
             operationCount = operationCount + other.operationCount,
             excluded = excluded + other.excluded,
             overflowed = overflow,
-            oldestFetchedAt = oldest(oldestFetchedAt, other.oldestFetchedAt)
+            oldestFetchedAt = oldest(oldestFetchedAt, other.oldestFetchedAt),
         )
     }
 
     companion object {
-        val NONE =
-            Cell(estimate = null, operationCount = 0, excluded = emptySet(), overflowed = false, oldestFetchedAt = null)
+        val NONE = Cell(estimate = null, operationCount = 0, excluded = emptySet(), overflowed = false, oldestFetchedAt = null)
 
         private fun oldest(a: Long?, b: Long?): Long? = when {
             a == null -> b
@@ -115,7 +114,7 @@ class ScopeConverter(private val scope: CurrencyScope, private val table: RateTa
                 operationCount = count,
                 excluded = emptySet(),
                 overflowed = false,
-                oldestFetchedAt = null
+                oldestFetchedAt = null,
             )
         } catch (e: MoneyOverflowException) {
             Cell(null, count, emptySet(), overflowed = true, oldestFetchedAt = null)
@@ -138,7 +137,7 @@ class ScopeConverter(private val scope: CurrencyScope, private val table: RateTa
             operationCount = count,
             excluded = valuation.excluded,
             overflowed = valuation.overflowed,
-            oldestFetchedAt = valuation.oldestFetchedAt
+            oldestFetchedAt = valuation.oldestFetchedAt,
         )
     }
 }

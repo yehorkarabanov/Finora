@@ -11,7 +11,7 @@ data class NormalizedFilter(
     val sort: TransactionSort,
     val scopeCurrency: Currency?,
     /** True when an amount range was removed because it no longer has a single scope currency. */
-    val amountRangeDropped: Boolean
+    val amountRangeDropped: Boolean,
 )
 
 object FilterScope {
@@ -21,12 +21,12 @@ object FilterScope {
         accountId: Long?,
         tagId: Long?,
         categoryId: Long?,
-        types: Set<OperationType> = emptySet()
+        types: Set<OperationType> = emptySet(),
     ): TransactionFilter = TransactionFilter(
         types = types,
         accountIds = setOfNotNull(accountId),
         tagIds = setOfNotNull(tagId),
-        categoryIds = setOfNotNull(categoryId)
+        categoryIds = setOfNotNull(categoryId),
     )
 
     /**
@@ -38,13 +38,13 @@ object FilterScope {
         sort: TransactionSort,
         accounts: List<Account>,
         existingCategoryIds: Set<Long>,
-        existingTagIds: Set<Long>
+        existingTagIds: Set<Long>,
     ): NormalizedFilter {
         val pruned = pruneMissing(
             filter = filter,
             existingAccountIds = accounts.map { it.id }.toSet(),
             existingCategoryIds = existingCategoryIds,
-            existingTagIds = existingTagIds
+            existingTagIds = existingTagIds,
         )
         val scope = scopeCurrency(pruned, accounts)
         val amount = pruned.amount
@@ -53,22 +53,23 @@ object FilterScope {
             filter = if (dropAmount) pruned.copy(amount = null) else pruned,
             sort = sort,
             scopeCurrency = scope,
-            amountRangeDropped = dropAmount
+            amountRangeDropped = dropAmount,
         )
     }
 
     /** Selected categories plus all their descendants, or only the selected ones when [TransactionFilter.categoryExact] or in [TransactionFilter.exactCategoryIds]. */
-    fun categoryClosure(filter: TransactionFilter, tree: CategoryTree): Set<Long> = if (filter.categoryExact) {
-        filter.categoryIds
-    } else {
-        filter.categoryIds.flatMap { id ->
-            if (id in filter.exactCategoryIds) {
-                setOf(id)
-            } else {
-                tree.descendantIds(id) + id
-            }
-        }.toSet()
-    }
+    fun categoryClosure(filter: TransactionFilter, tree: CategoryTree): Set<Long> =
+        if (filter.categoryExact) {
+            filter.categoryIds
+        } else {
+            filter.categoryIds.flatMap { id ->
+                if (id in filter.exactCategoryIds) {
+                    setOf(id)
+                } else {
+                    tree.descendantIds(id) + id
+                }
+            }.toSet()
+        }
 
     fun scopeCurrency(filter: TransactionFilter, accounts: List<Account>): Currency? {
         val relevant = if (filter.accountIds.isEmpty()) {
@@ -84,7 +85,7 @@ object FilterScope {
         filter: TransactionFilter,
         existingAccountIds: Set<Long>,
         existingCategoryIds: Set<Long>,
-        existingTagIds: Set<Long>
+        existingTagIds: Set<Long>,
     ): TransactionFilter {
         val categoryIds = filter.categoryIds.filter { it in existingCategoryIds }.toSet()
         val exactCategoryIds = filter.exactCategoryIds.filter { it in categoryIds }.toSet()
@@ -94,7 +95,7 @@ object FilterScope {
             exactCategoryIds = exactCategoryIds,
             // "Direct only" means nothing without a category.
             categoryExact = filter.categoryExact && categoryIds.isNotEmpty(),
-            tagIds = filter.tagIds.filter { it in existingTagIds }.toSet()
+            tagIds = filter.tagIds.filter { it in existingTagIds }.toSet(),
         )
     }
 }

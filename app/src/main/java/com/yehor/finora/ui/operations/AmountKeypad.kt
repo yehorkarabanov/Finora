@@ -115,7 +115,7 @@ internal fun NumberPad(
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
     /** Row height; short screens pass less, never below the 48dp touch target. */
-    keyHeight: Dp = DefaultKeyHeight
+    keyHeight: Dp = DefaultKeyHeight,
 ) {
     val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", AmountKeypad.DECIMAL, "0", AmountKeypad.BACKSPACE)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -129,7 +129,7 @@ internal fun NumberPad(
                         onKey = onKey,
                         onClear = onClear,
                         keyHeight = keyHeight.coerceAtLeast(48.dp),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -146,7 +146,7 @@ private fun KeypadKey(
     onKey: (String) -> Unit,
     onClear: () -> Unit,
     keyHeight: Dp,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val haptics = LocalHapticFeedback.current
     val backspaceLabel = stringResource(R.string.transaction_form_backspace)
@@ -159,12 +159,12 @@ private fun KeypadKey(
     val wash by animateFloatAsState(
         targetValue = if (pressed) 1f else 0f,
         animationSpec = if (pressed || reduceMotion) snap() else tween(220),
-        label = "keyWash"
+        label = "keyWash",
     )
     val scale by animateFloatAsState(
         targetValue = if (pressed && !reduceMotion) 0.96f else 1f,
         animationSpec = if (reduceMotion) snap() else FinoraMotion.press,
-        label = "keyScale"
+        label = "keyScale",
     )
     val washColor = MaterialTheme.colorScheme.surfaceContainerHigh
     Box(
@@ -188,9 +188,9 @@ private fun KeypadKey(
                     }
                 } else {
                     null
-                }
+                },
             )
-            .semantics { if (isBackspace) contentDescription = backspaceLabel }
+            .semantics { if (isBackspace) contentDescription = backspaceLabel },
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -200,20 +200,20 @@ private fun KeypadKey(
                     scaleX = scale
                     scaleY = scale
                 }
-                .drawBehind { if (wash > 0f) drawCircle(washColor.copy(alpha = washColor.alpha * wash)) }
+                .drawBehind { if (wash > 0f) drawCircle(washColor.copy(alpha = washColor.alpha * wash)) },
         ) {
             when {
                 isBackspace -> Icon(
                     AppIcons.Backspace,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(24.dp),
                 )
                 isDecimal && !enabled -> Unit
                 else -> Text(
                     if (isDecimal) decimalLabel else key,
                     style = KeypadNumStyle,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }

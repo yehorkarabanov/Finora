@@ -90,7 +90,7 @@ class BucketPlanTest {
         val period = PeriodCalculator.resolve(
             Period(PeriodKind.CUSTOM, LocalDate.of(2026, 10, 24), LocalDate.of(2026, 10, 26)),
             zone,
-            DayOfWeek.MONDAY
+            DayOfWeek.MONDAY,
         )
         val (_, buckets) = BucketPlan.auto(period, zone)
         assertEquals(listOf(24L, 25L, 24L), buckets.map { (it.toExclusive - it.from) / 3_600_000L })
@@ -134,13 +134,7 @@ class AccountFiguresTest {
     private fun m(minor: Long) = Money(minor, pln)
 
     private fun figures(
-        start: Long,
-        end: Long,
-        income: Long = 0,
-        expense: Long = 0,
-        inn: Long = 0,
-        out: Long = 0,
-        initial: Long = 0
+        start: Long, end: Long, income: Long = 0, expense: Long = 0, inn: Long = 0, out: Long = 0, initial: Long = 0,
     ) = AccountFigures(pln, m(start), m(end), m(income), m(expense), m(inn), m(out), m(initial))
 
     @Test

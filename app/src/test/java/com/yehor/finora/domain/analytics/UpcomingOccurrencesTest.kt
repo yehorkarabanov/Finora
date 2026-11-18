@@ -26,7 +26,7 @@ class UpcomingOccurrencesTest {
         start: LocalDate = LocalDate.of(2026, 1, 15),
         end: LocalDate? = null,
         next: LocalDate? = LocalDate.of(2026, 11, 15),
-        status: ScheduleStatus = ScheduleStatus.ACTIVE
+        status: ScheduleStatus = ScheduleStatus.ACTIVE,
     ) = RecurringSchedule(
         id = id,
         name = "S$id",
@@ -42,7 +42,7 @@ class UpcomingOccurrencesTest {
         nextDate = next,
         status = status,
         createdAt = 0,
-        updatedAt = 0
+        updatedAt = 0,
     )
 
     private fun build(vararg s: RecurringSchedule, blocked: Set<Long> = emptySet(), limit: Int = 5) =
@@ -66,7 +66,7 @@ class UpcomingOccurrencesTest {
         val items = build(
             schedule(2, next = LocalDate.of(2026, 11, 20), start = LocalDate.of(2026, 11, 20)),
             schedule(1, next = LocalDate.of(2026, 11, 20), start = LocalDate.of(2026, 11, 20)),
-            schedule(3, next = LocalDate.of(2026, 11, 10), start = LocalDate.of(2026, 11, 10))
+            schedule(3, next = LocalDate.of(2026, 11, 10), start = LocalDate.of(2026, 11, 10)),
         )
         assertEquals(listOf(3L, 1L, 2L), items.map { it.schedule.id })
     }
@@ -91,7 +91,7 @@ class UpcomingOccurrencesTest {
             schedule(2, next = null, end = LocalDate.of(2026, 10, 1)),
             schedule(3),
             schedule(4),
-            blocked = setOf(3L)
+            blocked = setOf(3L),
         )
         assertEquals(listOf(4L), items.map { it.schedule.id })
     }
@@ -104,8 +104,8 @@ class UpcomingOccurrencesTest {
                 rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
                 start = LocalDate.of(2026, 11, 9),
                 next = LocalDate.of(2026, 11, 9),
-                end = LocalDate.of(2026, 11, 20)
-            )
+                end = LocalDate.of(2026, 11, 20),
+            ),
         )
         assertEquals(listOf(LocalDate.of(2026, 11, 9), LocalDate.of(2026, 11, 16)), items.map { it.date })
     }
@@ -118,13 +118,13 @@ class UpcomingOccurrencesTest {
                 schedule(
                     1,
                     start = LocalDate.of(2026, 1, 31),
-                    next = LocalDate.of(2026, 11, 30)
-                )
+                    next = LocalDate.of(2026, 11, 30),
+                ),
             ),
             emptySet(),
             LocalDate.of(2026, 11, 7),
             horizonDays = 60,
-            limit = 5
+            limit = 5,
         )
         assertEquals(listOf(LocalDate.of(2026, 11, 30), LocalDate.of(2026, 12, 31)), items.map { it.date })
     }

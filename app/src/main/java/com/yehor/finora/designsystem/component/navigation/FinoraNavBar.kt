@@ -47,7 +47,12 @@ data class NavBarItem(val label: String, val icon: ImageVector, val selectedIcon
  * primaryContainer pill with its label (item weights spring with [FinoraMotion.bouncy]).
  */
 @Composable
-fun FinoraNavBar(items: List<NavBarItem>, selectedIndex: Int, onSelect: (Int) -> Unit, modifier: Modifier = Modifier) {
+fun FinoraNavBar(
+    items: List<NavBarItem>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val scheme = MaterialTheme.colorScheme
     Row(
         modifier = modifier
@@ -60,7 +65,7 @@ fun FinoraNavBar(items: List<NavBarItem>, selectedIndex: Int, onSelect: (Int) ->
             .border(hairline(MaterialTheme.finance.isDark), PillShape)
             .padding(horizontal = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(2.dp)
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         val reduce = rememberReduceMotion()
         items.forEachIndexed { index, item ->
@@ -68,12 +73,12 @@ fun FinoraNavBar(items: List<NavBarItem>, selectedIndex: Int, onSelect: (Int) ->
             val weight by animateFloatAsState(
                 targetValue = if (active) 2.1f else 1f,
                 animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
-                label = "navWeight"
+                label = "navWeight",
             )
             val container by animateColorAsState(
                 if (active) scheme.primaryContainer else scheme.primaryContainer.copy(alpha = 0f),
                 animationSpec = if (reduce) snap() else spring(stiffness = Spring.StiffnessMedium),
-                label = "navPill"
+                label = "navPill",
             )
             val content = if (active) MaterialTheme.finance.onMint else scheme.onSurfaceVariant
             // 48dp hit area around the 42dp visual pill.
@@ -82,37 +87,37 @@ fun FinoraNavBar(items: List<NavBarItem>, selectedIndex: Int, onSelect: (Int) ->
                     .weight(weight.coerceAtLeast(0.1f))
                     .height(48.dp)
                     .selectable(selected = active, role = Role.Tab, onClick = { onSelect(index) }),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(42.dp)
-                        .clip(PillShape)
-                        .background(container, PillShape),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(42.dp)
+                    .clip(PillShape)
+                    .background(container, PillShape),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Icon(
+                    imageVector = if (active) item.selectedIcon else item.icon,
+                    contentDescription = if (active) null else item.label,
+                    tint = content,
+                    modifier = Modifier.size(20.dp),
+                )
+                AnimatedVisibility(
+                    visible = active,
+                    enter = if (reduce) EnterTransition.None else fadeIn() + expandHorizontally(),
+                    exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally(),
                 ) {
-                    Icon(
-                        imageVector = if (active) item.selectedIcon else item.icon,
-                        contentDescription = if (active) null else item.label,
-                        tint = content,
-                        modifier = Modifier.size(20.dp)
+                    Text(
+                        item.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = content,
+                        maxLines = 1,
+                        modifier = Modifier.padding(start = 6.dp),
                     )
-                    AnimatedVisibility(
-                        visible = active,
-                        enter = if (reduce) EnterTransition.None else fadeIn() + expandHorizontally(),
-                        exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally()
-                    ) {
-                        Text(
-                            item.label,
-                            style = MaterialTheme.typography.labelMedium,
-                            color = content,
-                            maxLines = 1,
-                            modifier = Modifier.padding(start = 6.dp)
-                        )
-                    }
                 }
+            }
             }
         }
     }

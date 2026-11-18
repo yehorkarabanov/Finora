@@ -47,7 +47,7 @@ data class RecurringDetailUiState(
     val issue: GenerationIssue? = null,
     /** Date of the account's initial balance, shown with [GenerationIssue.BEFORE_OPENING_BALANCE]. */
     val openingDate: LocalDate? = null,
-    val dialog: DetailDialog? = null
+    val dialog: DetailDialog? = null,
 ) {
     val isMissing: Boolean get() = !loading && schedule == null
 }
@@ -56,7 +56,7 @@ data class RecurringDetailUiState(
 class RecurringDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: RecurringRepository,
-    private val accountRepository: AccountRepository
+    private val accountRepository: AccountRepository,
 ) : ViewModel() {
 
     private val scheduleId: Long = savedStateHandle.get<Long>("scheduleId") ?: 0L
@@ -66,7 +66,7 @@ class RecurringDetailViewModel @Inject constructor(
         repository.observeSchedule(scheduleId),
         repository.observeOccurrences(scheduleId, RecurringDetailLogic.HISTORY_LIMIT + 1),
         repository.issues,
-        dialog
+        dialog,
     ) { schedule, occurrences, issues, currentDialog ->
         val issue = schedule?.takeIf { it.displayState() == ScheduleDisplayState.ACTIVE }?.let { issues[it.id] }
         RecurringDetailUiState(
@@ -80,7 +80,7 @@ class RecurringDetailViewModel @Inject constructor(
             } else {
                 null
             },
-            dialog = currentDialog
+            dialog = currentDialog,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecurringDetailUiState())
 

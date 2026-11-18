@@ -2,7 +2,6 @@ package com.yehor.finora.ui.recurring
 
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.account.AccountType
-import com.yehor.finora.domain.analytics.UpcomingItem
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
@@ -20,6 +19,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yehor.finora.domain.analytics.UpcomingItem
 import java.time.LocalDate
 
 private val USD = CurrencyRegistry.get("USD")
@@ -33,7 +33,7 @@ private fun schedule(
     end: LocalDate? = null,
     next: LocalDate? = LocalDate.of(2026, 12, 1),
     status: ScheduleStatus = ScheduleStatus.ACTIVE,
-    amountMinor: Long = 12_50
+    amountMinor: Long = 12_50,
 ) = RecurringSchedule(
     id = id,
     name = name,
@@ -49,7 +49,7 @@ private fun schedule(
     nextDate = next,
     status = status,
     createdAt = 0,
-    updatedAt = 0
+    updatedAt = 0,
 )
 
 class RecurringListLogicTest {
@@ -60,9 +60,9 @@ class RecurringListLogicTest {
             listOf(
                 schedule(1),
                 schedule(2, status = ScheduleStatus.PAUSED),
-                schedule(3, next = null, end = LocalDate.of(2026, 5, 31))
+                schedule(3, next = null, end = LocalDate.of(2026, 5, 31)),
             ),
-            emptyMap()
+            emptyMap(),
         )
         assertEquals(listOf(1L), sections.active.map { it.schedule.id })
         assertEquals(listOf(2L), sections.paused.map { it.schedule.id })
@@ -83,9 +83,9 @@ class RecurringListLogicTest {
                 schedule(1, name = "b", next = LocalDate.of(2026, 12, 5)),
                 schedule(2, name = "Z", next = LocalDate.of(2026, 12, 1)),
                 schedule(3, name = "a", next = LocalDate.of(2026, 12, 5)),
-                schedule(4, name = "a", next = LocalDate.of(2026, 12, 5))
+                schedule(4, name = "a", next = LocalDate.of(2026, 12, 5)),
             ),
-            emptyMap()
+            emptyMap(),
         )
         assertEquals(listOf(2L, 3L, 4L, 1L), sections.active.map { it.schedule.id })
     }
@@ -95,9 +95,9 @@ class RecurringListLogicTest {
         val sections = RecurringListLogic.sections(
             listOf(
                 schedule(1, next = null, end = LocalDate.of(2026, 3, 1)),
-                schedule(2, next = null, end = LocalDate.of(2026, 9, 1))
+                schedule(2, next = null, end = LocalDate.of(2026, 9, 1)),
             ),
-            emptyMap()
+            emptyMap(),
         )
         assertEquals(listOf(2L, 1L), sections.ended.map { it.schedule.id })
     }
@@ -108,19 +108,13 @@ class RecurringListLogicTest {
             listOf(
                 schedule(1),
                 schedule(2, status = ScheduleStatus.PAUSED),
-                schedule(3, next = null, end = LocalDate.of(2026, 5, 31))
+                schedule(3, next = null, end = LocalDate.of(2026, 5, 31)),
             ),
-            emptyMap()
+            emptyMap(),
         )
-        assertEquals(
-            StatusLine.Next(LocalDate.of(2026, 12, 1)),
-            RecurringListLogic.statusLine(sections.active.single())
-        )
+        assertEquals(StatusLine.Next(LocalDate.of(2026, 12, 1)), RecurringListLogic.statusLine(sections.active.single()))
         assertEquals(StatusLine.Paused, RecurringListLogic.statusLine(sections.paused.single()))
-        assertEquals(
-            StatusLine.Ended(LocalDate.of(2026, 5, 31)),
-            RecurringListLogic.statusLine(sections.ended.single())
-        )
+        assertEquals(StatusLine.Ended(LocalDate.of(2026, 5, 31)), RecurringListLogic.statusLine(sections.ended.single()))
     }
 
     @Test
@@ -137,9 +131,9 @@ class RecurringListLogicTest {
         val sections = RecurringListLogic.sections(
             listOf(
                 schedule(2, status = ScheduleStatus.PAUSED),
-                schedule(3, next = null, end = LocalDate.of(2026, 5, 31))
+                schedule(3, next = null, end = LocalDate.of(2026, 5, 31)),
             ),
-            mapOf(2L to GenerationIssue.ACCOUNT_ARCHIVED, 3L to GenerationIssue.BALANCE_OVERFLOW)
+            mapOf(2L to GenerationIssue.ACCOUNT_ARCHIVED, 3L to GenerationIssue.BALANCE_OVERFLOW),
         )
         assertNull(sections.paused.single().issue)
         assertNull(sections.ended.single().issue)
@@ -152,9 +146,9 @@ class RecurringListLogicTest {
             listOf(
                 schedule(1),
                 schedule(2),
-                schedule(3, status = ScheduleStatus.PAUSED)
+                schedule(3, status = ScheduleStatus.PAUSED),
             ),
-            mapOf(1L to GenerationIssue.ACCOUNT_ARCHIVED, 3L to GenerationIssue.BALANCE_OVERFLOW)
+            mapOf(1L to GenerationIssue.ACCOUNT_ARCHIVED, 3L to GenerationIssue.BALANCE_OVERFLOW),
         )
         assertEquals(1, RecurringListLogic.blockedCount(sections))
         assertEquals(0, RecurringListLogic.blockedCount(RecurringSections()))
@@ -177,12 +171,10 @@ class NextThirtyDaysTest {
     private fun inc(amount: Long, inDays: Long) =
         UpcomingItem(schedule(2, kind = TransactionKind.INCOME, amountMinor = amount), today.plusDays(inDays))
 
-    @Test
-    fun sumsOnlyNext30Days() =
+    @Test fun sumsOnlyNext30Days() =
         assertEquals(486L to 2600L, nextThirtyDays(listOf(out(486, 3), inc(2600, 18), out(100, 31)), today))
 
-    @Test
-    fun boundariesAreInclusiveAndPastIsIgnored() =
+    @Test fun boundariesAreInclusiveAndPastIsIgnored() =
         assertEquals(5L to 7L, nextThirtyDays(listOf(out(5, 0), inc(7, 30), out(9, -1)), today))
 
     @Test fun groupsPerCurrencySortedByCode() {
@@ -204,7 +196,7 @@ class RecurringDetailLogicTest {
     @Test
     fun upcomingListsFiveDatesFromNextDate() {
         val dates = RecurringDetailLogic.upcoming(
-            schedule(1, start = LocalDate.of(2026, 1, 31), next = LocalDate.of(2026, 2, 28))
+            schedule(1, start = LocalDate.of(2026, 1, 31), next = LocalDate.of(2026, 2, 28)),
         )
         assertEquals(
             listOf(
@@ -212,16 +204,16 @@ class RecurringDetailLogicTest {
                 LocalDate.of(2026, 3, 31),
                 LocalDate.of(2026, 4, 30),
                 LocalDate.of(2026, 5, 31),
-                LocalDate.of(2026, 6, 30)
+                LocalDate.of(2026, 6, 30),
             ),
-            dates
+            dates,
         )
     }
 
     @Test
     fun upcomingHonorsEndDateAndEndedHasNone() {
         val limited = RecurringDetailLogic.upcoming(
-            schedule(1, end = LocalDate.of(2027, 1, 15), next = LocalDate.of(2026, 12, 1))
+            schedule(1, end = LocalDate.of(2027, 1, 15), next = LocalDate.of(2026, 12, 1)),
         )
         assertEquals(listOf(LocalDate.of(2026, 12, 1), LocalDate.of(2027, 1, 1)), limited)
         assertTrue(RecurringDetailLogic.upcoming(schedule(2, next = null, end = LocalDate.of(2026, 5, 31))).isEmpty())
@@ -247,7 +239,7 @@ class RecurringDetailLogicTest {
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
             start = LocalDate.of(2026, 11, 6),
             next = LocalDate.of(2026, 11, 6),
-            status = ScheduleStatus.PAUSED
+            status = ScheduleStatus.PAUSED,
         )
         val info = RecurringDetailLogic.resumeInfo(paused, today = LocalDate.of(2026, 11, 22))!!
         assertEquals(3, info.count)
@@ -264,7 +256,7 @@ class RecurringDetailLogicTest {
             start = LocalDate.of(2026, 11, 1),
             next = LocalDate.of(2026, 11, 1),
             end = LocalDate.of(2026, 11, 3),
-            status = ScheduleStatus.PAUSED
+            status = ScheduleStatus.PAUSED,
         )
         val info = RecurringDetailLogic.resumeInfo(paused, today = LocalDate.of(2026, 12, 1))!!
         assertEquals(3, info.count)
@@ -282,9 +274,9 @@ class RecurringDetailLogicTest {
             listOf(
                 HistoryRow.Generated(LocalDate.of(2026, 3, 1), 7, Money(-12_50, USD)),
                 HistoryRow.Deleted(LocalDate.of(2026, 2, 1)),
-                HistoryRow.Skipped(LocalDate.of(2026, 1, 1))
+                HistoryRow.Skipped(LocalDate.of(2026, 1, 1)),
             ),
-            view.rows
+            view.rows,
         )
         assertFalse(view.hasMore)
     }

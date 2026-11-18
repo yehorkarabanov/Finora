@@ -61,7 +61,7 @@ data class DeleteDialogState(
     val targetName: String?,
     val failed: Boolean = false,
     val icon: String? = null,
-    val color: Long? = null
+    val color: Long? = null,
 )
 
 enum class DeleteTargetOption { SUGGESTED, UNCATEGORIZED, OTHER }
@@ -84,3 +84,4 @@ object DeleteDialogLogic {
             if (t.categoryId == state.impact.suggestedTarget) DeleteTargetOption.SUGGESTED else DeleteTargetOption.OTHER
     }
 }
+

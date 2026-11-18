@@ -8,7 +8,7 @@ data class OperationWithDetails(
     @Embedded val operation: OperationEntity,
     @Relation(
         parentColumn = "id",
-        entityColumn = "operation_id"
+        entityColumn = "operation_id",
     )
     val entries: List<LedgerEntryEntity>,
     @Relation(
@@ -17,17 +17,25 @@ data class OperationWithDetails(
         associateBy = Junction(
             value = OperationTagEntity::class,
             parentColumn = "operation_id",
-            entityColumn = "tag_id"
-        )
+            entityColumn = "tag_id",
+        ),
     )
     val tags: List<TagEntity>,
     @Relation(
         parentColumn = "id",
-        entityColumn = "operation_id"
+        entityColumn = "operation_id",
     )
-    val occurrences: List<RecurringOccurrenceEntity> = emptyList()
+    val occurrences: List<RecurringOccurrenceEntity> = emptyList(),
 )
 
-data class TagWithUsageRow(@Embedded val tag: TagEntity, val usageCount: Int)
+data class TagWithUsageRow(
+    @Embedded val tag: TagEntity,
+    val usageCount: Int,
+)
 
-data class SummaryRow(val currencyCode: String, val incomeMinor: Long, val expenseMinor: Long, val operationCount: Int)
+data class SummaryRow(
+    val currencyCode: String,
+    val incomeMinor: Long,
+    val expenseMinor: Long,
+    val operationCount: Int,
+)

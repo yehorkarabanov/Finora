@@ -21,7 +21,7 @@ object TransferDraftValidator {
         description: String?,
         now: Long = System.currentTimeMillis(),
         isEdit: Boolean = false,
-        hadCategoryBefore: Boolean = true
+        hadCategoryBefore: Boolean = true,
     ): Set<TransferDraftError> {
         val errors = mutableSetOf<TransferDraftError>()
 

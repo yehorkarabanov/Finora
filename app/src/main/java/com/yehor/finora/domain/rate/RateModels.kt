@@ -17,7 +17,7 @@ data class RateQuote(
     /** As published; informational. */
     val quoteDate: LocalDate,
     /** Epoch ms, when this device got the rate. */
-    val fetchedAt: Long
+    val fetchedAt: Long,
 )
 
 data class RateTable(val quotes: Map<CurrencyPair, RateQuote>) {
@@ -31,7 +31,8 @@ object RateFreshness {
     const val OUTDATED_AFTER_MS = 72L * 60 * 60 * 1000
 
     /** True for a missing quote, or one that is 24 hours old or more. */
-    fun isDue(quote: RateQuote?, now: Long): Boolean = quote == null || now - quote.fetchedAt >= REFRESH_AFTER_MS
+    fun isDue(quote: RateQuote?, now: Long): Boolean =
+        quote == null || now - quote.fetchedAt >= REFRESH_AFTER_MS
 
     /** True when the quote is more than 72 hours old. */
     fun isOutdated(quote: RateQuote, now: Long): Boolean = now - quote.fetchedAt > OUTDATED_AFTER_MS

@@ -43,29 +43,20 @@ class LedgerSchemaTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun account(code: String, name: String = code): Long = db.accountDao().insert(
-        AccountEntity(
-            name = name,
-            currencyCode = code,
-            type = "CASH",
-            icon = null,
-            color = null,
-            description = null,
-            status = AccountStatus.ACTIVE,
-            createdAt = 0
+    private suspend fun account(code: String, name: String = code): Long =
+        db.accountDao().insert(
+            AccountEntity(
+                name = name, currencyCode = code, type = "CASH", icon = null, color = null,
+                description = null, status = AccountStatus.ACTIVE, createdAt = 0,
+            ),
         )
-    )
 
-    private suspend fun category(type: CategoryType, parentId: Long? = null): Long = db.categoryDao().insert(
-        CategoryEntity(
-            name = "c",
-            icon = null,
-            color = null,
-            type = type,
-            parentId = parentId,
-            createdAt = 0
+    private suspend fun category(type: CategoryType, parentId: Long? = null): Long =
+        db.categoryDao().insert(
+            CategoryEntity(
+                name = "c", icon = null, color = null, type = type, parentId = parentId, createdAt = 0,
+            ),
         )
-    )
 
     private fun violations() = InvariantChecker.check(db.openHelper.writableDatabase)
 
@@ -103,14 +94,9 @@ class LedgerSchemaTest {
             runBlocking {
                 db.operationDao().insert(
                     OperationEntity(
-                        type = OperationType.EXPENSE,
-                        occurredAt = 1,
-                        categoryId = 999,
-                        description = null,
-                        openingAccountId = null,
-                        createdAt = 1,
-                        updatedAt = 1
-                    )
+                        type = OperationType.EXPENSE, occurredAt = 1, categoryId = 999,
+                        description = null, openingAccountId = null, createdAt = 1, updatedAt = 1,
+                    ),
                 )
             }
         }
@@ -120,21 +106,16 @@ class LedgerSchemaTest {
     fun currencyMismatchInsertFails() = runBlocking {
         val usd = account("USD")
         val op = repo.insertOperation(
-            OperationType.INCOME,
-            1,
-            listOf(EntryDraft(usd, 100)),
-            categoryId = category(CategoryType.INCOME)
+            OperationType.INCOME, 1, listOf(EntryDraft(usd, 100)),
+            categoryId = category(CategoryType.INCOME),
         )
         assertFails<SQLiteConstraintException> {
             runBlocking {
                 db.ledgerEntryDao().insert(
                     LedgerEntryEntity(
-                        operationId = op,
-                        accountId = usd,
-                        currencyCode = "EUR",
-                        amountMinor = 5,
-                        occurredAt = 1
-                    )
+                        operationId = op, accountId = usd, currencyCode = "EUR",
+                        amountMinor = 5, occurredAt = 1,
+                    ),
                 )
             }
         }
@@ -145,10 +126,8 @@ class LedgerSchemaTest {
         val withEntries = account("USD")
         val empty = account("USD", "empty")
         repo.insertOperation(
-            OperationType.INCOME,
-            1,
-            listOf(EntryDraft(withEntries, 100)),
-            categoryId = category(CategoryType.INCOME)
+            OperationType.INCOME, 1, listOf(EntryDraft(withEntries, 100)),
+            categoryId = category(CategoryType.INCOME),
         )
         assertFails<SQLiteConstraintException> {
             exec("UPDATE account SET currency_code = 'EUR' WHERE id = $withEntries")
@@ -174,18 +153,12 @@ class LedgerSchemaTest {
     fun secondOpeningBalanceForAccountFails() = runBlocking {
         val acc = account("USD")
         repo.insertOperation(
-            OperationType.OPENING_BALANCE,
-            1,
-            listOf(EntryDraft(acc, 500)),
-            openingAccountId = acc
+            OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(acc, 500)), openingAccountId = acc,
         )
         assertFails<SQLiteConstraintException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.OPENING_BALANCE,
-                    2,
-                    listOf(EntryDraft(acc, 700)),
-                    openingAccountId = acc
+                    OperationType.OPENING_BALANCE, 2, listOf(EntryDraft(acc, 700)), openingAccountId = acc,
                 )
             }
         }
@@ -196,10 +169,7 @@ class LedgerSchemaTest {
     fun openingBalanceMayBeNegative() = runBlocking {
         val acc = account("USD")
         repo.insertOperation(
-            OperationType.OPENING_BALANCE,
-            1,
-            listOf(EntryDraft(acc, -500)),
-            openingAccountId = acc
+            OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(acc, -500)), openingAccountId = acc,
         )
         assertEquals(-500L, repo.balanceMinor(acc))
         assertTrue(violations().isEmpty())
@@ -212,10 +182,7 @@ class LedgerSchemaTest {
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.OPENING_BALANCE,
-                    1,
-                    listOf(EntryDraft(b, 500)),
-                    openingAccountId = a
+                    OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(b, 500)), openingAccountId = a,
                 )
             }
         }
@@ -225,11 +192,11 @@ class LedgerSchemaTest {
         // Raw SQL bypasses the repository; the checker must flag it.
         exec(
             "INSERT INTO operation (id, type, occurred_at, opening_account_id, created_at, updated_at) " +
-                "VALUES (50, 'OPENING_BALANCE', 1, $a, 1, 1)"
+                "VALUES (50, 'OPENING_BALANCE', 1, $a, 1, 1)",
         )
         exec(
             "INSERT INTO ledger_entry (operation_id, account_id, currency_code, amount_minor, occurred_at) " +
-                "VALUES (50, $b, 'USD', 500, 1)"
+                "VALUES (50, $b, 'USD', 500, 1)",
         )
         assertTrue(violations().any { it.startsWith("opening balance fields") })
     }
@@ -239,12 +206,7 @@ class LedgerSchemaTest {
         val acc = account("USD")
         assertFails<InvariantViolationException> {
             runBlocking {
-                repo.insertOperation(
-                    OperationType.OPENING_BALANCE,
-                    1,
-                    listOf(EntryDraft(acc, 0)),
-                    openingAccountId = acc
-                )
+                repo.insertOperation(OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(acc, 0)), openingAccountId = acc)
             }
         }
         assertFails<InvariantViolationException> {
@@ -255,22 +217,16 @@ class LedgerSchemaTest {
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.OPENING_BALANCE,
-                    1,
-                    listOf(EntryDraft(acc, 5)),
-                    categoryId = category(CategoryType.INCOME),
-                    openingAccountId = acc
+                    OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(acc, 5)),
+                    categoryId = category(CategoryType.INCOME), openingAccountId = acc,
                 )
             }
         }
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.INCOME,
-                    1,
-                    listOf(EntryDraft(acc, 5)),
-                    categoryId = category(CategoryType.INCOME),
-                    openingAccountId = acc
+                    OperationType.INCOME, 1, listOf(EntryDraft(acc, 5)),
+                    categoryId = category(CategoryType.INCOME), openingAccountId = acc,
                 )
             }
         }
@@ -281,10 +237,7 @@ class LedgerSchemaTest {
         val acc = account("USD")
         val tag = db.tagDao().insert(TagEntity(name = "t", color = null, createdAt = 0))
         val opening = repo.insertOperation(
-            OperationType.OPENING_BALANCE,
-            1,
-            listOf(EntryDraft(acc, 500)),
-            openingAccountId = acc
+            OperationType.OPENING_BALANCE, 1, listOf(EntryDraft(acc, 500)), openingAccountId = acc,
         )
         assertFails<InvariantViolationException> { runBlocking { repo.addTag(opening, tag) } }
         assertTrue(db.operationTagDao().tagIdsOf(opening).isEmpty())
@@ -298,10 +251,7 @@ class LedgerSchemaTest {
         val acc = account("USD")
         val tag = db.tagDao().insert(TagEntity(name = "t", color = null, createdAt = 0))
         val op = repo.insertOperation(
-            OperationType.INCOME,
-            1,
-            listOf(EntryDraft(acc, 5)),
-            categoryId = category(CategoryType.INCOME)
+            OperationType.INCOME, 1, listOf(EntryDraft(acc, 5)), categoryId = category(CategoryType.INCOME),
         )
         repo.addTag(op, tag)
         assertEquals(listOf(tag), db.operationTagDao().tagIdsOf(op))
@@ -313,10 +263,9 @@ class LedgerSchemaTest {
         val a = account("USD", "a")
         val b = account("USD", "b")
         val transfer = repo.insertOperation(
-            OperationType.TRANSFER,
-            1_000,
+            OperationType.TRANSFER, 1_000,
             listOf(EntryDraft(a, -300), EntryDraft(b, 300)),
-            categoryId = category(CategoryType.TRANSFER)
+            categoryId = category(CategoryType.TRANSFER),
         )
         repo.changeOccurredAt(transfer, 9_999)
         assertEquals(9_999L, db.operationDao().getById(transfer)!!.occurredAt)
@@ -330,10 +279,8 @@ class LedgerSchemaTest {
     fun checkerFlagsRawSqlOccurredAtMismatch() = runBlocking {
         val acc = account("USD")
         val op = repo.insertOperation(
-            OperationType.INCOME,
-            1_000,
-            listOf(EntryDraft(acc, 5)),
-            categoryId = category(CategoryType.INCOME)
+            OperationType.INCOME, 1_000, listOf(EntryDraft(acc, 5)),
+            categoryId = category(CategoryType.INCOME),
         )
         assertFalse(violations().any { it.startsWith("ledger occurred_at mismatch") })
         exec("UPDATE ledger_entry SET occurred_at = 5 WHERE operation_id = $op")
@@ -348,40 +295,31 @@ class LedgerSchemaTest {
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.TRANSFER,
-                    1,
-                    listOf(EntryDraft(a, -5), EntryDraft(a, 5)),
-                    categoryId = transferCat
+                    OperationType.TRANSFER, 1, listOf(EntryDraft(a, -5), EntryDraft(a, 5)),
+                    categoryId = transferCat,
                 )
             }
         }
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.TRANSFER,
-                    1,
-                    listOf(EntryDraft(a, -5)),
-                    categoryId = transferCat
+                    OperationType.TRANSFER, 1, listOf(EntryDraft(a, -5)), categoryId = transferCat,
                 )
             }
         }
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.INCOME,
-                    1,
-                    listOf(EntryDraft(a, -5)),
-                    categoryId = category(CategoryType.INCOME)
+                    OperationType.INCOME, 1, listOf(EntryDraft(a, -5)),
+                    categoryId = category(CategoryType.INCOME),
                 )
             }
         }
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.EXPENSE,
-                    1,
-                    listOf(EntryDraft(b, 5)),
-                    categoryId = category(CategoryType.EXPENSE)
+                    OperationType.EXPENSE, 1, listOf(EntryDraft(b, 5)),
+                    categoryId = category(CategoryType.EXPENSE),
                 )
             }
         }
@@ -389,10 +327,8 @@ class LedgerSchemaTest {
         assertFails<InvariantViolationException> {
             runBlocking {
                 repo.insertOperation(
-                    OperationType.EXPENSE,
-                    1,
-                    listOf(EntryDraft(b, -5)),
-                    categoryId = category(CategoryType.INCOME)
+                    OperationType.EXPENSE, 1, listOf(EntryDraft(b, -5)),
+                    categoryId = category(CategoryType.INCOME),
                 )
             }
         }
@@ -401,7 +337,7 @@ class LedgerSchemaTest {
     @Test
     fun balanceQueryUsesCoveringIndexWithoutTableScan() {
         db.openHelper.writableDatabase.query(
-            "EXPLAIN QUERY PLAN SELECT COALESCE(SUM(amount_minor), 0) FROM ledger_entry WHERE account_id = 1"
+            "EXPLAIN QUERY PLAN SELECT COALESCE(SUM(amount_minor), 0) FROM ledger_entry WHERE account_id = 1",
         ).use { c ->
             val details = buildList {
                 while (c.moveToNext()) add(c.getString(c.getColumnIndexOrThrow("detail")))

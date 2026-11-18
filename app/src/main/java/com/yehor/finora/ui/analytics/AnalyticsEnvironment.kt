@@ -36,7 +36,7 @@ data class AnalyticsEnv(
     val tags: List<Tag>,
     val table: RateTable,
     val display: Currency,
-    val now: Long
+    val now: Long,
 ) {
     val allAccounts: List<Account> get() = accounts.map { it.account }
 
@@ -55,14 +55,14 @@ class AnalyticsEnvironment @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val tagRepository: TagRepository,
     private val rateRepository: RateRepository,
-    private val settings: SettingsRepository
+    private val settings: SettingsRepository,
 ) {
     private class Inputs(
         val accounts: List<AccountWithBalance>,
         val categories: List<Category>,
         val tags: List<Tag>,
         val table: RateTable,
-        val display: Currency
+        val display: Currency,
     )
 
     fun observe(): Flow<AnalyticsEnv> {
@@ -72,7 +72,7 @@ class AnalyticsEnvironment @Inject constructor(
             categoryRepository.observeAll(),
             tagRepository.observeAll(),
             rateRepository.observeTable(),
-            settings.displayCurrency
+            settings.displayCurrency,
         ) { accounts, categories, tags, table, display ->
             Inputs(accounts, categories, tags, table, display.currency)
         }
@@ -90,7 +90,7 @@ class AnalyticsEnvironment @Inject constructor(
                 tags = inputs.tags,
                 table = inputs.table,
                 display = inputs.display,
-                now = clock.now()
+                now = clock.now(),
             )
         }
     }

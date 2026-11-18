@@ -43,10 +43,7 @@ data class ChartWindow(val start: LocalDate, val end: LocalDate) {
             return PeriodState(PeriodKind.WEEK, offset = (ChronoUnit.DAYS.between(weekStart, start) / 7).toInt())
         }
         if (start.dayOfMonth == 1 && end == start.with(TemporalAdjusters.lastDayOfMonth())) {
-            return PeriodState(
-                PeriodKind.MONTH,
-                offset = ChronoUnit.MONTHS.between(today.withDayOfMonth(1), start).toInt()
-            )
+            return PeriodState(PeriodKind.MONTH, offset = ChronoUnit.MONTHS.between(today.withDayOfMonth(1), start).toInt())
         }
         if (start.dayOfYear == 1 && end == start.with(TemporalAdjusters.lastDayOfYear())) {
             return PeriodState(PeriodKind.YEAR, offset = start.year - today.year)
@@ -54,12 +51,11 @@ data class ChartWindow(val start: LocalDate, val end: LocalDate) {
         return PeriodState.custom(start, end)
     }
 
-    private fun cappedAt(today: LocalDate): ChartWindow = if (end.isAfter(today)) {
-        val back = ChronoUnit.DAYS.between(today, end)
-        ChartWindow(start.minusDays(back), today)
-    } else {
-        this
-    }
+    private fun cappedAt(today: LocalDate): ChartWindow =
+        if (end.isAfter(today)) {
+            val back = ChronoUnit.DAYS.between(today, end)
+            ChartWindow(start.minusDays(back), today)
+        } else this
 
     companion object {
         const val MIN_DAYS = 7L

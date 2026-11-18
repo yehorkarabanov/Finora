@@ -56,7 +56,9 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class AccountPickerViewModel @Inject constructor(private val repository: AccountRepository) : ViewModel() {
+class AccountPickerViewModel @Inject constructor(
+    private val repository: AccountRepository,
+) : ViewModel() {
     private val original = MutableStateFlow<Long?>(null)
 
     val accounts: StateFlow<List<PickableAccount>> = original
@@ -78,7 +80,7 @@ fun AccountPicker(
     onSelect: (Long) -> Unit,
     modifier: Modifier = Modifier,
     originalAccountId: Long? = null,
-    viewModel: AccountPickerViewModel = hiltViewModel()
+    viewModel: AccountPickerViewModel = hiltViewModel(),
 ) {
     androidx.compose.runtime.LaunchedEffect(originalAccountId) { viewModel.setOriginal(originalAccountId) }
     val accounts by viewModel.accounts.collectAsStateWithLifecycle()
@@ -90,13 +92,9 @@ fun AccountPickerContent(
     accounts: List<PickableAccount>,
     selectedAccountId: Long?,
     onSelect: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    GroupedCard(
-        modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
-    ) {
+    GroupedCard(modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
         accounts.forEachIndexed { index, pickable ->
             val a = pickable.account
             val isSelected = a.id == selectedAccountId
@@ -106,16 +104,13 @@ fun AccountPickerContent(
                 title = a.name,
                 subtitle = a.currency.code,
                 trailing = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (pickable.isArchivedOriginal) PickerBadge(stringResource(R.string.picker_archived_badge))
                         if (isSelected) SelectedMark()
                     }
                 },
                 onClick = { onSelect(a.id) },
-                modifier = Modifier.semantics { selected = isSelected }
+                modifier = Modifier.semantics { selected = isSelected },
             )
         }
     }
@@ -130,7 +125,7 @@ private fun PickerBadge(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceContainerHighest, PillShape)
-            .padding(horizontal = 8.dp, vertical = 3.dp)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
     )
 }
 
@@ -143,7 +138,9 @@ private fun SelectedMark() {
 // ---- Category tree picker ----
 
 @HiltViewModel
-class CategoryTreeViewModel @Inject constructor(repository: CategoryRepository) : ViewModel() {
+class CategoryTreeViewModel @Inject constructor(
+    repository: CategoryRepository,
+) : ViewModel() {
     val tree: StateFlow<CategoryTree> = repository.observeAll()
         .map { CategoryTree(it) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CategoryTree(emptyList()))
@@ -157,7 +154,7 @@ fun CategoryTreePicker(
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier,
     selectedId: Long? = null,
-    viewModel: CategoryTreeViewModel = hiltViewModel()
+    viewModel: CategoryTreeViewModel = hiltViewModel(),
 ) {
     val tree by viewModel.tree.collectAsStateWithLifecycle()
     CategoryTreePickerContent(tree, type, mode, onSelect, modifier, selectedId)
@@ -171,7 +168,7 @@ fun CategoryTreePickerContent(
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier,
     selectedId: Long? = null,
-    onCreate: (() -> Unit)? = null
+    onCreate: (() -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(emptyList<Long>()) }
@@ -183,25 +180,19 @@ fun CategoryTreePickerContent(
             value = query,
             onValueChange = { query = it },
             placeholder = stringResource(R.string.action_search),
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
         )
-        GroupedCard(
-            Modifier
-                .fillMaxWidth()
-                .weight(1f, fill = false)
-        ) {
+        GroupedCard(Modifier.fillMaxWidth().weight(1f, fill = false)) {
             LazyColumn {
                 if (showNoParent) {
                     item(key = "no-parent") {
                         ListRow(
-                            icon = {
-                                RoundIcon(AppIcons.Category, MaterialTheme.colorScheme.onSurfaceVariant, size = 36.dp)
-                            },
+                            icon = { RoundIcon(AppIcons.Category, MaterialTheme.colorScheme.onSurfaceVariant, size = 36.dp) },
                             title = stringResource(R.string.picker_no_parent),
                             subtitle = null,
                             trailing = { if (selectedId == null) SelectedMark() },
                             onClick = { onSelect(null) },
-                            modifier = Modifier.semantics { selected = selectedId == null }
+                            modifier = Modifier.semantics { selected = selectedId == null },
                         )
                     }
                 }
@@ -211,7 +202,7 @@ fun CategoryTreePickerContent(
                             stringResource(R.string.picker_no_results),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp)
+                            modifier = Modifier.padding(16.dp),
                         )
                     }
                 }
@@ -231,8 +222,8 @@ fun CategoryTreePickerContent(
                                         Icon(
                                             if (row.expanded) AppIcons.Collapse else AppIcons.Expand,
                                             contentDescription = stringResource(
-                                                if (row.expanded) R.string.action_collapse else R.string.action_expand
-                                            )
+                                                if (row.expanded) R.string.action_collapse else R.string.action_expand,
+                                            ),
                                         )
                                     }
                                 }
@@ -242,20 +233,18 @@ fun CategoryTreePickerContent(
                         modifier = Modifier
                             .padding(start = (row.level * 16).dp)
                             .semantics { selected = c.id == selectedId },
-                        onClick = if (row.selectable) ({ onSelect(c.id) }) else null
+                        onClick = if (row.selectable) ({ onSelect(c.id) }) else null,
                     )
                 }
                 if (onCreate != null) {
                     item(key = "create-category") {
                         if (rows.isNotEmpty() || showNoParent) ShelfDivider()
                         ListRow(
-                            icon = {
-                                RoundIcon(AppIcons.Add, MaterialTheme.colorScheme.primary, size = PICKER_ICON_SIZE.dp)
-                            },
+                            icon = { RoundIcon(AppIcons.Add, MaterialTheme.colorScheme.primary, size = PICKER_ICON_SIZE.dp) },
                             title = stringResource(R.string.transaction_form_create_category),
                             subtitle = null,
                             trailing = {},
-                            onClick = onCreate
+                            onClick = onCreate,
                         )
                     }
                 }
@@ -272,18 +261,12 @@ private fun previewAccounts(): List<PickableAccount> {
     val usd = com.yehor.finora.domain.money.CurrencyRegistry.get("USD")
     fun account(id: Long, name: String, icon: String, status: com.yehor.finora.domain.model.AccountStatus) =
         com.yehor.finora.domain.account.Account(
-            id, name, usd, com.yehor.finora.domain.account.AccountType.BANK, icon, null, null, status, 0L
+            id, name, usd, com.yehor.finora.domain.account.AccountType.BANK, icon, null, null, status, 0L,
         )
     return listOf(
-        PickableAccount(
-            account(1, "Main card", "account_balance", com.yehor.finora.domain.model.AccountStatus.ACTIVE),
-            false
-        ),
+        PickableAccount(account(1, "Main card", "account_balance", com.yehor.finora.domain.model.AccountStatus.ACTIVE), false),
         PickableAccount(account(2, "Cash", "wallet", com.yehor.finora.domain.model.AccountStatus.ACTIVE), false),
-        PickableAccount(
-            account(3, "Old savings", "savings", com.yehor.finora.domain.model.AccountStatus.ARCHIVED),
-            true
-        )
+        PickableAccount(account(3, "Old savings", "savings", com.yehor.finora.domain.model.AccountStatus.ARCHIVED), true),
     )
 }
 
@@ -291,16 +274,8 @@ private fun previewTree() = CategoryTree(
     listOf(
         com.yehor.finora.domain.category.Category(1, "Food", "restaurant", null, CategoryType.EXPENSE, null, 0),
         com.yehor.finora.domain.category.Category(2, "Groceries", "shopping_cart", null, CategoryType.EXPENSE, 1, 0),
-        com.yehor.finora.domain.category.Category(
-            3,
-            "Transport",
-            "directions_bus",
-            null,
-            CategoryType.EXPENSE,
-            null,
-            0
-        )
-    )
+        com.yehor.finora.domain.category.Category(3, "Transport", "directions_bus", null, CategoryType.EXPENSE, null, 0),
+    ),
 )
 
 @Composable
@@ -315,26 +290,19 @@ private fun PickerSheetPreview(dark: Boolean) {
                     mode = PickerMode.Parent(),
                     onSelect = {},
                     selectedId = 1L,
-                    onCreate = {}
+                    onCreate = {},
                 )
             }
         }
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(
-    showBackground = true,
-    heightDp = 900,
-    name = "Account and category pickers light"
-)
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 900, name = "Account and category pickers light")
 @Composable
 private fun PickerSheetPreviewLight() = PickerSheetPreview(dark = false)
 
 @androidx.compose.ui.tooling.preview.Preview(
-    showBackground = true,
-    backgroundColor = 0xFF0F1412,
-    heightDp = 900,
-    name = "Account and category pickers dark"
+    showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 900, name = "Account and category pickers dark",
 )
 @Composable
 private fun PickerSheetPreviewDark() = PickerSheetPreview(dark = true)

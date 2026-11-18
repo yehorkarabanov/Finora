@@ -18,7 +18,11 @@ import androidx.compose.ui.unit.dp
 /** Obsidian bottom sheet: 28dp top corners, grab handle, 55% black scrim. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FinoraSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+fun FinoraSheet(
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
@@ -26,12 +30,8 @@ fun FinoraSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, content: @
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = MaterialTheme.colorScheme.surfaceContainer,
         scrimColor = Color.Black.copy(alpha = 0.55f),
-        dragHandle = { BottomSheetDefaults.DragHandle() }
+        dragHandle = { BottomSheetDefaults.DragHandle() },
     ) {
-        Column(
-            Modifier
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp), content = content
-        )
+        Column(Modifier.navigationBarsPadding().padding(horizontal = 20.dp), content = content)
     }
 }

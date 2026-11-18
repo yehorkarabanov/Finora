@@ -36,58 +36,13 @@ class UnicodeSearchGateTest {
     @Test
     fun unicodeSearchCaseInsensitive() = runBlocking {
         val accId = db.accountDao().insert(
-            AccountEntity(
-                name = "A",
-                currencyCode = "USD",
-                type = "CASH",
-                icon = null,
-                color = null,
-                description = null,
-                status = AccountStatus.ACTIVE,
-                createdAt = 0L
-            )
+            AccountEntity(name = "A", currencyCode = "USD", type = "CASH", icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L)
         )
-        val op1 = db.operationDao().insert(
-            OperationEntity(
-                type = OperationType.EXPENSE,
-                occurredAt = 1000L,
-                categoryId = null,
-                description = "Кофе в зернах",
-                openingAccountId = null,
-                createdAt = 0L,
-                updatedAt = 0L
-            )
-        )
-        db.ledgerEntryDao().insert(
-            LedgerEntryEntity(
-                operationId = op1,
-                accountId = accId,
-                currencyCode = "USD",
-                amountMinor = -100L,
-                occurredAt = 1000L
-            )
-        )
+        val op1 = db.operationDao().insert(OperationEntity(type = OperationType.EXPENSE, occurredAt = 1000L, categoryId = null, description = "Кофе в зернах", openingAccountId = null, createdAt = 0L, updatedAt = 0L))
+        db.ledgerEntryDao().insert(LedgerEntryEntity(operationId = op1, accountId = accId, currencyCode = "USD", amountMinor = -100L, occurredAt = 1000L))
 
-        val op2 = db.operationDao().insert(
-            OperationEntity(
-                type = OperationType.EXPENSE,
-                occurredAt = 2000L,
-                categoryId = null,
-                description = "Żabka zakupy",
-                openingAccountId = null,
-                createdAt = 0L,
-                updatedAt = 0L
-            )
-        )
-        db.ledgerEntryDao().insert(
-            LedgerEntryEntity(
-                operationId = op2,
-                accountId = accId,
-                currencyCode = "USD",
-                amountMinor = -200L,
-                occurredAt = 2000L
-            )
-        )
+        val op2 = db.operationDao().insert(OperationEntity(type = OperationType.EXPENSE, occurredAt = 2000L, categoryId = null, description = "Żabka zakupy", openingAccountId = null, createdAt = 0L, updatedAt = 0L))
+        db.ledgerEntryDao().insert(LedgerEntryEntity(operationId = op2, accountId = accId, currencyCode = "USD", amountMinor = -200L, occurredAt = 2000L))
 
         // Query with lowercase 'кофе'
         val query1 = TransactionQuery.build(TransactionFilter(text = "кофе"), TransactionSort.DATE_DESC, emptySet())

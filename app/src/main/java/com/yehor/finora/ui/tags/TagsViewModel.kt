@@ -23,19 +23,24 @@ data class TagDialogState(
     val name: String = "",
     val color: Long? = null,
     val error: TagNameError? = null,
-    val isDuplicate: Boolean = false
+    val isDuplicate: Boolean = false,
 )
 
-data class TagDeleteDialogState(val tag: Tag, val usageCount: Int)
+data class TagDeleteDialogState(
+    val tag: Tag,
+    val usageCount: Int,
+)
 
 data class TagsUiState(
     val tags: List<TagWithUsage> = emptyList(),
     val dialogState: TagDialogState? = null,
-    val deleteState: TagDeleteDialogState? = null
+    val deleteState: TagDeleteDialogState? = null,
 )
 
 @HiltViewModel
-class TagsViewModel @Inject constructor(private val tagRepository: TagRepository) : ViewModel() {
+class TagsViewModel @Inject constructor(
+    private val tagRepository: TagRepository,
+) : ViewModel() {
 
     private val _dialogState = MutableStateFlow<TagDialogState?>(null)
     private val _deleteState = MutableStateFlow<TagDeleteDialogState?>(null)
@@ -43,7 +48,7 @@ class TagsViewModel @Inject constructor(private val tagRepository: TagRepository
     val state: StateFlow<TagsUiState> = combine(
         tagRepository.observeAllWithUsage(),
         _dialogState,
-        _deleteState
+        _deleteState,
     ) { tags, dialog, delete ->
         TagsUiState(tags = tags, dialogState = dialog, deleteState = delete)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TagsUiState())
@@ -57,14 +62,14 @@ class TagsViewModel @Inject constructor(private val tagRepository: TagRepository
             isEdit = true,
             tagId = tag.id,
             name = tag.name,
-            color = tag.color
+            color = tag.color,
         )
     }
 
     fun onDeleteRequest(tagWithUsage: TagWithUsage) {
         _deleteState.value = TagDeleteDialogState(
             tag = tagWithUsage.tag,
-            usageCount = tagWithUsage.usageCount
+            usageCount = tagWithUsage.usageCount,
         )
     }
 

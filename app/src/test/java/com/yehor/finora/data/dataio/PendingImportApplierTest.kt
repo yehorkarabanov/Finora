@@ -31,7 +31,7 @@ class PendingImportApplierTest {
         firstOperationAt = 1000L,
         lastOperationAt = 2000L,
         databaseBytes = 40960L,
-        schemaVersion = 3
+        schemaVersion = 3,
     )
 
     @Test
@@ -83,7 +83,7 @@ class PendingImportApplierTest {
             sizeBytes = staging.length(),
             sha256 = hash,
             createdAt = 123456789L,
-            summary = sampleSummary
+            summary = sampleSummary,
         )
         val markerFile = File(dbDir, PendingImportApplier.MARKER_FILE_NAME).apply {
             writeText(json.encodeToString(marker))
@@ -120,7 +120,7 @@ class PendingImportApplierTest {
             stagingFile = staging.name,
             sizeBytes = 999999L, // wrong size and hash
             sha256 = "0000000000000000000000000000000000000000000000000000000000000000",
-            createdAt = 123456789L
+            createdAt = 123456789L,
         )
         val markerFile = File(dbDir, PendingImportApplier.MARKER_FILE_NAME).apply {
             writeText(json.encodeToString(marker))
@@ -145,12 +145,8 @@ class PendingImportApplierTest {
         val dbDir = tempFolder.newFolder("databases")
         val liveContent = "already swapped live content"
         val live = File(dbDir, PendingImportApplier.LIVE_DB_NAME).apply { writeText(liveContent) }
-        val liveWal = File(dbDir, "${PendingImportApplier.LIVE_DB_NAME}-wal").apply {
-            writeText("old wal from previous db")
-        }
-        val liveShm = File(dbDir, "${PendingImportApplier.LIVE_DB_NAME}-shm").apply {
-            writeText("old shm from previous db")
-        }
+        val liveWal = File(dbDir, "${PendingImportApplier.LIVE_DB_NAME}-wal").apply { writeText("old wal from previous db") }
+        val liveShm = File(dbDir, "${PendingImportApplier.LIVE_DB_NAME}-shm").apply { writeText("old shm from previous db") }
 
         val hash = PendingImportApplier.computeSha256(live)
         val marker = PendingImportMarker(
@@ -159,7 +155,7 @@ class PendingImportApplierTest {
             sizeBytes = live.length(),
             sha256 = hash,
             createdAt = 123456789L,
-            summary = sampleSummary
+            summary = sampleSummary,
         )
         val markerFile = File(dbDir, PendingImportApplier.MARKER_FILE_NAME).apply {
             writeText(json.encodeToString(marker))
@@ -189,7 +185,7 @@ class PendingImportApplierTest {
             stagingFile = PendingImportApplier.STAGING_DB_NAME,
             sizeBytes = 1234L,
             sha256 = "differenthash",
-            createdAt = 123456789L
+            createdAt = 123456789L,
         )
         val markerFile = File(dbDir, PendingImportApplier.MARKER_FILE_NAME).apply {
             writeText(json.encodeToString(marker))
@@ -216,7 +212,7 @@ class PendingImportApplierTest {
             stagingFile = staging.name,
             sizeBytes = staging.length(),
             sha256 = PendingImportApplier.computeSha256(staging),
-            createdAt = 123456789L
+            createdAt = 123456789L,
         )
         File(dbDir, PendingImportApplier.MARKER_FILE_NAME).writeText(json.encodeToString(marker))
 

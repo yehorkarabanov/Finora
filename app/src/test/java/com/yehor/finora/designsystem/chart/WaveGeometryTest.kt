@@ -11,8 +11,7 @@ class WaveGeometryTest {
         assertTrue(l.runs.single().all { it.y == l.runs.single()[0].y })
     }
 
-    @Test
-    fun nullSplitsRuns() =
+    @Test fun nullSplitsRuns() =
         assertEquals(2, WaveGeometry.layout(listOf(1L, null, 3L, 4L), 300f, 100f, 0f, 0f, false).runs.size)
 
     @Test fun zeroLineInsideRange() {
@@ -20,8 +19,7 @@ class WaveGeometryTest {
         assertEquals(50f, l.zeroY!!, 0.01f)
     }
 
-    @Test
-    fun singlePointIsCentered() =
+    @Test fun singlePointIsCentered() =
         assertEquals(150f, WaveGeometry.layout(listOf(7L), 300f, 100f, 0f, 0f, false).runs.single().single().x, 0.01f)
 
     @Test fun allZeroDoesNotDivideByZero() {
@@ -74,8 +72,6 @@ class WaveGeometryTest {
         }
     }
 
-    @Test
-    fun emptyValuesGiveNoRuns() = assertTrue(
-        WaveGeometry.layout(emptyList(), 100f, 100f, 0f, 0f, false).runs.isEmpty()
-    )
+    @Test fun emptyValuesGiveNoRuns() =
+        assertTrue(WaveGeometry.layout(emptyList(), 100f, 100f, 0f, 0f, false).runs.isEmpty())
 }

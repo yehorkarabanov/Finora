@@ -80,13 +80,13 @@ object PendingImportApplier {
                             stagingFile.toPath(),
                             liveFile.toPath(),
                             StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.ATOMIC_MOVE
+                            StandardCopyOption.ATOMIC_MOVE,
                         )
                     } catch (_: AtomicMoveNotSupportedException) {
                         Files.move(
                             stagingFile.toPath(),
                             liveFile.toPath(),
-                            StandardCopyOption.REPLACE_EXISTING
+                            StandardCopyOption.REPLACE_EXISTING,
                         )
                     }
                     // Step B: Cleanup and record success
@@ -136,13 +136,13 @@ object PendingImportApplier {
                     tmp.toPath(),
                     outcomeFile.toPath(),
                     StandardCopyOption.REPLACE_EXISTING,
-                    StandardCopyOption.ATOMIC_MOVE
+                    StandardCopyOption.ATOMIC_MOVE,
                 )
             } catch (_: AtomicMoveNotSupportedException) {
                 Files.move(
                     tmp.toPath(),
                     outcomeFile.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING
+                    StandardCopyOption.REPLACE_EXISTING,
                 )
             }
         } catch (_: Exception) {

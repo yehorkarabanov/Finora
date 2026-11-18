@@ -16,7 +16,7 @@ data class Bucket(
     /** Epoch ms, inclusive. */
     val from: Long,
     /** Epoch ms, exclusive. */
-    val toExclusive: Long
+    val toExclusive: Long,
 )
 
 object BucketPlan {
@@ -81,7 +81,7 @@ object BucketPlan {
         fromDate = from,
         toDateInclusive = toInclusive,
         from = PeriodCalculator.startOfDay(from, zone),
-        toExclusive = PeriodCalculator.startOfDay(toInclusive.plusDays(1), zone)
+        toExclusive = PeriodCalculator.startOfDay(toInclusive.plusDays(1), zone),
     )
 }
 
@@ -97,7 +97,7 @@ object BalanceSeries {
         startMinor: Long,
         currency: Currency,
         buckets: List<Bucket>,
-        deltaByBucket: Map<Int, Long>
+        deltaByBucket: Map<Int, Long>,
     ): List<BalancePoint> {
         var running = startMinor
         return buckets.map { bucket ->
@@ -120,7 +120,7 @@ data class AccountFigures(
     val transfersIn: Money,
     val transfersOut: Money,
     /** Zero unless the opening balance is dated inside the period. */
-    val initialBalanceInPeriod: Money
+    val initialBalanceInPeriod: Money,
 ) {
     /** start + income - expense + in - out + initial == end. Never throws: overflow is "not reconciled". */
     fun reconciles(): Boolean = try {
@@ -129,10 +129,5 @@ data class AccountFigures(
         false
     }
 
-    val netChange: Money?
-        get() = try {
-            balanceAtEnd - balanceAtStart
-        } catch (e: MoneyOverflowException) {
-            null
-        }
+    val netChange: Money? get() = try { balanceAtEnd - balanceAtStart } catch (e: MoneyOverflowException) { null }
 }

@@ -16,7 +16,7 @@ val FinoraShapes = Shapes(
     small = RoundedCornerShape(16.dp),
     medium = RoundedCornerShape(24.dp),
     large = RoundedCornerShape(24.dp),
-    extraLarge = RoundedCornerShape(24.dp)
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
 /** Pill for buttons, chips and selectors. */

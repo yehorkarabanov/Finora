@@ -36,13 +36,13 @@ class RateRepository(
     private val db: FinoraDatabase,
     private val settings: SettingsRepository,
     private val client: FrankfurterClient,
-    private val clock: () -> Long
+    private val clock: () -> Long,
 ) {
     @Inject
     constructor(
         db: FinoraDatabase,
         settings: SettingsRepository,
-        client: FrankfurterClient
+        client: FrankfurterClient,
     ) : this(db, settings, client, System::currentTimeMillis)
 
     private val mutex = Mutex()
@@ -121,7 +121,7 @@ class RateRepository(
         rate = rate.stripTrailingZeros().toPlainString(),
         source = source,
         quoteDate = quoteDate.toString(),
-        fetchedAt = now
+        fetchedAt = now,
     )
 
     private fun List<ExchangeRateEntity>.toTable(): RateTable {

@@ -31,11 +31,8 @@ object AmountParser {
         return try {
             val minor = Money.parse(decimal.toPlainString(), currency).amountMinor
             // Long.MIN_VALUE cannot be negated, so keep the range symmetric.
-            if (minor == Long.MIN_VALUE) {
-                AmountParseResult.OutOfRange
-            } else {
-                AmountParseResult.Value(minor)
-            }
+            if (minor == Long.MIN_VALUE) AmountParseResult.OutOfRange
+            else AmountParseResult.Value(minor)
         } catch (_: MoneyOverflowException) {
             AmountParseResult.OutOfRange
         }

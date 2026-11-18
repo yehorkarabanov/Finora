@@ -28,7 +28,7 @@ fun convertedBalances(
     active: List<AccountWithBalance>,
     display: Currency,
     table: RateTable,
-    now: Long
+    now: Long,
 ): List<Pair<Long, Long?>> {
     val converter = RateConverter(table, now)
     return active.map { item ->

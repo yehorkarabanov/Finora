@@ -58,20 +58,14 @@ import java.util.Locale
 /** "FINORA" wordmark and the round ⋯ that opens the More sheet. No search on Home. */
 @Composable
 internal fun HomeTopBar(modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             stringResource(R.string.app_name).uppercase(),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() }
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         RoundIconButton(AppIcons.NavMore, stringResource(R.string.nav_more), LocalOpenMore.current)
     }
@@ -87,31 +81,27 @@ internal fun HomePeriodControls(
     onMode: (HomeMode) -> Unit,
     onRange: (YearMonth, YearMonth) -> Unit,
     onToggleAccount: (Long) -> Unit,
-    onClearAccounts: () -> Unit
+    onClearAccounts: () -> Unit,
 ) {
     var showRange by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         SegmentedPill(
             options = listOf(stringResource(R.string.home_days), stringResource(R.string.home_months)),
             selected = period.mode.ordinal,
-            onSelect = { onMode(HomeMode.entries[it]) }
+            onSelect = { onMode(HomeMode.entries[it]) },
         )
         Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            HomeChip(homeChipLabel(period), onClick = {
-                showRange = true
-            }, clickLabel = stringResource(R.string.range_title))
+            HomeChip(homeChipLabel(period), onClick = { showRange = true }, clickLabel = stringResource(R.string.range_title))
             if (accounts.size > 1) {
                 AccountSelector(
                     accounts = accounts,
                     selectedAccountIds = selectedAccountIds,
                     onToggleAccount = onToggleAccount,
-                    onClearSelection = onClearAccounts
+                    onClearSelection = onClearAccounts,
                 )
             }
         }
@@ -119,15 +109,7 @@ internal fun HomePeriodControls(
 
     if (showRange) {
         val current = HomePeriod.current(period.mode, today)
-        val quick = stringResource(
-            if (period.mode ==
-                HomeMode.DAYS
-            ) {
-                R.string.period_this_month
-            } else {
-                R.string.period_this_year
-            }
-        )
+        val quick = stringResource(if (period.mode == HomeMode.DAYS) R.string.period_this_month else R.string.period_this_year)
         RangeWheelsSheet(
             initialFrom = period.from,
             initialTo = period.sheetTo(today),
@@ -137,13 +119,13 @@ internal fun HomePeriodControls(
                 quick to {
                     showRange = false
                     onRange(current.from, current.to)
-                }
+                },
             ),
             onConfirm = { from, to ->
                 showRange = false
                 onRange(from, to)
             },
-            onDismiss = { showRange = false }
+            onDismiss = { showRange = false },
         )
     }
 }
@@ -153,28 +135,18 @@ internal fun HomePeriodControls(
 private fun HomeChip(label: String, onClick: () -> Unit, clickLabel: String) {
     val scheme = MaterialTheme.colorScheme
     Box(
-        Modifier
-            .heightIn(
-                min = 48.dp
-            )
-            .clip(PillShape)
-            .clickable(role = Role.Button, onClickLabel = clickLabel, onClick = onClick),
-        contentAlignment = Alignment.Center
+        Modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button, onClickLabel = clickLabel, onClick = onClick),
+        contentAlignment = Alignment.Center,
     ) {
         Row(
             Modifier
                 .background(scheme.surfaceContainerHigh, PillShape)
                 .border(hairline(MaterialTheme.finance.isDark), PillShape)
                 .padding(start = 14.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = scheme.onSurface, maxLines = 1)
-            Icon(
-                AppIcons.Dropdown,
-                contentDescription = null,
-                tint = scheme.onSurfaceVariant,
-                modifier = Modifier.size(IconSize.Medium)
-            )
+            Icon(AppIcons.Dropdown, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Medium))
         }
     }
 }
@@ -190,7 +162,7 @@ internal fun HomeHero(period: HomePeriod, today: LocalDate, chart: HomeChart?, o
             style = MaterialTheme.typography.labelSmall,
             letterSpacing = 1.5.sp,
             color = scheme.onSurfaceVariant,
-            modifier = Modifier.semantics { heading() }
+            modifier = Modifier.semantics { heading() },
         )
         val net = chart?.net
         val estimate = net?.estimate?.takeIf { !net.overflowed }
@@ -199,7 +171,7 @@ internal fun HomeHero(period: HomePeriod, today: LocalDate, chart: HomeChart?, o
                 cellText(net),
                 style = HeroStyle,
                 color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
             )
         } else {
             val color = if (estimate.amountMinor >= 0) finance.income else finance.negative
@@ -209,7 +181,7 @@ internal fun HomeHero(period: HomePeriod, today: LocalDate, chart: HomeChart?, o
                     " ${estimate.currency.symbol}",
                     style = HeroStyle.copy(fontSize = HeroStyle.fontSize * 0.6f),
                     color = color,
-                    modifier = Modifier.padding(bottom = 6.dp)
+                    modifier = Modifier.padding(bottom = 6.dp),
                 )
             }
         }
@@ -225,29 +197,19 @@ internal fun HomeHero(period: HomePeriod, today: LocalDate, chart: HomeChart?, o
                 if (outAt >= 0) addStyle(SpanStyle(color = finance.negative), outAt, outAt + outText.length)
             }
             Box(
-                Modifier
-                    .padding(top = 2.dp)
-                    .heightIn(min = 48.dp)
-                    .clip(PillShape)
-                    .clickable(
-                        role = Role.Button,
-                        onClickLabel = stringResource(R.string.home_open_transactions),
-                        onClick = onOpenTransactions
-                    ),
-                contentAlignment = Alignment.Center
+                Modifier.padding(top = 2.dp).heightIn(min = 48.dp).clip(PillShape)
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.home_open_transactions), onClick = onOpenTransactions),
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     styled,
-                    style = MaterialTheme.typography.labelMedium.copy(
-                        fontFamily = SpaceGrotesk,
-                        fontFeatureSettings = "tnum"
-                    ),
+                    style = MaterialTheme.typography.labelMedium.copy(fontFamily = SpaceGrotesk, fontFeatureSettings = "tnum"),
                     color = scheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .background(scheme.primary.copy(alpha = 0.10f), PillShape)
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
                 )
             }
         }

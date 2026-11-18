@@ -40,7 +40,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -55,11 +54,12 @@ import com.yehor.finora.designsystem.motion.rememberReduceMotion
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Month
 import java.time.YearMonth
 import java.time.format.TextStyle
+import java.util.Locale
+import kotlinx.coroutines.launch
 
 private val ItemHeight = 44.dp
 private val WheelHeight = ItemHeight * 5
@@ -74,7 +74,7 @@ fun RangeWheelsSheet(
     quickOptions: List<Pair<String, () -> Unit>>,
     onConfirm: (YearMonth, YearMonth) -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     FinoraSheet(onDismiss = onDismiss, modifier = modifier) {
         RangeWheelsContent(initialFrom, initialTo, today, earliest, quickOptions, onConfirm)
@@ -89,7 +89,7 @@ internal fun RangeWheelsContent(
     earliest: LocalDate?,
     quickOptions: List<Pair<String, () -> Unit>>,
     onConfirm: (YearMonth, YearMonth) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val years = remember(today, earliest, initialFrom, initialTo) {
         val base = RangeWheelsLogic.years(today, earliest)
@@ -97,7 +97,7 @@ internal fun RangeWheelsContent(
         val last = maxOf(base.last(), minOf(maxOf(initialFrom.year, initialTo.year), today.year))
         (first..last).toList()
     }
-    val locale = LocalConfiguration.current.locales[0]
+    val locale = Locale.getDefault()
     val monthNames = remember(locale) { Month.entries.map { it.getDisplayName(TextStyle.SHORT, locale) } }
     val current = YearMonth.from(today)
 
@@ -118,35 +118,24 @@ internal fun RangeWheelsContent(
         }
         if (quickOptions.isNotEmpty()) {
             Row(
-                Modifier
-                    .padding(top = 12.dp)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                Modifier.padding(top = 12.dp).horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 quickOptions.forEach { (text, action) -> FilterPill(label = text, active = false, onClick = action) }
             }
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 18.dp)
-        ) {
+        Row(Modifier.fillMaxWidth().padding(top = 18.dp)) {
             WheelHeading(stringResource(R.string.range_from), Modifier.weight(1f))
             Box(Modifier.width(24.dp))
             WheelHeading(stringResource(R.string.range_to), Modifier.weight(1f))
         }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-                .height(WheelHeight), contentAlignment = Alignment.Center
-        ) {
+        Box(Modifier.fillMaxWidth().padding(top = 8.dp).height(WheelHeight), contentAlignment = Alignment.Center) {
             Box(
                 Modifier
                     .fillMaxWidth()
                     .height(ItemHeight)
                     .background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(16.dp))
-                    .border(hairline(MaterialTheme.finance.isDark), RoundedCornerShape(16.dp))
+                    .border(hairline(MaterialTheme.finance.isDark), RoundedCornerShape(16.dp)),
             )
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Wheel(
@@ -155,7 +144,7 @@ internal fun RangeWheelsContent(
                     onSelect = { fromMonth = it },
                     selectedColor = MaterialTheme.colorScheme.onSurface,
                     isFuture = { YearMonth.of(years[fromYear], it + 1).isAfter(current) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Wheel(
                     items = years.map { it.toString() },
@@ -163,7 +152,7 @@ internal fun RangeWheelsContent(
                     onSelect = { fromYear = it },
                     selectedColor = MaterialTheme.colorScheme.onSurface,
                     isFuture = { YearMonth.of(years[it], fromMonth + 1).isAfter(current) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Text("→", color = MaterialTheme.colorScheme.primary, textAlign = TextAlign.Center, fontSize = 16.sp, modifier = Modifier.width(24.dp))
                 Wheel(
@@ -172,7 +161,7 @@ internal fun RangeWheelsContent(
                     onSelect = { toMonth = it },
                     selectedColor = MaterialTheme.colorScheme.primary,
                     isFuture = { YearMonth.of(years[toYear], it + 1).isAfter(current) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
                 Wheel(
                     items = years.map { it.toString() },
@@ -180,7 +169,7 @@ internal fun RangeWheelsContent(
                     onSelect = { toYear = it },
                     selectedColor = MaterialTheme.colorScheme.primary,
                     isFuture = { YearMonth.of(years[it], toMonth + 1).isAfter(current) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
@@ -196,7 +185,7 @@ internal fun RangeWheelsContent(
             },
             onClick = { onConfirm(from, to) },
             enabled = validity is RangeValidity.Valid,
-            modifier = Modifier.padding(top = 22.dp)
+            modifier = Modifier.padding(top = 22.dp),
         )
     }
 }
@@ -208,7 +197,7 @@ private fun WheelHeading(text: String, modifier: Modifier = Modifier) {
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -224,9 +213,7 @@ private fun CountChip(validity: RangeValidity) {
         text,
         style = MaterialTheme.typography.labelMedium,
         color = color,
-        modifier = Modifier
-            .background(color.copy(alpha = 0.12f), PillShape)
-            .padding(horizontal = 10.dp, vertical = 5.dp)
+        modifier = Modifier.background(color.copy(alpha = 0.12f), PillShape).padding(horizontal = 10.dp, vertical = 5.dp),
     )
 }
 
@@ -238,7 +225,7 @@ private fun Wheel(
     onSelect: (Int) -> Unit,
     selectedColor: Color,
     isFuture: (Int) -> Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val state = rememberLazyListState(initialFirstVisibleItemIndex = selected.coerceIn(0, items.lastIndex))
     val haptics = LocalHapticFeedback.current
@@ -270,15 +257,10 @@ private fun Wheel(
             .drawWithContent {
                 drawContent()
                 drawRect(
-                    Brush.verticalGradient(
-                        0f to Color.Transparent,
-                        0.35f to Color.Black,
-                        0.65f to Color.Black,
-                        1f to Color.Transparent
-                    ),
-                    blendMode = BlendMode.DstIn
+                    Brush.verticalGradient(0f to Color.Transparent, 0.35f to Color.Black, 0.65f to Color.Black, 1f to Color.Transparent),
+                    blendMode = BlendMode.DstIn,
                 )
-            }
+            },
     ) {
         itemsIndexed(items) { index, text ->
             val isSelected = index == centered
@@ -290,13 +272,13 @@ private fun Wheel(
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
                         scope.launch { if (reduceMotion) state.scrollToItem(index) else state.animateScrollToItem(index) }
                     },
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text,
                     fontSize = if (isSelected) 20.sp else 17.sp,
                     fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                    color = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isSelected) selectedColor else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }

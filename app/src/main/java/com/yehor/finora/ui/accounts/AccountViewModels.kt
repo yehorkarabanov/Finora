@@ -13,8 +13,8 @@ import com.yehor.finora.domain.account.AccountDetail
 import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.account.AccountWithBalance
 import com.yehor.finora.domain.account.OpeningDatePolicy
-import com.yehor.finora.domain.analytics.BalancePoint
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.analytics.BalancePoint
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.MoneyOverflowException
 import com.yehor.finora.domain.operation.TransactionFilter
@@ -29,11 +29,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -52,7 +52,7 @@ data class AccountsUiState(
     /** Share of each active account in the total, for the split bar. */
     val shares: List<Pair<Long, Float>> = emptyList(),
     /** Sparkline and this-month change per active account; missing until the series arrive. */
-    val trends: Map<Long, AccountTrend> = emptyMap()
+    val trends: Map<Long, AccountTrend> = emptyMap(),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -61,7 +61,7 @@ class AccountsViewModel @Inject constructor(
     private val repository: AccountRepository,
     rates: RateRepository,
     settings: SettingsRepository,
-    analytics: AnalyticsRepository
+    analytics: AnalyticsRepository,
 ) : ViewModel() {
 
     // One flow for all accounts' series, so rows never run queries of their own.
@@ -79,11 +79,9 @@ class AccountsViewModel @Inject constructor(
                 combine(
                     ids.map { id ->
                         analytics.observeBalanceSeries(id, buckets)
-                            .catch { e ->
-                                if (e is MoneyOverflowException) emit(emptyList<BalancePoint>()) else throw e
-                            }
+                            .catch { e -> if (e is MoneyOverflowException) emit(emptyList<BalancePoint>()) else throw e }
                             .map { id to accountTrend(it, monthStart) }
-                    }
+                    },
                 ) { it.toMap() }
             }
         }
@@ -93,7 +91,7 @@ class AccountsViewModel @Inject constructor(
         repository.observeAll(),
         rates.observeTable(),
         settings.displayCurrency,
-        trends
+        trends,
     ) { list, table, display, trendMap ->
         val (active, archived) = list.partition { it.account.status == AccountStatus.ACTIVE }
         val now = System.currentTimeMillis()
@@ -104,7 +102,7 @@ class AccountsViewModel @Inject constructor(
             valuation = ValuationCardLogic.build(active, display.currency, table, now),
             displayCurrency = display.currency,
             shares = accountShares(convertedBalances(active, display.currency, table, now)),
-            trends = trendMap
+            trends = trendMap,
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountsUiState())
@@ -124,7 +122,7 @@ sealed interface AccountDetailUiState {
         val transactionCount: Int,
         val scheduleCount: Int = 0,
         val recentTransactions: List<TransactionItem> = emptyList(),
-        val trend: AccountTrend = AccountTrend(emptyList(), null)
+        val trend: AccountTrend = AccountTrend(emptyList(), null),
     ) : AccountDetailUiState
 }
 
@@ -134,7 +132,7 @@ class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: AccountRepository,
     transactionRepository: TransactionRepository,
-    analytics: AnalyticsRepository
+    analytics: AnalyticsRepository,
 ) : ViewModel() {
     private val accountId: Long = checkNotNull(savedStateHandle["accountId"])
 
@@ -150,7 +148,7 @@ class AccountDetailViewModel @Inject constructor(
     val state: StateFlow<AccountDetailUiState> = combine(
         repository.observe(accountId),
         transactionRepository.observeRecent(TransactionFilter(accountIds = setOf(accountId)), RECENT_LIMIT),
-        trend
+        trend,
     ) { detail, recent, trend ->
         if (detail == null) {
             AccountDetailUiState.Missing
@@ -160,7 +158,7 @@ class AccountDetailViewModel @Inject constructor(
                 repository.nonOpeningEntryCount(accountId),
                 repository.scheduleCount(accountId),
                 recent,
-                trend
+                trend,
             )
         }
     }
@@ -184,7 +182,7 @@ class AccountDetailViewModel @Inject constructor(
 @HiltViewModel
 class AccountEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: AccountRepository
+    private val repository: AccountRepository,
 ) : ViewModel() {
     private val accountId: Long? = savedStateHandle.get<Long>("accountId")
     private val policy = OpeningDatePolicy(ZoneId.systemDefault())
@@ -203,7 +201,7 @@ class AccountEditViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     loaded = true,
-                    dateMillis = policy.defaultForNewAccount(System.currentTimeMillis())
+                    dateMillis = policy.defaultForNewAccount(System.currentTimeMillis()),
                 )
             }
             return
@@ -225,7 +223,7 @@ class AccountEditViewModel @Inject constructor(
                 originalOpeningMinor = opening?.money?.amountMinor,
                 earliestOtherEntryAt = detail.earliestOtherEntryAt,
                 amountText = AccountFormLogic.amountTextOf(opening?.money?.amountMinor, account.currency),
-                dateMillis = opening?.occurredAt ?: policy.defaultForExistingAccount(now, detail.earliestOtherEntryAt)
+                dateMillis = opening?.occurredAt ?: policy.defaultForExistingAccount(now, detail.earliestOtherEntryAt),
             )
         }
     }
@@ -257,12 +255,12 @@ class AccountEditViewModel @Inject constructor(
                     repository.create(
                         name = name, currencyCode = checkNotNull(s.currency).code, type = s.type.name,
                         icon = s.icon, color = s.color, description = description,
-                        openingMinor = openingMinor, openingDate = policy.defaultForNewAccount(now), now = now
+                        openingMinor = openingMinor, openingDate = policy.defaultForNewAccount(now), now = now,
                     )
                 } else {
                     repository.updateWithOpeningBalance(
                         id = accountId, name = name, type = s.type.name, icon = s.icon, color = s.color,
-                        description = description, openingMinor = openingMinor, openingDate = s.dateMillis, now = now
+                        description = description, openingMinor = openingMinor, openingDate = s.dateMillis, now = now,
                     )
                 }
                 _state.update { it.copy(saving = false, saved = true) }

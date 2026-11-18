@@ -1,7 +1,7 @@
 package com.yehor.finora.domain.rate
 
-import com.yehor.finora.domain.money.CurrencyMismatchException
 import com.yehor.finora.domain.money.CurrencyRegistry
+import com.yehor.finora.domain.money.CurrencyMismatchException
 import com.yehor.finora.domain.money.Estimate
 import com.yehor.finora.domain.money.EstimateBasis
 import com.yehor.finora.domain.money.Money
@@ -67,14 +67,8 @@ class EstimateTest {
         assertTrue(sources.isNotEmpty())
         sources.forEach { f ->
             val text = f.readText()
-            assertFalse(
-                "${f.name} converts Estimate to Money",
-                Regex("""fun\s+(Estimate\.)?toMoney""").containsMatchIn(text)
-            )
-            assertFalse(
-                "${f.name} builds Money from an Estimate",
-                Regex("""Money\(\s*\w*estimate\w*\.amountMinor""", RegexOption.IGNORE_CASE).containsMatchIn(text)
-            )
+            assertFalse("${f.name} converts Estimate to Money", Regex("""fun\s+(Estimate\.)?toMoney""").containsMatchIn(text))
+            assertFalse("${f.name} builds Money from an Estimate", Regex("""Money\(\s*\w*estimate\w*\.amountMinor""", RegexOption.IGNORE_CASE).containsMatchIn(text))
         }
     }
 }
@@ -90,7 +84,7 @@ class RateStaticChecksTest {
         listOf(
             "src/main/java/com/yehor/finora/domain/money",
             "src/main/java/com/yehor/finora/domain/rate",
-            "src/main/java/com/yehor/finora/data/rates"
+            "src/main/java/com/yehor/finora/data/rates",
         ).forEach { dir ->
             val files = kotlinFiles(dir)
             assertTrue("no sources under $dir", files.isNotEmpty())

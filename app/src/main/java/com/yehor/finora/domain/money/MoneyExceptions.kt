@@ -1,7 +1,8 @@
 package com.yehor.finora.domain.money
 
 /** Thrown when a money operation would exceed the range of [Long]. Values never wrap. */
-class MoneyOverflowException(message: String, cause: Throwable? = null) : ArithmeticException(message) {
+class MoneyOverflowException(message: String, cause: Throwable? = null) :
+    ArithmeticException(message) {
     init {
         if (cause != null) initCause(cause)
     }
@@ -15,4 +16,5 @@ class CurrencyMismatchException(left: Currency, right: Currency) :
     IllegalArgumentException("Currency mismatch: ${left.code} vs ${right.code}")
 
 /** Thrown when a code is not present in [CurrencyRegistry]. */
-class UnknownCurrencyException(code: String) : IllegalArgumentException("Unknown currency code: $code")
+class UnknownCurrencyException(code: String) :
+    IllegalArgumentException("Unknown currency code: $code")

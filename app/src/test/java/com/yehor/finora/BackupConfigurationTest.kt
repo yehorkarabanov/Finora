@@ -14,11 +14,12 @@ class BackupConfigurationTest {
 
     private val expectedDomains = setOf(
         "root", "file", "database", "sharedpref", "external",
-        "device_root", "device_file", "device_database", "device_sharedpref"
+        "device_root", "device_file", "device_database", "device_sharedpref",
     )
 
-    private fun parse(path: String): Element = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-        .parse(File(path)).documentElement
+    private fun parse(path: String): Element =
+        DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            .parse(File(path)).documentElement
 
     private fun children(parent: Element): List<Element> {
         val out = mutableListOf<Element>()

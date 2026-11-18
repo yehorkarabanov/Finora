@@ -10,13 +10,18 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
-data class RecurringListUiState(val loading: Boolean = true, val sections: RecurringSections = RecurringSections())
+data class RecurringListUiState(
+    val loading: Boolean = true,
+    val sections: RecurringSections = RecurringSections(),
+)
 
 @HiltViewModel
-class RecurringListViewModel @Inject constructor(repository: RecurringRepository) : ViewModel() {
+class RecurringListViewModel @Inject constructor(
+    repository: RecurringRepository,
+) : ViewModel() {
     val state: StateFlow<RecurringListUiState> = combine(
         repository.observeSchedules(),
-        repository.issues
+        repository.issues,
     ) { schedules, issues ->
         RecurringListUiState(loading = false, sections = RecurringListLogic.sections(schedules, issues))
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecurringListUiState())

@@ -7,15 +7,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
@@ -37,12 +37,7 @@ private const val TILE_SIZE = 128
 
 /** Process-wide grain brush; the tile bitmap is built once, on first use. */
 val GrainBrush: ShaderBrush by lazy {
-    val bitmap = Bitmap.createBitmap(
-        grainPixels(TILE_SIZE),
-        TILE_SIZE,
-        TILE_SIZE,
-        Bitmap.Config.ARGB_8888
-    ).asImageBitmap()
+    val bitmap = Bitmap.createBitmap(grainPixels(TILE_SIZE), TILE_SIZE, TILE_SIZE, Bitmap.Config.ARGB_8888).asImageBitmap()
     ShaderBrush(ImageShader(bitmap, TileMode.Repeated, TileMode.Repeated))
 }
 

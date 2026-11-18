@@ -41,7 +41,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         tagIds: Set<Long> = emptySet(),
         newTagNames: List<String> = emptyList(),
         moveOpeningBalanceBack: Boolean = false,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ): Long = db.withTransaction {
         if (type == OperationType.INCOME || type == OperationType.EXPENSE) {
             if (occurredAt > now) throw FutureDateException(occurredAt, now)
@@ -83,8 +83,8 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                 description = description?.trim()?.takeIf { it.isNotEmpty() },
                 openingAccountId = openingAccountId,
                 createdAt = now,
-                updatedAt = now
-            )
+                updatedAt = now,
+            ),
         )
         entries.forEach { e ->
             val currency = db.accountDao().currencyCodeOf(e.accountId)
@@ -95,8 +95,8 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                     accountId = e.accountId,
                     currencyCode = currency,
                     amountMinor = e.amountMinor,
-                    occurredAt = occurredAt
-                )
+                    occurredAt = occurredAt,
+                ),
             )
         }
 
@@ -125,7 +125,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         newTagNames: List<String> = emptyList(),
         moveOpeningBalanceBack: Boolean = false,
         confirmCurrencyChange: Boolean = false,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ) = db.withTransaction {
         val op = db.operationDao().getById(id)
             ?: throw InvariantViolationException("Unknown operation $id")
@@ -173,14 +173,14 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
             occurredAt = occurredAt,
             categoryId = categoryId,
             description = description?.trim()?.takeIf { it.isNotEmpty() },
-            updatedAt = now
+            updatedAt = now,
         )
         db.ledgerEntryDao().updateEntry(
             operationId = id,
             accountId = accountId,
             currencyCode = targetCurrency,
             amountMinor = signedAmount,
-            occurredAt = occurredAt
+            occurredAt = occurredAt,
         )
 
         db.operationTagDao().deleteAllFor(id)
@@ -206,7 +206,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
     suspend fun insertTransfer(
         draft: TransferDraft,
         moveOpeningBalanceBack: Boolean = false,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ): Long = db.withTransaction {
         if (draft.occurredAt > now) throw FutureDateException(draft.occurredAt, now)
         if (draft.sentAmountMinor <= 0 || draft.receivedAmountMinor <= 0) {
@@ -217,14 +217,14 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
             occurredAt = draft.occurredAt,
             entries = listOf(
                 EntryDraft(draft.sourceAccountId, -draft.sentAmountMinor),
-                EntryDraft(draft.destAccountId, draft.receivedAmountMinor)
+                EntryDraft(draft.destAccountId, draft.receivedAmountMinor),
             ),
             categoryId = draft.categoryId,
             description = draft.description,
             tagIds = draft.tagIds,
             newTagNames = draft.newTagNames,
             moveOpeningBalanceBack = moveOpeningBalanceBack,
-            now = now
+            now = now,
         )
     }
 
@@ -237,7 +237,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         draft: TransferDraft,
         moveOpeningBalanceBack: Boolean = false,
         confirmCurrencyChange: Boolean = false,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ) = db.withTransaction {
         val op = db.operationDao().getById(id)
             ?: throw InvariantViolationException("Unknown operation $id")
@@ -310,21 +310,21 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
             occurredAt = draft.occurredAt,
             categoryId = draft.categoryId,
             description = draft.description?.trim()?.takeIf { it.isNotEmpty() },
-            updatedAt = now
+            updatedAt = now,
         )
         db.ledgerEntryDao().updateEntryById(
             entryId = oldSource.id,
             accountId = newSource.id,
             currencyCode = newSource.currencyCode,
             amountMinor = newSourceAmount,
-            occurredAt = draft.occurredAt
+            occurredAt = draft.occurredAt,
         )
         db.ledgerEntryDao().updateEntryById(
             entryId = oldDest.id,
             accountId = newDest.id,
             currencyCode = newDest.currencyCode,
             amountMinor = newDestAmount,
-            occurredAt = draft.occurredAt
+            occurredAt = draft.occurredAt,
         )
 
         db.operationTagDao().deleteAllFor(id)
@@ -347,7 +347,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         operationId: Long,
         tagIds: Set<Long>,
         newTagNames: List<String> = emptyList(),
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ) = db.withTransaction {
         val op = db.operationDao().getById(operationId)
             ?: throw InvariantViolationException("Unknown operation $operationId")
@@ -359,8 +359,11 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
     }
 
     /** Moves the operation and every one of its ledger entries to [occurredAt] together. */
-    suspend fun changeOccurredAt(operationId: Long, occurredAt: Long, now: Long = System.currentTimeMillis()) =
-        db.withTransaction {
+    suspend fun changeOccurredAt(
+        operationId: Long,
+        occurredAt: Long,
+        now: Long = System.currentTimeMillis(),
+    ) = db.withTransaction {
         val op = db.operationDao().getById(operationId)
             ?: throw InvariantViolationException("Unknown operation $operationId")
         if (op.type == OperationType.INCOME || op.type == OperationType.EXPENSE) {
@@ -392,7 +395,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         accountId: Long,
         amountMinor: Long?,
         occurredAt: Long,
-        now: Long = System.currentTimeMillis()
+        now: Long = System.currentTimeMillis(),
     ): Unit = db.withTransaction {
         val openingOp = db.operationDao().openingBalanceOf(accountId)
         if (amountMinor == null || amountMinor == 0L) {
@@ -413,7 +416,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
                 occurredAt = occurredAt,
                 entries = listOf(EntryDraft(accountId, amountMinor)),
                 openingAccountId = accountId,
-                now = now
+                now = now,
             )
         } else {
             db.ledgerEntryDao().updateAmount(openingOp.id, amountMinor)
@@ -440,7 +443,11 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         throw e
     }
 
-    suspend fun resolveTagIds(tagIds: Set<Long>, newTagNames: List<String>, now: Long): Set<Long> {
+    suspend fun resolveTagIds(
+        tagIds: Set<Long>,
+        newTagNames: List<String>,
+        now: Long,
+    ): Set<Long> {
         val existingIds = db.tagDao().getAll().map { it.id }.toSet()
         tagIds.forEach { id ->
             if (id !in existingIds) throw InvariantViolationException("Unknown tag id $id")
@@ -459,7 +466,12 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         return resolvedIds
     }
 
-    private suspend fun resolveAndLinkTags(operationId: Long, tagIds: Set<Long>, newTagNames: List<String>, now: Long) {
+    private suspend fun resolveAndLinkTags(
+        operationId: Long,
+        tagIds: Set<Long>,
+        newTagNames: List<String>,
+        now: Long,
+    ) {
         val resolvedIds = resolveTagIds(tagIds, newTagNames, now)
         resolvedIds.forEach { tagId ->
             db.operationTagDao().insert(OperationTagEntity(operationId, tagId))
@@ -470,7 +482,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         accountId: Long,
         occurredAt: Long,
         moveOpeningBalanceBack: Boolean,
-        now: Long
+        now: Long,
     ) {
         val openingDate = db.ledgerEntryDao().openingDateOf(accountId)
         if (openingDate != null && occurredAt < openingDate) {
@@ -507,7 +519,7 @@ class OperationRepository @Inject constructor(private val db: FinoraDatabase) {
         type: OperationType,
         entries: List<EntryDraft>,
         categoryId: Long?,
-        openingAccountId: Long?
+        openingAccountId: Long?,
     ) {
         if (type != OperationType.OPENING_BALANCE && openingAccountId != null) {
             throw InvariantViolationException("opening_account_id is only for OPENING_BALANCE")

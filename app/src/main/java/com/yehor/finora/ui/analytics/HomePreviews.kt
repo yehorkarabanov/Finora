@@ -57,8 +57,7 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
     val period = HomePeriod.current(HomeMode.DAYS, today)
     val (unit, buckets) = period.buckets(ZoneOffset.UTC, today)
     val (income, expense) = when (sample) {
-        HomeSample.POSITIVE -> List(buckets.size) { if (it == 4) 520_000L else 0L } to
-            List(buckets.size) { if (it % 2 == 0) 31_000L else 9_000L }
+        HomeSample.POSITIVE -> List(buckets.size) { if (it == 4) 520_000L else 0L } to List(buckets.size) { if (it % 2 == 0) 31_000L else 9_000L }
         HomeSample.NEGATIVE -> List(buckets.size) { 0L } to List(buckets.size) { 12_000L + it * 1_500L }
         HomeSample.EMPTY, HomeSample.NO_ACCOUNTS -> List(buckets.size) { 0L } to List(buckets.size) { 0L }
     }
@@ -72,7 +71,7 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
         net = cell(incomeTotal - expenseTotal),
         income = cell(incomeTotal),
         expense = cell(expenseTotal),
-        currencyApprox = false
+        currencyApprox = false,
     )
     PreviewTheme(dark) {
         DashboardContent(
@@ -83,13 +82,7 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
                 display = pln,
                 homePeriod = period,
                 chart = chart,
-                accounts = if (sample ==
-                    HomeSample.NO_ACCOUNTS
-                ) {
-                    emptyList()
-                } else {
-                    listOf(account(1, "Santander"), account(2, "Cash"))
-                }
+                accounts = if (sample == HomeSample.NO_ACCOUNTS) emptyList() else listOf(account(1, "Santander"), account(2, "Cash")),
             ),
             actions = DashboardActions({}, {}, {}, {}, {}, {}, {}, {}),
             chartFor = { flowOf(chart) },
@@ -97,7 +90,7 @@ private fun HomePreview(dark: Boolean, sample: HomeSample) {
             onShow = {},
             onRange = { _, _ -> },
             onToggleAccount = {},
-            onClearAccountSelection = {}
+            onClearAccountSelection = {},
         )
     }
 }

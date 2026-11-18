@@ -10,6 +10,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -22,9 +23,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,7 +34,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.list.GroupedCard
-import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.domain.account.Account
@@ -71,7 +71,7 @@ fun TransactionEditScreen(
     onNavigateCreateCategory: ((String) -> Unit)? = null,
     onOpenSchedule: ((Long) -> Unit)? = null,
     viewModel: TransactionEditViewModel = hiltViewModel(),
-    transferViewModel: TransferEditViewModel = hiltViewModel()
+    transferViewModel: TransferEditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val transferState by transferViewModel.state.collectAsStateWithLifecycle()
@@ -131,40 +131,23 @@ fun TransactionEditScreen(
                     accountId = state.selectedAccountId,
                     date = state.date.takeIf { state.dateTouched },
                     time = state.time.takeIf { state.dateTouched },
-                    description = state.description
+                    description = state.description,
                 )
                 transferTarget = TransferTarget.SENT
                 transferSelected = true
             }
             isTransfer -> {
-                viewModel.onKindChange(
-                    if (new ==
-                        EditorMode.INCOME
-                    ) {
-                        TransactionKind.INCOME
-                    } else {
-                        TransactionKind.EXPENSE
-                    }
-                )
+                viewModel.onKindChange(if (new == EditorMode.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE)
                 viewModel.prefill(
                     amountText = transferState.sentText,
                     accountId = transferState.sourceAccountId,
                     date = transferState.date.takeIf { transferState.dateTouched },
                     time = transferState.time.takeIf { transferState.dateTouched },
-                    description = transferState.description
+                    description = transferState.description,
                 )
                 transferSelected = false
             }
-
-            else -> viewModel.onKindChange(
-                if (new ==
-                    EditorMode.INCOME
-                ) {
-                    TransactionKind.INCOME
-                } else {
-                    TransactionKind.EXPENSE
-                }
-            )
+            else -> viewModel.onKindChange(if (new == EditorMode.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE)
         }
     }
 
@@ -175,7 +158,7 @@ fun TransactionEditScreen(
             onClose = onBack,
             onModeChange = ::changeMode,
             onDuplicate = onDuplicate?.let { duplicate -> { duplicate(operationId, mode) } },
-            onDelete = { if (isTransfer) transferViewModel.onDeleteRequest() else viewModel.onDeleteRequest() }
+            onDelete = { if (isTransfer) transferViewModel.onDeleteRequest() else viewModel.onDeleteRequest() },
         )
     }
     val overlay: @Composable () -> Unit = { SnackbarHost(snackbarHostState) }
@@ -192,7 +175,7 @@ fun TransactionEditScreen(
             onSave = { transferViewModel.save() },
             shelfScroll = shelfScroll,
             onNavigateCreateCategory = onNavigateCreateCategory,
-            overlay = overlay
+            overlay = overlay,
         )
         TransferDialogs(transferState, transferViewModel)
     } else {
@@ -208,7 +191,7 @@ fun TransactionEditScreen(
             shelfScroll = shelfScroll,
             onNavigateCreateCategory = onNavigateCreateCategory,
             onOpenSchedule = onOpenSchedule,
-            overlay = overlay
+            overlay = overlay,
         )
         ExpenseIncomeDialogs(state, viewModel)
     }
@@ -227,7 +210,7 @@ internal class ExpenseIncomeActions(
     val onDescriptionChange: (String) -> Unit = {},
     val onToggleTag: (Long) -> Unit = {},
     val onAddPendingTag: (String) -> Unit = {},
-    val onRemovePendingTag: (String) -> Unit = {}
+    val onRemovePendingTag: (String) -> Unit = {},
 )
 
 internal fun TransactionEditViewModel.formActions() = ExpenseIncomeActions(
@@ -239,7 +222,7 @@ internal fun TransactionEditViewModel.formActions() = ExpenseIncomeActions(
     onDescriptionChange = ::onDescriptionChange,
     onToggleTag = ::onToggleTag,
     onAddPendingTag = ::onAddPendingTag,
-    onRemovePendingTag = ::onRemovePendingTag
+    onRemovePendingTag = ::onRemovePendingTag,
 )
 
 /** Keypad screen + details shelf for Expense and Income, with the pickers that belong to them. */
@@ -257,7 +240,7 @@ internal fun ExpenseIncomeEditor(
     shelfScroll: ScrollState,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
     onOpenSchedule: ((Long) -> Unit)? = null,
-    overlay: @Composable () -> Unit = {}
+    overlay: @Composable () -> Unit = {},
 ) {
     var pickAccount by rememberSaveable { mutableStateOf(false) }
     var pickCategory by rememberSaveable { mutableStateOf(false) }
@@ -300,8 +283,7 @@ internal fun ExpenseIncomeEditor(
         TransactionDraftError.CATEGORY_MISSING in state.errors -> R.string.transaction_form_error_category_missing
         else -> null
     }
-    val ctaLabel =
-        stringResource(blocker ?: if (isIncome) R.string.editor_save_income else R.string.editor_save_expense)
+    val ctaLabel = stringResource(blocker ?: if (isIncome) R.string.editor_save_income else R.string.editor_save_expense)
 
     EditorScaffold(
         stage = stage,
@@ -314,7 +296,7 @@ internal fun ExpenseIncomeEditor(
                 currencySymbol = currency.symbol,
                 symbols = symbols,
                 isError = amountError != null,
-                maxFontSize = layout.amountMaxFontSize
+                maxFontSize = layout.amountMaxFontSize,
             )
             if (amountError != null) {
                 Text(amountError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -328,12 +310,10 @@ internal fun ExpenseIncomeEditor(
                 decimalEnabled = currency.scale > 0,
                 onKey = { actions.onAmountChange(AmountKeypad.applyKey(state.amountText, it, currency.scale)) },
                 onClear = { actions.onAmountChange("") },
-                keyHeight = layout.keyHeight
+                keyHeight = layout.keyHeight,
             )
         },
-        shelfKindLabel = stringResource(
-            if (isIncome) R.string.transaction_kind_income else R.string.transaction_kind_expense
-        ),
+        shelfKindLabel = stringResource(if (isIncome) R.string.transaction_kind_income else R.string.transaction_kind_expense),
         shelfScroll = shelfScroll,
         shelfContent = {
             val scheduleId = state.recurringScheduleId
@@ -349,7 +329,7 @@ internal fun ExpenseIncomeEditor(
                     archived = selectedAccount?.status == AccountStatus.ARCHIVED,
                     balance = balance,
                     balanceAfter = balanceAfter,
-                    symbols = symbols
+                    symbols = symbols,
                 )
                 AccountShelfRow(
                     label = stringResource(R.string.transaction_form_account),
@@ -358,7 +338,7 @@ internal fun ExpenseIncomeEditor(
                     symbols = symbols,
                     supporting = accountNote,
                     supportingIsError = accountNoteIsError,
-                    onClick = { pickAccount = true }
+                    onClick = { pickAccount = true },
                 )
                 ShelfDivider()
                 CategoryShelfRow(
@@ -367,7 +347,7 @@ internal fun ExpenseIncomeEditor(
                     selectedCategoryId = state.selectedCategoryId,
                     showUncategorized = state.isEdit && !state.hadCategoryBefore,
                     showError = TransactionDraftError.CATEGORY_MISSING in state.errors && state.amountText.isNotBlank(),
-                    onClick = { pickCategory = true }
+                    onClick = { pickCategory = true },
                 )
                 ShelfDivider()
                 DateShelfRow(
@@ -376,7 +356,7 @@ internal fun ExpenseIncomeEditor(
                     isFuture = TransactionDraftError.DATE_IN_FUTURE in state.errors,
                     onOpenPicker = { pickDateTime = true },
                     onDateChange = actions.onDateChange,
-                    onTimeChange = actions.onTimeChange
+                    onTimeChange = actions.onTimeChange,
                 )
                 ShelfDivider()
                 NoteShelfRow(
@@ -384,7 +364,7 @@ internal fun ExpenseIncomeEditor(
                     hint = stringResource(R.string.transaction_form_description_hint),
                     description = state.description,
                     isTooLong = TransactionDraftError.DESCRIPTION_TOO_LONG in state.errors,
-                    onChange = actions.onDescriptionChange
+                    onChange = actions.onDescriptionChange,
                 )
                 ShelfDivider()
                 TagsShelfRow(
@@ -393,7 +373,7 @@ internal fun ExpenseIncomeEditor(
                     pendingTagNames = state.pendingTagNames,
                     onToggleTag = actions.onToggleTag,
                     onAddPendingTag = actions.onAddPendingTag,
-                    onRemovePendingTag = actions.onRemovePendingTag
+                    onRemovePendingTag = actions.onRemovePendingTag,
                 )
             }
             RecentCategoriesRow(
@@ -402,7 +382,7 @@ internal fun ExpenseIncomeEditor(
                 selectedCategoryId = state.selectedCategoryId,
                 recentCategoryIds = state.recentCategoryIds,
                 onSelectRecent = actions.onCategoryChange,
-                onCreateCategory = onNavigateCreateCategory?.let { create -> { create(categoryType.name) } }
+                onCreateCategory = onNavigateCreateCategory?.let { create -> { create(categoryType.name) } },
             )
         },
         shelfFooter = {
@@ -410,7 +390,7 @@ internal fun ExpenseIncomeEditor(
             Spacer(Modifier.height(8.dp))
             PrimaryButton(ctaLabel, onClick = onSave, enabled = state.canSave)
         },
-        overlay = overlay
+        overlay = overlay,
     )
 
     DateTimePickerFlow(
@@ -423,7 +403,7 @@ internal fun ExpenseIncomeEditor(
             actions.onDateChange(date)
             actions.onTimeChange(time)
             pickDateTime = false
-        }
+        },
     )
 
     if (pickAccount) {
@@ -435,7 +415,7 @@ internal fun ExpenseIncomeEditor(
                     actions.onAccountChange(it)
                     pickAccount = false
                 },
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
         }
     }
@@ -447,17 +427,12 @@ internal fun ExpenseIncomeEditor(
                 type = categoryType,
                 mode = PickerMode.Assign(),
                 selectedId = state.selectedCategoryId,
-                onCreate = onNavigateCreateCategory?.let { nav ->
-                    {
-                        pickCategory = false
-                        nav(categoryType.name)
-                    }
-                },
+                onCreate = onNavigateCreateCategory?.let { nav -> { pickCategory = false; nav(categoryType.name) } },
                 onSelect = {
                     actions.onCategoryChange(it)
                     pickCategory = false
                 },
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 16.dp),
             )
         }
     }
@@ -478,8 +453,8 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
                         info.oldAccountName,
                         if (info.isExpense) "+${info.oldFormatted}" else "−${info.oldFormatted}",
                         info.newAccountName,
-                        if (info.isExpense) "−${info.newFormatted}" else "+${info.newFormatted}"
-                    )
+                        if (info.isExpense) "−${info.newFormatted}" else "+${info.newFormatted}",
+                    ),
                 )
             },
             confirmButton = {
@@ -491,7 +466,7 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
                 TextButton(onClick = viewModel::onDismissReassignment) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            }
+            },
         )
     }
 
@@ -509,7 +484,7 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
                 TextButton(onClick = viewModel::onDismissOpeningOrder) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            }
+            },
         )
     }
 
@@ -521,8 +496,8 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
                 Text(
                     stringResource(
                         R.string.transaction_form_delete_body,
-                        state.deleteBalanceChange?.format().orEmpty()
-                    )
+                        state.deleteBalanceChange?.format().orEmpty(),
+                    ),
                 )
             },
             confirmButton = {
@@ -534,7 +509,7 @@ private fun ExpenseIncomeDialogs(state: TransactionEditUiState, viewModel: Trans
                 TextButton(onClick = viewModel::onDismissDelete) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            }
+            },
         )
     }
 }
@@ -575,7 +550,7 @@ private fun ExpenseIncomePreviewContent(dark: Boolean, stage: EditorStage) {
         amountText = "64.20",
         selectedAccountId = 1,
         accounts = listOf(PickableAccount(account, false)),
-        balances = mapOf(1L to Money(112_000, usd))
+        balances = mapOf(1L to Money(112_000, usd)),
     )
     PreviewTheme(dark) {
         ExpenseIncomeEditor(
@@ -583,14 +558,11 @@ private fun ExpenseIncomePreviewContent(dark: Boolean, stage: EditorStage) {
             actions = ExpenseIncomeActions(),
             stage = stage,
             onStageChange = {},
-            topBar = {
-                EditorTopBar(EditorMode.EXPENSE, isEdit = false, onClose = {
-                }, onModeChange = {}, onDuplicate = null, onDelete = {})
-            },
+            topBar = { EditorTopBar(EditorMode.EXPENSE, isEdit = false, onClose = {}, onModeChange = {}, onDuplicate = null, onDelete = {}) },
             addAnother = false,
             onAddAnotherChange = {},
             onSave = {},
-            shelfScroll = rememberScrollState()
+            shelfScroll = rememberScrollState(),
         )
     }
 }

@@ -25,6 +25,6 @@ fun GroupedCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainer, shape)
             .border(hairline(MaterialTheme.finance.isDark), shape),
-        content = content
+        content = content,
     )
 }

@@ -7,17 +7,21 @@ object ScheduleDates {
         val startDate: LocalDate,
         val rule: RecurrenceRule,
         val endDate: LocalDate?,
-        val nextDate: LocalDate?
+        val nextDate: LocalDate?,
     )
 
-    data class Edited(val firstDate: LocalDate, val rule: RecurrenceRule, val endDate: LocalDate?)
+    data class Edited(
+        val firstDate: LocalDate,
+        val rule: RecurrenceRule,
+        val endDate: LocalDate?,
+    )
 
     sealed interface Result {
         data class Accepted(val startDate: LocalDate, val nextDate: LocalDate?) : Result
         data class Rejected(val reason: Reason) : Result
 
         enum class Reason {
-            NEXT_NOT_AFTER_HANDLED
+            NEXT_NOT_AFTER_HANDLED,
         }
     }
 

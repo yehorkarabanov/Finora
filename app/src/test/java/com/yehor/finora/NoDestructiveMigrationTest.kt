@@ -19,7 +19,7 @@ class NoDestructiveMigrationTest {
                 if (code.startsWith("*") || code.startsWith("/*")) return@forEachIndexed
                 assertFalse(
                     "${f.name}:${i + 1} uses destructive migration",
-                    code.contains("fallbackToDestructiveMigration")
+                    code.contains("fallbackToDestructiveMigration"),
                 )
             }
         }

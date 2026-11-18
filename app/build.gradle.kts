@@ -62,9 +62,7 @@ val copyScratchSchema by tasks.registering(Copy::class) {
     from("$projectDir/schemas/com.yehor.finora.data.db.FinoraDatabase/1.json")
     into("$projectDir/schemas-test/com.yehor.finora.scratch.ScratchDatabase")
 }
-tasks.matching {
-    it.name.startsWith("copyRoomSchemasToAndroidTestAssets") || it.name.startsWith("kspDebugAndroidTest")
-}.configureEach {
+tasks.matching { it.name.startsWith("copyRoomSchemasToAndroidTestAssets") || it.name.startsWith("kspDebugAndroidTest") }.configureEach {
     dependsOn(copyScratchSchema)
 }
 

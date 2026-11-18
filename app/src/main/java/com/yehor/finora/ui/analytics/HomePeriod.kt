@@ -66,7 +66,7 @@ data class HomePeriod(val mode: HomeMode, val from: YearMonth, val to: YearMonth
                 fromDate = a,
                 toDateInclusive = b,
                 from = PeriodCalculator.startOfDay(a, zone),
-                toExclusive = PeriodCalculator.startOfDay(b.plusDays(1), zone)
+                toExclusive = PeriodCalculator.startOfDay(b.plusDays(1), zone),
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.yehor.finora.ui.operations
 
+import com.yehor.finora.designsystem.icon.AppIcons
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,14 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.yehor.finora.designsystem.component.button.PrimaryButton
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
-import com.yehor.finora.designsystem.component.button.PrimaryButton
-import com.yehor.finora.designsystem.icon.AppIcons
 
 // Shared pieces of the per-dimension filter sheets (categories, tags).
 
@@ -44,18 +44,14 @@ internal fun filterGroupShape(index: Int, size: Int): Shape {
 @Composable
 internal fun FilterSheetHeader(title: String, showClear: Boolean, onClear: () -> Unit) {
     Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(start = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        Modifier.fillMaxWidth().padding(start = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             title,
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier
-                .weight(1f)
-                .semantics { heading() }
+            modifier = Modifier.weight(1f).semantics { heading() },
         )
         if (showClear) TextButton(onClick = onClear) { Text(stringResource(R.string.filter_clear)) }
     }
@@ -67,7 +63,7 @@ internal fun FilterSheetDone(onDone: () -> Unit) {
     PrimaryButton(
         text = stringResource(R.string.selector_done),
         onClick = onDone,
-        modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
+        modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
     )
 }
 
@@ -76,7 +72,7 @@ internal fun FilterSearchField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     TextField(
         value = value,
@@ -85,11 +81,7 @@ internal fun FilterSearchField(
         placeholder = { Text(placeholder) },
         leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
         trailingIcon = if (value.isNotEmpty()) {
-            {
-                IconButton(onClick = {
-                    onValueChange("")
-                }) { Icon(AppIcons.Close, stringResource(R.string.action_remove)) }
-            }
+            { IconButton(onClick = { onValueChange("") }) { Icon(AppIcons.Close, stringResource(R.string.action_remove)) } }
         } else {
             null
         },
@@ -99,7 +91,7 @@ internal fun FilterSearchField(
             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        )
+            unfocusedIndicatorColor = Color.Transparent,
+        ),
     )
 }

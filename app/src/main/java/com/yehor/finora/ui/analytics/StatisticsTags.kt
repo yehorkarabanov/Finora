@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,7 +69,7 @@ internal fun LazyListScope.tagDetailItems(
     tab: TagsTab,
     state: StatisticsUiState,
     vm: StatisticsViewModel,
-    actions: StatisticsActions
+    actions: StatisticsActions,
 ) {
     val env = state.env ?: return
     val controls = state.controls
@@ -93,7 +95,7 @@ internal fun LazyListScope.tagDetailItems(
             delta = if (current != null && before != null) delta(current.estimate, before.estimate) else null,
             previous = state.previousPeriod,
             today = env.today,
-            onOpen = { types -> actions.onOpenTransactions(tab.filter.copy(types = types)) }
+            onOpen = { types -> actions.onOpenTransactions(tab.filter.copy(types = types)) },
         )
     }
     if (report.byDate.isNotEmpty()) {
@@ -110,10 +112,10 @@ internal fun LazyListScope.tagDetailItems(
                         tab.filter.copy(
                             types = setOf(report.measure.operationType()),
                             from = bucket.from,
-                            toExclusive = bucket.toExclusive
-                        )
+                            toExclusive = bucket.toExclusive,
+                        ),
                     )
-                }
+                },
             )
         }
     }
@@ -126,7 +128,7 @@ internal fun LazyListScope.tagDetailItems(
             categories = env.categories,
             onEnter = vm::enter,
             onBack = { vm.back(it) },
-            onOpen = actions.onOpenTransactions
+            onOpen = actions.onOpenTransactions,
         )
     }
     if (report.byAccount.isNotEmpty()) {
@@ -134,10 +136,8 @@ internal fun LazyListScope.tagDetailItems(
             BreakdownCard(
                 title = stringResource(R.string.stats_by_account),
                 items = accountBreakdown(report.byAccount, env.allAccounts) { id ->
-                    actions.onOpenTransactions(
-                        tab.filter.copy(types = setOf(report.measure.operationType()), accountIds = setOf(id))
-                    )
-                }
+                    actions.onOpenTransactions(tab.filter.copy(types = setOf(report.measure.operationType()), accountIds = setOf(id)))
+                },
             )
         }
     }
@@ -147,13 +147,9 @@ internal fun LazyListScope.tagDetailItems(
                 StatsSectionTitle(
                     stringResource(R.string.stats_recent),
                     link = stringResource(R.string.stats_all_n, figures.operationCount),
-                    onLink = { actions.onOpenTransactions(tab.filter) }
+                    onLink = { actions.onOpenTransactions(tab.filter) },
                 )
-                GroupedCard(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
-                ) {
+                GroupedCard(Modifier.fillMaxWidth().padding(top = 4.dp)) {
                     tab.recent.forEach { item -> TransactionRow(item, onClick = { actions.onOpenTransaction(item) }) }
                 }
             }
@@ -172,20 +168,16 @@ internal fun TagChips(
     mode: TagMatchMode,
     onToggle: (Long) -> Unit,
     onMode: (TagMatchMode) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth()) {
         val (on, off) = tags.partition { it.id in picked }
         Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             on.forEach { tag ->
-                FilterPill(label = "# ${tag.name}", active = true, onClick = {
-                    onToggle(tag.id)
-                }, onClear = { onToggle(tag.id) })
+                FilterPill(label = "# ${tag.name}", active = true, onClick = { onToggle(tag.id) }, onClear = { onToggle(tag.id) })
             }
             off.forEach { tag ->
                 FilterPill(label = "# ${tag.name}", active = false, onClick = { onToggle(tag.id) })
@@ -196,16 +188,16 @@ internal fun TagChips(
                 Text(
                     stringResource(R.string.stats_tags_match),
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 SegmentedPill(
                     options = listOf(
                         stringResource(R.string.filter_tag_mode_any_short),
-                        stringResource(R.string.filter_tag_mode_all_short)
+                        stringResource(R.string.filter_tag_mode_all_short),
                     ),
                     selected = TagMatchMode.entries.indexOf(mode),
                     onSelect = { onMode(TagMatchMode.entries[it]) },
-                    modifier = Modifier.width(220.dp)
+                    modifier = Modifier.width(220.dp),
                 )
             }
         }
@@ -221,28 +213,16 @@ internal fun TagFigures(
     previous: ResolvedPeriod?,
     today: LocalDate,
     onOpen: (Set<OperationType>) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val finance = MaterialTheme.finance
     val scheme = MaterialTheme.colorScheme
-    Column(
-        modifier
-            .fillMaxWidth()
-            .padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(modifier.fillMaxWidth().padding(top = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         GroupedCard(Modifier.fillMaxWidth()) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
-            ) {
-                Figure(R.string.stats_total_income, figures.income, finance.income, signed = false) {
-                    onOpen(setOf(OperationType.INCOME))
-                }
+            Row(Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
+                Figure(R.string.stats_total_income, figures.income, finance.income, signed = false) { onOpen(setOf(OperationType.INCOME)) }
                 FigureDivider()
-                Figure(R.string.stats_total_expense, figures.expense, scheme.onSurface, signed = false) {
-                    onOpen(setOf(OperationType.EXPENSE))
-                }
+                Figure(R.string.stats_total_expense, figures.expense, scheme.onSurface, signed = false) { onOpen(setOf(OperationType.EXPENSE)) }
                 FigureDivider()
                 val net = figures.net?.estimate?.amountMinor ?: 0L
                 val netTint = when {
@@ -262,13 +242,13 @@ internal fun TagFigures(
                         .clickable { onOpen(setOf(OperationType.TRANSFER)) }
                         .heightIn(min = 48.dp)
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         stringResource(R.string.stats_total_transferred),
                         style = MaterialTheme.typography.bodyMedium,
                         color = scheme.onSurfaceVariant,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     AmountText(transferred, color = scheme.onSurface)
                 }
@@ -277,17 +257,13 @@ internal fun TagFigures(
         val count = figures.operationCount
         val compare = if (delta != null && previous != null) comparison(measure, delta, previous, today) else null
         Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                pluralStringResource(R.plurals.analytics_operations, count, count),
-                style = MaterialTheme.typography.labelMedium,
-                color = scheme.onSurfaceVariant
-            )
+            Text(pluralStringResource(R.plurals.analytics_operations, count, count), style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             if (compare != null) {
                 Text(
                     " · " + compare.first,
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = compare.second
+                    color = compare.second,
                 )
             }
         }
@@ -303,7 +279,7 @@ private fun RowScope.Figure(label: Int, cell: Cell?, color: Color, signed: Boole
             .clickable(enabled = cell != null, onClick = onClick)
             .heightIn(min = 56.dp)
             .padding(horizontal = 4.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             stringResource(label).uppercase(LocalConfiguration.current.locales[0]),
@@ -312,7 +288,7 @@ private fun RowScope.Figure(label: Int, cell: Cell?, color: Color, signed: Boole
             letterSpacing = 1.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
         AmountText(cell, color = color, signed = signed)
     }
@@ -325,7 +301,7 @@ private fun RowScope.FigureDivider() {
             .align(Alignment.CenterVertically)
             .width(1.dp)
             .height(36.dp)
-            .background(hairline(MaterialTheme.finance.isDark).brush)
+            .background(hairline(MaterialTheme.finance.isDark).brush),
     )
 }
 
@@ -339,7 +315,7 @@ internal fun OverTimeCard(
     today: LocalDate,
     onMeasure: (Measure) -> Unit,
     onOpenBucket: (Bucket) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val locale = LocalConfiguration.current.locales[0]
     var selected by rememberSaveable(points.size) { mutableStateOf<Int?>(null) }
@@ -349,64 +325,47 @@ internal fun OverTimeCard(
                 options = listOf(
                     stringResource(R.string.stats_measure_spent),
                     stringResource(R.string.stats_measure_earned),
-                    stringResource(R.string.stats_measure_moved)
+                    stringResource(R.string.stats_measure_moved),
                 ),
                 selected = Measure.entries.indexOf(measure),
                 onSelect = { onMeasure(Measure.entries[it]) },
                 enabled = measureEnabled,
-                modifier = Modifier.width(232.dp)
+                modifier = Modifier.width(232.dp),
             )
         }
         val values = trendValues(points, today)
         val amounts = points.map { cellText(it.cell) }
-        GroupedCard(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp)
-        ) {
+        GroupedCard(Modifier.fillMaxWidth().padding(top = 8.dp)) {
             // The 16dp padding leaves room for the wave's glow, which the card clips.
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(top = 14.dp)
-                    .height(110.dp)
-            ) {
+            Box(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(top = 14.dp).height(110.dp)) {
                 WaveChart(
                     values = values,
                     modifier = Modifier.fillMaxSize(),
                     selectedIndex = selected?.takeIf { it in values.indices },
                     onSelect = { selected = it },
-                    label = { i -> "${dateBucketName(points[i].bucket, unit, today, locale)} · ${amounts[i]}" }
+                    label = { i -> "${dateBucketName(points[i].bucket, unit, today, locale)} · ${amounts[i]}" },
                 )
             }
             val picks = listOf(0, points.lastIndex / 2, points.lastIndex).distinct()
             Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = if (picks.size == 1) Arrangement.Center else Arrangement.SpaceBetween
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = if (picks.size == 1) Arrangement.Center else Arrangement.SpaceBetween,
             ) {
                 picks.forEach { i ->
                     Text(
                         dateBucketName(points[i].bucket, unit, today, locale),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
             val pick = selected?.let { points.getOrNull(it) }
             if (pick != null) {
                 FilterPill(
-                    label = stringResource(
-                        R.string.stats_open_bucket,
-                        dateBucketName(pick.bucket, unit, today, locale)
-                    ),
+                    label = stringResource(R.string.stats_open_bucket, dateBucketName(pick.bucket, unit, today, locale)),
                     active = false,
                     onClick = { onOpenBucket(pick.bucket) },
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 8.dp),
                 )
             }
         }
@@ -416,18 +375,7 @@ internal fun OverTimeCard(
 /** "Nov 18", "Nov 2026" or "2026". */
 private fun dateBucketName(bucket: Bucket, unit: BucketUnit, today: LocalDate, locale: Locale): String = when (unit) {
     BucketUnit.DAY -> shortDate(bucket.fromDate, today, locale)
-    BucketUnit.MONTH -> bucket.fromDate.format(
-        bestPattern(
-            locale,
-            if (bucket.fromDate.year ==
-                today.year
-            ) {
-                "LLL"
-            } else {
-                "MMMyy"
-            }
-        )
-    )
+    BucketUnit.MONTH -> bucket.fromDate.format(bestPattern(locale, if (bucket.fromDate.year == today.year) "LLL" else "MMMyy"))
     BucketUnit.YEAR -> bucket.fromDate.year.toString()
 }
 
@@ -436,19 +384,17 @@ private fun dateBucketName(bucket: Bucket, unit: BucketUnit, today: LocalDate, l
 internal fun accountBreakdown(
     lines: List<BreakdownLine>,
     accounts: List<Account>,
-    onOpen: (Long) -> Unit
+    onOpen: (Long) -> Unit,
 ): List<BreakdownItem> = lines.mapIndexed { index, line ->
     val account = accounts.firstOrNull { it.id == line.id }
     BreakdownItem(
         key = line.id ?: -1L,
         label = account?.name.orEmpty(),
         icon = IconCatalog.get(account?.icon),
-        tint = MaterialTheme.finance.accent(
-            account?.color ?: if (index == 0) ColorPalette.ACCOUNT_DEFAULT else fallbackColor(index)
-        ),
+        tint = MaterialTheme.finance.accent(account?.color ?: if (index == 0) ColorPalette.ACCOUNT_DEFAULT else fallbackColor(index)),
         cell = line.cell,
         share = line.share,
-        onClick = line.id?.let { id -> { onOpen(id) } }
+        onClick = line.id?.let { id -> { onOpen(id) } },
     )
 }
 
@@ -468,6 +414,6 @@ internal fun tagBreakdown(lines: List<BreakdownLine>, tags: List<Tag>, onOpen: (
             },
             cell = line.cell,
             share = line.share,
-            onClick = tag?.let { { onOpen(it.id) } }
+            onClick = tag?.let { { onOpen(it.id) } },
         )
     }

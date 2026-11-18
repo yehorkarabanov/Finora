@@ -1,8 +1,8 @@
 package com.yehor.finora.ui.operations
 
 import com.yehor.finora.domain.account.Account
-import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.money.Money
@@ -21,7 +21,7 @@ class TransactionsSectionsTest {
 
     private fun item(id: Long, type: OperationType, vararg entries: Pair<Account, Money>) = TransactionItem(
         id, type, 0, null, null, emptyList(), emptyList(),
-        entries.map { TransactionEntryView(it.first, it.second) }, 0, 0
+        entries.map { TransactionEntryView(it.first, it.second) }, 0, 0,
     )
 
     private fun expense(id: Long, minor: Long) = item(id, OperationType.EXPENSE, usdAccount to Money(minor, usd))
@@ -31,17 +31,7 @@ class TransactionsSectionsTest {
 
     @Test
     fun netSumsOneCurrency() {
-        val net = dayNet(
-            listOf(
-                expense(1, -6420),
-                expense(2, -1000),
-                item(
-                    3,
-                    OperationType.INCOME,
-                    usdAccount to Money(500, usd)
-                )
-            )
-        )
+        val net = dayNet(listOf(expense(1, -6420), expense(2, -1000), item(3, OperationType.INCOME, usdAccount to Money(500, usd))))
         assertEquals(Money(-6920, usd), net)
     }
 
@@ -65,7 +55,7 @@ class TransactionsSectionsTest {
             TransactionListRow.Entry(expense(1, -100)),
             TransactionListRow.Entry(expense(2, -200)),
             TransactionListRow.Header(DayGroup.Yesterday),
-            TransactionListRow.Entry(expense(3, -50))
+            TransactionListRow.Entry(expense(3, -50)),
         )
         val sections = buildSections(source(rows))
         assertEquals(2, sections.size)
@@ -80,7 +70,7 @@ class TransactionsSectionsTest {
             TransactionListRow.Header(DayGroup.Today),
             TransactionListRow.Entry(expense(1, -100)),
             TransactionListRow.Header(DayGroup.Yesterday),
-            TransactionListRow.Entry(expense(2, -50))
+            TransactionListRow.Entry(expense(2, -50)),
         )
         val sections = buildSections(source(rows, endReached = false))
         assertEquals(Money(-100, usd), sections[0].net)
@@ -97,13 +87,9 @@ class TransactionsSectionsTest {
 
     @Test
     fun allThreeTypesNormalizeToNoTypeFilter() {
-        val all = com.yehor.finora.domain.operation.TransactionFilter(
-            types = setOf(OperationType.INCOME, OperationType.EXPENSE, OperationType.TRANSFER)
-        )
+        val all = com.yehor.finora.domain.operation.TransactionFilter(types = setOf(OperationType.INCOME, OperationType.EXPENSE, OperationType.TRANSFER))
         assertEquals(emptySet<OperationType>(), all.normalizeTypes().types)
-        val two = com.yehor.finora.domain.operation.TransactionFilter(
-            types = setOf(OperationType.INCOME, OperationType.EXPENSE)
-        )
+        val two = com.yehor.finora.domain.operation.TransactionFilter(types = setOf(OperationType.INCOME, OperationType.EXPENSE))
         assertEquals(two, two.normalizeTypes())
     }
 }

@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -53,7 +54,7 @@ class RecurringRepository(
     private val categoryRepo: CategoryRepository,
     private val tagRepo: TagRepository,
     private val clock: () -> Long,
-    private val zoneProvider: () -> ZoneId
+    private val zoneProvider: () -> ZoneId,
 ) {
     @Inject
     constructor(
@@ -61,7 +62,7 @@ class RecurringRepository(
         operationRepo: OperationRepository,
         accountRepo: AccountRepository,
         categoryRepo: CategoryRepository,
-        tagRepo: TagRepository
+        tagRepo: TagRepository,
     ) : this(
         db,
         operationRepo,
@@ -69,7 +70,7 @@ class RecurringRepository(
         categoryRepo,
         tagRepo,
         System::currentTimeMillis,
-        ZoneId::systemDefault
+        ZoneId::systemDefault,
     )
 
     private val mutex = Mutex()
@@ -78,59 +79,62 @@ class RecurringRepository(
     private val _issues = MutableStateFlow<Map<Long, GenerationIssue>>(emptyMap())
     val issues: StateFlow<Map<Long, GenerationIssue>> = _issues.asStateFlow()
 
-    fun observeSchedules(): Flow<List<RecurringSchedule>> = combine(
-        db.recurringDao().observeSchedules(),
-        accountRepo.observeAll(),
-        categoryRepo.observeAll(),
-        tagRepo.observeAll()
-    ) { entities, accounts, categories, tags ->
-        val accountMap = accounts.associate { it.account.id to it.account }
-        val catMap = categories.associateBy { it.id }
-        val tree = CategoryTree(categories)
-        val tagMap = tags.associateBy { it.id }
+    fun observeSchedules(): Flow<List<RecurringSchedule>> =
+        combine(
+            db.recurringDao().observeSchedules(),
+            accountRepo.observeAll(),
+            categoryRepo.observeAll(),
+            tagRepo.observeAll(),
+        ) { entities, accounts, categories, tags ->
+            val accountMap = accounts.associate { it.account.id to it.account }
+            val catMap = categories.associateBy { it.id }
+            val tree = CategoryTree(categories)
+            val tagMap = tags.associateBy { it.id }
 
-        entities.map { entity ->
+            entities.map { entity ->
+                mapToSchedule(entity, accountMap, catMap, tree, tagMap)
+            }
+        }
+
+    fun observeSchedule(id: Long): Flow<RecurringSchedule?> =
+        combine(
+            db.recurringDao().observeSchedule(id),
+            accountRepo.observeAll(),
+            categoryRepo.observeAll(),
+            tagRepo.observeAll(),
+        ) { entity, accounts, categories, tags ->
+            if (entity == null) return@combine null
+            val accountMap = accounts.associate { it.account.id to it.account }
+            val catMap = categories.associateBy { it.id }
+            val tree = CategoryTree(categories)
+            val tagMap = tags.associateBy { it.id }
             mapToSchedule(entity, accountMap, catMap, tree, tagMap)
         }
-    }
 
-    fun observeSchedule(id: Long): Flow<RecurringSchedule?> = combine(
-        db.recurringDao().observeSchedule(id),
-        accountRepo.observeAll(),
-        categoryRepo.observeAll(),
-        tagRepo.observeAll()
-    ) { entity, accounts, categories, tags ->
-        if (entity == null) return@combine null
-        val accountMap = accounts.associate { it.account.id to it.account }
-        val catMap = categories.associateBy { it.id }
-        val tree = CategoryTree(categories)
-        val tagMap = tags.associateBy { it.id }
-        mapToSchedule(entity, accountMap, catMap, tree, tagMap)
-    }
-
-    fun observeOccurrences(id: Long, limit: Int = 100): Flow<List<OccurrenceItem>> = combine(
-        db.recurringDao().observeOccurrences(id, limit),
-        // An edit of a generated transaction changes its amount, not the occurrence row.
-        db.invalidationTracker.createFlow("ledger_entry")
-    ) { list, _ ->
-        val operationIds = list.mapNotNull { it.operationId }
-        val amounts = if (operationIds.isEmpty()) {
-            emptyMap()
-        } else {
-            db.recurringDao().amountsOf(operationIds).associateBy { it.operationId }
+    fun observeOccurrences(id: Long, limit: Int = 100): Flow<List<OccurrenceItem>> =
+        combine(
+            db.recurringDao().observeOccurrences(id, limit),
+            // An edit of a generated transaction changes its amount, not the occurrence row.
+            db.invalidationTracker.createFlow("ledger_entry"),
+        ) { list, _ ->
+            val operationIds = list.mapNotNull { it.operationId }
+            val amounts = if (operationIds.isEmpty()) {
+                emptyMap()
+            } else {
+                db.recurringDao().amountsOf(operationIds).associateBy { it.operationId }
+            }
+            list.map { entity ->
+                OccurrenceItem(
+                    date = LocalDate.ofEpochDay(entity.occurrenceDate),
+                    status = entity.status,
+                    operationId = entity.operationId,
+                    handledAt = entity.handledAt,
+                    money = entity.operationId?.let { amounts[it] }?.let { row ->
+                        CurrencyRegistry.findOrNull(row.currencyCode)?.let { Money(row.amountMinor, it) }
+                    },
+                )
+            }
         }
-        list.map { entity ->
-            OccurrenceItem(
-                date = LocalDate.ofEpochDay(entity.occurrenceDate),
-                status = entity.status,
-                operationId = entity.operationId,
-                handledAt = entity.handledAt,
-                money = entity.operationId?.let { amounts[it] }?.let { row ->
-                    CurrencyRegistry.findOrNull(row.currencyCode)?.let { Money(row.amountMinor, it) }
-                }
-            )
-        }
-    }
 
     /** Transactions that still exist and were created by this schedule. */
     suspend fun generatedCount(id: Long): Int = db.recurringDao().generatedCount(id)
@@ -142,7 +146,7 @@ class RecurringRepository(
     suspend fun create(
         draft: ScheduleDraft,
         moveOpeningBalanceBack: Boolean = false,
-        now: Long = clock()
+        now: Long = clock(),
     ): Long = db.withTransaction {
         val account = db.accountDao().getById(draft.accountId)
             ?: throw InvariantViolationException("Unknown account ${draft.accountId}")
@@ -160,7 +164,7 @@ class RecurringRepository(
             now = now,
             zone = zoneProvider(),
             isEdit = false,
-            hadCategoryBefore = true
+            hadCategoryBefore = true,
         )
         if (errors.isNotEmpty()) {
             throw InvariantViolationException("Invalid recurring draft: $errors")
@@ -189,13 +193,13 @@ class RecurringRepository(
             nextDate = draft.firstDate.toEpochDay(),
             status = ScheduleStatus.ACTIVE,
             createdAt = now,
-            updatedAt = now
+            updatedAt = now,
         )
 
         val scheduleId = db.recurringDao().insertSchedule(scheduleEntity)
         if (resolvedTagIds.isNotEmpty()) {
             db.recurringDao().insertScheduleTags(
-                resolvedTagIds.map { RecurringScheduleTagEntity(scheduleId, it) }
+                resolvedTagIds.map { RecurringScheduleTagEntity(scheduleId, it) },
             )
         }
 
@@ -208,7 +212,7 @@ class RecurringRepository(
         draft: ScheduleDraft,
         moveOpeningBalanceBack: Boolean = false,
         confirmCurrencyChange: Boolean = false,
-        now: Long = clock()
+        now: Long = clock(),
     ) = db.withTransaction {
         val current = db.recurringDao().getSchedule(id)
             ?: throw InvariantViolationException("Unknown schedule $id")
@@ -243,7 +247,7 @@ class RecurringRepository(
             now = now,
             zone = zoneProvider(),
             isEdit = true,
-            hadCategoryBefore = current.categoryId != null
+            hadCategoryBefore = current.categoryId != null,
         )
         if (errors.isNotEmpty()) {
             throw InvariantViolationException("Invalid recurring draft: $errors")
@@ -262,12 +266,12 @@ class RecurringRepository(
             startDate = LocalDate.ofEpochDay(current.startDate),
             rule = RecurrenceRule(current.unit, current.intervalCount),
             endDate = current.endDate?.let { LocalDate.ofEpochDay(it) },
-            nextDate = current.nextDate?.let { LocalDate.ofEpochDay(it) }
+            nextDate = current.nextDate?.let { LocalDate.ofEpochDay(it) },
         )
         val edited = ScheduleDates.Edited(
             firstDate = draft.firstDate,
             rule = draft.rule,
-            endDate = draft.endDate
+            endDate = draft.endDate,
         )
 
         val rescheduleResult = ScheduleDates.reschedule(currentAnchor, edited, lastHandled)
@@ -280,7 +284,7 @@ class RecurringRepository(
         db.recurringDao().deleteTagsOf(id)
         if (resolvedTagIds.isNotEmpty()) {
             db.recurringDao().insertScheduleTags(
-                resolvedTagIds.map { RecurringScheduleTagEntity(id, it) }
+                resolvedTagIds.map { RecurringScheduleTagEntity(id, it) },
             )
         }
 
@@ -294,7 +298,7 @@ class RecurringRepository(
             startDate = newStartDate.toEpochDay(),
             endDate = draft.endDate?.toEpochDay(),
             nextDate = newNextDate?.toEpochDay(),
-            updatedAt = now
+            updatedAt = now,
         )
         db.recurringDao().updateSchedule(updatedEntity)
 
@@ -317,7 +321,7 @@ class RecurringRepository(
         id: Long,
         catchUp: Boolean,
         moveOpeningBalanceBack: Boolean = false,
-        now: Long = clock()
+        now: Long = clock(),
     ) = db.withTransaction {
         val schedule = db.recurringDao().getSchedule(id)
             ?: throw InvariantViolationException("Unknown schedule $id")
@@ -343,8 +347,8 @@ class RecurringRepository(
                         occurrenceDate = curDate.toEpochDay(),
                         status = OccurrenceStatus.SKIPPED,
                         operationId = null,
-                        handledAt = now
-                    )
+                        handledAt = now,
+                    ),
                 )
                 val n = RecurrenceCalculator.next(anchor, rule, curDate, end)
                 if (n == null) {
@@ -372,8 +376,8 @@ class RecurringRepository(
                 occurrenceDate = curDate.toEpochDay(),
                 status = OccurrenceStatus.SKIPPED,
                 operationId = null,
-                handledAt = now
-            )
+                handledAt = now,
+            ),
         )
         val rule = RecurrenceRule(schedule.unit, schedule.intervalCount)
         val anchor = LocalDate.ofEpochDay(schedule.startDate)
@@ -402,8 +406,8 @@ class RecurringRepository(
                     occurrenceDate = curDate.toEpochDay(),
                     status = OccurrenceStatus.SKIPPED,
                     operationId = null,
-                    handledAt = now
-                )
+                    handledAt = now,
+                ),
             )
             val n = RecurrenceCalculator.next(anchor, rule, curDate, end)
             if (n == null) {
@@ -439,7 +443,7 @@ class RecurringRepository(
         id: Long,
         now: Long,
         moveOpeningBalanceBack: Boolean,
-        limit: Int = 100
+        limit: Int = 100,
     ): Int = db.withTransaction {
         val schedule = db.recurringDao().getSchedule(id) ?: return@withTransaction 0
         if (schedule.status != ScheduleStatus.ACTIVE || schedule.nextDate == null) {
@@ -475,8 +479,8 @@ class RecurringRepository(
                     occurrenceDate = curNextEpoch,
                     status = OccurrenceStatus.GENERATED,
                     operationId = null,
-                    handledAt = now
-                )
+                    handledAt = now,
+                ),
             )
 
             if (occurrenceId != -1L) {
@@ -488,7 +492,7 @@ class RecurringRepository(
                     description = schedule.name,
                     tagIds = tagIds,
                     moveOpeningBalanceBack = moveOpeningBalanceBack,
-                    now = now
+                    now = now,
                 )
                 db.recurringDao().setOccurrenceOperation(occurrenceId, opId)
             }
@@ -554,7 +558,7 @@ class RecurringRepository(
         accountMap: Map<Long, Account>,
         catMap: Map<Long, Category>,
         tree: CategoryTree,
-        tagMap: Map<Long, Tag>
+        tagMap: Map<Long, Tag>,
     ): RecurringSchedule {
         val account = accountMap[entity.accountId] ?: Account(
             id = entity.accountId,
@@ -565,7 +569,7 @@ class RecurringRepository(
             color = null,
             description = null,
             status = AccountStatus.ACTIVE,
-            createdAt = 0L
+            createdAt = 0L,
         )
         val category = entity.categoryId?.let { catMap[it] }
         val categoryPath = if (category != null) tree.ancestorsOf(category.id) + category else emptyList()
@@ -587,7 +591,7 @@ class RecurringRepository(
             nextDate = entity.nextDate?.let { LocalDate.ofEpochDay(it) },
             status = entity.status,
             createdAt = entity.createdAt,
-            updatedAt = entity.updatedAt
+            updatedAt = entity.updatedAt,
         )
     }
 }

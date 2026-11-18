@@ -33,7 +33,7 @@ class ReportsTest {
         category = name?.let { cat(id!!, it) },
         cell = cell(minor),
         isDirect = direct,
-        hasChildren = false
+        hasChildren = false,
     )
 
     @Test
@@ -83,14 +83,9 @@ class ReportsTest {
     @Test
     fun topSplitFoldsTheTailIntoOtherAndKeepsUncategorizedApart() {
         val rows = listOf(
-            drillRow(1, "A", 60),
-            drillRow(2, "B", 50),
-            drillRow(3, "C", 40),
-            drillRow(4, "D", 30),
-            drillRow(5, "E", 20),
-            drillRow(6, "F", 10),
-            drillRow(7, "G", 5),
-            drillRow(null, null, 8)
+            drillRow(1, "A", 60), drillRow(2, "B", 50), drillRow(3, "C", 40),
+            drillRow(4, "D", 30), drillRow(5, "E", 20), drillRow(6, "F", 10), drillRow(7, "G", 5),
+            drillRow(null, null, 8),
         )
         val split = Reports.topSplit(rows, limit = 5)
         assertEquals(listOf(1L, 2L, 3L, 4L, 5L), split.top.map { it.categoryId })

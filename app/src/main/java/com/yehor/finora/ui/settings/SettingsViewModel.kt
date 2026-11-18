@@ -3,11 +3,11 @@ package com.yehor.finora.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yehor.finora.data.repo.SettingsRepository
-import com.yehor.finora.data.settings.AppLocaleController
 import com.yehor.finora.domain.model.ThemeMode
 import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
 import com.yehor.finora.domain.settings.AppLanguage
+import com.yehor.finora.data.settings.AppLocaleController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,25 +21,25 @@ data class SettingsUiState(
     val displayCurrency: Currency = CurrencyRegistry.get("USD"),
     val displayCurrencyIsAutomatic: Boolean = true,
     val availableCurrencies: List<Currency> = CurrencyRegistry.all,
-    val language: AppLanguage = AppLanguage.SYSTEM
+    val language: AppLanguage = AppLanguage.SYSTEM,
 )
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val repository: SettingsRepository,
-    private val localeController: AppLocaleController
+    private val localeController: AppLocaleController,
 ) : ViewModel() {
 
     val state: StateFlow<SettingsUiState> = combine(
         repository.themeMode,
         repository.displayCurrency,
-        localeController.language
+        localeController.language,
     ) { theme, display, language ->
         SettingsUiState(
             themeMode = theme,
             displayCurrency = display.currency,
             displayCurrencyIsAutomatic = display.isAutomatic,
-            language = language
+            language = language,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 

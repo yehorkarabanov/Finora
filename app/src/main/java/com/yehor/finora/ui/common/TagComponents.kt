@@ -58,36 +58,23 @@ private fun TagPill(label: String, dot: Color?, onRemove: (() -> Unit)?) {
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, PillShape)
             .border(hairline(MaterialTheme.finance.isDark), PillShape)
             .padding(start = 12.dp, end = if (onRemove == null) 12.dp else 2.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (dot != null) {
-            Box(
-                Modifier
-                    .padding(end = 8.dp)
-                    .size(8.dp)
-                    .background(dot, CircleShape)
-            )
+            Box(Modifier.padding(end = 8.dp).size(8.dp).background(dot, CircleShape))
         }
-        Text(
-            label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1
-        )
+        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface, maxLines = 1)
         if (onRemove != null) {
             // 48dp touch target around the 14dp glyph.
             Box(
-                Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClick = onRemove),
-                contentAlignment = Alignment.Center
+                Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onRemove),
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     AppIcons.Close,
                     contentDescription = stringResource(R.string.action_remove),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(14.dp),
                 )
             }
         }
@@ -109,7 +96,7 @@ fun TagPicker(
     onToggleTag: (Long) -> Unit,
     onAddPendingTag: (String) -> Unit,
     onRemovePendingTag: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var query by remember { mutableStateOf("") }
     val normalizedQuery = TagNameRules.normalize(query)
@@ -128,7 +115,7 @@ fun TagPicker(
         if (selectedTags.isNotEmpty() || pendingTagNames.isNotEmpty()) {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 selectedTags.forEach { tag ->
                     TagChip(tag = tag, onRemove = { onToggleTag(tag.id) })
@@ -142,12 +129,12 @@ fun TagPicker(
         FilterSearchField(
             value = query,
             onValueChange = { query = it },
-            placeholder = stringResource(R.string.transaction_form_tags)
+            placeholder = stringResource(R.string.transaction_form_tags),
         )
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             matchingTags.take(10).forEach { tag ->
                 FilterPill(
@@ -156,7 +143,7 @@ fun TagPicker(
                     onClick = {
                         onToggleTag(tag.id)
                         query = ""
-                    }
+                    },
                 )
             }
             if (normalizedQuery.isNotBlank() && !exactMatchExists) {
@@ -166,7 +153,7 @@ fun TagPicker(
                     onClick = {
                         onAddPendingTag(normalizedQuery)
                         query = ""
-                    }
+                    },
                 )
             }
         }
@@ -181,29 +168,29 @@ fun TagFilterPicker(
     tagMode: TagMatchMode,
     onToggleTag: (Long) -> Unit,
     onModeChange: (TagMatchMode) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (selectedTagIds.size >= 2) {
             SegmentedPill(
                 options = listOf(
                     stringResource(R.string.filter_tag_mode_any),
-                    stringResource(R.string.filter_tag_mode_all)
+                    stringResource(R.string.filter_tag_mode_all),
                 ),
                 selected = if (tagMode == TagMatchMode.ANY) 0 else 1,
-                onSelect = { onModeChange(if (it == 0) TagMatchMode.ANY else TagMatchMode.ALL) }
+                onSelect = { onModeChange(if (it == 0) TagMatchMode.ANY else TagMatchMode.ALL) },
             )
         }
 
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            verticalArrangement = Arrangement.spacedBy(0.dp),
         ) {
             allTags.forEach { tag ->
                 FilterPill(
                     label = tag.name,
                     active = tag.id in selectedTagIds,
-                    onClick = { onToggleTag(tag.id) }
+                    onClick = { onToggleTag(tag.id) },
                 )
             }
         }
@@ -218,7 +205,7 @@ private val PreviewTags = listOf(
     Tag(1, "groceries", 0xFF2E7D32L, 0L),
     Tag(2, "trip", null, 0L),
     Tag(3, "work", 0xFF1565C0L, 0L),
-    Tag(4, "gifts", null, 0L)
+    Tag(4, "gifts", null, 0L),
 )
 
 @Composable

@@ -21,13 +21,13 @@ class NetTest {
         excluded: Set<com.yehor.finora.domain.money.Currency> = emptySet(),
         overflowed: Boolean = false,
         fetched: Long? = null,
-        converted: Boolean = false
+        converted: Boolean = false,
     ) = Cell(
         estimate = minor?.let { Estimate(it, pln, EstimateBasis(converted, false)) },
         operationCount = count,
         excluded = excluded,
         overflowed = overflowed,
-        oldestFetchedAt = fetched
+        oldestFetchedAt = fetched,
     )
 
     @Test

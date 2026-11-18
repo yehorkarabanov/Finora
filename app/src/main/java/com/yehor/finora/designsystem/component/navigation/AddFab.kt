@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -76,7 +77,7 @@ fun AddFab(
     onToggle: () -> Unit,
     label: String,
     speedDial: List<SpeedDialItem>?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val reduce = rememberReduceMotion()
     val haptics = LocalHapticFeedback.current
@@ -90,7 +91,7 @@ fun AddFab(
         val scrim = animateFloatAsState(
             if (open) 1f else 0f,
             animationSpec = if (reduce) snap() else spring(),
-            label = "fabScrim"
+            label = "fabScrim",
         )
         // Composition only sees the shown/gone flip; the fade itself is read in the layer.
         val scrimShown by remember { derivedStateOf { scrim.value > 0f } }
@@ -100,13 +101,7 @@ fun AddFab(
                     .fillMaxSize()
                     .graphicsLayer { alpha = scrim.value }
                     .background(Color.Black.copy(alpha = 0.55f))
-                    .clickable(
-                        interactionSource = remember {
-                            MutableInteractionSource()
-                        },
-                        indication = null,
-                        onClick = onToggle
-                    )
+                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onToggle),
             )
         }
 
@@ -116,20 +111,14 @@ fun AddFab(
                 .navigationBarsPadding()
                 .padding(end = 22.dp, bottom = AddFabBottomOffsetDp.dp),
             horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             speedDial?.forEachIndexed { index, item ->
                 DialRow(item, visible = open, delayMs = (speedDial.lastIndex - index) * STAGGER_MS, reduce = reduce) {
                     item.onClick()
                 }
             }
-            Fab(
-                mode = if (open) FabMode.COLLAPSED else mode,
-                open = open,
-                label = label,
-                reduce = reduce,
-                onClick = onToggle
-            )
+            Fab(mode = if (open) FabMode.COLLAPSED else mode, open = open, label = label, reduce = reduce, onClick = onToggle)
         }
     }
 }
@@ -141,22 +130,22 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
     val hidden = animateFloatAsState(
         if (mode == FabMode.HIDDEN) 1f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
-        label = "fabHidden"
+        label = "fabHidden",
     )
     val rotation = animateFloatAsState(
         if (open) 135f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
-        label = "fabRotation"
+        label = "fabRotation",
     )
     val container by animateColorAsState(
         if (open) scheme.surfaceContainerHighest else scheme.primaryContainer,
         animationSpec = if (reduce) snap() else spring(),
-        label = "fabBg"
+        label = "fabBg",
     )
     val content by animateColorAsState(
         if (open) scheme.onSurface else MaterialTheme.finance.onMint,
         animationSpec = if (reduce) snap() else spring(),
-        label = "fabFg"
+        label = "fabFg",
     )
     val interaction = remember { MutableInteractionSource() }
     Row(
@@ -172,36 +161,22 @@ private fun Fab(mode: FabMode, open: Boolean, label: String, reduce: Boolean, on
             .shadow(if (open) 0.dp else 8.dp, PillShape, spotColor = MaterialTheme.finance.accentGlow)
             .heightIn(min = AddFabHeightDp.dp)
             .background(container, PillShape)
-            .clickable(
-                interactionSource = interaction,
-                indication = LocalIndication.current,
-                role = Role.Button,
-                enabled =
-                    mode != FabMode.HIDDEN,
-                onClick = onClick
-            )
+            .clickable(interactionSource = interaction, indication = LocalIndication.current, role = Role.Button, enabled = mode != FabMode.HIDDEN, onClick = onClick)
             .padding(horizontal = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
             AppIcons.Add,
             contentDescription = if (mode == FabMode.EXTENDED) null else label,
             tint = content,
-            modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer { rotationZ = rotation.value }
+            modifier = Modifier.size(24.dp).graphicsLayer { rotationZ = rotation.value },
         )
         AnimatedVisibility(
             visible = mode == FabMode.EXTENDED,
             enter = if (reduce) EnterTransition.None else fadeIn() + expandHorizontally(),
-            exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally()
+            exit = if (reduce) ExitTransition.None else fadeOut() + shrinkHorizontally(),
         ) {
-            Text(
-                label,
-                style = MaterialTheme.typography.labelLarge,
-                color = content,
-                modifier = Modifier.padding(start = 6.dp, end = 4.dp)
-            )
+            Text(label, style = MaterialTheme.typography.labelLarge, color = content, modifier = Modifier.padding(start = 6.dp, end = 4.dp))
         }
     }
 }
@@ -222,7 +197,7 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
     val animated = animateFloatAsState(
         if (shown) 1f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
-        label = "dialItem"
+        label = "dialItem",
     )
     // Composition only sees the row leaving; the spring itself is read in the layer.
     val gone by remember { derivedStateOf { !shown && animated.value <= 0.001f } }
@@ -239,7 +214,7 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
             }
             .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         Text(
             item.label,
@@ -247,19 +222,19 @@ private fun DialRow(item: SpeedDialItem, visible: Boolean, delayMs: Long, reduce
             color = scheme.onSurface,
             modifier = Modifier
                 .background(scheme.surfaceContainerHigh, PillShape)
-                .padding(horizontal = 14.dp, vertical = 8.dp)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
         )
         Box(
             modifier = Modifier
                 .size(46.dp)
                 .background(if (item.primary) scheme.primaryContainer else scheme.surfaceContainerHighest, CircleShape),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 item.icon,
                 contentDescription = null,
                 tint = if (item.primary) MaterialTheme.finance.onMint else scheme.onSurface,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(20.dp),
             )
         }
     }

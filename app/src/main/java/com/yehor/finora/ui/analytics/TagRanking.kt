@@ -19,7 +19,7 @@ fun rankTags(tags: List<Tag>, cells: Map<Long?, Cell>): List<TagRankRow> {
         .sortedWith(
             compareBy<Pair<Tag, Cell>> { it.second.amount() == null }
                 .thenByDescending { it.second.amount() ?: 0L }
-                .thenBy { it.first.name.lowercase() }
+                .thenBy { it.first.name.lowercase() },
         )
         .map { (tag, cell) -> TagRankRow(tag, cell, fraction(cell.amount(), largest)) }
 }

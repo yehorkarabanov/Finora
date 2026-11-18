@@ -33,7 +33,7 @@ class SchemaUnchangedTest {
         assertEquals(
             "Database schema v$version has changed! If this was intentional, update the plan. Otherwise, revert the entity changes.",
             expectedContent,
-            activeContent
+            activeContent,
         )
     }
 

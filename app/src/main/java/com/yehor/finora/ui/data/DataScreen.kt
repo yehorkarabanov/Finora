@@ -17,13 +17,17 @@ import com.yehor.finora.domain.dataio.ImportReportFormatter
 import java.time.ZoneId
 
 @Composable
-fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataViewModel = hiltViewModel()) {
+fun DataScreen(
+    onBack: () -> Unit,
+    onOpenCsvExport: () -> Unit,
+    viewModel: DataViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     val backupLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/vnd.sqlite3")
+        contract = ActivityResultContracts.CreateDocument("application/vnd.sqlite3"),
     ) { uri ->
         if (uri != null) {
             val fileName = BackupFileNames.backup(System.currentTimeMillis(), ZoneId.systemDefault())
@@ -32,7 +36,7 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
     }
 
     val backupFirstLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/vnd.sqlite3")
+        contract = ActivityResultContracts.CreateDocument("application/vnd.sqlite3"),
     ) { uri ->
         if (uri != null) {
             val fileName = BackupFileNames.backup(System.currentTimeMillis(), ZoneId.systemDefault())
@@ -41,7 +45,7 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
     }
 
     val restoreLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
+        contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
             viewModel.stageRestore(uri)
@@ -61,12 +65,13 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
                 arrayOf(
                     "application/vnd.sqlite3",
                     "application/x-sqlite3",
-                    "application/octet-stream"
-                )
+                    "application/octet-stream",
+                ),
             )
         },
-        onOpenCsvExport = onOpenCsvExport
+        onOpenCsvExport = onOpenCsvExport,
     )
+
 
     // Restore state overlays
     when (val res = state.restoreState) {
@@ -77,10 +82,10 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
                     "Checking structure" -> R.string.data_restore_step_checking_structure
                     "Upgrading" -> R.string.data_restore_step_upgrading
                     else -> R.string.data_restore_step_checking_data
-                }
+                },
             ),
             note = null,
-            onCancel = { viewModel.cancelRestore() }
+            onCancel = { viewModel.cancelRestore() },
         )
         is RestoreState.Rejected -> RestoreRejectedDialog(
             headline = stringResource(
@@ -100,27 +105,20 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
                     ImportFailure.CURRENCY_MISMATCH -> R.string.import_failure_currency_mismatch
                     ImportFailure.BALANCE_OVERFLOW -> R.string.import_failure_balance_overflow
                     ImportFailure.INVARIANT_VIOLATIONS -> R.string.import_failure_invariant_violations
-                }
+                },
             ),
-            problems = if (res.problems.isEmpty()) {
-                emptyList()
-            } else {
-                ImportReportFormatter.format(
-                    res.problems,
-                    res.totalProblems
-                )
-            },
+            problems = if (res.problems.isEmpty()) emptyList() else ImportReportFormatter.format(res.problems, res.totalProblems),
             onChooseAnother = {
                 viewModel.cancelRestore()
                 restoreLauncher.launch(
                     arrayOf(
                         "application/vnd.sqlite3",
                         "application/x-sqlite3",
-                        "application/octet-stream"
-                    )
+                        "application/octet-stream",
+                    ),
                 )
             },
-            onClose = { viewModel.cancelRestore() }
+            onClose = { viewModel.cancelRestore() },
         )
         is RestoreState.Preview -> RestorePreviewDialog(
             current = res.currentSummary,
@@ -132,12 +130,12 @@ fun DataScreen(onBack: () -> Unit, onOpenCsvExport: () -> Unit, viewModel: DataV
                 backupFirstLauncher.launch(fileName)
             },
             onReplace = { viewModel.confirmRestore() },
-            onCancel = { viewModel.cancelRestore() }
+            onCancel = { viewModel.cancelRestore() },
         )
         is RestoreState.Restarting -> RestoreProgressDialog(
             title = stringResource(R.string.data_restore_restarting),
             note = stringResource(R.string.data_restore_restarting_note),
-            onCancel = null
+            onCancel = null,
         )
         RestoreState.Idle -> Unit
     }

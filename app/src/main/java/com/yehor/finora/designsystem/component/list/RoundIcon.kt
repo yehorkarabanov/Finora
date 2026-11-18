@@ -17,10 +17,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun RoundIcon(icon: ImageVector, tint: Color, modifier: Modifier = Modifier, size: Dp = 38.dp) {
     Box(
-        modifier = modifier
-            .size(size)
-            .background(tint.copy(alpha = 0.16f), CircleShape),
-        contentAlignment = Alignment.Center
+        modifier = modifier.size(size).background(tint.copy(alpha = 0.16f), CircleShape),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size * 0.5f))
     }

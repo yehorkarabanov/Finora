@@ -19,20 +19,19 @@ object AnalyticsQuery {
         grouped(filter, measure, categoryClosure, keyExpression = "e.account_id", extraJoin = "")
 
     /** A transaction with several tags appears once per tag. NULL key = "No tag". */
-    fun byTag(filter: TransactionFilter, measure: Measure, categoryClosure: Set<Long>): SimpleSQLiteQuery = grouped(
-        filter,
-        measure,
-        categoryClosure,
-        keyExpression = "ot.tag_id",
-        extraJoin = "LEFT JOIN operation_tag ot ON ot.operation_id = o.id"
-    )
+    fun byTag(filter: TransactionFilter, measure: Measure, categoryClosure: Set<Long>): SimpleSQLiteQuery =
+        grouped(
+            filter, measure, categoryClosure,
+            keyExpression = "ot.tag_id",
+            extraJoin = "LEFT JOIN operation_tag ot ON ot.operation_id = o.id",
+        )
 
     /** The filter's own `from` and `toExclusive` are replaced by the bucket bounds. */
     fun byBucket(
         filter: TransactionFilter,
         measure: Measure,
         categoryClosure: Set<Long>,
-        buckets: List<Bucket>
+        buckets: List<Bucket>,
     ): SimpleSQLiteQuery {
         require(buckets.isNotEmpty() && buckets.size <= MAX_BUCKETS) { "1..$MAX_BUCKETS buckets required" }
         val args = mutableListOf<Any>()
@@ -80,10 +79,11 @@ object AnalyticsQuery {
     }
 
     /** Balance of an account from all entries strictly before [beforeExclusive]. */
-    fun balanceBefore(accountId: Long, beforeExclusive: Long): SimpleSQLiteQuery = SimpleSQLiteQuery(
-        "SELECT COALESCE(SUM(amount_minor), 0) AS value FROM ledger_entry WHERE account_id = ? AND occurred_at < ?",
-        arrayOf(accountId, beforeExclusive)
-    )
+    fun balanceBefore(accountId: Long, beforeExclusive: Long): SimpleSQLiteQuery =
+        SimpleSQLiteQuery(
+            "SELECT COALESCE(SUM(amount_minor), 0) AS value FROM ledger_entry WHERE account_id = ? AND occurred_at < ?",
+            arrayOf(accountId, beforeExclusive),
+        )
 
     /** Sum of all of an account's entries per bucket, opening balance included. */
     fun balanceDeltas(accountId: Long, buckets: List<Bucket>): SimpleSQLiteQuery {
@@ -106,7 +106,7 @@ object AnalyticsQuery {
         measure: Measure,
         categoryClosure: Set<Long>,
         keyExpression: String,
-        extraJoin: String
+        extraJoin: String,
     ): SimpleSQLiteQuery {
         val args = mutableListOf<Any>()
         val clauses = clauses(filter, measure, categoryClosure, args)
@@ -127,7 +127,7 @@ object AnalyticsQuery {
         filter: TransactionFilter,
         measure: Measure,
         categoryClosure: Set<Long>,
-        args: MutableList<Any>
+        args: MutableList<Any>,
     ): List<String> {
         val result = TransactionQuery
             .buildWhereClauses(filter, categoryClosure, filter.amount?.currency?.code, args)

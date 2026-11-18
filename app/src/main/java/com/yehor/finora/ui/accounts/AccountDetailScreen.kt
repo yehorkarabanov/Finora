@@ -38,43 +38,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
+import com.yehor.finora.domain.account.Account
+import com.yehor.finora.domain.account.AccountDetail
+import com.yehor.finora.domain.account.AccountType
+import com.yehor.finora.domain.account.OpeningBalance
+import com.yehor.finora.domain.account.Balance
+import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.money.CurrencyRegistry
+import com.yehor.finora.domain.money.Money
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.icon.IconCatalog
-import com.yehor.finora.designsystem.icon.IconSize
-import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.grainyBackground
 import com.yehor.finora.designsystem.theme.hairline
-import com.yehor.finora.domain.account.Account
-import com.yehor.finora.domain.account.AccountDetail
-import com.yehor.finora.domain.account.AccountType
-import com.yehor.finora.domain.account.Balance
-import com.yehor.finora.domain.account.OpeningBalance
-import com.yehor.finora.domain.model.AccountStatus
-import com.yehor.finora.domain.money.CurrencyRegistry
-import com.yehor.finora.domain.money.Money
-import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.analytics.signedMoney
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TransactionRow
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import java.text.DateFormat
 import java.util.Date
 
-internal fun formatDate(millis: Long): String = DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(millis))
+internal fun formatDate(millis: Long): String =
+    DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(millis))
 
 @Composable
 fun AccountDetailScreen(
@@ -86,7 +87,7 @@ fun AccountDetailScreen(
     onOpenTransaction: (TransactionItem) -> Unit,
     onShowAllTransactions: (Long) -> Unit,
     onOpenStatistics: (Long) -> Unit,
-    viewModel: AccountDetailViewModel = hiltViewModel()
+    viewModel: AccountDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -111,7 +112,7 @@ fun AccountDetailScreen(
         onShowAllTransactions = onShowAllTransactions,
         onOpenStatistics = onOpenStatistics,
         onSetArchived = viewModel::setArchived,
-        onDelete = viewModel::delete
+        onDelete = viewModel::delete,
     )
 }
 
@@ -126,15 +127,11 @@ private fun AccountDetailLoading(onBack: () -> Unit) {
                     IconButton(onClick = onBack) {
                         Icon(AppIcons.Back, contentDescription = stringResource(R.string.navigate_back))
                     }
-                }
+                },
             )
-        }
+        },
     ) { padding ->
-        Box(
-            Modifier
-                .fillMaxSize()
-                .padding(padding), contentAlignment = Alignment.Center
-        ) {
+        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
         }
     }
@@ -153,7 +150,7 @@ internal fun AccountDetailContent(
     onShowAllTransactions: (Long) -> Unit,
     onOpenStatistics: (Long) -> Unit,
     onSetArchived: (Boolean) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var confirmArchive by rememberSaveable { mutableStateOf(false) }
@@ -172,14 +169,10 @@ internal fun AccountDetailContent(
     }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Column(Modifier.fillMaxSize().padding(padding)) {
             Row(
                 Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 RoundIconButton(AppIcons.Back, stringResource(R.string.navigate_back), onBack)
                 Text(
@@ -189,10 +182,7 @@ internal fun AccountDetailContent(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp)
-                        .semantics { heading() }
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp).semantics { heading() },
                 )
                 Box {
                     RoundIconButton(AppIcons.More, stringResource(R.string.action_more_options), { menuOpen = true })
@@ -200,22 +190,14 @@ internal fun AccountDetailContent(
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.action_edit)) },
                             leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                            onClick = {
-                                menuOpen = false
-                                onEdit(account.id)
-                            }
+                            onClick = { menuOpen = false; onEdit(account.id) },
                         )
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    stringResource(if (archived) R.string.action_unarchive else R.string.action_archive)
-                                )
+                                Text(stringResource(if (archived) R.string.action_unarchive else R.string.action_archive))
                             },
                             leadingIcon = { Icon(AppIcons.Archive, contentDescription = null) },
-                            onClick = {
-                                menuOpen = false
-                                toggleArchive()
-                            }
+                            onClick = { menuOpen = false; toggleArchive() },
                         )
                         DropdownMenuItem(
                             text = {
@@ -224,22 +206,14 @@ internal fun AccountDetailContent(
                             leadingIcon = {
                                 Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             },
-                            onClick = {
-                                menuOpen = false
-                                confirmDelete = true
-                            }
+                            onClick = { menuOpen = false; confirmDelete = true },
                         )
                     }
                 }
             }
             Column(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(
-                        rememberScrollState()
-                    )
-                    .padding(horizontal = 18.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 AccountHeaderCard(detail, archived, state.trend)
 
@@ -248,16 +222,16 @@ internal fun AccountDetailContent(
                         shape = RoundedCornerShape(16.dp),
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Row(
                             Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 stringResource(R.string.account_detail_archived_banner),
                                 style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             )
                             TextButton(onClick = { onSetArchived(false) }) {
                                 Text(stringResource(R.string.action_unarchive))
@@ -272,44 +246,40 @@ internal fun AccountDetailContent(
                         icon = AppIcons.Remove,
                         enabled = !archived,
                         onClick = { onAddExpense(account.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     AccountRoundAction(
                         label = stringResource(R.string.transaction_kind_income),
                         icon = AppIcons.Add,
                         enabled = !archived,
                         onClick = { onAddIncome(account.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     AccountRoundAction(
                         label = stringResource(R.string.account_detail_transfer),
                         icon = AppIcons.Transfer,
                         enabled = !archived,
                         onClick = { onTransfer(account.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     AccountRoundAction(
                         label = stringResource(R.string.action_statistics),
                         icon = AppIcons.NavStatistics,
                         onClick = { onOpenStatistics(account.id) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
                 val hasTransactions = state.recentTransactions.isNotEmpty()
                 Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    Modifier.fillMaxWidth().padding(start = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         stringResource(R.string.account_detail_recent_title),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier
-                            .weight(1f)
-                            .semantics { heading() }
+                        modifier = Modifier.weight(1f).semantics { heading() },
                     )
                     if (hasTransactions) {
                         TextButton(onClick = { onShowAllTransactions(account.id) }) {
@@ -322,18 +292,18 @@ internal fun AccountDetailContent(
                         Row(
                             Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
                             Icon(
                                 AppIcons.Calendar,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(IconSize.Medium)
+                                modifier = Modifier.size(IconSize.Medium),
                             )
                             Text(
                                 stringResource(R.string.account_detail_history_placeholder),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     } else {
@@ -341,7 +311,7 @@ internal fun AccountDetailContent(
                             if (index > 0) {
                                 HorizontalDivider(
                                     Modifier.padding(horizontal = 14.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                                 )
                             }
                             TransactionRow(item = item, onClick = { onOpenTransaction(item) })
@@ -364,33 +334,28 @@ internal fun AccountDetailContent(
                         Text(
                             pluralStringResource(
                                 R.plurals.account_delete_body_with_transactions,
-                                state.transactionCount,
-                                state.transactionCount
-                            )
+                                state.transactionCount, state.transactionCount,
+                            ),
                         )
                     }
                     if (state.scheduleCount > 0) {
                         Text(
                             pluralStringResource(
                                 R.plurals.account_delete_schedules,
-                                state.scheduleCount,
-                                state.scheduleCount
-                            )
+                                state.scheduleCount, state.scheduleCount,
+                            ),
                         )
                     }
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    onDelete()
-                }) {
+                TextButton(onClick = { confirmDelete = false; onDelete() }) {
                     Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.action_cancel)) }
-            }
+            },
         )
     }
     if (confirmArchive) {
@@ -408,16 +373,13 @@ internal fun AccountDetailContent(
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    confirmArchive = false
-                    onSetArchived(true)
-                }) {
+                TextButton(onClick = { confirmArchive = false; onSetArchived(true) }) {
                     Text(stringResource(R.string.action_archive))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { confirmArchive = false }) { Text(stringResource(R.string.action_cancel)) }
-            }
+            },
         )
     }
 }
@@ -433,32 +395,22 @@ private fun AccountHeaderCard(detail: AccountDetail, archived: Boolean, trend: A
         Modifier
             .fillMaxWidth()
             .clip(shape)
-            .grainyBackground(
-                Brush.verticalGradient(listOf(tint.copy(alpha = 0.25f), scheme.surfaceContainerLow)),
-                shape
-            )
+            .grainyBackground(Brush.verticalGradient(listOf(tint.copy(alpha = 0.25f), scheme.surfaceContainerLow)), shape)
             .border(hairline(MaterialTheme.finance.isDark), shape)
-            .padding(20.dp)
+            .padding(20.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Box(
-                Modifier
-                    .size(36.dp)
-                    .background(tint.copy(alpha = 0.18f), RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
+                Modifier.size(36.dp).background(tint.copy(alpha = 0.18f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    IconCatalog.get(account.icon),
-                    contentDescription = null,
-                    tint = tint,
-                    modifier = Modifier.size(18.dp)
-                )
+                Icon(IconCatalog.get(account.icon), contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
             }
             Text(
                 "${stringResource(account.type.labelRes())} · ${account.currency.code}".uppercase(),
                 style = MaterialTheme.typography.labelSmall,
                 color = scheme.onSurfaceVariant,
-                modifier = Modifier.weight(1f, fill = false)
+                modifier = Modifier.weight(1f, fill = false),
             )
             if (archived) AccountPill(stringResource(R.string.account_status_archived))
         }
@@ -466,55 +418,38 @@ private fun AccountHeaderCard(detail: AccountDetail, archived: Boolean, trend: A
             stringResource(R.string.account_detail_balance),
             style = MaterialTheme.typography.labelMedium,
             color = scheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 20.dp)
+            modifier = Modifier.padding(top = 20.dp),
         )
         AccountBalanceAmount(
             detail.balance,
-            MaterialTheme.typography.displaySmall.copy(
-                fontSize = 34.sp,
-                lineHeight = 42.sp,
-                fontFeatureSettings = "tnum"
-            )
+            MaterialTheme.typography.displaySmall.copy(fontSize = 34.sp, lineHeight = 42.sp, fontFeatureSettings = "tnum"),
         )
         if (trend.sparkline.size >= 2) {
             WaveChart(
                 values = trend.sparkline,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp)
-                    .height(56.dp),
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp).height(56.dp),
                 color = tint,
-                label = { Money(trend.sparkline[it], account.currency).format() }
+                label = { Money(trend.sparkline[it], account.currency).format() },
             )
         }
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp), verticalAlignment = Alignment.Top
-        ) {
+        Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.Top) {
             val opening = detail.openingBalance
             Text(
                 if (opening == null) {
                     stringResource(R.string.account_detail_no_initial_balance)
                 } else {
-                    stringResource(
-                        R.string.account_detail_initial_balance,
-                        formatDate(opening.occurredAt),
-                        opening.money.format()
-                    )
+                    stringResource(R.string.account_detail_initial_balance, formatDate(opening.occurredAt), opening.money.format())
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
+                modifier = Modifier.weight(1f).padding(end = 8.dp),
             )
             trend.monthChange?.takeIf { it != 0L }?.let { change ->
                 val color = if (change > 0) MaterialTheme.finance.income else MaterialTheme.finance.negative
                 Text(
                     stringResource(R.string.account_detail_this_month, signedMoney(Money(change, account.currency))),
                     style = MaterialTheme.typography.bodySmall,
-                    color = color
+                    color = color,
                 )
             }
         }
@@ -522,7 +457,7 @@ private fun AccountHeaderCard(detail: AccountDetail, archived: Boolean, trend: A
             Text(
                 it,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.padding(top = 12.dp),
             )
         }
     }
@@ -541,22 +476,17 @@ private fun AccountDetailPreviewContent(dark: Boolean, archived: Boolean) {
     val usd = CurrencyRegistry.get("USD")
     val account = Account(
         1, "Main card", usd, AccountType.BANK, "wallet", null, "Everyday spending",
-        if (archived) AccountStatus.ARCHIVED else AccountStatus.ACTIVE, 0
+        if (archived) AccountStatus.ARCHIVED else AccountStatus.ACTIVE, 0,
     )
     PreviewTheme(dark) {
         AccountDetailContent(
             state = AccountDetailUiState.Loaded(
-                detail = AccountDetail(
-                    account,
-                    Balance.Value(Money(4_620_000, usd)),
-                    OpeningBalance(1, Money(1_200_000, usd), 1_735_689_600_000L),
-                    null
-                ),
+                detail = AccountDetail(account, Balance.Value(Money(4_620_000, usd)), OpeningBalance(1, Money(1_200_000, usd), 1_735_689_600_000L), null),
                 transactionCount = 0,
-                trend = AccountTrend(listOf(30, 28, 34, 26, 18, 22, 8, 6).map { 5_000_000L - it * 10_000L }, 324_000)
+                trend = AccountTrend(listOf(30, 28, 34, 26, 18, 22, 8, 6).map { 5_000_000L - it * 10_000L }, 324_000),
             ),
             onBack = {}, onEdit = {}, onTransfer = {}, onAddExpense = {}, onAddIncome = {}, onOpenTransaction = {},
-            onShowAllTransactions = {}, onOpenStatistics = {}, onSetArchived = {}, onDelete = {}
+            onShowAllTransactions = {}, onOpenStatistics = {}, onSetArchived = {}, onDelete = {},
         )
     }
 }

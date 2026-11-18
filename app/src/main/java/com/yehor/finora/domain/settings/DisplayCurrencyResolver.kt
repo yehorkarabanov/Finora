@@ -5,7 +5,11 @@ import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.CurrencyRegistry
 
 /** The minimum an account must expose for Display Currency resolution. */
-data class AccountCurrencyInfo(val id: Long, val currencyCode: String, val status: AccountStatus)
+data class AccountCurrencyInfo(
+    val id: Long,
+    val currencyCode: String,
+    val status: AccountStatus,
+)
 
 /** The effective Display Currency and whether it came from an explicit user choice. */
 data class ResolvedDisplayCurrency(val currency: Currency, val isAutomatic: Boolean)
@@ -24,7 +28,7 @@ object DisplayCurrencyResolver {
     fun resolve(
         explicitCode: String?,
         accounts: List<AccountCurrencyInfo>,
-        localeCurrencyCode: String?
+        localeCurrencyCode: String?,
     ): ResolvedDisplayCurrency {
         explicitCode?.let { CurrencyRegistry.findOrNull(it) }?.let {
             return ResolvedDisplayCurrency(it, isAutomatic = false)

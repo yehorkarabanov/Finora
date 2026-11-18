@@ -55,9 +55,7 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
     fun cell(minor: Long) = Cell(Estimate(minor, pln, EstimateBasis.NATIVE), 3, emptySet(), false, null)
     val window = displayWindow(period, today)
     val visible = PeriodCalculator.resolve(
-        com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, window.start, window.end),
-        zone,
-        DayOfWeek.MONDAY
+        com.yehor.finora.domain.analytics.Period(PeriodKind.CUSTOM, window.start, window.end), zone, DayOfWeek.MONDAY,
     )
     val (unit, buckets) = trendBuckets(visible, zone, null)
     val points = buckets.mapIndexed { i, b -> TrendPoint(b, cell(4_000L + (i * 7_919L) % 21_000L)) }
@@ -71,16 +69,13 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
         compare = compare,
         average = trendAverage(points, today, pln),
         currency = pln,
-        base = TransactionFilter()
+        base = TransactionFilter(),
     )
     val total = cell(142_050L)
     PreviewTheme(dark) {
         Column(
-            Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(horizontal = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             StatsTopBar(onOptions = {})
             StatsTabs(StatsTab.EXPENSES, {})
@@ -92,7 +87,7 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
                 onSelect = {},
                 onShift = {},
                 onMonths = { _, _ -> },
-                onCustom = { _, _ -> }
+                onCustom = { _, _ -> },
             )
             StatsHero(
                 measure = Measure.EXPENSE,
@@ -101,7 +96,7 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
                 previous = previous,
                 today = today,
                 total = total,
-                delta = delta(total.estimate, cell(154_400L).estimate)
+                delta = delta(total.estimate, cell(154_400L).estimate),
             )
             StatsTrendCard(
                 trend = trend,
@@ -111,7 +106,7 @@ private fun StatisticsPreview(dark: Boolean, state: PeriodState) {
                 previousName = periodShortName(previous, today),
                 onPreview = {},
                 onCommit = {},
-                onOpenBucket = { _, _ -> }
+                onOpenBucket = { _, _ -> },
             )
         }
     }

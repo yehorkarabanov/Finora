@@ -18,12 +18,12 @@ import com.yehor.finora.data.repo.OpeningBalanceOrderException
 import com.yehor.finora.data.repo.OperationRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.data.repo.TransferRepository
-import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransferDraft
+import com.yehor.finora.domain.account.OpeningDatePolicy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
@@ -62,27 +62,17 @@ class TransferRepositoryTest {
     private suspend fun account(code: String, status: AccountStatus = AccountStatus.ACTIVE): Long =
         db.accountDao().insert(
             AccountEntity(
-                name = "Account $code",
-                currencyCode = code,
-                type = "CASH",
-                icon = null,
-                color = null,
-                description = null,
-                status = status,
-                createdAt = 0
-            )
+                name = "Account $code", currencyCode = code, type = "CASH", icon = null, color = null,
+                description = null, status = status, createdAt = 0,
+            ),
         )
 
-    private suspend fun category(type: CategoryType): Long = db.categoryDao().insert(
-        CategoryEntity(
-            name = "c",
-            icon = null,
-            color = null,
-            type = type,
-            parentId = null,
-            createdAt = 0
+    private suspend fun category(type: CategoryType): Long =
+        db.categoryDao().insert(
+            CategoryEntity(
+                name = "c", icon = null, color = null, type = type, parentId = null, createdAt = 0,
+            ),
         )
-    )
 
     private fun violations() = InvariantChecker.check(db.openHelper.writableDatabase)
 
@@ -94,7 +84,7 @@ class TransferRepositoryTest {
         received: Long = 10_000L,
         occurredAt: Long = 1_000L,
         tagIds: Set<Long> = emptySet(),
-        newTagNames: List<String> = emptyList()
+        newTagNames: List<String> = emptyList(),
     ) = TransferDraft(
         sourceAccountId = source,
         destAccountId = dest,
@@ -104,7 +94,7 @@ class TransferRepositoryTest {
         occurredAt = occurredAt,
         description = null,
         tagIds = tagIds,
-        newTagNames = newTagNames
+        newTagNames = newTagNames,
     )
 
     private inline fun <reified T : Throwable> assertFails(block: () -> Unit) {
@@ -226,7 +216,7 @@ class TransferRepositoryTest {
 
         transfers.update(
             id,
-            draft(a, b, cat2, sent = 20_000L, received = 19_000L, occurredAt = 2_000L, newTagNames = listOf("new"))
+            draft(a, b, cat2, sent = 20_000L, received = 19_000L, occurredAt = 2_000L, newTagNames = listOf("new")),
         )
 
         assertEquals(-20_000L, opRepo.balanceMinor(a))
@@ -270,7 +260,7 @@ class TransferRepositoryTest {
         transfers.update(
             id,
             draft(pln, eur, cat, sent = 100_000L, received = 23_000L),
-            confirmCurrencyChange = true
+            confirmCurrencyChange = true,
         )
         assertEquals(0L, opRepo.balanceMinor(usd))
         assertEquals(23_000L, opRepo.balanceMinor(eur))
@@ -300,7 +290,7 @@ class TransferRepositoryTest {
             type = OperationType.INCOME,
             occurredAt = 1_000L,
             entries = listOf(com.yehor.finora.data.repo.EntryDraft(a, 100L)),
-            categoryId = incomeCat
+            categoryId = incomeCat,
         )
 
         assertFails<InvariantViolationException> {
@@ -390,7 +380,7 @@ class TransferRepositoryTest {
             type = OperationType.EXPENSE,
             occurredAt = 1_000L,
             entries = listOf(com.yehor.finora.data.repo.EntryDraft(a, -300L)),
-            categoryId = expenseCat
+            categoryId = expenseCat,
         )
 
         val all = transactions.observeRecent(TransactionFilter(), 10).first()
@@ -449,24 +439,16 @@ class TransferRepositoryTest {
     private suspend fun rawTransfer(categoryId: Long, entries: List<Pair<Long, Long>>) {
         val opId = db.operationDao().insert(
             OperationEntity(
-                type = OperationType.TRANSFER,
-                occurredAt = 1_000L,
-                categoryId = categoryId,
-                description = null,
-                openingAccountId = null,
-                createdAt = 1,
-                updatedAt = 1
-            )
+                type = OperationType.TRANSFER, occurredAt = 1_000L, categoryId = categoryId,
+                description = null, openingAccountId = null, createdAt = 1, updatedAt = 1,
+            ),
         )
         entries.forEach { (accountId, amount) ->
             db.ledgerEntryDao().insert(
                 LedgerEntryEntity(
-                    operationId = opId,
-                    accountId = accountId,
-                    currencyCode = "PLN",
-                    amountMinor = amount,
-                    occurredAt = 1_000L
-                )
+                    operationId = opId, accountId = accountId, currencyCode = "PLN",
+                    amountMinor = amount, occurredAt = 1_000L,
+                ),
             )
         }
     }

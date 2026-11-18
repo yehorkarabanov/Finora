@@ -23,6 +23,7 @@ import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.MoneyOverflowException
+import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.domain.recurring.GenerationIssue
 import com.yehor.finora.domain.recurring.OccurrenceStatus
@@ -60,7 +61,8 @@ class RecurringRepositoryTest {
     private var currentTime = 1_700_000_000_000L // arbitrary fixed epoch ms
     private val zone = ZoneId.of("UTC")
 
-    private fun today(): LocalDate = java.time.Instant.ofEpochMilli(currentTime).atZone(zone).toLocalDate()
+    private fun today(): LocalDate =
+        java.time.Instant.ofEpochMilli(currentTime).atZone(zone).toLocalDate()
 
     @Before
     fun setUp() {
@@ -79,7 +81,7 @@ class RecurringRepositoryTest {
             categoryRepo = categoryRepo,
             tagRepo = tagRepo,
             clock = { currentTime },
-            zoneProvider = { zone }
+            zoneProvider = { zone },
         )
         transactionRepo = TransactionRepository(db, opRepo, accountRepo, categoryRepo)
 
@@ -95,8 +97,8 @@ class RecurringRepositoryTest {
                     color = null,
                     description = null,
                     status = AccountStatus.ACTIVE,
-                    createdAt = 0L
-                )
+                    createdAt = 0L,
+                ),
             )
             db.accountDao().insert(
                 AccountEntity(
@@ -108,8 +110,8 @@ class RecurringRepositoryTest {
                     color = null,
                     description = null,
                     status = AccountStatus.ACTIVE,
-                    createdAt = 0L
-                )
+                    createdAt = 0L,
+                ),
             )
             db.categoryDao().insert(
                 CategoryEntity(
@@ -119,8 +121,8 @@ class RecurringRepositoryTest {
                     color = null,
                     type = CategoryType.INCOME,
                     parentId = null,
-                    createdAt = 0L
-                )
+                    createdAt = 0L,
+                ),
             )
             db.categoryDao().insert(
                 CategoryEntity(
@@ -130,8 +132,8 @@ class RecurringRepositoryTest {
                     color = null,
                     type = CategoryType.EXPENSE,
                     parentId = null,
-                    createdAt = 0L
-                )
+                    createdAt = 0L,
+                ),
             )
             db.tagDao().insert(TagEntity(id = 1L, name = "work", color = null, createdAt = 0L))
         }
@@ -152,7 +154,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -204,7 +206,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = tomorrow,
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -234,7 +236,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = fiveDaysAgo,
-            endDate = null
+            endDate = null,
         )
 
         // 6 occurrences due: from fiveDaysAgo to today
@@ -263,7 +265,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -292,7 +294,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -324,7 +326,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -366,7 +368,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.WEEK, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -396,7 +398,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = today(),
-            endDate = endDate
+            endDate = endDate,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -414,7 +416,7 @@ class RecurringRepositoryTest {
         // Extend end date
         val extendedDraft = draft.copy(
             firstDate = endDate.plusDays(1),
-            endDate = today().plusDays(10)
+            endDate = today().plusDays(10),
         )
         recurringRepo.update(id, extendedDraft, now = currentTime)
 
@@ -436,7 +438,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.DAY, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         // Create on archived account is blocked during generation
@@ -479,14 +481,14 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
 
         val changedDraft = draft.copy(
             firstDate = today().plusMonths(1),
-            accountId = 2L // EUR
+            accountId = 2L, // EUR
         )
 
         try {
@@ -513,7 +515,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -551,7 +553,7 @@ class RecurringRepositoryTest {
             newTagNames = emptyList(),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             firstDate = today(),
-            endDate = null
+            endDate = null,
         )
 
         val id = recurringRepo.create(draft, now = currentTime)
@@ -579,7 +581,7 @@ class RecurringRepositoryTest {
         categoryId: Long? = if (kind == TransactionKind.EXPENSE) 2L else 1L,
         rule: RecurrenceRule = RecurrenceRule(RecurrenceUnit.DAY, 1),
         firstDate: LocalDate = today(),
-        endDate: LocalDate? = null
+        endDate: LocalDate? = null,
     ) = ScheduleDraft(
         name = name,
         kind = kind,
@@ -590,20 +592,22 @@ class RecurringRepositoryTest {
         newTagNames = emptyList(),
         rule = rule,
         firstDate = firstDate,
-        endDate = endDate
+        endDate = endDate,
     )
 
-    private fun count(sql: String): Int = db.openHelper.readableDatabase.query(sql).use {
-        it.moveToFirst()
-        it.getInt(0)
-    }
+    private fun count(sql: String): Int =
+        db.openHelper.readableDatabase.query(sql).use {
+            it.moveToFirst()
+            it.getInt(0)
+        }
 
-    private fun snapshot(): List<String> = db.openHelper.readableDatabase.query(
-        "SELECT 'op:' || id || '|' || type || '|' || occurred_at || '|' || IFNULL(category_id, '') || '|' || " +
-            "IFNULL(description, '') || '|' || created_at || '|' || updated_at FROM operation " +
-            "UNION ALL SELECT 'le:' || id || '|' || operation_id || '|' || account_id || '|' || currency_code || " +
-            "'|' || amount_minor || '|' || occurred_at FROM ledger_entry ORDER BY 1"
-    ).use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
+    private fun snapshot(): List<String> =
+        db.openHelper.readableDatabase.query(
+            "SELECT 'op:' || id || '|' || type || '|' || occurred_at || '|' || IFNULL(category_id, '') || '|' || " +
+                "IFNULL(description, '') || '|' || created_at || '|' || updated_at FROM operation " +
+                "UNION ALL SELECT 'le:' || id || '|' || operation_id || '|' || account_id || '|' || currency_code || " +
+                "'|' || amount_minor || '|' || occurred_at FROM ledger_entry ORDER BY 1",
+        ).use { c -> buildList { while (c.moveToNext()) add(c.getString(0)) } }
 
     @Test
     fun twoHundredFiftyMissedDaysAreCreatedInBatchesWithoutDuplicates() = runBlocking {
@@ -636,7 +640,7 @@ class RecurringRepositoryTest {
         try {
             db.openHelper.writableDatabase.execSQL(
                 "INSERT INTO recurring_occurrence (schedule_id, occurrence_date, status, operation_id, handled_at) " +
-                    "VALUES ($id, ${today().toEpochDay()}, 'SKIPPED', NULL, 1)"
+                    "VALUES ($id, ${today().toEpochDay()}, 'SKIPPED', NULL, 1)",
             )
             fail("Expected unique index violation")
         } catch (_: SQLiteConstraintException) {
@@ -649,7 +653,7 @@ class RecurringRepositoryTest {
         currentTime = RecurrenceCalculator.startOfDay(LocalDate.of(2026, 5, 1), zone)
         val monthly = recurringRepo.create(
             draft(rule = RecurrenceRule(RecurrenceUnit.MONTH, 1), firstDate = jan31),
-            now = currentTime
+            now = currentTime,
         )
         // Jan 31, Feb 28, Mar 31, Apr 30 are due on May 1.
         assertEquals(4, count("SELECT COUNT(*) FROM recurring_occurrence WHERE schedule_id = $monthly"))
@@ -657,7 +661,7 @@ class RecurringRepositoryTest {
 
         val custom = recurringRepo.create(
             draft(rule = RecurrenceRule(RecurrenceUnit.WEEK, 2), firstDate = LocalDate.of(2026, 4, 1)),
-            now = currentTime
+            now = currentTime,
         )
         // Apr 1, Apr 15, Apr 29 are due, the next one is May 13.
         assertEquals(3, count("SELECT COUNT(*) FROM recurring_occurrence WHERE schedule_id = $custom"))
@@ -688,7 +692,7 @@ class RecurringRepositoryTest {
         recurringRepo.update(
             id,
             draft(name = "New", amountMinor = 999L, firstDate = today().plusDays(1)),
-            now = currentTime
+            now = currentTime,
         )
         assertEquals(before, snapshot())
 
@@ -768,7 +772,7 @@ class RecurringRepositoryTest {
             raw.execSQL("INSERT INTO operation (type, occurred_at, created_at, updated_at) VALUES ('INCOME', 1, 1, 1)")
             raw.execSQL(
                 "INSERT INTO ledger_entry (operation_id, account_id, currency_code, amount_minor, occurred_at) " +
-                    "VALUES (last_insert_rowid(), 1, 'USD', $nearMax, 1)"
+                    "VALUES (last_insert_rowid(), 1, 'USD', $nearMax, 1)",
             )
         }
         seedNearMax()
@@ -788,7 +792,7 @@ class RecurringRepositoryTest {
         val start = today()
         val id = recurringRepo.create(
             draft(kind = TransactionKind.INCOME, amountMinor = 450L, firstDate = start.plusDays(1)),
-            now = currentTime
+            now = currentTime,
         )
         seedNearMax()
         currentTime += dayMs
@@ -823,7 +827,7 @@ class RecurringRepositoryTest {
                 id,
                 draft(accountId = 2L, firstDate = today().plusDays(1)),
                 confirmCurrencyChange = true,
-                now = currentTime
+                now = currentTime,
             )
             fail("Expected refusal")
         } catch (_: InvariantViolationException) {
@@ -852,7 +856,7 @@ class RecurringRepositoryTest {
         val plan = mutableListOf<String>()
         db.openHelper.readableDatabase.query(
             "EXPLAIN QUERY PLAN SELECT * FROM recurring_schedule " +
-                "WHERE status = 'ACTIVE' AND next_date IS NOT NULL AND next_date <= 1 ORDER BY id"
+                "WHERE status = 'ACTIVE' AND next_date IS NOT NULL AND next_date <= 1 ORDER BY id",
         ).use { c -> while (c.moveToNext()) plan += c.getString(c.getColumnIndexOrThrow("detail")) }
         assertTrue(plan.toString(), plan.any { it.contains("index_recurring_schedule_status_next_date") })
     }
@@ -878,7 +882,7 @@ class RecurringRepositoryTest {
         raw.execSQL("UPDATE recurring_schedule SET category_id = 2 WHERE id = $id")
         raw.execSQL(
             "INSERT INTO recurring_occurrence (schedule_id, occurrence_date, status, operation_id, handled_at) " +
-                "VALUES ($id, ${today().plusDays(1).toEpochDay()}, 'SKIPPED', NULL, 1)"
+                "VALUES ($id, ${today().plusDays(1).toEpochDay()}, 'SKIPPED', NULL, 1)",
         )
         assertTrue(flagged("recurring occurrence not before next"))
         raw.execSQL("UPDATE recurring_occurrence SET occurrence_date = occurrence_date - 5")

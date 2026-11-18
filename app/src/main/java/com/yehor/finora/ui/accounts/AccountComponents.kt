@@ -26,16 +26,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.display.AmountText
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
-import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.account.Balance
@@ -43,6 +36,13 @@ import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.domain.money.Money
 import com.yehor.finora.ui.analytics.signedMoney
 import com.yehor.finora.ui.common.ColorPalette
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.PreviewTheme
 
 @Composable
 internal fun AccountPill(text: String) {
@@ -53,7 +53,7 @@ internal fun AccountPill(text: String) {
         modifier = Modifier
             .clip(RoundedCornerShape(50))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(horizontal = 8.dp, vertical = 2.dp)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
     )
 }
 
@@ -64,45 +64,41 @@ internal fun AccountsEmptyState(
     body: String,
     actionLabel: String,
     onAction: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MaterialTheme.colorScheme.primaryContainer,
     ) {
         Column(
-            Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
+            Modifier.fillMaxWidth().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Box(
-                Modifier
-                    .size(64.dp)
-                    .clip(CircleShape)
+                Modifier.size(64.dp).clip(CircleShape)
                     .background(MaterialTheme.finance.onMint.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     icon,
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.finance.onMint
+                    tint = MaterialTheme.finance.onMint,
                 )
             }
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.finance.onMint
+                color = MaterialTheme.finance.onMint,
             )
             Text(
                 body,
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.finance.onMint.copy(alpha = 0.8f)
+                color = MaterialTheme.finance.onMint.copy(alpha = 0.8f),
             )
             Button(onClick = onAction) {
                 Icon(AppIcons.Add, contentDescription = null, modifier = Modifier.size(IconSize.Small))
@@ -126,25 +122,14 @@ internal fun AccountBalanceAmount(balance: Balance, style: TextStyle, modifier: 
             stringResource(R.string.accounts_balance_overflow),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
-            modifier = modifier
+            modifier = modifier,
         )
         is Balance.Value -> {
             val money = balance.money
-            val color = if (money.amountMinor <
-                0
-            ) {
-                MaterialTheme.finance.negative
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
+            val color = if (money.amountMinor < 0) MaterialTheme.finance.negative else MaterialTheme.colorScheme.onSurface
             Row(modifier, verticalAlignment = Alignment.Bottom) {
                 AmountText(money.toPlainString(), style, color, animate = false)
-                Text(
-                    " ${money.currency.symbol}",
-                    style = style.copy(fontSize = style.fontSize * 0.6f),
-                    color = color,
-                    maxLines = 1
-                )
+                Text(" ${money.currency.symbol}", style = style.copy(fontSize = style.fontSize * 0.6f), color = color, maxLines = 1)
             }
         }
     }
@@ -169,7 +154,7 @@ internal fun AccountRoundAction(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         RoundIconButton(icon, label, onClick, enabled = enabled)
@@ -179,7 +164,7 @@ internal fun AccountRoundAction(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.clearAndSetSemantics {}
+            modifier = Modifier.clearAndSetSemantics {},
         )
     }
 }
@@ -205,7 +190,7 @@ private fun AccountEmptyPreviewContent(dark: Boolean) {
                 title = "Add your first account",
                 body = "Accounts hold your balances.",
                 actionLabel = "Add account",
-                onAction = {}
+                onAction = {},
             )
         }
     }

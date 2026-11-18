@@ -18,13 +18,13 @@ data class RecurringRow(
     val schedule: RecurringSchedule,
     val state: ScheduleDisplayState,
     /** Only an active schedule can be blocked; a paused or ended one creates nothing anyway. */
-    val issue: GenerationIssue?
+    val issue: GenerationIssue?,
 )
 
 data class RecurringSections(
     val active: List<RecurringRow> = emptyList(),
     val paused: List<RecurringRow> = emptyList(),
-    val ended: List<RecurringRow> = emptyList()
+    val ended: List<RecurringRow> = emptyList(),
 ) {
     val isEmpty: Boolean get() = active.isEmpty() && paused.isEmpty() && ended.isEmpty()
 }
@@ -46,7 +46,7 @@ object RecurringListLogic {
         val byNextDate = compareBy<RecurringRow>(
             { it.schedule.nextDate ?: LocalDate.MAX },
             { it.schedule.name.lowercase() },
-            { it.schedule.id }
+            { it.schedule.id },
         )
         val byEndDateDescending = compareByDescending<RecurringRow> { it.schedule.endDate ?: it.schedule.startDate }
             .thenBy { it.schedule.name.lowercase() }
@@ -54,7 +54,7 @@ object RecurringListLogic {
         return RecurringSections(
             active = rows.filter { it.state == ScheduleDisplayState.ACTIVE }.sortedWith(byNextDate),
             paused = rows.filter { it.state == ScheduleDisplayState.PAUSED }.sortedWith(byNextDate),
-            ended = rows.filter { it.state == ScheduleDisplayState.ENDED }.sortedWith(byEndDateDescending)
+            ended = rows.filter { it.state == ScheduleDisplayState.ENDED }.sortedWith(byEndDateDescending),
         )
     }
 
@@ -67,7 +67,8 @@ object RecurringListLogic {
     }
 
     /** How many schedules are blocked by a generation issue (shown as the attention banner). */
-    fun blockedCount(sections: RecurringSections): Int = sections.active.count { statusLine(it) is StatusLine.Blocked }
+    fun blockedCount(sections: RecurringSections): Int =
+        sections.active.count { statusLine(it) is StatusLine.Blocked }
 
     /** "+12.50 $" for income, "−12.50 $" for expense. The schedule amount itself is always positive. */
     fun signedAmount(kind: TransactionKind, money: Money): String =
@@ -81,7 +82,7 @@ data class ResumeInfo(
     val first: LocalDate,
     val last: LocalDate,
     /** The first date after the skipped ones, null when the schedule ends with them. */
-    val continueFrom: LocalDate?
+    val continueFrom: LocalDate?,
 )
 
 sealed interface HistoryRow {
@@ -121,14 +122,14 @@ object RecurringDetailLogic {
             count = due.size,
             first = due.first(),
             last = last,
-            continueFrom = RecurrenceCalculator.next(schedule.startDate, schedule.rule, last, schedule.endDate)
+            continueFrom = RecurrenceCalculator.next(schedule.startDate, schedule.rule, last, schedule.endDate),
         )
     }
 
     /** [items] come newest first; one more than [HISTORY_LIMIT] is enough to know that more exist. */
     fun history(items: List<OccurrenceItem>): HistoryView = HistoryView(
         rows = items.take(HISTORY_LIMIT).map(::historyRow),
-        hasMore = items.size > HISTORY_LIMIT
+        hasMore = items.size > HISTORY_LIMIT,
     )
 
     private fun historyRow(item: OccurrenceItem): HistoryRow = when {

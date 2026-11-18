@@ -14,9 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.domain.money.Currency
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.icon.IconSize
-import com.yehor.finora.domain.money.Currency
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,18 +30,18 @@ fun ValuationNotes(state: ValuationCardState, modifier: Modifier = Modifier) {
             Row(
                 Modifier.padding(top = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Icon(
                     AppIcons.Warning,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(IconSize.Small)
+                    modifier = Modifier.size(IconSize.Small),
                 )
                 Text(
                     stringResource(R.string.valuation_outdated, formatDate(state.oldestFetchedAt)),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
                 )
             }
         }
@@ -56,13 +56,14 @@ fun NotIncludedLine(excluded: List<Currency>) {
         stringResource(R.string.valuation_not_included, excluded.joinToString(", ") { it.code }),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 4.dp)
+        modifier = Modifier.padding(top = 4.dp),
     )
 }
 
-fun formatDate(epochMillis: Long?): String = if (epochMillis == null) {
-    ""
-} else {
-    DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
-        .format(Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()))
-}
+fun formatDate(epochMillis: Long?): String =
+    if (epochMillis == null) {
+        ""
+    } else {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+            .format(Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()))
+    }
