@@ -35,7 +35,7 @@ class KnownSchemasTest {
             assertEquals(
                 "KnownSchemas hash mismatch for schema version $version",
                 hashInJson,
-                KnownSchemas.identityHashes[version],
+                KnownSchemas.identityHashes[version]
             )
         }
     }

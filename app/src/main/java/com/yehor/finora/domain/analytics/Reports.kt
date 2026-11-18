@@ -25,18 +25,17 @@ object Reports {
     fun total(direct: Map<Long?, Cell>): Cell = direct.values.sumCells()
 
     /** Exact sums per currency for the "By currency" sheet, ordered by code. */
-    fun nativeTotals(rows: List<NativeRow>): List<NativeTotal> =
-        rows.groupBy { it.money.currency }
-            .map { (currency, group) ->
-                val count = group.sumOf { it.operationCount }
-                val sum = try {
-                    group.fold(Money.zero(currency)) { acc, row -> acc + row.money }
-                } catch (e: MoneyOverflowException) {
-                    null
-                }
-                NativeTotal(currency, sum, count)
+    fun nativeTotals(rows: List<NativeRow>): List<NativeTotal> = rows.groupBy { it.money.currency }
+        .map { (currency, group) ->
+            val count = group.sumOf { it.operationCount }
+            val sum = try {
+                group.fold(Money.zero(currency)) { acc, row -> acc + row.money }
+            } catch (e: MoneyOverflowException) {
+                null
             }
-            .sortedBy { it.currency.code }
+            NativeTotal(currency, sum, count)
+        }
+        .sortedBy { it.currency.code }
 
     /** Top [limit] ranked rows, then "Other", with Uncategorized always shown on its own. */
     fun topSplit(rows: List<DrillRow>, limit: Int = 5): TopSplit {

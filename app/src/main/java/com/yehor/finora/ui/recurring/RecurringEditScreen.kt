@@ -93,14 +93,14 @@ class RecurringEditCallbacks(
     val onFirstDateChange: (LocalDate) -> Unit = {},
     val onEndDateChange: (LocalDate?) -> Unit = {},
     val onSave: () -> Unit = {},
-    val onNavigateCreateCategory: ((String) -> Unit)? = null,
+    val onNavigateCreateCategory: ((String) -> Unit)? = null
 )
 
 @Composable
 fun RecurringEditScreen(
     onBack: () -> Unit,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
-    viewModel: RecurringEditViewModel = hiltViewModel(),
+    viewModel: RecurringEditViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.saved) {
@@ -124,7 +124,7 @@ fun RecurringEditScreen(
             onFirstDateChange = viewModel::onFirstDateChange,
             onEndDateChange = viewModel::onEndDateChange,
             onSave = viewModel::save,
-            onNavigateCreateCategory = onNavigateCreateCategory,
+            onNavigateCreateCategory = onNavigateCreateCategory
         )
     }
 
@@ -149,10 +149,21 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
 
     val amountErrorText = when {
         state.isOverflow -> stringResource(R.string.recurring_form_error_overflow)
-        ScheduleDraftError.AMOUNT_OUT_OF_RANGE in state.errors -> stringResource(R.string.transaction_form_error_amount_range)
-        ScheduleDraftError.AMOUNT_INVALID in state.errors -> stringResource(R.string.transaction_form_error_amount_invalid)
-        ScheduleDraftError.AMOUNT_TOO_PRECISE in state.errors -> stringResource(R.string.transaction_form_error_amount_precise)
-        ScheduleDraftError.AMOUNT_NOT_POSITIVE in state.errors -> stringResource(R.string.transaction_form_error_amount_positive)
+        ScheduleDraftError.AMOUNT_OUT_OF_RANGE in state.errors -> stringResource(
+            R.string.transaction_form_error_amount_range
+        )
+
+        ScheduleDraftError.AMOUNT_INVALID in state.errors -> stringResource(
+            R.string.transaction_form_error_amount_invalid
+        )
+
+        ScheduleDraftError.AMOUNT_TOO_PRECISE in state.errors -> stringResource(
+            R.string.transaction_form_error_amount_precise
+        )
+
+        ScheduleDraftError.AMOUNT_NOT_POSITIVE in state.errors -> stringResource(
+            R.string.transaction_form_error_amount_positive
+        )
         else -> null
     }
     val archivedNote = if (selectedAccount?.status == AccountStatus.ARCHIVED) {
@@ -163,18 +174,22 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
     val cta = RecurringCtaLogic.cta(state)
 
     FormScreen(
-        title = stringResource(if (state.isEdit) R.string.recurring_form_edit_title else R.string.recurring_form_new_title),
+        title = stringResource(
+            if (state.isEdit) R.string.recurring_form_edit_title else R.string.recurring_form_new_title
+        ),
         onBack = callbacks.onBack,
         bottomBar = {
             FormCtaBar(
                 label = recurringCtaLabel(
                     cta = cta,
-                    amountSuffix = form.amountText.takeIf { it.isNotEmpty() }?.let { currency.symbol + formattedAmount },
+                    amountSuffix = form.amountText.takeIf {
+                        it.isNotEmpty()
+                    }?.let { currency.symbol + formattedAmount }
                 ),
                 enabled = cta is RecurringCta.Ready,
-                onClick = callbacks.onSave,
+                onClick = callbacks.onSave
             )
-        },
+        }
     ) {
         FormKindTabs(kind = form.kind, locked = form.typeLocked, onKindChange = callbacks.onKindChange)
 
@@ -188,14 +203,19 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
             errorText = amountErrorText,
             symbols = symbols,
             onAccountClick = { pickAccount = true },
-            onAmountChange = callbacks.onAmountChange,
+            onAmountChange = callbacks.onAmountChange
         )
 
         // Name → category → tags: one card.
         val nameTooLong = ScheduleDraftError.NAME_TOO_LONG in state.errors
         val nameEmpty = ScheduleDraftError.NAME_EMPTY in state.errors && form.amountText.isNotBlank()
         val categoryMissing = ScheduleDraftError.CATEGORY_MISSING in state.errors && form.amountText.isNotBlank()
-        GroupedCard(Modifier.fillMaxWidth().padding(top = 8.dp).errorOutline(nameTooLong || nameEmpty || categoryMissing)) {
+        GroupedCard(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp)
+                .errorOutline(nameTooLong || nameEmpty || categoryMissing)
+        ) {
             NameRow(state, callbacks.onNameChange)
             ShelfDivider()
             CategoryShelfRow(
@@ -204,7 +224,7 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
                 selectedCategoryId = form.categoryId,
                 showUncategorized = form.isEdit && !form.hadCategoryBefore,
                 showError = categoryMissing,
-                onClick = { pickCategory = true },
+                onClick = { pickCategory = true }
             )
             ShelfDivider()
             TagsShelfRow(
@@ -213,7 +233,7 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
                 pendingTagNames = form.pendingTagNames,
                 onToggleTag = callbacks.onToggleTag,
                 onAddPendingTag = callbacks.onAddPendingTag,
-                onRemovePendingTag = callbacks.onRemovePendingTag,
+                onRemovePendingTag = callbacks.onRemovePendingTag
             )
         }
         RecentCategoriesRow(
@@ -222,18 +242,27 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
             selectedCategoryId = form.categoryId,
             recentCategoryIds = state.recentCategoryIds,
             onSelectRecent = callbacks.onCategoryChange,
-            onCreateCategory = callbacks.onNavigateCreateCategory?.let { nav -> { nav(categoryType.name) } },
+            onCreateCategory = callbacks.onNavigateCreateCategory?.let { nav -> { nav(categoryType.name) } }
         )
 
-        SectionHeader(stringResource(R.string.recurring_form_schedule_section), Modifier.padding(top = 8.dp).semantics { heading() })
+        SectionHeader(
+            stringResource(R.string.recurring_form_schedule_section),
+            Modifier
+                .padding(top = 8.dp)
+                .semantics {
+                    heading()
+                }
+        )
         val rangeError = ScheduleDraftError.DATE_OUT_OF_RANGE in state.errors
         val tooMany = ScheduleDraftError.TOO_MANY_PAST_OCCURRENCES in state.errors
         val endBeforeStart = ScheduleDraftError.END_BEFORE_START in state.errors
         val intervalError = ScheduleDraftError.INTERVAL_OUT_OF_RANGE in state.errors
         GroupedCard(
-            Modifier.fillMaxWidth().errorOutline(
-                intervalError || rangeError || tooMany || endBeforeStart || state.handledConflict != null,
-            ),
+            Modifier
+                .fillMaxWidth()
+                .errorOutline(
+                    intervalError || rangeError || tooMany || endBeforeStart || state.handledConflict != null
+                )
         ) {
             RepeatsRow(state, callbacks)
             ShelfDivider()
@@ -253,7 +282,7 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
                     callbacks.onAccountChange(it)
                     pickAccount = false
                 },
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         }
     }
@@ -269,7 +298,7 @@ fun RecurringEditContent(state: RecurringEditUiState, callbacks: RecurringEditCa
                     callbacks.onCategoryChange(it)
                     pickCategory = false
                 },
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         }
     }
@@ -295,7 +324,7 @@ private fun NameRow(state: RecurringEditUiState, onNameChange: (String) -> Unit)
                 tooLong -> FieldNote(stringResource(R.string.recurring_form_error_name_long), isError = true)
                 showEmpty -> FieldNote(stringResource(R.string.recurring_form_error_name_empty), isError = true)
             }
-        },
+        }
     )
 }
 
@@ -322,27 +351,27 @@ private fun RepeatsRow(state: RecurringEditUiState, callbacks: RecurringEditCall
                         FilterPill(
                             label = presetLabel(preset),
                             active = frequency.preset == preset,
-                            onClick = { callbacks.onPresetChange(preset) },
+                            onClick = { callbacks.onPresetChange(preset) }
                         )
                     }
                 }
                 if (frequency.preset == FrequencyPreset.CUSTOM) {
                     IntervalStepper(
                         text = frequency.customIntervalText,
-                        onChange = callbacks.onCustomIntervalChange,
+                        onChange = callbacks.onCustomIntervalChange
                     )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         RecurrenceUnit.entries.forEach { unit ->
                             FilterPill(
                                 label = unitLabel(unit),
                                 active = frequency.customUnit == unit,
-                                onClick = { callbacks.onCustomUnitChange(unit) },
+                                onClick = { callbacks.onCustomUnitChange(unit) }
                             )
                         }
                     }
                 }
             }
-        },
+        }
     )
 }
 
@@ -355,13 +384,13 @@ private fun IntervalStepper(text: String, onChange: (String) -> Unit) {
             stringResource(R.string.recurring_form_every),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(end = 4.dp),
+            modifier = Modifier.padding(end = 4.dp)
         )
         FormStepButton(
             icon = AppIcons.Remove,
             description = stringResource(R.string.recurring_form_interval_decrease),
             enabled = (current ?: 2) > 1,
-            onClick = { onChange(((current ?: 2) - 1).coerceAtLeast(1).toString()) },
+            onClick = { onChange(((current ?: 2) - 1).coerceAtLeast(1).toString()) }
         )
         BasicTextField(
             value = text,
@@ -369,17 +398,17 @@ private fun IntervalStepper(text: String, onChange: (String) -> Unit) {
             singleLine = true,
             textStyle = MaterialTheme.typography.titleLarge.copy(
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             ),
             cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-            modifier = Modifier.width(56.dp),
+            modifier = Modifier.width(56.dp)
         )
         FormStepButton(
             icon = AppIcons.Add,
             description = stringResource(R.string.recurring_form_interval_increase),
             enabled = (current ?: 0) < 365,
-            onClick = { onChange(((current ?: 0) + 1).coerceAtMost(365).toString()) },
+            onClick = { onChange(((current ?: 0) + 1).coerceAtMost(365).toString()) }
         )
     }
 }
@@ -394,25 +423,27 @@ private fun StartDateRow(state: RecurringEditUiState, callbacks: RecurringEditCa
     val errors = listOfNotNull(
         if (rangeError) stringResource(R.string.recurring_form_error_date_range) else null,
         conflict?.let { stringResource(R.string.recurring_form_error_not_after_handled, formatScheduleDate(it)) },
-        if (tooMany) stringResource(R.string.recurring_form_error_too_many) else null,
+        if (tooMany) stringResource(R.string.recurring_form_error_too_many) else null
     )
     ShelfRow(
         icon = { ShelfIcon(AppIcons.Calendar) },
-        label = stringResource(if (form.isEdit) R.string.recurring_form_next_occurrence else R.string.recurring_form_starts_on),
+        label = stringResource(
+            if (form.isEdit) R.string.recurring_form_next_occurrence else R.string.recurring_form_starts_on
+        ),
         onClick = { picking = true },
         supporting = errors.joinToString("\n").ifEmpty { null },
         supportingIsError = errors.isNotEmpty(),
         trailing = {
             ShelfValue(formatScheduleDate(form.firstDate))
             Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        },
+        }
     )
     if (picking) {
         FormDatePickerDialog(
             initial = form.firstDate,
             maxDate = ScheduleDraftValidator.MAX_DATE,
             onDismiss = { picking = false },
-            onPicked = callbacks.onFirstDateChange,
+            onPicked = callbacks.onFirstDateChange
         )
     }
 }
@@ -432,24 +463,24 @@ private fun EndDateRow(state: RecurringEditUiState, callbacks: RecurringEditCall
             val end = form.endDate
             ShelfValue(
                 end?.let { formatScheduleDate(it) } ?: stringResource(R.string.recurring_form_end_never),
-                muted = end == null,
+                muted = end == null
             )
             if (end != null) {
                 SmallPill(
                     text = stringResource(R.string.recurring_form_clear_end),
-                    onClick = { callbacks.onEndDateChange(null) },
+                    onClick = { callbacks.onEndDateChange(null) }
                 )
             } else {
                 Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        },
+        }
     )
     if (picking) {
         FormDatePickerDialog(
             initial = form.endDate ?: form.firstDate,
             maxDate = ScheduleDraftValidator.MAX_DATE,
             onDismiss = { picking = false },
-            onPicked = { callbacks.onEndDateChange(it) },
+            onPicked = { callbacks.onEndDateChange(it) }
         )
     }
 }
@@ -464,19 +495,21 @@ private fun PreviewRow(state: RecurringEditUiState) {
             R.plurals.recurring_form_preview_due,
             preview.count,
             preview.count,
-            rangeText(preview.first, preview.last),
+            rangeText(preview.first, preview.last)
         )
     }
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Icon(
             icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(IconSize.Small),
+            modifier = Modifier.size(IconSize.Small)
         )
         Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -494,7 +527,7 @@ private fun RecurringAlert(
     confirmLabel: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    dismissLabel: String? = stringResource(R.string.action_cancel),
+    dismissLabel: String? = stringResource(R.string.action_cancel)
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -505,7 +538,7 @@ private fun RecurringAlert(
         confirmButton = { PrimaryButton(text = confirmLabel, onClick = onConfirm, fillWidth = false) },
         dismissButton = dismissLabel?.let { label ->
             { TextButton(onClick = onDismiss, shape = PillShape) { Text(label) } }
-        },
+        }
     )
 }
 
@@ -518,14 +551,14 @@ private fun SaveDialogs(state: RecurringEditUiState, viewModel: RecurringEditVie
             body = stringResource(R.string.recurring_currency_body, gate.info.newFormatted, gate.info.oldFormatted),
             confirmLabel = stringResource(R.string.recurring_currency_confirm),
             onConfirm = viewModel::onConfirmGate,
-            onDismiss = viewModel::onDismissGate,
+            onDismiss = viewModel::onDismissGate
         )
         is SaveGate.PastOccurrences -> RecurringAlert(
             title = pluralStringResource(R.plurals.recurring_past_title, gate.count, gate.count),
             body = stringResource(R.string.recurring_past_body, rangeText(gate.first, gate.last)),
             confirmLabel = stringResource(R.string.recurring_past_confirm),
             onConfirm = viewModel::onConfirmGate,
-            onDismiss = viewModel::onDismissGate,
+            onDismiss = viewModel::onDismissGate
         )
     }
 
@@ -535,7 +568,7 @@ private fun SaveDialogs(state: RecurringEditUiState, viewModel: RecurringEditVie
             body = stringResource(R.string.recurring_opening_order_body),
             confirmLabel = stringResource(R.string.action_confirm),
             onConfirm = viewModel::onConfirmOpeningOrder,
-            onDismiss = viewModel::onDismissOpeningOrder,
+            onDismiss = viewModel::onDismissOpeningOrder
         )
     }
 
@@ -546,7 +579,7 @@ private fun SaveDialogs(state: RecurringEditUiState, viewModel: RecurringEditVie
             confirmLabel = stringResource(R.string.recurring_error_ok),
             onConfirm = viewModel::onDismissArchivedError,
             onDismiss = viewModel::onDismissArchivedError,
-            dismissLabel = null,
+            dismissLabel = null
         )
     }
 }
@@ -560,10 +593,10 @@ private fun previewState() = RecurringEditUiState(
         name = "Rent",
         amountText = "1250.5",
         frequency = FrequencyInput(FrequencyPreset.CUSTOM, RecurrenceUnit.WEEK, "2"),
-        firstDate = LocalDate.of(2026, 12, 1),
+        firstDate = LocalDate.of(2026, 12, 1)
     ),
     loading = false,
-    preview = FormPreview.Next(LocalDate.of(2026, 12, 1)),
+    preview = FormPreview.Next(LocalDate.of(2026, 12, 1))
 )
 
 @Preview(name = "Recurring form light", showBackground = true, heightDp = 1500)

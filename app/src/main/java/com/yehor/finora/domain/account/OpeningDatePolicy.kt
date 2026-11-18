@@ -13,8 +13,7 @@ import java.time.ZoneOffset
 class OpeningDatePolicy(private val zone: ZoneId) {
 
     /** Start of the local day that contains [epochMillis]. Handles days whose midnight does not exist (DST). */
-    fun startOfDay(epochMillis: Long): Long =
-        localDate(epochMillis).atStartOfDay(zone).toInstant().toEpochMilli()
+    fun startOfDay(epochMillis: Long): Long = localDate(epochMillis).atStartOfDay(zone).toInstant().toEpochMilli()
 
     /** A new account's opening balance is dated at the start of its creation day. */
     fun defaultForNewAccount(now: Long): Long = startOfDay(now)
@@ -46,6 +45,5 @@ class OpeningDatePolicy(private val zone: ZoneId) {
     fun toPickerUtcMidnight(epochMillis: Long): Long =
         localDate(epochMillis).atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
 
-    private fun localDate(epochMillis: Long): LocalDate =
-        Instant.ofEpochMilli(epochMillis).atZone(zone).toLocalDate()
+    private fun localDate(epochMillis: Long): LocalDate = Instant.ofEpochMilli(epochMillis).atZone(zone).toLocalDate()
 }

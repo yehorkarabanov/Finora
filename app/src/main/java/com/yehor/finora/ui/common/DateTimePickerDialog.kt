@@ -1,8 +1,5 @@
 package com.yehor.finora.ui.common
 
-
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -49,6 +46,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
@@ -69,18 +68,18 @@ fun DateTimePickerDialog(
     time: LocalTime,
     maxDate: LocalDate,
     onDismiss: () -> Unit,
-    onConfirm: (LocalDate, LocalTime) -> Unit,
+    onConfirm: (LocalDate, LocalTime) -> Unit
 ) {
     val minDate = LocalDate.of(MIN_YEAR, 1, 1)
     val pickerState = rememberDatePickerState(
         initialSelectedDateMillis = utcMillis(date.coerceIn(minDate, maxDate)),
         yearRange = MIN_YEAR..maxDate.year,
-        selectableDates = remember(maxDate) { UpToDate(maxDate) },
+        selectableDates = remember(maxDate) { UpToDate(maxDate) }
     )
     var pendingTime by remember { mutableStateOf(time) }
     Dialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
         DateTimePickerContent(
             state = pickerState,
@@ -88,7 +87,7 @@ fun DateTimePickerDialog(
             maxDate = maxDate,
             onTimeChange = { pendingTime = it },
             onDismiss = onDismiss,
-            onConfirm = onConfirm,
+            onConfirm = onConfirm
         )
     }
 }
@@ -101,7 +100,7 @@ private fun DateTimePickerContent(
     maxDate: LocalDate,
     onTimeChange: (LocalTime) -> Unit,
     onDismiss: () -> Unit,
-    onConfirm: (LocalDate, LocalTime) -> Unit,
+    onConfirm: (LocalDate, LocalTime) -> Unit
 ) {
     val date = state.selectedDateMillis?.let(::utcDate)
     val locale = LocalConfiguration.current.locales[0]
@@ -115,18 +114,27 @@ private fun DateTimePickerContent(
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
         shape = RoundedCornerShape(28.dp),
-        modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .padding(12.dp)
     ) {
         Column(Modifier.fillMaxSize()) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 8.dp, end = 12.dp, top = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 12.dp, top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 RoundIconButton(AppIcons.Close, stringResource(R.string.date_range_close), onDismiss)
                 Text(
                     stringResource(R.string.transaction_form_date_time),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f).padding(start = 8.dp).semantics { heading() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                        .semantics { heading() }
                 )
             }
 
@@ -136,12 +144,14 @@ private fun DateTimePickerContent(
                 title = null,
                 headline = null,
                 showModeToggle = false,
-                colors = obsidianDatePickerColors(),
+                colors = obsidianDatePickerColors()
             )
 
             Column(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     val timeLabel = stringResource(R.string.date_time_time_label, timeText)
@@ -150,13 +160,13 @@ private fun DateTimePickerContent(
                         modifier = Modifier.semantics {
                             role = Role.Button
                             contentDescription = timeLabel
-                        },
+                        }
                     ) {
                         Icon(AppIcons.Time, contentDescription = null, modifier = Modifier.size(IconSize.Small))
                         Text(
                             timeText,
                             style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(horizontal = 6.dp),
+                            modifier = Modifier.padding(horizontal = 6.dp)
                         )
                         Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(20.dp))
                     }
@@ -167,12 +177,12 @@ private fun DateTimePickerContent(
                             state.selectedDateMillis = nowMillis
                             state.displayedMonthMillis = nowMillis
                             onTimeChange(LocalTime.now().withSecond(0).withNano(0))
-                        },
+                        }
                     ) {
                         Text(
                             stringResource(R.string.date_time_now),
                             style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier.padding(horizontal = 4.dp),
+                            modifier = Modifier.padding(horizontal = 4.dp)
                         )
                     }
                 }
@@ -187,7 +197,7 @@ private fun DateTimePickerContent(
                         }
                     },
                     onClick = { if (date != null && canConfirm) onConfirm(date, time) },
-                    enabled = canConfirm,
+                    enabled = canConfirm
                 )
             }
         }
@@ -200,54 +210,48 @@ private fun DateTimePickerContent(
             onConfirm = {
                 onTimeChange(it)
                 showTimeDialog = false
-            },
+            }
         )
     }
 }
 
 @Composable
-private fun PickerPill(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+private fun PickerPill(onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Surface(
         onClick = onClick,
         shape = PillShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = MaterialTheme.colorScheme.onSurface,
         border = hairline(MaterialTheme.finance.isDark),
-        modifier = modifier.defaultMinSize(minHeight = 48.dp),
+        modifier = modifier.defaultMinSize(minHeight = 48.dp)
     ) {
         Row(
-            Modifier.defaultMinSize(minHeight = 48.dp).padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            Modifier
+                .defaultMinSize(minHeight = 48.dp)
+                .padding(horizontal = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) { content() }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TimeSelectDialog(
-    initial: LocalTime,
-    onDismiss: () -> Unit,
-    onConfirm: (LocalTime) -> Unit,
-) {
+private fun TimeSelectDialog(initial: LocalTime, onDismiss: () -> Unit, onConfirm: (LocalTime) -> Unit) {
     val timeState = rememberTimePickerState(
         initialHour = initial.hour,
         initialMinute = initial.minute,
-        is24Hour = DateFormat.is24HourFormat(LocalContext.current),
+        is24Hour = DateFormat.is24HourFormat(LocalContext.current)
     )
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
-            shape = RoundedCornerShape(28.dp),
+            shape = RoundedCornerShape(28.dp)
         ) {
             Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 Text(
                     stringResource(R.string.date_time_select_time),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.semantics { heading() }
                 )
                 TimePicker(
                     state = timeState,
@@ -258,19 +262,19 @@ private fun TimeSelectDialog(
                         timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
                         timeSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
                         periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
-                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.primary,
-                    ),
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.primary
+                    )
                 )
                 Row(
                     Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onDismiss, shape = PillShape) { Text(stringResource(R.string.action_cancel)) }
                     PrimaryButton(
                         text = stringResource(R.string.date_time_set_short),
                         onClick = { onConfirm(LocalTime.of(timeState.hour, timeState.minute)) },
-                        fillWidth = false,
+                        fillWidth = false
                     )
                 }
             }
@@ -286,7 +290,7 @@ private fun PreviewContent(dark: Boolean) {
         val state = rememberDatePickerState(
             initialSelectedDateMillis = utcMillis(today),
             yearRange = MIN_YEAR..today.year,
-            selectableDates = UpToDate(today),
+            selectableDates = UpToDate(today)
         )
         DateTimePickerContent(
             state = state,
@@ -294,7 +298,7 @@ private fun PreviewContent(dark: Boolean) {
             maxDate = today,
             onTimeChange = {},
             onDismiss = {},
-            onConfirm = { _, _ -> },
+            onConfirm = { _, _ -> }
         )
     }
 }

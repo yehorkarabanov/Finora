@@ -7,7 +7,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.domain.account.Account
@@ -63,7 +63,7 @@ internal class TransferFormActions(
     val onDescriptionChange: (String) -> Unit = {},
     val onToggleTag: (Long) -> Unit = {},
     val onAddPendingTag: (String) -> Unit = {},
-    val onRemovePendingTag: (String) -> Unit = {},
+    val onRemovePendingTag: (String) -> Unit = {}
 )
 
 internal fun TransferEditViewModel.formActions() = TransferFormActions(
@@ -79,7 +79,7 @@ internal fun TransferEditViewModel.formActions() = TransferFormActions(
     onDescriptionChange = ::onDescriptionChange,
     onToggleTag = ::onToggleTag,
     onAddPendingTag = ::onAddPendingTag,
-    onRemovePendingTag = ::onRemovePendingTag,
+    onRemovePendingTag = ::onRemovePendingTag
 )
 
 private enum class AccountSide { SOURCE, DEST }
@@ -88,14 +88,14 @@ private val SENT_ERRORS = setOf(
     TransferDraftError.SENT_AMOUNT_INVALID,
     TransferDraftError.SENT_AMOUNT_TOO_PRECISE,
     TransferDraftError.SENT_AMOUNT_NOT_POSITIVE,
-    TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE,
+    TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE
 )
 
 private val RECEIVED_ERRORS = setOf(
     TransferDraftError.RECEIVED_AMOUNT_INVALID,
     TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE,
     TransferDraftError.RECEIVED_AMOUNT_NOT_POSITIVE,
-    TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE,
+    TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE
 )
 
 private fun fallbackCurrency(state: TransferEditUiState): Currency =
@@ -115,16 +115,31 @@ private fun transferAmountError(state: TransferEditUiState, sent: Boolean, editi
     val overflow = state.isOverflow && editingSent == sent
     val failed = e.any { it in (if (sent) SENT_ERRORS else RECEIVED_ERRORS) } || overflow
     if (!failed) return null
-    val range = if (sent) TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE in e else TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE in e
-    val invalid = if (sent) TransferDraftError.SENT_AMOUNT_INVALID in e else TransferDraftError.RECEIVED_AMOUNT_INVALID in e
-    val precise = if (sent) TransferDraftError.SENT_AMOUNT_TOO_PRECISE in e else TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE in e
+    val range = if (sent) {
+        TransferDraftError.SENT_AMOUNT_OUT_OF_RANGE in e
+    } else {
+        TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE in
+            e
+    }
+    val invalid = if (sent) {
+        TransferDraftError.SENT_AMOUNT_INVALID in e
+    } else {
+        TransferDraftError.RECEIVED_AMOUNT_INVALID in
+            e
+    }
+    val precise = if (sent) {
+        TransferDraftError.SENT_AMOUNT_TOO_PRECISE in e
+    } else {
+        TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE in
+            e
+    }
     return stringResource(
         when {
             overflow || range -> R.string.transaction_form_error_amount_range
             invalid -> R.string.transaction_form_error_amount_invalid
             precise -> R.string.transaction_form_error_amount_precise
             else -> R.string.transaction_form_error_amount_positive
-        },
+        }
     )
 }
 
@@ -145,7 +160,7 @@ internal fun TransferEditor(
     onSave: () -> Unit,
     shelfScroll: ScrollState,
     onNavigateCreateCategory: ((String) -> Unit)? = null,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable () -> Unit = {}
 ) {
     var pickSide by rememberSaveable { mutableStateOf<String?>(null) }
     var pickCategory by rememberSaveable { mutableStateOf(false) }
@@ -172,14 +187,30 @@ internal fun TransferEditor(
     // "They receive" is its own row across currencies, and also while a same-currency amount was unlinked by hand;
     // a linked same-currency transfer offers "Different amount" (e.g. a fee) on the To row instead.
     val showReceiveRow = TransferFormLogic.showReceivedRow(source?.currency, dest?.currency, state.receivedLinked)
-    val showDifferentAmount = TransferFormLogic.showDifferentAmountAction(source?.currency, dest?.currency, state.receivedLinked)
+    val showDifferentAmount = TransferFormLogic.showDifferentAmountAction(
+        source?.currency,
+        dest?.currency,
+        state.receivedLinked
+    )
 
-    val sentMinor = (TransferAmountParser.parse(state.sentText, sentCurrency) as? TransferAmountParser.Result.Value)?.minor
-    val receivedMinor = (TransferAmountParser.parse(state.receivedText, receivedCurrency) as? TransferAmountParser.Result.Value)?.minor
+    val sentMinor = (
+        TransferAmountParser.parse(
+            state.sentText,
+            sentCurrency
+        ) as? TransferAmountParser.Result.Value
+        )?.minor
+    val receivedMinor = (
+        TransferAmountParser.parse(
+            state.receivedText,
+            receivedCurrency
+        ) as? TransferAmountParser.Result.Value
+        )?.minor
     val sourceBalance = source?.let { state.balances[it.id] }
     val destBalance = dest?.let { state.balances[it.id] }
     val sourceAfter = if (!state.isEdit && sourceBalance != null && sentMinor != null) {
-        runCatching { Money(Math.subtractExact(sourceBalance.amountMinor, sentMinor), sourceBalance.currency) }.getOrNull()
+        runCatching {
+            Money(Math.subtractExact(sourceBalance.amountMinor, sentMinor), sourceBalance.currency)
+        }.getOrNull()
     } else {
         null
     }
@@ -215,7 +246,7 @@ internal fun TransferEditor(
                 symbols = symbols,
                 isError = activeError != null,
                 label = if (editingSent) null else theyReceive,
-                maxFontSize = layout.amountMaxFontSize,
+                maxFontSize = layout.amountMaxFontSize
             )
             if (activeError != null) {
                 Text(activeError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -224,7 +255,7 @@ internal fun TransferEditor(
                 account = if (editingSent) source else dest,
                 balance = if (editingSent) sourceBalance else destBalance,
                 symbols = symbols,
-                onClick = { pickSide = (if (editingSent) AccountSide.SOURCE else AccountSide.DEST).name },
+                onClick = { pickSide = (if (editingSent) AccountSide.SOURCE else AccountSide.DEST).name }
             )
             // Switches the keypad between the two amounts (also the way back after choosing "Different amount").
             if (showReceiveRow || !editingSent) {
@@ -235,7 +266,7 @@ internal fun TransferEditor(
                         stringResource(R.string.transfer_form_from) + "  " + FORM_MINUS +
                             transferAmountDisplay(state.sentText, sentCurrency, symbols)
                     },
-                    onClick = { onTargetChange(if (editingSent) TransferTarget.RECEIVED else TransferTarget.SENT) },
+                    onClick = { onTargetChange(if (editingSent) TransferTarget.RECEIVED else TransferTarget.SENT) }
                 )
             }
         },
@@ -246,7 +277,7 @@ internal fun TransferEditor(
                 decimalEnabled = activeCurrency.scale > 0,
                 onKey = { onActiveChange(AmountKeypad.applyKey(activeText, it, activeCurrency.scale)) },
                 onClear = { onActiveChange("") },
-                keyHeight = layout.keyHeight,
+                keyHeight = layout.keyHeight
             )
         },
         shelfKindLabel = stringResource(R.string.transaction_kind_transfer),
@@ -257,7 +288,7 @@ internal fun TransferEditor(
                     archived = source?.status == AccountStatus.ARCHIVED,
                     balance = sourceBalance,
                     balanceAfter = sourceAfter,
-                    symbols = symbols,
+                    symbols = symbols
                 )
                 val sameAccountsText = stringResource(R.string.transfer_form_error_same_accounts)
                 AccountShelfRow(
@@ -267,14 +298,14 @@ internal fun TransferEditor(
                     symbols = symbols,
                     supporting = if (sameAccounts) sameAccountsText else sourceNote,
                     supportingIsError = sameAccounts || sourceNoteIsError,
-                    onClick = { pickSide = AccountSide.SOURCE.name },
+                    onClick = { pickSide = AccountSide.SOURCE.name }
                 )
                 ShelfDivider()
                 val (destNote, destNoteIsError) = accountSupporting(
                     archived = dest?.status == AccountStatus.ARCHIVED,
                     balance = destBalance,
                     balanceAfter = destAfter,
-                    symbols = symbols,
+                    symbols = symbols
                 )
                 AccountShelfRow(
                     label = stringResource(R.string.transfer_form_to),
@@ -285,7 +316,11 @@ internal fun TransferEditor(
                     supportingIsError = destNoteIsError,
                     onClick = { pickSide = AccountSide.DEST.name },
                     extraTrailing = {
-                        RoundIconButton(AppIcons.SwapVertical, stringResource(R.string.transfer_form_swap), actions.onSwap)
+                        RoundIconButton(
+                            AppIcons.SwapVertical,
+                            stringResource(R.string.transfer_form_swap),
+                            actions.onSwap
+                        )
                     },
                     below = if (showDifferentAmount) {
                         {
@@ -296,12 +331,12 @@ internal fun TransferEditor(
                                     onTargetChange(TransferTarget.RECEIVED)
                                     onStageChange(EditorStage.AMOUNT)
                                 },
-                                modifier = Modifier.padding(start = 48.dp),
+                                modifier = Modifier.padding(start = 48.dp)
                             )
                         }
                     } else {
                         null
-                    },
+                    }
                 )
                 if (showReceiveRow) {
                     ShelfDivider()
@@ -321,15 +356,15 @@ internal fun TransferEditor(
                                     onClick = {
                                         actions.onRelinkReceived()
                                         onTargetChange(TransferTarget.SENT)
-                                    },
+                                    }
                                 )
                             }
                             ShelfValue(
                                 "+" + transferAmountDisplay(state.receivedText, receivedCurrency, symbols),
                                 muted = state.receivedText.isEmpty(),
-                                color = if (receivedError != null) MaterialTheme.colorScheme.error else null,
+                                color = if (receivedError != null) MaterialTheme.colorScheme.error else null
                             )
-                        },
+                        }
                     )
                 }
                 ShelfDivider()
@@ -339,7 +374,7 @@ internal fun TransferEditor(
                     selectedCategoryId = state.selectedCategoryId,
                     showUncategorized = state.isEdit && !state.hadCategoryBefore,
                     showError = TransferDraftError.CATEGORY_MISSING in state.errors && state.sentText.isNotBlank(),
-                    onClick = { pickCategory = true },
+                    onClick = { pickCategory = true }
                 )
                 ShelfDivider()
                 DateShelfRow(
@@ -348,7 +383,7 @@ internal fun TransferEditor(
                     isFuture = TransferDraftError.DATE_IN_FUTURE in state.errors,
                     onOpenPicker = { pickDateTime = true },
                     onDateChange = actions.onDateChange,
-                    onTimeChange = actions.onTimeChange,
+                    onTimeChange = actions.onTimeChange
                 )
                 ShelfDivider()
                 NoteShelfRow(
@@ -356,7 +391,7 @@ internal fun TransferEditor(
                     hint = stringResource(R.string.txn_transfer_note_hint),
                     description = state.description,
                     isTooLong = TransferDraftError.DESCRIPTION_TOO_LONG in state.errors,
-                    onChange = actions.onDescriptionChange,
+                    onChange = actions.onDescriptionChange
                 )
                 ShelfDivider()
                 TagsShelfRow(
@@ -365,7 +400,7 @@ internal fun TransferEditor(
                     pendingTagNames = state.pendingTagNames,
                     onToggleTag = actions.onToggleTag,
                     onAddPendingTag = actions.onAddPendingTag,
-                    onRemovePendingTag = actions.onRemovePendingTag,
+                    onRemovePendingTag = actions.onRemovePendingTag
                 )
             }
             RecentCategoriesRow(
@@ -374,13 +409,13 @@ internal fun TransferEditor(
                 selectedCategoryId = state.selectedCategoryId,
                 recentCategoryIds = state.recentCategoryIds,
                 onSelectRecent = actions.onCategoryChange,
-                onCreateCategory = onNavigateCreateCategory?.let { create -> { create(CategoryType.TRANSFER.name) } },
+                onCreateCategory = onNavigateCreateCategory?.let { create -> { create(CategoryType.TRANSFER.name) } }
             )
         },
         shelfFooter = {
             PrimaryButton(transferCtaLabel(blocker), onClick = onSave, enabled = state.canSave)
         },
-        overlay = overlay,
+        overlay = overlay
     )
 
     DateTimePickerFlow(
@@ -393,7 +428,7 @@ internal fun TransferEditor(
             actions.onDateChange(date)
             actions.onTimeChange(time)
             pickDateTime = false
-        },
+        }
     )
 
     pickSide?.let { sideName ->
@@ -406,7 +441,7 @@ internal fun TransferEditor(
                     if (side == AccountSide.SOURCE) actions.onSourceChange(it) else actions.onDestChange(it)
                     pickSide = null
                 },
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         }
     }
@@ -418,12 +453,17 @@ internal fun TransferEditor(
                 type = CategoryType.TRANSFER,
                 mode = PickerMode.Assign(),
                 selectedId = state.selectedCategoryId,
-                onCreate = onNavigateCreateCategory?.let { nav -> { pickCategory = false; nav(CategoryType.TRANSFER.name) } },
+                onCreate = onNavigateCreateCategory?.let { nav ->
+                    {
+                        pickCategory = false
+                        nav(CategoryType.TRANSFER.name)
+                    }
+                },
                 onSelect = {
                     actions.onCategoryChange(it)
                     pickCategory = false
                 },
-                modifier = Modifier.padding(bottom = 16.dp),
+                modifier = Modifier.padding(bottom = 16.dp)
             )
         }
     }
@@ -447,7 +487,7 @@ internal fun transferCtaLabel(blocker: TransferBlocker?): String = stringResourc
         TransferBlocker.RECEIVED_EMPTY -> R.string.txn_error_received_empty
         TransferBlocker.CATEGORY_MISSING -> R.string.transaction_form_error_category_missing
         null -> R.string.editor_save_transfer
-    },
+    }
 )
 
 // ---------------------------------------------------------------------------
@@ -472,7 +512,7 @@ internal fun TransferDialogs(state: TransferEditUiState, viewModel: TransferEdit
                 TextButton(onClick = viewModel::onDismissCurrencyChange) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -488,14 +528,14 @@ internal fun TransferDialogs(state: TransferEditUiState, viewModel: TransferEdit
                         // The currency check runs before the opening-order check, so a currency
                         // change has already been confirmed when this dialog appears.
                         viewModel.save(confirmCurrencyChange = true, moveOpeningBalanceBack = true)
-                    },
+                    }
                 ) { Text(stringResource(R.string.action_confirm)) }
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onDismissOpeningOrder) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 
@@ -508,8 +548,8 @@ internal fun TransferDialogs(state: TransferEditUiState, viewModel: TransferEdit
                     stringResource(
                         R.string.transfer_form_delete_body,
                         state.deleteSentBack?.format().orEmpty(),
-                        state.deleteReceivedRemoved?.format().orEmpty(),
-                    ),
+                        state.deleteReceivedRemoved?.format().orEmpty()
+                    )
                 )
             },
             confirmButton = {
@@ -521,7 +561,7 @@ internal fun TransferDialogs(state: TransferEditUiState, viewModel: TransferEdit
                 TextButton(onClick = viewModel::onDismissDelete) {
                     Text(stringResource(R.string.action_cancel))
                 }
-            },
+            }
         )
     }
 }
@@ -572,7 +612,7 @@ private fun TransferPreviewContent(dark: Boolean, stage: EditorStage) {
         sourceChoices = listOf(PickableAccount(cash, false)),
         destChoices = listOf(PickableAccount(savings, false)),
         balances = mapOf(1L to Money(250_000, pln), 2L to Money(80_000, usd)),
-        effectiveRate = TransferFormLogic.effectiveRate("100", "25", pln, usd),
+        effectiveRate = TransferFormLogic.effectiveRate("100", "25", pln, usd)
     )
     PreviewTheme(dark) {
         TransferEditor(
@@ -582,9 +622,12 @@ private fun TransferPreviewContent(dark: Boolean, stage: EditorStage) {
             actions = TransferFormActions(),
             stage = stage,
             onStageChange = {},
-            topBar = { EditorTopBar(EditorMode.TRANSFER, isEdit = false, onClose = {}, onModeChange = {}, onDuplicate = null, onDelete = {}) },
+            topBar = {
+                EditorTopBar(EditorMode.TRANSFER, isEdit = false, onClose = {
+                }, onModeChange = {}, onDuplicate = null, onDelete = {})
+            },
             onSave = {},
-            shelfScroll = rememberScrollState(),
+            shelfScroll = rememberScrollState()
         )
     }
 }

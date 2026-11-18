@@ -2,8 +2,8 @@ package com.yehor.finora.domain.category
 
 import com.yehor.finora.domain.money.MoneyOverflowException
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class CategoryRollupTest {
@@ -17,7 +17,7 @@ class CategoryRollupTest {
         val tree = CategoryTree(listOf(cat(1), cat(2, 1), cat(3, 1)))
         val result = CategoryRollup.rollUp(
             tree,
-            listOf(direct(1, "PLN", 100), direct(2, "PLN", 700), direct(3, "PLN", 450)),
+            listOf(direct(1, "PLN", 100), direct(2, "PLN", 700), direct(3, "PLN", 450))
         )
         assertEquals(1250L, result.totals.getValue(1)["PLN"])
         assertEquals(700L, result.totals.getValue(2)["PLN"])
@@ -30,7 +30,7 @@ class CategoryRollupTest {
         val tree = CategoryTree(listOf(cat(1), cat(2, 1), cat(3, 2)))
         val result = CategoryRollup.rollUp(
             tree,
-            listOf(direct(1, "USD", 10, 1), direct(2, "USD", 20, 2), direct(3, "USD", 30, 3)),
+            listOf(direct(1, "USD", 10, 1), direct(2, "USD", 20, 2), direct(3, "USD", 30, 3))
         )
         assertEquals(60L, result.totals.getValue(1)["USD"])
         assertEquals(50L, result.totals.getValue(2)["USD"])
@@ -45,7 +45,7 @@ class CategoryRollupTest {
         val tree = CategoryTree(listOf(cat(1), cat(2, 1)))
         val result = CategoryRollup.rollUp(
             tree,
-            listOf(direct(1, "PLN", 100), direct(2, "PLN", 50), direct(2, "USD", 7), direct(1, "USD", 3)),
+            listOf(direct(1, "PLN", 100), direct(2, "PLN", 50), direct(2, "USD", 7), direct(1, "USD", 3))
         )
         assertEquals(mapOf("PLN" to 150L, "USD" to 10L), result.totals.getValue(1))
         assertEquals(mapOf("PLN" to 50L, "USD" to 7L), result.totals.getValue(2))
@@ -56,7 +56,7 @@ class CategoryRollupTest {
         val tree = CategoryTree(listOf(cat(1)))
         val result = CategoryRollup.rollUp(
             tree,
-            listOf(direct(null, "PLN", -40, 2), direct(1, "PLN", -10)),
+            listOf(direct(null, "PLN", -40, 2), direct(1, "PLN", -10))
         )
         assertEquals(-40L, result.totals.getValue(null)["PLN"])
         assertEquals(2, result.counts[null])
@@ -85,13 +85,13 @@ class CategoryRollupTest {
         assertThrows(MoneyOverflowException::class.java) {
             CategoryRollup.rollUp(
                 tree,
-                listOf(direct(1, "PLN", Long.MAX_VALUE), direct(2, "PLN", 1)),
+                listOf(direct(1, "PLN", Long.MAX_VALUE), direct(2, "PLN", 1))
             )
         }
         assertThrows(MoneyOverflowException::class.java) {
             CategoryRollup.rollUp(
                 tree,
-                listOf(direct(2, "PLN", Long.MIN_VALUE), direct(1, "PLN", -1)),
+                listOf(direct(2, "PLN", Long.MIN_VALUE), direct(1, "PLN", -1))
             )
         }
     }

@@ -1,8 +1,5 @@
 package com.yehor.finora.domain.analytics
 
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -10,6 +7,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transformLatest
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Emits today's date on collection and again at each local midnight plus one second. A value from
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.transformLatest
 class DayTicker(
     private val nowMillis: () -> Long,
     private val zone: () -> ZoneId,
-    private val zoneChanges: Flow<Unit> = emptyFlow(),
+    private val zoneChanges: Flow<Unit> = emptyFlow()
 ) {
 
     @OptIn(ExperimentalCoroutinesApi::class)

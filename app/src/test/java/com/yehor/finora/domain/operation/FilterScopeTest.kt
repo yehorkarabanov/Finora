@@ -15,7 +15,7 @@ class FilterScopeTest {
 
     private fun acc(id: Long, currency: Currency) = Account(
         id = id, name = "A$id", currency = currency, type = AccountType.BANK,
-        icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L,
+        icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L
     )
 
     @Test
@@ -85,7 +85,13 @@ class FilterScopeTest {
     @Test
     fun normalizeIsIdempotentAndPrunesStaleIds() {
         val accounts = listOf(acc(1, usd))
-        val filter = TransactionFilter(accountIds = setOf(1, 9), categoryIds = setOf(3, 4), exactCategoryIds = setOf(3, 4), tagIds = setOf(8))
+        val filter =
+            TransactionFilter(
+                accountIds = setOf(1, 9),
+                categoryIds = setOf(3, 4),
+                exactCategoryIds = setOf(3, 4),
+                tagIds = setOf(8)
+            )
         val once = FilterScope.normalize(filter, TransactionSort.DATE_DESC, accounts, setOf(3), emptySet())
         assertEquals(setOf(1L), once.filter.accountIds)
         assertEquals(setOf(3L), once.filter.categoryIds)
@@ -101,13 +107,13 @@ class FilterScopeTest {
             accountIds = setOf(1, 99),
             categoryIds = setOf(10, 88),
             exactCategoryIds = setOf(10, 88),
-            tagIds = setOf(100, 200),
+            tagIds = setOf(100, 200)
         )
         val pruned = FilterScope.pruneMissing(
             filter = filter,
             existingAccountIds = setOf(1),
             existingCategoryIds = setOf(10),
-            existingTagIds = setOf(100),
+            existingTagIds = setOf(100)
         )
         assertEquals(setOf(1L), pruned.accountIds)
         assertEquals(setOf(10L), pruned.categoryIds)
@@ -119,11 +125,43 @@ class FilterScopeTest {
     fun categoryClosureHonorsExactCategoryIds() {
         val tree = com.yehor.finora.domain.category.CategoryTree(
             listOf(
-                com.yehor.finora.domain.category.Category(1, "Food", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, null, 0L),
-                com.yehor.finora.domain.category.Category(2, "Groceries", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, 1, 0L),
-                com.yehor.finora.domain.category.Category(3, "Transport", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, null, 0L),
-                com.yehor.finora.domain.category.Category(4, "Bus", null, null, com.yehor.finora.domain.model.CategoryType.EXPENSE, 3, 0L),
-            ),
+                com.yehor.finora.domain.category.Category(
+                    1,
+                    "Food",
+                    null,
+                    null,
+                    com.yehor.finora.domain.model.CategoryType.EXPENSE,
+                    null,
+                    0L
+                ),
+                com.yehor.finora.domain.category.Category(
+                    2,
+                    "Groceries",
+                    null,
+                    null,
+                    com.yehor.finora.domain.model.CategoryType.EXPENSE,
+                    1,
+                    0L
+                ),
+                com.yehor.finora.domain.category.Category(
+                    3,
+                    "Transport",
+                    null,
+                    null,
+                    com.yehor.finora.domain.model.CategoryType.EXPENSE,
+                    null,
+                    0L
+                ),
+                com.yehor.finora.domain.category.Category(
+                    4,
+                    "Bus",
+                    null,
+                    null,
+                    com.yehor.finora.domain.model.CategoryType.EXPENSE,
+                    3,
+                    0L
+                )
+            )
         )
         // Stage 1 (Direct only): exactCategoryIds = {1}
         val directFilter = TransactionFilter(categoryIds = setOf(1), exactCategoryIds = setOf(1))

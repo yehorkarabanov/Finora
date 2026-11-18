@@ -28,7 +28,7 @@ import javax.inject.Singleton
 class BackupRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val db: FinoraDatabase,
-    private val categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository
 ) {
 
     val operationLock = Mutex()
@@ -39,36 +39,32 @@ class BackupRepository @Inject constructor(
         DataSummaryReader.read(db.openHelper.readableDatabase, size, FinoraDatabase.VERSION)
     }
 
-    suspend fun exportBackup(destination: Uri, fileName: String): Result<BackupExportResult> =
-        operationLock.withLock {
-            runCatching {
-                BackupExporter(context, db).export(destination, fileName)
-            }
+    suspend fun exportBackup(destination: Uri, fileName: String): Result<BackupExportResult> = operationLock.withLock {
+        runCatching {
+            BackupExporter(context, db).export(destination, fileName)
         }
+    }
 
-    suspend fun stageBackup(source: Uri, onProgress: (String) -> Unit = {}): StagingResult =
-        operationLock.withLock {
-            BackupImporter(context, db).stage(source, onProgress)
-        }
+    suspend fun stageBackup(source: Uri, onProgress: (String) -> Unit = {}): StagingResult = operationLock.withLock {
+        BackupImporter(context, db).stage(source, onProgress)
+    }
 
-    suspend fun commitBackup(ready: StagingResult.Ready): Result<Unit> =
-        operationLock.withLock {
-            runCatching {
-                BackupImporter(context, db).commit(ready)
-            }
+    suspend fun commitBackup(ready: StagingResult.Ready): Result<Unit> = operationLock.withLock {
+        runCatching {
+            BackupImporter(context, db).commit(ready)
         }
+    }
 
     suspend fun exportCsv(
         filter: TransactionFilter,
         destination: Uri,
         fileName: String,
-        zone: ZoneId = ZoneId.systemDefault(),
-    ): Result<CsvExportResult> =
-        operationLock.withLock {
-            runCatching {
-                CsvExporter(context, db, categoryRepository).export(filter, destination, fileName, zone)
-            }
+        zone: ZoneId = ZoneId.systemDefault()
+    ): Result<CsvExportResult> = operationLock.withLock {
+        runCatching {
+            CsvExporter(context, db, categoryRepository).export(filter, destination, fileName, zone)
         }
+    }
 
     fun consumeOutcome(): ImportOutcome? {
         val dbDir = context.getDatabasePath(FinoraDatabase.FILE_NAME).parentFile

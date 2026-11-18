@@ -25,7 +25,7 @@ data class ScratchAppSettingEntity(
     @PrimaryKey val key: String,
     val value: String,
     @ColumnInfo(name = "updated_at") val updatedAt: Long,
-    val note: String?,
+    val note: String?
 )
 
 @Database(
@@ -37,10 +37,10 @@ data class ScratchAppSettingEntity(
         OperationEntity::class,
         LedgerEntryEntity::class,
         OperationTagEntity::class,
-        ScratchAppSettingEntity::class,
+        ScratchAppSettingEntity::class
     ],
     version = 2,
-    exportSchema = true,
+    exportSchema = true
 )
 abstract class ScratchDatabase : RoomDatabase()
 

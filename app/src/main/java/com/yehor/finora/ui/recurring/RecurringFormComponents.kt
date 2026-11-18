@@ -43,11 +43,11 @@ internal fun FormKindTabs(kind: TransactionKind, locked: Boolean, onKindChange: 
     SegmentedPill(
         options = listOf(
             stringResource(R.string.transaction_kind_expense),
-            stringResource(R.string.transaction_kind_income),
+            stringResource(R.string.transaction_kind_income)
         ),
         selected = if (kind == TransactionKind.INCOME) 1 else 0,
         onSelect = { onKindChange(if (it == 1) TransactionKind.INCOME else TransactionKind.EXPENSE) },
-        enabled = !locked,
+        enabled = !locked
     )
 }
 
@@ -67,19 +67,19 @@ internal fun FormAmountSection(
     errorText: String?,
     symbols: DecimalFormatSymbols,
     onAccountClick: () -> Unit,
-    onAmountChange: (String) -> Unit,
+    onAmountChange: (String) -> Unit
 ) {
     Column(
         Modifier.padding(top = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         EditorAmount(
             sign = sign,
             amountText = amountText,
             currencySymbol = currencySymbol,
             symbols = symbols,
-            isError = errorText != null,
+            isError = errorText != null
         )
         if (errorText != null) {
             Text(errorText, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
@@ -89,7 +89,7 @@ internal fun FormAmountSection(
             Text(
                 archivedNote,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         QuickAmountRow(amountText, currencySymbol, onAmountChange)
@@ -97,7 +97,7 @@ internal fun FormAmountSection(
             decimalLabel = symbols.decimalSeparator.toString(),
             decimalEnabled = currencyScale > 0,
             onKey = { onAmountChange(AmountKeypad.applyKey(amountText, it, currencyScale)) },
-            onClear = { onAmountChange("") },
+            onClear = { onAmountChange("") }
         )
     }
 }
@@ -126,14 +126,14 @@ internal fun recurringCtaLabel(cta: RecurringCta, amountSuffix: String?): String
             RecurringCtaMissing.ENTER_NAME -> R.string.recurring_form_cta_enter_name
             RecurringCtaMissing.CHOOSE_CATEGORY -> R.string.recurring_form_cta_choose_category
             RecurringCtaMissing.FIX_ERRORS -> R.string.recurring_form_cta_fix_errors
-        },
+        }
     )
     is RecurringCta.Ready -> stringResource(
         when {
             cta.isEdit -> R.string.recurring_form_cta_save
             cta.kind == TransactionKind.INCOME -> R.string.recurring_form_cta_add_income
             else -> R.string.recurring_form_cta_add_expense
-        },
+        }
     ) + (amountSuffix?.let { " · $it" } ?: "")
 }
 
@@ -147,7 +147,7 @@ internal fun FormDatePickerDialog(
     initial: LocalDate,
     maxDate: LocalDate,
     onDismiss: () -> Unit,
-    onPicked: (LocalDate) -> Unit,
+    onPicked: (LocalDate) -> Unit
 ) {
     val maxUtcMidnight = TransactionDateTime.pickerUtcMidnight(maxDate)
     SingleDateDialog(
@@ -159,6 +159,6 @@ internal fun FormDatePickerDialog(
         onConfirm = {
             onPicked(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate())
             onDismiss()
-        },
+        }
     )
 }

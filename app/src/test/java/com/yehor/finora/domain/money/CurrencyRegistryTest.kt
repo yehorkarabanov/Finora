@@ -14,7 +14,7 @@ class CurrencyRegistryTest {
         "USD" to 2, "EUR" to 2, "GBP" to 2, "PLN" to 2, "UAH" to 2,
         "JPY" to 0, "KRW" to 0,
         "BHD" to 3, "KWD" to 3,
-        "CLF" to 4,
+        "CLF" to 4
     )
 
     @Test

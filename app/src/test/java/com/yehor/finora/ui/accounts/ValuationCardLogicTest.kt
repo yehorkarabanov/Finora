@@ -29,13 +29,13 @@ class ValuationCardLogicTest {
 
     private fun acc(id: Long, balance: Balance, code: String) = AccountWithBalance(
         Account(id, "a$id", CurrencyRegistry.get(code), AccountType.CASH, null, null, null, AccountStatus.ACTIVE, 0),
-        balance,
+        balance
     )
 
     private fun value(minor: Long, code: String) = Balance.Value(Money(minor, CurrencyRegistry.get(code)))
 
     private fun table(fetchedAt: Long = now) = RateTable(
-        mapOf(CurrencyPair(usd, pln) to RateQuote(BigDecimal("4"), LocalDate.of(2026, 11, 6), fetchedAt)),
+        mapOf(CurrencyPair(usd, pln) to RateQuote(BigDecimal("4"), LocalDate.of(2026, 11, 6), fetchedAt))
     )
 
     @Test
@@ -54,7 +54,10 @@ class ValuationCardLogicTest {
     @Test
     fun converted() {
         val card = ValuationCardLogic.build(
-            listOf(acc(1, value(1000, "PLN"), "PLN"), acc(2, value(100, "USD"), "USD")), pln, table(), now,
+            listOf(acc(1, value(1000, "PLN"), "PLN"), acc(2, value(100, "USD"), "USD")),
+            pln,
+            table(),
+            now
         )!!
         assertTrue(card.estimated)
         assertFalse(card.outdated)
@@ -64,7 +67,10 @@ class ValuationCardLogicTest {
     @Test
     fun outdated() {
         val card = ValuationCardLogic.build(
-            listOf(acc(1, value(100, "USD"), "USD")), pln, table(now - RateFreshness.OUTDATED_AFTER_MS - 1), now,
+            listOf(acc(1, value(100, "USD"), "USD")),
+            pln,
+            table(now - RateFreshness.OUTDATED_AFTER_MS - 1),
+            now
         )!!
         assertTrue(card.outdated)
         assertEquals(now - RateFreshness.OUTDATED_AFTER_MS - 1, card.oldestFetchedAt)
@@ -73,7 +79,10 @@ class ValuationCardLogicTest {
     @Test
     fun partialAndUnavailable() {
         val partial = ValuationCardLogic.build(
-            listOf(acc(1, value(100, "USD"), "USD"), acc(2, value(5, "THB"), "THB")), pln, table(), now,
+            listOf(acc(1, value(100, "USD"), "USD"), acc(2, value(5, "THB"), "THB")),
+            pln,
+            table(),
+            now
         )!!
         assertEquals(400L, partial.total!!.amountMinor)
         assertEquals(listOf(thb), partial.excluded)
@@ -86,7 +95,10 @@ class ValuationCardLogicTest {
     @Test
     fun overflowingBalanceIsListedAsNotIncluded() {
         val card = ValuationCardLogic.build(
-            listOf(acc(1, value(1000, "PLN"), "PLN"), acc(2, Balance.Overflow, "USD")), pln, table(), now,
+            listOf(acc(1, value(1000, "PLN"), "PLN"), acc(2, Balance.Overflow, "USD")),
+            pln,
+            table(),
+            now
         )!!
         assertEquals(1000L, card.total!!.amountMinor)
         assertEquals(listOf(usd), card.excluded)
@@ -95,10 +107,18 @@ class ValuationCardLogicTest {
     @Test
     fun summaryConversionOnlyForMultipleCurrencies() {
         fun summary(code: String, income: Long, expense: Long) = CurrencySummary(
-            CurrencyRegistry.get(code), Money(income, CurrencyRegistry.get(code)), Money(expense, CurrencyRegistry.get(code)), 1,
+            CurrencyRegistry.get(code),
+            Money(income, CurrencyRegistry.get(code)),
+            Money(expense, CurrencyRegistry.get(code)),
+            1
         )
         assertNull(SummaryConversion.build(listOf(summary("USD", 100, 50)), pln, table(), now))
-        val converted = SummaryConversion.build(listOf(summary("PLN", 1000, 200), summary("USD", 100, 50)), pln, table(), now)!!
+        val converted = SummaryConversion.build(
+            listOf(summary("PLN", 1000, 200), summary("USD", 100, 50)),
+            pln,
+            table(),
+            now
+        )!!
         assertEquals(1400L, converted.income!!.amountMinor)
         assertEquals(400L, converted.expense!!.amountMinor)
         assertEquals(1000L, converted.net!!.amountMinor)

@@ -19,14 +19,14 @@ import com.yehor.finora.domain.money.CurrencyRegistry
         ExchangeRateEntity::class,
         RecurringScheduleEntity::class,
         RecurringScheduleTagEntity::class,
-        RecurringOccurrenceEntity::class,
+        RecurringOccurrenceEntity::class
     ],
     version = FinoraDatabase.VERSION,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 1, to = 2),
-        AutoMigration(from = 2, to = 3),
-    ],
+        AutoMigration(from = 2, to = 3)
+    ]
 )
 abstract class FinoraDatabase : RoomDatabase() {
     abstract fun currencyDao(): CurrencyDao
@@ -56,7 +56,7 @@ object FinoraDatabaseCallback : RoomDatabase.Callback() {
         CurrencyRegistry.all.forEach { c ->
             db.execSQL(
                 "INSERT INTO currency (code, scale, symbol, name) VALUES (?, ?, ?, ?)",
-                arrayOf<Any>(c.code, c.scale, c.symbol, c.name),
+                arrayOf<Any>(c.code, c.scale, c.symbol, c.name)
             )
         }
     }

@@ -1,7 +1,5 @@
 package com.yehor.finora.ui.analytics
 
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,6 +49,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
+import com.yehor.finora.designsystem.theme.AmountStyle
+import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CurrencyScope
@@ -66,15 +70,10 @@ import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.DateRangePickerDialog
 import com.yehor.finora.ui.common.IconBadge
 import com.yehor.finora.ui.common.compactRangeLabel
-import com.yehor.finora.designsystem.theme.finance
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.Locale
-import com.yehor.finora.designsystem.theme.AmountStyle
-import com.yehor.finora.designsystem.theme.PillShape
-import com.yehor.finora.designsystem.theme.hairline
 
 // ---- Text helpers ----
 
@@ -138,7 +137,11 @@ fun periodTitle(state: PeriodState, period: ResolvedPeriod): String {
     return when (state.kind) {
         PeriodKind.TODAY ->
             if (state.offset == 0) stringResource(R.string.period_today) else from.format(full)
-        PeriodKind.WEEK -> "${from.format(dayMonth)} – ${to.format(if (to.year == LocalDate.now().year) dayMonth else full)}"
+        PeriodKind.WEEK -> "${
+            from.format(
+                dayMonth
+            )
+        } – ${to.format(if (to.year == LocalDate.now().year) dayMonth else full)}"
         PeriodKind.MONTH -> monthYearName(from, locale)
         PeriodKind.YEAR -> from.year.toString()
         PeriodKind.CUSTOM -> compactRangeLabel(from, to, locale)
@@ -153,7 +156,7 @@ fun AmountText(
     modifier: Modifier = Modifier,
     style: androidx.compose.ui.text.TextStyle = AmountStyle,
     color: Color = Color.Unspecified,
-    signed: Boolean = false,
+    signed: Boolean = false
 ) {
     val estimate = cell?.estimate
     val text = if (signed && estimate != null && cell.isShowable()) signedText(estimate) else cellText(cell)
@@ -164,7 +167,9 @@ fun AmountText(
                 AppIcons.Warning,
                 contentDescription = stringResource(R.string.analytics_partial_warning),
                 tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(start = 4.dp).size(16.dp),
+                modifier = Modifier
+                    .padding(start = 4.dp)
+                    .size(16.dp)
             )
         }
     }
@@ -199,7 +204,7 @@ fun PeriodSelector(
     modifier: Modifier = Modifier,
     arrows: Boolean = false,
     canShiftForward: Boolean = false,
-    onShift: (Int) -> Unit = {},
+    onShift: (Int) -> Unit = {}
 ) {
     var showSheet by rememberSaveable { mutableStateOf(false) }
     var showPicker by rememberSaveable { mutableStateOf(false) }
@@ -207,7 +212,7 @@ fun PeriodSelector(
     Surface(
         modifier = modifier.heightIn(min = 44.dp),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (arrows) {
@@ -219,17 +224,20 @@ fun PeriodSelector(
                 Modifier
                     .weight(1f, fill = arrows)
                     .heightIn(min = 44.dp)
-                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.period_sheet_title)) { showSheet = true }
+                    .clickable(role = Role.Button, onClickLabel = stringResource(R.string.period_sheet_title)) {
+                        showSheet =
+                            true
+                    }
                     .padding(start = if (arrows) 0.dp else 16.dp, end = if (arrows) 0.dp else 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     periodTitle(state, period),
                     style = MaterialTheme.typography.labelLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 Icon(AppIcons.Dropdown, contentDescription = null, modifier = Modifier.size(IconSize.Medium))
             }
@@ -244,11 +252,15 @@ fun PeriodSelector(
     if (showSheet) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(onDismissRequest = { showSheet = false }, sheetState = sheetState) {
-            Column(Modifier.navigationBarsPadding().padding(bottom = 8.dp)) {
+            Column(
+                Modifier
+                    .navigationBarsPadding()
+                    .padding(bottom = 8.dp)
+            ) {
                 Text(
                     stringResource(R.string.period_sheet_title),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
                 )
                 PeriodKind.entries.forEach { kind ->
                     val selected = state.kind == kind
@@ -264,7 +276,7 @@ fun PeriodSelector(
                             { Text(rangeLabel(period), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                         } else {
                             null
-                        },
+                        }
                     )
                 }
             }
@@ -283,7 +295,7 @@ fun PeriodSelector(
             onConfirm = { start, end ->
                 showPicker = false
                 onCustom(start, end)
-            },
+            }
         )
     }
 }
@@ -304,7 +316,7 @@ fun AccountSelector(
     selectedAccountIds: Set<Long>,
     onToggleAccount: (Long) -> Unit,
     onClearSelection: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     if (accounts.isEmpty()) return
     var showSheet by rememberSaveable { mutableStateOf(false) }
@@ -324,22 +336,34 @@ fun AccountSelector(
             .heightIn(min = 48.dp)
             .clip(PillShape)
             .clickable(role = Role.Button) { showSheet = true },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Row(
             Modifier
                 .background(if (active) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainerHigh, PillShape)
                 .border(
-                    if (active) BorderStroke(1.dp, scheme.primary.copy(alpha = 0.4f)) else hairline(MaterialTheme.finance.isDark),
-                    PillShape,
+                    if (active) {
+                        BorderStroke(
+                            1.dp,
+                            scheme.primary.copy(alpha = 0.4f)
+                        )
+                    } else {
+                        hairline(MaterialTheme.finance.isDark)
+                    },
+                    PillShape
                 )
                 .heightIn(min = 36.dp)
                 .padding(start = 10.dp, end = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             val content = if (active) scheme.primary else scheme.onSurface
             if (selected.isEmpty()) {
-                Icon(AppIcons.Account, contentDescription = null, tint = content, modifier = Modifier.size(IconSize.Small))
+                Icon(
+                    AppIcons.Account,
+                    contentDescription = null,
+                    tint = content,
+                    modifier = Modifier.size(IconSize.Small)
+                )
             } else {
                 StackedBadges(selected)
             }
@@ -349,23 +373,36 @@ fun AccountSelector(
                 color = content,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 8.dp).widthIn(max = 104.dp),
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .widthIn(max = 104.dp)
             )
-            Icon(AppIcons.Dropdown, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Medium))
+            Icon(
+                AppIcons.Dropdown,
+                contentDescription = null,
+                tint = scheme.onSurfaceVariant,
+                modifier = Modifier.size(IconSize.Medium)
+            )
         }
     }
 
     if (showSheet) {
         ModalBottomSheet(onDismissRequest = { showSheet = false }) {
-            Column(Modifier.navigationBarsPadding().padding(bottom = 8.dp)) {
+            Column(
+                Modifier
+                    .navigationBarsPadding()
+                    .padding(bottom = 8.dp)
+            ) {
                 Row(
-                    Modifier.fillMaxWidth().padding(start = 24.dp, end = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         stringResource(R.string.filter_accounts),
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     TextButton(onClick = { showSheet = false }) { Text(stringResource(R.string.selector_done)) }
                 }
@@ -379,19 +416,23 @@ fun AccountSelector(
                             }
                         },
                         headlineContent = { Text(stringResource(R.string.filter_all_accounts_selected)) },
-                        trailingContent = { Checkbox(checked = selectedAccountIds.isEmpty(), onCheckedChange = null) },
+                        trailingContent = { Checkbox(checked = selectedAccountIds.isEmpty(), onCheckedChange = null) }
                     )
                     HorizontalDivider(Modifier.padding(horizontal = 16.dp))
                     accounts.forEach { account ->
                         ListItem(
                             modifier = Modifier.clickable(role = Role.Checkbox) { onToggleAccount(account.id) },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-                            leadingContent = { IconBadge(account.icon, account.color, ColorPalette.ACCOUNT_DEFAULT, size = 36) },
+                            leadingContent = {
+                                IconBadge(account.icon, account.color, ColorPalette.ACCOUNT_DEFAULT, size = 36)
+                            },
                             headlineContent = { Text(account.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                             supportingContent = {
                                 Text(account.currency.code, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             },
-                            trailingContent = { Checkbox(checked = account.id in selectedAccountIds, onCheckedChange = null) },
+                            trailingContent = {
+                                Checkbox(checked = account.id in selectedAccountIds, onCheckedChange = null)
+                            }
                         )
                     }
                 }
@@ -410,7 +451,7 @@ private fun StackedBadges(accounts: List<Account>) {
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.surfaceContainerHigh),
-                modifier = Modifier.offset(x = (index * 12).dp),
+                modifier = Modifier.offset(x = (index * 12).dp)
             ) {
                 IconBadge(account.icon, account.color, ColorPalette.ACCOUNT_DEFAULT, size = 22)
             }
@@ -427,21 +468,21 @@ fun ConversionNote(info: ConversionInfo, scope: CurrencyScope, modifier: Modifie
                 Text(
                     stringResource(R.string.analytics_note_native, scope.currency.code),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             is CurrencyScope.Display -> {
                 if (info.converted) {
                     Text(
                         stringResource(R.string.analytics_note_converted, formatDate(info.oldestFetchedAt)),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 if (info.outdated) {
                     Text(
                         stringResource(R.string.valuation_outdated, formatDate(info.oldestFetchedAt)),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
                 NotIncludedLine(info.excluded)
@@ -451,7 +492,7 @@ fun ConversionNote(info: ConversionInfo, scope: CurrencyScope, modifier: Modifie
             Text(
                 stringResource(R.string.analytics_note_overflow),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.error
             )
         }
     }

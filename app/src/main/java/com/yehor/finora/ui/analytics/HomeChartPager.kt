@@ -1,8 +1,8 @@
 package com.yehor.finora.ui.analytics
 
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +72,7 @@ internal fun HomeChartPager(
     display: Currency?,
     chartFor: (HomePeriod) -> Flow<HomeChart>,
     onShow: (HomePeriod) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val page = period.stepsToLatest(today)
     val anchor = period.shifted(page)
@@ -86,7 +86,7 @@ internal fun HomeChartPager(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceContainer, CardShape)
             .border(hairline(MaterialTheme.finance.isDark), CardShape)
-            .padding(bottom = 12.dp),
+            .padding(bottom = 12.dp)
     ) {
         // Re-created only when the chain changes (mode, length or alignment), not on every settle.
         key(period.mode, anchor) {
@@ -111,12 +111,16 @@ internal fun HomeChartPager(
                 reverseLayout = true,
                 beyondViewportPageCount = 1,
                 key = { it },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) { index ->
                 // Only the settled page breathes; the pre-composed neighbours stay idle.
                 HomeChartPage(anchor.shifted(-index), today, display, chartFor, live = pagerState.settledPage == index)
             }
-            PageDots(pagerState.currentPage, Modifier.fillMaxWidth().padding(top = 4.dp))
+            PageDots(
+                pagerState.currentPage, Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp)
+            )
         }
     }
 }
@@ -127,7 +131,7 @@ private fun HomeChartPage(
     today: LocalDate,
     display: Currency?,
     chartFor: (HomePeriod) -> Flow<HomeChart>,
-    live: Boolean,
+    live: Boolean
 ) {
     val flow = remember(period) { chartFor(period) }
     val chart by flow.collectAsStateWithLifecycle(initialValue = null)
@@ -135,8 +139,16 @@ private fun HomeChartPage(
     val locale = LocalConfiguration.current.locales[0]
     val none = stringResource(R.string.analytics_none)
 
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 16.dp)) {
-        Box(Modifier.fillMaxWidth().height(150.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp)
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+        ) {
             val c = chart
             if (c != null) {
                 val currency = c.net.estimate?.currency ?: c.income.estimate?.currency ?: display
@@ -147,7 +159,7 @@ private fun HomeChartPage(
                     selectedIndex = selected,
                     onSelect = { selected = it },
                     label = { i -> bubbleLabel(c, i, currency, locale, none) },
-                    live = live,
+                    live = live
                 )
             }
         }
@@ -155,7 +167,12 @@ private fun HomeChartPage(
         val todayIndex = period.lastElapsedIndex(today)
         val n = c?.buckets?.size ?: 0
         val showsToday = c != null && todayIndex in 0 until n && !today.isAfter(period.to.atEndOfMonth())
-        Box(Modifier.fillMaxWidth().height(18.dp).padding(top = 2.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(18.dp)
+                .padding(top = 2.dp)
+        ) {
             if (showsToday) {
                 val fraction = if (n <= 1) 0.5f else todayIndex.toFloat() / (n - 1)
                 Text(
@@ -169,7 +186,7 @@ private fun HomeChartPage(
                             val x = (fraction * width - p.width / 2f).roundToInt().coerceIn(0, (width - p.width).coerceAtLeast(0))
                             p.place(x, 0)
                         }
-                    },
+                    }
                 )
             }
         }
@@ -192,7 +209,7 @@ private fun AxisLabels(unit: BucketUnit, buckets: List<Bucket>, locale: Locale) 
             Text(
                 buckets[i].fromDate.format(format),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -225,7 +242,7 @@ private fun PageDots(page: Int, modifier: Modifier = Modifier) {
             val width = animateDpAsState(
                 if (on) 18.dp else 6.dp,
                 animationSpec = if (reduce) snap() else spring(),
-                label = "dot",
+                label = "dot"
             )
             Box(
                 Modifier
@@ -237,8 +254,8 @@ private fun PageDots(page: Int, modifier: Modifier = Modifier) {
                     }
                     .background(
                         if (on) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest,
-                        PillShape,
-                    ),
+                        PillShape
+                    )
             )
         }
     }

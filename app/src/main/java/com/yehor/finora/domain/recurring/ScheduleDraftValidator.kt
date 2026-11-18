@@ -21,7 +21,7 @@ enum class ScheduleDraftError {
     INTERVAL_OUT_OF_RANGE,
     DATE_OUT_OF_RANGE,
     END_BEFORE_START,
-    TOO_MANY_PAST_OCCURRENCES,
+    TOO_MANY_PAST_OCCURRENCES
 }
 
 object ScheduleDraftValidator {
@@ -42,7 +42,7 @@ object ScheduleDraftValidator {
         now: Long = System.currentTimeMillis(),
         zone: ZoneId = ZoneId.systemDefault(),
         isEdit: Boolean = false,
-        hadCategoryBefore: Boolean = true,
+        hadCategoryBefore: Boolean = true
     ): Set<ScheduleDraftError> {
         val errors = mutableSetOf<ScheduleDraftError>()
 
@@ -98,7 +98,7 @@ object ScheduleDraftValidator {
                     rule = rule,
                     from = firstDate,
                     toInclusive = toDate,
-                    limit = MAX_PAST_OCCURRENCES + 2,
+                    limit = MAX_PAST_OCCURRENCES + 2
                 )
                 if (dueOccurrences.size > MAX_PAST_OCCURRENCES) {
                     errors += ScheduleDraftError.TOO_MANY_PAST_OCCURRENCES

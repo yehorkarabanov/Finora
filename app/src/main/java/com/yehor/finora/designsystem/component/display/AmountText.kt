@@ -25,13 +25,7 @@ import com.yehor.finora.designsystem.motion.rememberReduceMotion
 
 /** Formatted amount with the decimals in the amount colour at 70% alpha and 60% size; a changed value slides in vertically. */
 @Composable
-fun AmountText(
-    text: String,
-    style: TextStyle,
-    color: Color,
-    modifier: Modifier = Modifier,
-    animate: Boolean = true,
-) {
+fun AmountText(text: String, style: TextStyle, color: Color, modifier: Modifier = Modifier, animate: Boolean = true) {
     // Text resolves an unspecified colour from the style, then LocalContentColor; the fraction tint needs the real one.
     val tint = color.takeOrElse { style.color.takeOrElse { LocalContentColor.current } }
     val reduce = rememberReduceMotion()
@@ -49,7 +43,7 @@ fun AmountText(
                 (slideOutVertically(tween(250)) { -it / 2 * dir } + fadeOut(tween(150))) using
                 SizeTransform(clip = false)
         },
-        label = "amount",
+        label = "amount"
     ) { value ->
         Text(styledAmount(value, style, tint), style = style, color = color, maxLines = 1)
     }

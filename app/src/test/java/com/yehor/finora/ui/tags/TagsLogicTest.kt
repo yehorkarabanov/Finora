@@ -8,8 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TagsLogicTest {
-    private fun t(id: Long, name: String, usage: Int) =
-        TagWithUsage(Tag(id, name, null, 0L), usage)
+    private fun t(id: Long, name: String, usage: Int) = TagWithUsage(Tag(id, name, null, 0L), usage)
 
     private val tags = listOf(t(1, "Work", 2), t(2, "apple", 5), t(3, "Zoo", 5), t(4, "Home trip", 0))
 

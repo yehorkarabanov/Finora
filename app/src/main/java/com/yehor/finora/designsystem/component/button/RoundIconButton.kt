@@ -30,7 +30,7 @@ fun RoundIconButton(
     contentDescription: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     val interaction = remember { MutableInteractionSource() }
     // 48dp hit area around the 40dp visual circle.
@@ -40,15 +40,21 @@ fun RoundIconButton(
             .size(48.dp)
             .clip(CircleShape)
             .alpha(if (enabled) 1f else 0.38f)
-            .clickable(interactionSource = interaction, indication = LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
+            .clickable(
+                interactionSource = interaction,
+                indication = LocalIndication.current,
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .background(MaterialTheme.colorScheme.surfaceContainer, CircleShape)
                 .border(hairline(MaterialTheme.finance.isDark), CircleShape),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(icon, contentDescription, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
         }

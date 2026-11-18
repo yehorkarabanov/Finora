@@ -36,10 +36,10 @@ import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.input.SegmentedPill
 import com.yehor.finora.designsystem.component.sheet.FinoraSheet
+import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagMatchMode
-import com.yehor.finora.designsystem.theme.finance
 
 /** Most used first, then by name. The order is fixed while the sheet is open, so rows never jump on tap. */
 internal fun orderTags(tags: List<Tag>, usage: Map<Long, Int>): List<Tag> =
@@ -55,7 +55,7 @@ fun TagFilterSheet(
     tags: List<Tag>,
     usage: Map<Long, Int>,
     onFilterChange: (TransactionFilter) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val ordered = remember(tags) { orderTags(tags, usage) }
@@ -67,26 +67,44 @@ fun TagFilterSheet(
             FilterSheetHeader(
                 title = stringResource(R.string.filter_tags),
                 showClear = filter.tagIds.isNotEmpty(),
-                onClear = { onFilterChange(filter.copy(tagIds = emptySet(), tagMode = TagMatchMode.ANY)) },
+                onClear = { onFilterChange(filter.copy(tagIds = emptySet(), tagMode = TagMatchMode.ANY)) }
             )
 
             if (filter.tagIds.size >= 2) {
                 SegmentedPill(
                     options = listOf(
                         stringResource(R.string.filter_tag_mode_any_short),
-                        stringResource(R.string.filter_tag_mode_all_short),
+                        stringResource(R.string.filter_tag_mode_all_short)
                     ),
                     selected = if (filter.tagMode == TagMatchMode.ANY) 0 else 1,
-                    onSelect = { onFilterChange(filter.copy(tagMode = if (it == 0) TagMatchMode.ANY else TagMatchMode.ALL)) },
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    onSelect = {
+                        onFilterChange(
+                            filter.copy(
+                                tagMode = if (it ==
+                                    0
+                                ) {
+                                    TagMatchMode.ANY
+                                } else {
+                                    TagMatchMode.ALL
+                                }
+                            )
+                        )
+                    },
+                    modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Text(
                     stringResource(
-                        if (filter.tagMode == TagMatchMode.ALL) R.string.filter_tag_mode_all_hint else R.string.filter_tag_mode_any_hint,
+                        if (filter.tagMode ==
+                            TagMatchMode.ALL
+                        ) {
+                            R.string.filter_tag_mode_all_hint
+                        } else {
+                            R.string.filter_tag_mode_any_hint
+                        }
                     ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
             if (tags.size > FILTER_SEARCH_THRESHOLD) {
@@ -94,14 +112,14 @@ fun TagFilterSheet(
                     query,
                     { query = it },
                     stringResource(R.string.filter_tags_search),
-                    Modifier.padding(vertical = 8.dp),
+                    Modifier.padding(vertical = 8.dp)
                 )
             }
 
             LazyColumn(
                 modifier = Modifier.weight(1f, fill = false),
                 contentPadding = PaddingValues(top = 8.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 itemsIndexed(rows, key = { _, tag -> tag.id }) { index, tag ->
                     TagRow(
@@ -112,7 +130,7 @@ fun TagFilterSheet(
                         onToggle = {
                             val ids = filter.tagIds
                             onFilterChange(filter.copy(tagIds = if (tag.id in ids) ids - tag.id else ids + tag.id))
-                        },
+                        }
                     )
                 }
                 if (rows.isEmpty()) {
@@ -121,7 +139,7 @@ fun TagFilterSheet(
                             stringResource(R.string.transactions_empty_filter_title),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(16.dp),
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
@@ -140,26 +158,32 @@ private fun TagRow(tag: Tag, usage: Int, checked: Boolean, shape: Shape, onToggl
                 .clickable(role = Role.Checkbox, onClick = onToggle)
                 .heightIn(min = 60.dp)
                 .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                Modifier.size(36.dp).background(tint.copy(alpha = 0.18f), CircleShape),
-                contentAlignment = Alignment.Center,
+                Modifier
+                    .size(36.dp)
+                    .background(tint.copy(alpha = 0.18f), CircleShape),
+                contentAlignment = Alignment.Center
             ) {
                 Text("#", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = tint)
             }
-            Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 12.dp)
+            ) {
                 Text(
                     tag.name,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     pluralStringResource(R.plurals.analytics_operations, usage, usage),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Checkbox(checked = checked, onCheckedChange = null, modifier = Modifier.padding(end = 4.dp))

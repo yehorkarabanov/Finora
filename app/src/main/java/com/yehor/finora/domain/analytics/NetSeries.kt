@@ -11,11 +11,14 @@ object NetSeries {
         return income.indices.map { i ->
             val inc = income[i]
             val exp = expense[i]
-            if (i > lastIndex || inc == null || exp == null) null
-            else try {
-                Math.subtractExact(inc, exp)
-            } catch (e: ArithmeticException) {
+            if (i > lastIndex || inc == null || exp == null) {
                 null
+            } else {
+                try {
+                    Math.subtractExact(inc, exp)
+                } catch (e: ArithmeticException) {
+                    null
+                }
             }
         }
     }
@@ -27,12 +30,15 @@ object NetSeries {
     fun running(income: List<Long?>, expense: List<Long?>, lastIndex: Int = income.lastIndex): List<Long?> {
         var total = 0L
         return perBucket(income, expense, lastIndex).map { net ->
-            if (net == null) null
-            else try {
-                total = Math.addExact(total, net)
-                total
-            } catch (e: ArithmeticException) {
+            if (net == null) {
                 null
+            } else {
+                try {
+                    total = Math.addExact(total, net)
+                    total
+                } catch (e: ArithmeticException) {
+                    null
+                }
             }
         }
     }

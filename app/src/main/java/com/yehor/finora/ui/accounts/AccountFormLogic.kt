@@ -32,12 +32,19 @@ data class AccountFormState(
     val saving: Boolean = false,
     val saved: Boolean = false,
     val dateOrderRejected: Boolean = false,
-    val saveFailed: Boolean = false,
+    val saveFailed: Boolean = false
 )
 
 /** Why the form's primary button is disabled. */
 enum class AccountFormBlocker {
-    LOADING, SAVING, NAME_EMPTY, NAME_TOO_LONG, CURRENCY_MISSING, AMOUNT_INVALID, DESCRIPTION_TOO_LONG, DATE_TOO_LATE,
+    LOADING,
+    SAVING,
+    NAME_EMPTY,
+    NAME_TOO_LONG,
+    CURRENCY_MISSING,
+    AMOUNT_INVALID,
+    DESCRIPTION_TOO_LONG,
+    DATE_TOO_LATE
 }
 
 object AccountFormLogic {
@@ -53,17 +60,17 @@ object AccountFormLogic {
 
     /** Signed minor units entered in the form, null when the amount is empty or zero or unparsable. */
     fun openingMinor(s: AccountFormState): Long? {
-        val parsed = AccountDraftValidator.parseAmount(s.amountText, parseCurrency(s)) as? AmountParse.Value ?: return null
+        val parsed =
+            AccountDraftValidator.parseAmount(s.amountText, parseCurrency(s)) as? AmountParse.Value ?: return null
         return parsed.minor.takeIf { it != 0L }
     }
 
-    fun errors(s: AccountFormState): Set<AccountDraftError> =
-        AccountDraftValidator.validate(
-            name = s.name,
-            description = s.description,
-            amountText = if (openingSectionEnabled(s)) s.amountText else "",
-            currency = parseCurrency(s),
-        )
+    fun errors(s: AccountFormState): Set<AccountDraftError> = AccountDraftValidator.validate(
+        name = s.name,
+        description = s.description,
+        amountText = if (openingSectionEnabled(s)) s.amountText else "",
+        currency = parseCurrency(s)
+    )
 
     /** True when the chosen date is later than [OpeningDatePolicy.latestAllowed]. Only matters with an amount. */
     fun dateTooLate(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean =
@@ -72,7 +79,7 @@ object AccountFormLogic {
     private val AMOUNT_ERRORS: Set<AccountDraftError> = setOf(
         AccountDraftError.AMOUNT_INVALID,
         AccountDraftError.AMOUNT_TOO_PRECISE,
-        AccountDraftError.AMOUNT_OUT_OF_RANGE,
+        AccountDraftError.AMOUNT_OUT_OF_RANGE
     )
 
     /** The first reason the form cannot be saved yet, null when it can. */
@@ -91,8 +98,7 @@ object AccountFormLogic {
         }
     }
 
-    fun canSave(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean =
-        blocker(s, policy, now) == null
+    fun canSave(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean = blocker(s, policy, now) == null
 
     /** Flips the sign of the amount text: "" -> "-", "12" <-> "-12". Surrounding whitespace is dropped. */
     fun toggleSign(text: String): String {

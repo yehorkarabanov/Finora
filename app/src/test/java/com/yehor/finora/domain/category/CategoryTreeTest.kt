@@ -7,21 +7,21 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-internal fun cat(
-    id: Long,
-    parentId: Long? = null,
-    type: CategoryType = CategoryType.EXPENSE,
-    name: String = "c$id",
-) = Category(id, name, null, null, type, parentId, 0L)
+internal fun cat(id: Long, parentId: Long? = null, type: CategoryType = CategoryType.EXPENSE, name: String = "c$id") =
+    Category(id, name, null, null, type, parentId, 0L)
 
 class CategoryTreeTest {
 
     // 1 -> 2 -> 3 -> (none); 1 -> 4; 5 root; income root 6
     private val tree = CategoryTree(
         listOf(
-            cat(1), cat(2, 1), cat(3, 2), cat(4, 1), cat(5),
-            cat(6, type = CategoryType.INCOME),
-        ),
+            cat(1),
+            cat(2, 1),
+            cat(3, 2),
+            cat(4, 1),
+            cat(5),
+            cat(6, type = CategoryType.INCOME)
+        )
     )
 
     @Test

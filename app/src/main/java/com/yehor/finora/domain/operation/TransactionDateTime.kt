@@ -23,9 +23,7 @@ object TransactionDateTime {
 
     fun isFuture(instant: Long, now: Long): Boolean = instant > now
 
-    fun latestSelectableDay(now: Long, zone: ZoneId): LocalDate =
-        Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+    fun latestSelectableDay(now: Long, zone: ZoneId): LocalDate = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
 
-    fun pickerUtcMidnight(date: LocalDate): Long =
-        date.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+    fun pickerUtcMidnight(date: LocalDate): Long = date.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
 }

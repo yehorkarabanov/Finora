@@ -20,7 +20,7 @@ data class DeletionImpact(
     val directOperationCount: Int,
     val childCount: Int,
     val suggestedTarget: Long?,
-    val scheduleCount: Int = 0,
+    val scheduleCount: Int = 0
 )
 
 /** Where the direct operations of a deleted category go. */
@@ -33,14 +33,18 @@ sealed interface ReassignTarget {
 class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
 
     private fun CategoryEntity.toDomain() = Category(
-        id = id, name = name, icon = icon, color = color, type = type, parentId = parentId, createdAt = createdAt,
+        id = id,
+        name = name,
+        icon = icon,
+        color = color,
+        type = type,
+        parentId = parentId,
+        createdAt = createdAt
     )
 
-    fun observeAll(): Flow<List<Category>> =
-        db.categoryDao().observeAll().map { list -> list.map { it.toDomain() } }
+    fun observeAll(): Flow<List<Category>> = db.categoryDao().observeAll().map { list -> list.map { it.toDomain() } }
 
-    private suspend fun loadTree(): CategoryTree =
-        CategoryTree(db.categoryDao().getAll().map { it.toDomain() })
+    private suspend fun loadTree(): CategoryTree = CategoryTree(db.categoryDao().getAll().map { it.toDomain() })
 
     suspend fun create(
         name: String,
@@ -48,14 +52,19 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
         parentId: Long?,
         icon: String?,
         color: Long?,
-        now: Long = System.currentTimeMillis(),
+        now: Long = System.currentTimeMillis()
     ): Long = db.withTransaction {
         val check = CategoryRules.checkParent(loadTree(), null, type, parentId)
         if (check != ParentCheck.OK) throw InvalidCategoryParentException(check)
         db.categoryDao().insert(
             CategoryEntity(
-                name = name, icon = icon, color = color, type = type, parentId = parentId, createdAt = now,
-            ),
+                name = name,
+                icon = icon,
+                color = color,
+                type = type,
+                parentId = parentId,
+                createdAt = now
+            )
         )
     }
 
@@ -78,7 +87,7 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
             directOperationCount = db.categoryDao().operationCount(id),
             childCount = db.categoryDao().childCount(id),
             suggestedTarget = entity.parentId,
-            scheduleCount = db.recurringDao().scheduleCountForCategory(id),
+            scheduleCount = db.recurringDao().scheduleCountForCategory(id)
         )
     }
 
@@ -86,11 +95,7 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
      * Rules C6 to C10: reassign the direct operations, move immediate subcategories up to the deleted
      * category's parent, delete the row. One transaction; any failure rolls all of it back.
      */
-    suspend fun delete(
-        id: Long,
-        target: ReassignTarget,
-        now: Long = System.currentTimeMillis(),
-    ) = db.withTransaction {
+    suspend fun delete(id: Long, target: ReassignTarget, now: Long = System.currentTimeMillis()) = db.withTransaction {
         val entity = db.categoryDao().getById(id)
             ?: throw InvariantViolationException("Unknown category $id")
         val targetId: Long? = when (target) {
@@ -117,7 +122,7 @@ class CategoryRepository @Inject constructor(private val db: FinoraDatabase) {
     suspend fun directTotals(
         type: OperationType,
         from: Long = Long.MIN_VALUE,
-        to: Long = Long.MAX_VALUE,
+        to: Long = Long.MAX_VALUE
     ): List<CategoryDirectTotal> {
         require(type == OperationType.INCOME || type == OperationType.EXPENSE) {
             "directTotals supports INCOME and EXPENSE only"

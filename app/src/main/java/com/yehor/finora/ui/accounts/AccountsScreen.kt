@@ -100,14 +100,20 @@ fun BalanceText(balance: Balance, modifier: Modifier = Modifier, large: Boolean 
             stringResource(R.string.accounts_balance_overflow),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error,
-            modifier = modifier,
+            modifier = modifier
         )
         is Balance.Value -> Text(
             balance.money.format(),
             style = style.copy(fontFeatureSettings = "tnum"),
             fontWeight = FontWeight.SemiBold,
-            color = if (balance.money.amountMinor < 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
-            modifier = modifier,
+            color = if (balance.money.amountMinor <
+                0
+            ) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            },
+            modifier = modifier
         )
     }
 }
@@ -117,7 +123,7 @@ fun AccountsScreen(
     onOpen: (Long) -> Unit,
     onAdd: () -> Unit,
     onAddTransfer: () -> Unit,
-    viewModel: AccountsViewModel = hiltViewModel(),
+    viewModel: AccountsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     AccountsContent(state, onOpen, onAdd, onAddTransfer, onRestore = viewModel::restore)
@@ -130,50 +136,63 @@ fun AccountsContent(
     onAdd: () -> Unit,
     onAddTransfer: () -> Unit,
     onRestore: (Long) -> Unit,
-    initiallyExpanded: Boolean = false,
+    initiallyExpanded: Boolean = false
 ) {
     var archivedExpanded by rememberSaveable { mutableStateOf(initiallyExpanded) }
     val listState = rememberLazyListState()
     val isEmpty = !state.loading && state.active.isEmpty() && state.archived.isEmpty()
     if (!isEmpty) BindShellFab(listState, null, stringResource(R.string.fab_account), onAdd)
 
-    Column(Modifier.fillMaxSize().statusBarsPadding()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+    ) {
         Row(
             Modifier.padding(start = 18.dp, end = 12.dp, top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 stringResource(R.string.accounts_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f).semantics { heading() },
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { heading() }
             )
             // A transfer needs two different active accounts.
             RoundIconButton(
                 AppIcons.Transfer,
                 stringResource(R.string.accounts_add_transfer),
                 onAddTransfer,
-                enabled = state.active.size >= 2,
+                enabled = state.active.size >= 2
             )
         }
         if (isEmpty) {
             Column(
-                Modifier.fillMaxSize().padding(18.dp),
-                verticalArrangement = Arrangement.Center,
+                Modifier
+                    .fillMaxSize()
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.Center
             ) {
                 AccountsEmptyState(
                     icon = AppIcons.Account,
                     title = stringResource(R.string.accounts_empty_title),
                     body = stringResource(R.string.accounts_empty_body),
                     actionLabel = stringResource(R.string.accounts_add),
-                    onAction = onAdd,
+                    onAction = onAdd
                 )
             }
         } else {
             LazyColumn(
                 Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 8.dp + ShellFabClearance),
+                contentPadding = PaddingValues(
+                    start = 18.dp,
+                    end = 18.dp,
+                    top = 8.dp,
+                    bottom = 8.dp + ShellFabClearance
+                )
             ) {
                 state.valuation?.let { valuation ->
                     item(key = "header") { AccountsTotalHeader(state, valuation) }
@@ -193,18 +212,18 @@ fun AccountsContent(
                             Row(
                                 Modifier.padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Icon(
                                     AppIcons.Account,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(20.dp)
                                 )
                                 Text(
                                     stringResource(R.string.account_list_no_active_hint),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -217,7 +236,7 @@ fun AccountsContent(
                             expanded = archivedExpanded,
                             onToggle = { archivedExpanded = !archivedExpanded },
                             onOpen = onOpen,
-                            onRestore = onRestore,
+                            onRestore = onRestore
                         )
                     }
                 }
@@ -230,7 +249,7 @@ fun AccountsContent(
 private fun RowDivider() {
     HorizontalDivider(
         Modifier.padding(horizontal = 14.dp),
-        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
     )
 }
 
@@ -240,13 +259,17 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
     val scheme = MaterialTheme.colorScheme
     val total = valuation.total
     val currencyCode = total?.currency?.code ?: state.displayCurrency?.code.orEmpty()
-    Column(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 16.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, end = 4.dp, top = 6.dp, bottom = 16.dp)
+    ) {
         Row(verticalAlignment = Alignment.Bottom) {
             Column(Modifier.weight(1f)) {
                 Text(
                     stringResource(R.string.accounts_total, currencyCode).uppercase(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = scheme.onSurfaceVariant,
+                    color = scheme.onSurfaceVariant
                 )
                 val style = MaterialTheme.typography.displaySmall.copy(fontSize = 32.sp, lineHeight = 40.sp)
                 if (total != null) {
@@ -258,7 +281,7 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
                             " ${total.currency.symbol}",
                             style = style.copy(fontSize = style.fontSize * 0.6f),
                             color = scheme.onSurface,
-                            modifier = Modifier.padding(bottom = 4.dp),
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
                     }
                 } else {
@@ -266,7 +289,7 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
                         stringResource(R.string.valuation_unavailable),
                         style = style,
                         color = scheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
@@ -274,14 +297,17 @@ private fun AccountsTotalHeader(state: AccountsUiState, valuation: ValuationCard
                 pluralStringResource(R.plurals.accounts_count, state.active.size, state.active.size),
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(bottom = 6.dp),
+                modifier = Modifier.padding(bottom = 6.dp)
             )
         }
         ValuationNotes(valuation)
         if (state.shares.isNotEmpty()) {
             val finance = MaterialTheme.finance
             val parts = remember(state.active, state.shares, finance) {
-                val colors = state.active.associate { it.account.id to finance.accent(ColorPalette.resolve(it.account.color, ColorPalette.ACCOUNT_DEFAULT)) }
+                val colors = state.active.associate {
+                    it.account.id to
+                        finance.accent(ColorPalette.resolve(it.account.color, ColorPalette.ACCOUNT_DEFAULT))
+                }
                 state.shares.mapNotNull { (id, share) -> colors[id]?.let { share to it } }
             }
             SplitBar(parts = parts, modifier = Modifier.padding(top = 14.dp))
@@ -298,7 +324,7 @@ private fun AccountRow(
     trend: AccountTrend?,
     onOpen: (Long) -> Unit,
     /** Non-null for archived rows: they are greyed, have no sparkline and offer Restore. */
-    onRestore: ((Long) -> Unit)?,
+    onRestore: ((Long) -> Unit)?
 ) {
     val a = item.account
     val archived = onRestore != null
@@ -311,11 +337,13 @@ private fun AccountRow(
             .heightIn(min = AccountRowMinHeight)
             .padding(horizontal = 14.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
-            dim.size(36.dp).background(tint.copy(alpha = 0.14f), RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center,
+            dim
+                .size(36.dp)
+                .background(tint.copy(alpha = 0.14f), RoundedCornerShape(14.dp)),
+            contentAlignment = Alignment.Center
         ) {
             Icon(IconCatalog.get(a.icon), contentDescription = null, tint = tint, modifier = Modifier.size(18.dp))
         }
@@ -326,14 +354,14 @@ private fun AccountRow(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 "${stringResource(a.type.labelRes())} · ${a.currency.code}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
         }
         if (!archived) {
@@ -346,7 +374,7 @@ private fun AccountRow(
                         modifier = Modifier.fillMaxSize(),
                         sparkline = true,
                         color = tint,
-                        label = { "" },
+                        label = { "" }
                     )
                 }
             }
@@ -377,7 +405,7 @@ private fun RestoreChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
             .widthIn(min = 48.dp)
             .clip(PillShape)
             .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Text(
             stringResource(R.string.accounts_restore),
@@ -387,7 +415,7 @@ private fun RestoreChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
             maxLines = 1,
             modifier = Modifier
                 .background(primary.copy(alpha = 0.12f), PillShape)
-                .padding(horizontal = 10.dp, vertical = 4.dp),
+                .padding(horizontal = 10.dp, vertical = 4.dp)
         )
     }
 }
@@ -399,20 +427,24 @@ private fun ArchivedSection(
     expanded: Boolean,
     onToggle: () -> Unit,
     onOpen: (Long) -> Unit,
-    onRestore: (Long) -> Unit,
+    onRestore: (Long) -> Unit
 ) {
     val reduce = rememberReduceMotion()
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
         animationSpec = if (reduce) snap() else FinoraMotion.bouncy,
-        label = "archivedChevron",
+        label = "archivedChevron"
     )
     val stateText = stringResource(
-        if (expanded) R.string.account_list_archived_expanded else R.string.account_list_archived_collapsed,
+        if (expanded) R.string.account_list_archived_expanded else R.string.account_list_archived_collapsed
     )
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(20.dp)
-    Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp)
+    ) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -422,40 +454,51 @@ private fun ArchivedSection(
                 .clickable(role = Role.Button, onClick = onToggle)
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
-                Modifier.size(36.dp).background(scheme.surfaceContainer, RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center,
+                Modifier
+                    .size(36.dp)
+                    .background(scheme.surfaceContainer, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(AppIcons.Archive, contentDescription = null, tint = scheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
+                Icon(
+                    AppIcons.Archive,
+                    contentDescription = null,
+                    tint = scheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
             }
             Column(Modifier.weight(1f)) {
                 Text(
                     stringResource(R.string.accounts_archived_row),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = scheme.onSurfaceVariant,
+                    color = scheme.onSurfaceVariant
                 )
                 Text(
                     pluralStringResource(R.plurals.accounts_hidden_from_totals, archived.size, archived.size),
                     style = MaterialTheme.typography.bodySmall,
-                    color = scheme.onSurfaceVariant,
+                    color = scheme.onSurfaceVariant
                 )
             }
             Icon(
                 AppIcons.Expand,
                 contentDescription = stringResource(if (expanded) R.string.action_collapse else R.string.action_expand),
                 tint = scheme.onSurfaceVariant,
-                modifier = Modifier.rotate(rotation),
+                modifier = Modifier.rotate(rotation)
             )
         }
         AnimatedVisibility(
             visible = expanded,
             enter = if (reduce) fadeIn(snap()) else expandVertically() + fadeIn(),
-            exit = if (reduce) fadeOut(snap()) else shrinkVertically() + fadeOut(),
+            exit = if (reduce) fadeOut(snap()) else shrinkVertically() + fadeOut()
         ) {
-            GroupedCard(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            GroupedCard(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
                 archived.forEachIndexed { index, item ->
                     if (index > 0) RowDivider()
                     AccountRow(item, trend = null, onOpen = onOpen, onRestore = onRestore)
@@ -504,8 +547,12 @@ private fun AccountsEmptyDarkPreview() = AccountsPreviewContent(dark = true, sam
 private enum class AccountsSample { Several, One, Empty }
 
 private fun previewAccount(
-    id: Long, name: String, code: String, type: AccountType, color: Long?,
-    status: AccountStatus = AccountStatus.ACTIVE,
+    id: Long,
+    name: String,
+    code: String,
+    type: AccountType,
+    color: Long?,
+    status: AccountStatus = AccountStatus.ACTIVE
 ) = Account(id, name, CurrencyRegistry.get(code), type, null, color, null, status, 0)
 
 @Composable
@@ -517,26 +564,34 @@ private fun AccountsPreviewContent(dark: Boolean, sample: AccountsSample, archiv
         AccountsSample.Empty -> AccountsUiState(loading = false)
         AccountsSample.One -> AccountsUiState(
             loading = false,
-            active = listOf(AccountWithBalance(previewAccount(1, "Wallet", "USD", AccountType.CASH, 0xFFFFA05A), bal(47_800, "USD"))),
+            active = listOf(
+                AccountWithBalance(previewAccount(1, "Wallet", "USD", AccountType.CASH, 0xFFFFA05A), bal(47_800, "USD"))
+            ),
             valuation = total(47_800),
             displayCurrency = usd,
             shares = listOf(1L to 1f),
-            trends = mapOf(1L to AccountTrend(listOf(40_000, 40_000, 44_000, 43_000, 47_800), 0L)),
+            trends = mapOf(1L to AccountTrend(listOf(40_000, 40_000, 44_000, 43_000, 47_800), 0L))
         )
         AccountsSample.Several -> {
             val accounts = listOf(
                 previewAccount(1, "Monobank", "USD", AccountType.BANK, 0xFF00E599),
                 previewAccount(2, "Revolut", "USD", AccountType.BANK, 0xFFC4A0FF),
                 previewAccount(3, "Wallet", "USD", AccountType.CASH, 0xFFFFA05A),
-                previewAccount(4, "Savings", "USD", AccountType.SAVINGS, 0xFF78B4FF),
+                previewAccount(4, "Savings", "USD", AccountType.SAVINGS, 0xFF78B4FF)
             )
             val balances = listOf(11_080_000L, 421_000L, 47_800L, 1_901_200L)
             AccountsUiState(
                 loading = false,
                 active = accounts.mapIndexed { i, acc -> AccountWithBalance(acc, bal(balances[i], "USD")) },
                 archived = listOf(
-                    AccountWithBalance(previewAccount(5, "Old PrivatBank", "USD", AccountType.BANK, null, AccountStatus.ARCHIVED), bal(0, "USD")),
-                    AccountWithBalance(previewAccount(6, "Travel cash", "EUR", AccountType.CASH, null, AccountStatus.ARCHIVED), bal(3_500, "EUR")),
+                    AccountWithBalance(
+                        previewAccount(5, "Old PrivatBank", "USD", AccountType.BANK, null, AccountStatus.ARCHIVED),
+                        bal(0, "USD")
+                    ),
+                    AccountWithBalance(
+                        previewAccount(6, "Travel cash", "EUR", AccountType.CASH, null, AccountStatus.ARCHIVED),
+                        bal(3_500, "EUR")
+                    )
                 ),
                 valuation = total(balances.sum()),
                 displayCurrency = usd,
@@ -545,12 +600,13 @@ private fun AccountsPreviewContent(dark: Boolean, sample: AccountsSample, archiv
                     1L to AccountTrend(listOf(10, 12, 9, 15, 18, 22, 26), 324_000),
                     2L to AccountTrend(listOf(20, 18, 14, 15, 11, 9, 8), -12_000),
                     3L to AccountTrend(listOf(14, 14, 14, 14, 14), 0),
-                    4L to AccountTrend(listOf(4, 6, 10, 16, 22, 24), 40_000),
-                ),
+                    4L to AccountTrend(listOf(4, 6, 10, 16, 22, 24), 40_000)
+                )
             )
         }
     }
     PreviewTheme(dark) {
-        AccountsContent(state, onOpen = {}, onAdd = {}, onAddTransfer = {}, onRestore = {}, initiallyExpanded = archivedOpen)
+        AccountsContent(state, onOpen = {
+        }, onAdd = {}, onAddTransfer = {}, onRestore = {}, initiallyExpanded = archivedOpen)
     }
 }

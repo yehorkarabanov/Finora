@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -18,12 +18,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.designsystem.chart.SplitBar
+import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.display.AmountText
@@ -40,12 +40,11 @@ import com.yehor.finora.designsystem.component.navigation.NavBarItem
 import com.yehor.finora.designsystem.component.navigation.SpeedDialItem
 import com.yehor.finora.designsystem.component.sheet.RangeWheelsContent
 import com.yehor.finora.designsystem.icon.AppIcons
-import java.time.LocalDate
-import java.time.YearMonth
-import com.yehor.finora.designsystem.chart.WaveChart
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.grainyBackground
+import java.time.LocalDate
+import java.time.YearMonth
 
 /**
  * Gallery of every design-system component, light and dark. Later tasks append their
@@ -57,7 +56,7 @@ fun ComponentCatalog(modifier: Modifier = Modifier) {
         modifier = modifier
             .background(MaterialTheme.colorScheme.surface)
             .padding(18.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         ColorSwatches()
         TypeScale()
@@ -75,7 +74,7 @@ private fun Swatch(name: String, color: Color, modifier: Modifier = Modifier) {
         Box(
             Modifier
                 .size(44.dp)
-                .background(color, RoundedCornerShape(12.dp)),
+                .background(color, RoundedCornerShape(12.dp))
         )
         Text(name, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -96,7 +95,7 @@ private fun ColorSwatches(modifier: Modifier = Modifier) {
         "outline" to scheme.outlineVariant,
         "income" to finance.income,
         "expense" to finance.expense,
-        "negative" to finance.negative,
+        "negative" to finance.negative
     )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("Colors", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
@@ -120,7 +119,7 @@ private fun TypeScale(modifier: Modifier = Modifier) {
         "bodyLarge" to type.bodyLarge,
         "bodyMedium" to type.bodyMedium,
         "labelLarge" to type.labelLarge,
-        "labelSmall" to type.labelSmall,
+        "labelSmall" to type.labelSmall
     )
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text("Type scale", style = type.titleMedium, color = onSurface)
@@ -145,18 +144,30 @@ private fun ChartsSection(modifier: Modifier = Modifier) {
             selectedIndex = selected,
             onSelect = { selected = it },
             label = { "Day ${it + 1} · ${runningNet[it]}" },
-            modifier = Modifier.fillMaxWidth().height(160.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(160.dp)
         )
         ChartCaption("Monthly net")
-        WaveChart(monthlyNet, label = { "" }, modifier = Modifier.fillMaxWidth().height(140.dp))
+        WaveChart(
+            monthlyNet, label = { "" }, modifier = Modifier
+                .fillMaxWidth()
+                .height(140.dp)
+        )
         ChartCaption("Flat")
-        WaveChart(listOf(5L, 5L, 5L, 5L), label = { "" }, modifier = Modifier.fillMaxWidth().height(80.dp))
+        WaveChart(
+            listOf(5L, 5L, 5L, 5L), label = { "" }, modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+        )
         ChartCaption("Compare")
         WaveChart(
             values = runningNet.map { it + 400L },
             compare = compare,
             label = { "" },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp)
         )
         ChartCaption("Sparkline")
         WaveChart(
@@ -164,7 +175,9 @@ private fun ChartsSection(modifier: Modifier = Modifier) {
             sparkline = true,
             color = finance.expense,
             label = { "" },
-            modifier = Modifier.fillMaxWidth().height(36.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(36.dp)
         )
         Text("Split bar", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         SplitBar(listOf(5f to finance.income, 3f to finance.expense, 2f to scheme.primary))
@@ -212,11 +225,21 @@ private fun GrainSection(modifier: Modifier = Modifier) {
         Text("Grain", style = MaterialTheme.typography.titleMedium, color = scheme.onSurface)
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).background(gradient, shape))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(96.dp)
+                        .background(gradient, shape)
+                )
                 Text("Plain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(Modifier.fillMaxWidth().height(96.dp).grainyBackground(gradient, shape))
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(96.dp)
+                        .grainyBackground(gradient, shape)
+                )
                 Text("Grain", style = MaterialTheme.typography.labelMedium, color = scheme.onSurfaceVariant)
             }
         }
@@ -234,14 +257,14 @@ private fun ListSection(modifier: Modifier = Modifier) {
                 title = "Groceries",
                 subtitle = "Cash · Supermarket",
                 trailing = { AmountText("-48,20", MaterialTheme.typography.titleSmall, finance.expense) },
-                onClick = {},
+                onClick = {}
             )
             ListRow(
                 icon = { RoundIcon(AppIcons.Income, finance.income) },
                 title = "Salary",
                 subtitle = null,
                 trailing = { AmountText("+2 400,00", MaterialTheme.typography.titleSmall, finance.income) },
-                onClick = {},
+                onClick = {}
             )
         }
     }
@@ -253,24 +276,36 @@ private fun NavigationSection(modifier: Modifier = Modifier) {
         NavBarItem("Home", AppIcons.NavDashboard, AppIcons.NavDashboardSelected),
         NavBarItem("List", AppIcons.NavTransactions, AppIcons.NavTransactionsSelected),
         NavBarItem("Accounts", AppIcons.NavAccounts, AppIcons.NavAccountsSelected),
-        NavBarItem("Stats", AppIcons.NavStatistics, AppIcons.NavStatisticsSelected),
+        NavBarItem("Stats", AppIcons.NavStatistics, AppIcons.NavStatisticsSelected)
     )
     val dial = listOf(
         SpeedDialItem("Transfer", AppIcons.Transfer, {}, primary = false),
         SpeedDialItem("Income", AppIcons.Add, {}, primary = false),
-        SpeedDialItem("Expense", AppIcons.Remove, {}, primary = true),
+        SpeedDialItem("Expense", AppIcons.Remove, {}, primary = true)
     )
     var selected by remember { mutableStateOf(1) }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("Navigation", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         FinoraNavBar(items, selected, { selected = it }, Modifier.padding(horizontal = 0.dp))
-        Box(Modifier.fillMaxWidth().height(80.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+        ) {
             AddFab(FabMode.EXTENDED, expanded = false, onToggle = {}, label = "Add", speedDial = dial)
         }
-        Box(Modifier.fillMaxWidth().height(80.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+        ) {
             AddFab(FabMode.COLLAPSED, expanded = false, onToggle = {}, label = "Add", speedDial = dial)
         }
-        Box(Modifier.fillMaxWidth().height(320.dp)) {
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(320.dp)
+        ) {
             AddFab(FabMode.COLLAPSED, expanded = true, onToggle = {}, label = "Add", speedDial = dial)
         }
         Text("Range wheels", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
@@ -280,7 +315,7 @@ private fun NavigationSection(modifier: Modifier = Modifier) {
             today = LocalDate.of(2026, 11, 10),
             earliest = null,
             quickOptions = listOf("This month" to {}, "Last 3 months" to {}),
-            onConfirm = { _, _ -> },
+            onConfirm = { _, _ -> }
         )
     }
 }

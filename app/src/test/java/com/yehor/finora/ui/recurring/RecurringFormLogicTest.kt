@@ -49,7 +49,7 @@ private class FakeWriter(vararg failures: Throwable) : ScheduleWriter {
         id: Long,
         draft: ScheduleDraft,
         moveOpeningBalanceBack: Boolean,
-        confirmCurrencyChange: Boolean,
+        confirmCurrencyChange: Boolean
     ) {
         queue.removeFirstOrNull()?.let { throw it }
         calls += Call.Update(id, draft, moveOpeningBalanceBack, confirmCurrencyChange)
@@ -59,7 +59,7 @@ private class FakeWriter(vararg failures: Throwable) : ScheduleWriter {
 private fun createState(
     first: LocalDate = LocalDate.of(2026, 12, 1),
     end: LocalDate? = null,
-    frequency: FrequencyInput = FrequencyInput.of(RecurrenceRule(RecurrenceUnit.MONTH, 1)),
+    frequency: FrequencyInput = FrequencyInput.of(RecurrenceRule(RecurrenceUnit.MONTH, 1))
 ) = RecurringFormState(
     kind = TransactionKind.EXPENSE,
     name = "Rent",
@@ -68,7 +68,7 @@ private fun createState(
     categoryId = 10,
     frequency = frequency,
     firstDate = first,
-    endDate = end,
+    endDate = end
 )
 
 /** A monthly schedule from 2026-09-01 whose 2026-09-01 and 2026-10-01 were handled; it is on a USD account. */
@@ -77,7 +77,7 @@ private fun editState(
     next: LocalDate? = LocalDate.of(2026, 11, 1),
     accountId: Long = 1,
     active: Boolean = true,
-    accountArchived: Boolean = false,
+    accountArchived: Boolean = false
 ) = createState(first = first).copy(
     accountId = accountId,
     scheduleId = 5,
@@ -90,11 +90,11 @@ private fun editState(
             startDate = LocalDate.of(2026, 9, 1),
             rule = RecurrenceRule(RecurrenceUnit.MONTH, 1),
             endDate = null,
-            nextDate = next,
+            nextDate = next
         ),
         lastHandled = LocalDate.of(2026, 10, 1),
-        active = active,
-    ),
+        active = active
+    )
 )
 
 class RecurringFormLogicTest {
@@ -134,7 +134,10 @@ class RecurringFormLogicTest {
         assertTrue(ScheduleDraftError.INTERVAL_OUT_OF_RANGE in errors)
         assertFalse(RecurringFormLogic.canSave(createState(frequency = frequency), USD, NOW, ZONE))
         val big = frequency.copy(customIntervalText = "366")
-        assertTrue(ScheduleDraftError.INTERVAL_OUT_OF_RANGE in RecurringFormLogic.errors(createState(frequency = big), USD, NOW, ZONE))
+        assertTrue(
+            ScheduleDraftError.INTERVAL_OUT_OF_RANGE in
+                RecurringFormLogic.errors(createState(frequency = big), USD, NOW, ZONE)
+        )
     }
 
     // ---- Preview ----
@@ -143,7 +146,7 @@ class RecurringFormLogicTest {
     fun aFutureStartShowsTheNextDate() {
         assertEquals(
             FormPreview.Next(LocalDate.of(2026, 12, 1)),
-            RecurringFormLogic.preview(createState(), TODAY),
+            RecurringFormLogic.preview(createState(), TODAY)
         )
     }
 
@@ -151,7 +154,7 @@ class RecurringFormLogicTest {
     fun aStartTodayIsDueNow() {
         assertEquals(
             FormPreview.Due(1, TODAY, TODAY),
-            RecurringFormLogic.preview(createState(first = TODAY), TODAY),
+            RecurringFormLogic.preview(createState(first = TODAY), TODAY)
         )
     }
 
@@ -160,7 +163,7 @@ class RecurringFormLogicTest {
         val state = createState(first = LocalDate.of(2026, 11, 3), frequency = FrequencyInput(FrequencyPreset.DAILY))
         assertEquals(
             FormPreview.Due(4, LocalDate.of(2026, 11, 3), TODAY),
-            RecurringFormLogic.preview(state, TODAY),
+            RecurringFormLogic.preview(state, TODAY)
         )
     }
 
@@ -169,11 +172,11 @@ class RecurringFormLogicTest {
         val state = createState(
             first = LocalDate.of(2026, 11, 3),
             end = LocalDate.of(2026, 11, 4),
-            frequency = FrequencyInput(FrequencyPreset.DAILY),
+            frequency = FrequencyInput(FrequencyPreset.DAILY)
         )
         assertEquals(
             FormPreview.Due(2, LocalDate.of(2026, 11, 3), LocalDate.of(2026, 11, 4)),
-            RecurringFormLogic.preview(state, TODAY),
+            RecurringFormLogic.preview(state, TODAY)
         )
     }
 
@@ -187,15 +190,15 @@ class RecurringFormLogicTest {
     fun editingAPausedScheduleOrOneOnAnArchivedAccountCreatesNothingNow() {
         assertEquals(
             FormPreview.Next(LocalDate.of(2026, 11, 1)),
-            RecurringFormLogic.preview(editState(active = false), TODAY),
+            RecurringFormLogic.preview(editState(active = false), TODAY)
         )
         assertEquals(
             FormPreview.Next(LocalDate.of(2026, 11, 1)),
-            RecurringFormLogic.preview(editState(accountArchived = true), TODAY),
+            RecurringFormLogic.preview(editState(accountArchived = true), TODAY)
         )
         assertEquals(
             FormPreview.Due(1, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 1)),
-            RecurringFormLogic.preview(editState(), TODAY),
+            RecurringFormLogic.preview(editState(), TODAY)
         )
     }
 
@@ -260,7 +263,14 @@ class RecurringFormLogicTest {
     @Test
     fun anInvalidFormWritesNothing() = runTest {
         val writer = FakeWriter()
-        val result = RecurringFormLogic.save(createState().copy(name = " "), USD, NOW, ZONE, SaveConfirmations(), writer)
+        val result = RecurringFormLogic.save(
+            createState().copy(name = " "),
+            USD,
+            NOW,
+            ZONE,
+            SaveConfirmations(),
+            writer
+        )
         assertEquals(SaveResult.Invalid, result)
         assertTrue(writer.calls.isEmpty())
     }
@@ -290,7 +300,7 @@ class RecurringFormLogicTest {
         val second = RecurringFormLogic.save(state, EUR, NOW, ZONE, SaveConfirmations(currencyChange = true), writer)
         assertEquals(
             SaveResult.Gate(SaveGate.PastOccurrences(1, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 1))),
-            second,
+            second
         )
         assertTrue(writer.calls.isEmpty())
 
@@ -300,7 +310,7 @@ class RecurringFormLogicTest {
             NOW,
             ZONE,
             SaveConfirmations(currencyChange = true, pastOccurrences = true),
-            writer,
+            writer
         )
         assertEquals(SaveResult.Saved, third)
         val call = writer.calls.single() as Call.Update
@@ -328,7 +338,14 @@ class RecurringFormLogicTest {
         assertEquals(SaveResult.OpeningOrder, asked)
         assertTrue(writer.calls.isEmpty())
 
-        val retried = RecurringFormLogic.save(state, USD, NOW, ZONE, SaveConfirmations(moveOpeningBalanceBack = true), writer)
+        val retried = RecurringFormLogic.save(
+            state,
+            USD,
+            NOW,
+            ZONE,
+            SaveConfirmations(moveOpeningBalanceBack = true),
+            writer
+        )
         assertEquals(SaveResult.Saved, retried)
         assertTrue((writer.calls.single() as Call.Create).moveBack)
     }
@@ -345,7 +362,14 @@ class RecurringFormLogicTest {
     fun writeFailuresBecomeResultsNotCrashes() = runTest {
         assertEquals(
             SaveResult.Overflow,
-            RecurringFormLogic.save(createState(), USD, NOW, ZONE, SaveConfirmations(), FakeWriter(MoneyOverflowException("x"))),
+            RecurringFormLogic.save(
+                createState(),
+                USD,
+                NOW,
+                ZONE,
+                SaveConfirmations(),
+                FakeWriter(MoneyOverflowException("x"))
+            )
         )
         assertEquals(
             SaveResult.AccountArchived,
@@ -355,8 +379,8 @@ class RecurringFormLogicTest {
                 NOW,
                 ZONE,
                 SaveConfirmations(),
-                FakeWriter(ScheduleBlockedException(GenerationIssue.ACCOUNT_ARCHIVED)),
-            ),
+                FakeWriter(ScheduleBlockedException(GenerationIssue.ACCOUNT_ARCHIVED))
+            )
         )
         assertEquals(
             SaveResult.Invalid,
@@ -366,8 +390,8 @@ class RecurringFormLogicTest {
                 NOW,
                 ZONE,
                 SaveConfirmations(),
-                FakeWriter(CurrencyChangeNotConfirmedException("USD", "EUR")),
-            ),
+                FakeWriter(CurrencyChangeNotConfirmedException("USD", "EUR"))
+            )
         )
     }
 
@@ -393,7 +417,7 @@ class RecurringFormLogicTest {
         val state = createState(end = LocalDate.of(2027, 1, 1)).copy(
             selectedTagIds = setOf(1, 2),
             pendingTagNames = listOf("new"),
-            frequency = FrequencyInput(FrequencyPreset.CUSTOM, RecurrenceUnit.WEEK, "3"),
+            frequency = FrequencyInput(FrequencyPreset.CUSTOM, RecurrenceUnit.WEEK, "3")
         )
         val draft = RecurringFormLogic.draft(state, USD)!!
         assertEquals(RecurrenceRule(RecurrenceUnit.WEEK, 3), draft.rule)

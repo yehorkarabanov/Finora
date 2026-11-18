@@ -22,8 +22,7 @@ class MigrationInfrastructureTest {
     @get:Rule
     val productionHelper = MigrationTestHelper(instrumentation, FinoraDatabase::class.java)
 
-    private fun asset(path: String): ByteArray =
-        instrumentation.context.assets.open(path).use { it.readBytes() }
+    private fun asset(path: String): ByteArray = instrumentation.context.assets.open(path).use { it.readBytes() }
 
     /** The scratch migration must start from the real production v1 schema, byte for byte. */
     @Test
@@ -54,7 +53,10 @@ class MigrationInfrastructureTest {
     fun productionV1CanBeCreatedAndValidated() {
         productionHelper.createDatabase("production-v1", 1).close()
         productionHelper.runMigrationsAndValidate(
-            "production-v1", FinoraDatabase.VERSION, true, *ALL_MIGRATIONS,
+            "production-v1",
+            FinoraDatabase.VERSION,
+            true,
+            *ALL_MIGRATIONS
         ).close()
     }
 

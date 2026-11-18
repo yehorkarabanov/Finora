@@ -28,7 +28,7 @@ enum class FrequencyPreset { DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM }
 data class FrequencyInput(
     val preset: FrequencyPreset = FrequencyPreset.MONTHLY,
     val customUnit: RecurrenceUnit = RecurrenceUnit.MONTH,
-    val customIntervalText: String = "2",
+    val customIntervalText: String = "2"
 ) {
     /** An unparsable or out-of-range custom number gives interval 0, which the validator reports. */
     fun rule(): RecurrenceRule = when (preset) {
@@ -73,7 +73,7 @@ data class OriginalSchedule(
     val anchor: ScheduleDates.Anchor,
     val lastHandled: LocalDate?,
     /** A paused schedule creates nothing while saving (design 5.1 R8). */
-    val active: Boolean,
+    val active: Boolean
 )
 
 data class RecurringFormState(
@@ -92,7 +92,7 @@ data class RecurringFormState(
     val accountArchived: Boolean = false,
     /** Null when creating. */
     val original: OriginalSchedule? = null,
-    val scheduleId: Long = 0,
+    val scheduleId: Long = 0
 ) {
     val isEdit: Boolean get() = original != null
 
@@ -120,7 +120,7 @@ sealed interface SaveGate {
 data class SaveConfirmations(
     val currencyChange: Boolean = false,
     val pastOccurrences: Boolean = false,
-    val moveOpeningBalanceBack: Boolean = false,
+    val moveOpeningBalanceBack: Boolean = false
 )
 
 sealed interface SaveResult {
@@ -140,12 +140,7 @@ sealed interface SaveResult {
 /** The two writes the form needs; the ViewModel adapts `RecurringRepository` to it. */
 interface ScheduleWriter {
     suspend fun create(draft: ScheduleDraft, moveOpeningBalanceBack: Boolean)
-    suspend fun update(
-        id: Long,
-        draft: ScheduleDraft,
-        moveOpeningBalanceBack: Boolean,
-        confirmCurrencyChange: Boolean,
-    )
+    suspend fun update(id: Long, draft: ScheduleDraft, moveOpeningBalanceBack: Boolean, confirmCurrencyChange: Boolean)
 }
 
 object RecurringFormLogic {
@@ -156,7 +151,7 @@ object RecurringFormLogic {
         state: RecurringFormState,
         currency: Currency,
         now: Long = System.currentTimeMillis(),
-        zone: ZoneId = ZoneId.systemDefault(),
+        zone: ZoneId = ZoneId.systemDefault()
     ): Set<ScheduleDraftError> = ScheduleDraftValidator.validate(
         name = state.name,
         amountText = state.amountText,
@@ -169,7 +164,7 @@ object RecurringFormLogic {
         now = now,
         zone = zone,
         isEdit = state.isEdit,
-        hadCategoryBefore = state.hadCategoryBefore,
+        hadCategoryBefore = state.hadCategoryBefore
     )
 
     /**
@@ -183,7 +178,7 @@ object RecurringFormLogic {
         val result = ScheduleDates.reschedule(
             original.anchor,
             ScheduleDates.Edited(state.firstDate, rule, state.endDate),
-            original.lastHandled,
+            original.lastHandled
         )
         return if (result is ScheduleDates.Result.Rejected) original.lastHandled else null
     }
@@ -202,7 +197,7 @@ object RecurringFormLogic {
         return ScheduleDates.reschedule(
             original.anchor,
             ScheduleDates.Edited(state.firstDate, rule, state.endDate),
-            original.lastHandled,
+            original.lastHandled
         ) as? ScheduleDates.Result.Accepted
     }
 
@@ -218,7 +213,7 @@ object RecurringFormLogic {
                 rule(state),
                 next,
                 to,
-                ScheduleDraftValidator.MAX_PAST_OCCURRENCES + 1,
+                ScheduleDraftValidator.MAX_PAST_OCCURRENCES + 1
             )
             if (due.isNotEmpty()) return FormPreview.Due(due.size, due.first(), due.last())
         }
@@ -241,7 +236,7 @@ object RecurringFormLogic {
             newTagNames = state.pendingTagNames,
             rule = rule(state),
             firstDate = state.firstDate,
-            endDate = state.endDate,
+            endDate = state.endDate
         )
     }
 
@@ -251,7 +246,7 @@ object RecurringFormLogic {
         if (original.currency.code == newCurrency.code) return null
         return CurrencyChangeInfo(
             newFormatted = "${Money(amountMinor, newCurrency).toPlainString()} ${newCurrency.code}",
-            oldFormatted = "${original.money.toPlainString()} ${original.money.currency.code}",
+            oldFormatted = "${original.money.toPlainString()} ${original.money.currency.code}"
         )
     }
 
@@ -261,7 +256,7 @@ object RecurringFormLogic {
         currency: Currency,
         amountMinor: Long,
         today: LocalDate,
-        confirmed: SaveConfirmations,
+        confirmed: SaveConfirmations
     ): SaveGate? {
         if (!confirmed.currencyChange) {
             currencyChange(state, currency, amountMinor)?.let { return SaveGate.CurrencyChange(it) }
@@ -283,7 +278,7 @@ object RecurringFormLogic {
         now: Long,
         zone: ZoneId,
         confirmed: SaveConfirmations,
-        writer: ScheduleWriter,
+        writer: ScheduleWriter
     ): SaveResult {
         if (!canSave(state, currency, now, zone)) return SaveResult.Invalid
         val draft = draft(state, currency) ?: return SaveResult.Invalid
@@ -296,7 +291,7 @@ object RecurringFormLogic {
                     id = state.scheduleId,
                     draft = draft,
                     moveOpeningBalanceBack = confirmed.moveOpeningBalanceBack,
-                    confirmCurrencyChange = confirmed.currencyChange,
+                    confirmCurrencyChange = confirmed.currencyChange
                 )
             } else {
                 writer.create(draft, confirmed.moveOpeningBalanceBack)

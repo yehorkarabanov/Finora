@@ -29,11 +29,11 @@ class AccountFormLogicTest {
         original: Long? = null,
         earliest: Long? = null,
         date: Long = today,
-        currency: com.yehor.finora.domain.money.Currency = usd,
+        currency: com.yehor.finora.domain.money.Currency = usd
     ) = AccountFormState(
         isEdit = isEdit, loaded = true, name = name, currency = currency, amountText = amount,
         archived = archived, originalOpeningMinor = original,
-        earliestOtherEntryAt = earliest, dateMillis = date,
+        earliestOtherEntryAt = earliest, dateMillis = date
     )
 
     @Test
@@ -98,18 +98,24 @@ class AccountFormLogicTest {
         // 100.00 -> 150.00 gives +50.00
         assertEquals(
             Money(5_000, usd),
-            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "150", earliest = entry)),
+            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "150", earliest = entry))
         )
         // Removing the opening balance gives -100.00
         assertEquals(
             Money(-10_000, usd),
-            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "", earliest = entry)),
+            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "", earliest = entry))
         )
         // Unchanged, no other entries, create mode, invalid amount: no warning
-        assertNull(AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "100", earliest = entry)))
-        assertNull(AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "150", earliest = null)))
+        assertNull(
+            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "100", earliest = entry))
+        )
+        assertNull(
+            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "150", earliest = null))
+        )
         assertNull(AccountFormLogic.balanceDelta(state(isEdit = false, amount = "150", earliest = entry)))
-        assertNull(AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "x", earliest = entry)))
+        assertNull(
+            AccountFormLogic.balanceDelta(state(isEdit = true, original = 10_000, amount = "x", earliest = entry))
+        )
     }
 
     @Test
@@ -141,8 +147,12 @@ class AccountFormLogicTest {
     fun canSaveIsExactlyNoBlocker() {
         val entryDay = 90 * day + 3_600_000
         listOf(
-            state(), state(name = ""), state(amount = "x"), state().copy(saving = true),
-            state(amount = "10", earliest = entryDay, date = today), state().copy(currency = null),
+            state(),
+            state(name = ""),
+            state(amount = "x"),
+            state().copy(saving = true),
+            state(amount = "10", earliest = entryDay, date = today),
+            state().copy(currency = null)
         ).forEach {
             assertEquals(AccountFormLogic.blocker(it, policy, now) == null, AccountFormLogic.canSave(it, policy, now))
         }

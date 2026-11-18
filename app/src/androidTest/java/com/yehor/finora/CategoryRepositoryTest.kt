@@ -47,23 +47,29 @@ class CategoryRepositoryTest {
     @After
     fun tearDown() = db.close()
 
-    private suspend fun cat(
-        name: String,
-        parent: Long? = null,
-        type: CategoryType = CategoryType.EXPENSE,
-    ): Long = repo.create(name, type, parent, null, null, now = 1)
+    private suspend fun cat(name: String, parent: Long? = null, type: CategoryType = CategoryType.EXPENSE): Long =
+        repo.create(name, type, parent, null, null, now = 1)
 
     private suspend fun account(code: String = "USD"): Long = db.accountDao().insert(
         AccountEntity(
-            name = "a$code", currencyCode = code, type = "BANK", icon = null, color = null,
-            description = null, status = AccountStatus.ACTIVE, createdAt = 0,
-        ),
+            name = "a$code",
+            currencyCode = code,
+            type = "BANK",
+            icon = null,
+            color = null,
+            description = null,
+            status = AccountStatus.ACTIVE,
+            createdAt = 0
+        )
     )
 
     private suspend fun expense(accountId: Long, categoryId: Long?, minor: Long, at: Long = 1_000): Long =
         ops.insertOperation(
-            OperationType.EXPENSE, at, listOf(EntryDraft(accountId, -minor)),
-            categoryId = categoryId, now = at,
+            OperationType.EXPENSE,
+            at,
+            listOf(EntryDraft(accountId, -minor)),
+            categoryId = categoryId,
+            now = at
         )
 
     private suspend fun parentOf(id: Long): Long? = db.categoryDao().getById(id)!!.parentId
@@ -222,7 +228,7 @@ class CategoryRepositoryTest {
         for (target in listOf(
             ReassignTarget.To(victim),
             ReassignTarget.To(income),
-            ReassignTarget.To(9_999),
+            ReassignTarget.To(9_999)
         )) {
             try {
                 repo.delete(victim, target)
@@ -289,7 +295,14 @@ class CategoryRepositoryTest {
         assertTrue(v.toString(), v.any { it.startsWith("category cycle") && it.endsWith("category 2") })
         assertTrue(v.toString(), v.any { it.startsWith("category cycle") && it.endsWith("category 3") })
         assertTrue(v.toString(), v.any { it.startsWith("category deeper than 3 levels") && it.endsWith("category 13") })
-        assertTrue(v.toString(), v.none { it.endsWith("category 12") || it.endsWith("category 11") || it.endsWith("category 10") })
+        assertTrue(
+            v.toString(),
+            v.none {
+                it.endsWith("category 12") ||
+                    it.endsWith("category 11") ||
+                    it.endsWith("category 10")
+            }
+        )
     }
 
     @Test

@@ -19,7 +19,7 @@ object UpcomingOccurrences {
         blocked: Set<Long>,
         today: LocalDate,
         horizonDays: Int = 30,
-        limit: Int = 5,
+        limit: Int = 5
     ): List<UpcomingItem> {
         val horizonEnd = today.plusDays(horizonDays.toLong())
         return schedules

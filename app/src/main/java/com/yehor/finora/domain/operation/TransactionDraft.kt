@@ -10,5 +10,5 @@ data class TransactionDraft(
     val occurredAt: Long,
     val description: String?,
     val tagIds: Set<Long> = emptySet(),
-    val newTagNames: List<String> = emptyList(),
+    val newTagNames: List<String> = emptyList()
 )

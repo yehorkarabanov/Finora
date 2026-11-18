@@ -15,12 +15,29 @@ class TransactionQueryTest {
     /** Records the arguments bound by a [androidx.sqlite.db.SimpleSQLiteQuery]. */
     private class RecordingProgram : SupportSQLiteProgram {
         val bound = mutableMapOf<Int, Any?>()
-        override fun bindNull(index: Int) { bound[index] = null }
-        override fun bindLong(index: Int, value: Long) { bound[index] = value }
-        override fun bindDouble(index: Int, value: Double) { bound[index] = value }
-        override fun bindString(index: Int, value: String) { bound[index] = value }
-        override fun bindBlob(index: Int, value: ByteArray) { bound[index] = value }
-        override fun clearBindings() { bound.clear() }
+        override fun bindNull(index: Int) {
+            bound[index] = null
+        }
+
+        override fun bindLong(index: Int, value: Long) {
+            bound[index] = value
+        }
+
+        override fun bindDouble(index: Int, value: Double) {
+            bound[index] = value
+        }
+
+        override fun bindString(index: Int, value: String) {
+            bound[index] = value
+        }
+
+        override fun bindBlob(index: Int, value: ByteArray) {
+            bound[index] = value
+        }
+
+        override fun clearBindings() {
+            bound.clear()
+        }
         override fun close() {}
     }
 
@@ -64,7 +81,7 @@ class TransactionQueryTest {
             TransactionFilter(),
             TransactionSort.AMOUNT_DESC,
             emptySet(),
-            scopeCurrency = "USD",
+            scopeCurrency = "USD"
         )
         assertTrue(query.sql.contains("MAX(ABS(e.amount_minor))"))
         assertTrue(query.sql.contains("e.currency_code = ?"))
@@ -76,17 +93,25 @@ class TransactionQueryTest {
             TransactionFilter(),
             TransactionSort.AMOUNT_DESC,
             emptySet(),
-            scopeCurrency = null,
+            scopeCurrency = null
         )
-        assertTrue(descQuery.sql.contains("ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) DESC"))
+        assertTrue(
+            descQuery.sql.contains(
+                "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) DESC"
+            )
+        )
 
         val ascQuery = TransactionQuery.build(
             TransactionFilter(),
             TransactionSort.AMOUNT_ASC,
             emptySet(),
-            scopeCurrency = null,
+            scopeCurrency = null
         )
-        assertTrue(ascQuery.sql.contains("ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) ASC"))
+        assertTrue(
+            ascQuery.sql.contains(
+                "ORDER BY (SELECT MAX(ABS(e.amount_minor)) FROM ledger_entry e WHERE e.operation_id = o.id) ASC"
+            )
+        )
     }
 
     @Test
@@ -94,7 +119,7 @@ class TransactionQueryTest {
         val query = TransactionQuery.build(
             TransactionFilter(types = setOf(OperationType.INCOME, OperationType.OPENING_BALANCE)),
             TransactionSort.DATE_ASC,
-            emptySet(),
+            emptySet()
         )
         assertTrue(query.sql.contains("o.type IN (?)"))
         assertEquals("INCOME", query.argAt(0))
@@ -105,8 +130,8 @@ class TransactionQueryTest {
         val filter = TransactionFilter(
             amount = AmountRange(
                 currency = com.yehor.finora.domain.money.CurrencyRegistry.get("USD"),
-                minMinor = 100L,
-            ),
+                minMinor = 100L
+            )
         )
         val query = TransactionQuery.build(filter, TransactionSort.DATE_DESC, emptySet())
         assertTrue(query.sql.contains("ABS(e.amount_minor) >= ?"))

@@ -29,7 +29,7 @@ class CurrencyReassignmentTest {
             newCurrency = usd,
             oldAccountName = "Santander",
             newAccountName = "Chase",
-            isExpense = true,
+            isExpense = true
         )
         assertEquals("100.00 PLN", info.oldFormatted)
         assertEquals("100.00 USD", info.newFormatted)

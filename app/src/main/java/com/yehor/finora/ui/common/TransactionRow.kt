@@ -47,11 +47,7 @@ import java.time.format.FormatStyle
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TransactionRow(
-    item: TransactionItem,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun TransactionRow(item: TransactionItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val isTransfer = item.type == OperationType.TRANSFER
     val uncategorized = stringResource(R.string.picker_uncategorized)
     val transferLabel = stringResource(R.string.transaction_kind_transfer)
@@ -67,10 +63,11 @@ fun TransactionRow(
     } else {
         null
     }
-    val pairDiffers = transferSides != null && !(
-        transferSides.first.money.currency.code == transferSides.second.money.currency.code &&
-            -transferSides.first.money.amountMinor == transferSides.second.money.amountMinor
-        )
+    val pairDiffers = transferSides != null &&
+        !(
+            transferSides.first.money.currency.code == transferSides.second.money.currency.code &&
+                -transferSides.first.money.amountMinor == transferSides.second.money.amountMinor
+            )
 
     val description = item.description?.takeIf { it.isNotBlank() }
     val title = when {
@@ -81,7 +78,15 @@ fun TransactionRow(
     val subtitle = when {
         transferSides != null -> listOfNotNull(
             description ?: transferLabel,
-            if (pairDiffers) "${transferSides.first.money.format().removePrefix("-")} → ${transferSides.second.money.format()}" else null,
+            if (pairDiffers) {
+                "${
+                    transferSides.first.money.format().removePrefix(
+                        "-"
+                    )
+                } → ${transferSides.second.money.format()}"
+            } else {
+                null
+            }
         ).joinToString(" · ")
         // When there is no description the title already is the category, so don't repeat it.
         description != null -> "${item.category?.name ?: uncategorized} · $accountName"
@@ -95,7 +100,7 @@ fun TransactionRow(
             .semantics(mergeDescendants = true) {}
             .padding(horizontal = 14.dp, vertical = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val category = item.category
         when {
@@ -103,8 +108,10 @@ fun TransactionRow(
             category == null -> NeutralBadge(AppIcons.Help)
             else -> RoundIcon(
                 icon = IconCatalog.get(category.icon),
-                tint = MaterialTheme.finance.accent(ColorPalette.resolve(category.color, ColorPalette.defaultFor(category.type))),
-                size = 40.dp,
+                tint = MaterialTheme.finance.accent(
+                    ColorPalette.resolve(category.color, ColorPalette.defaultFor(category.type))
+                ),
+                size = 40.dp
             )
         }
         Column(Modifier.weight(1f)) {
@@ -116,14 +123,16 @@ fun TransactionRow(
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false),
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 if (item.recurringScheduleId != null) {
                     Icon(
                         AppIcons.Recurring,
                         contentDescription = stringResource(R.string.recurring_marker),
-                        modifier = Modifier.padding(start = 6.dp).size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -133,14 +142,14 @@ fun TransactionRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             if (item.tags.isNotEmpty()) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.padding(top = 4.dp),
+                    modifier = Modifier.padding(top = 4.dp)
                 ) {
                     item.tags.take(2).forEach { tag -> TagChip("#${tag.name}") }
                     if (item.tags.size > 2) TagChip("+${item.tags.size - 2}")
@@ -154,7 +163,7 @@ fun TransactionRow(
                     transferSides.second.money.format(),
                     AmountStyle,
                     MaterialTheme.colorScheme.onSurfaceVariant,
-                    animate = false,
+                    animate = false
                 )
             } else {
                 item.entries.forEach { entry ->
@@ -176,10 +185,18 @@ fun TransactionRow(
 @Composable
 private fun NeutralBadge(icon: ImageVector) {
     Box(
-        Modifier.size(40.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
-        contentAlignment = Alignment.Center,
+        Modifier
+            .size(40.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 
@@ -191,6 +208,6 @@ private fun TagChip(text: String) {
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, PillShape)
-            .padding(horizontal = 7.dp, vertical = 2.dp),
+            .padding(horizontal = 7.dp, vertical = 2.dp)
     )
 }

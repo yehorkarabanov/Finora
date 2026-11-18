@@ -20,7 +20,7 @@ data class Valuation(
     val excluded: Set<Currency>,
     val overflowed: Boolean,
     /** Oldest `fetchedAt` over the rates actually used. */
-    val oldestFetchedAt: Long?,
+    val oldestFetchedAt: Long?
 )
 
 /**
@@ -48,7 +48,7 @@ class RateConverter(private val table: RateTable, private val now: Long) {
         }
         val basis = EstimateBasis(
             usesConversion = true,
-            hasOutdatedRate = RateFreshness.isOutdated(quote, now),
+            hasOutdatedRate = RateFreshness.isOutdated(quote, now)
         )
         return ConversionResult.Converted(Estimate(minor, to, basis)) to quote
     }
@@ -78,7 +78,7 @@ class RateConverter(private val table: RateTable, private val now: Long) {
             total = if (anyConverted || amounts.isEmpty()) total else null,
             excluded = excluded,
             overflowed = false,
-            oldestFetchedAt = oldest,
+            oldestFetchedAt = oldest
         )
     }
 }

@@ -1,7 +1,6 @@
 package com.yehor.finora.domain.recurring
 
 import com.yehor.finora.domain.money.CurrencyRegistry
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
@@ -28,7 +27,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(errors.isEmpty())
     }
@@ -45,7 +44,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(emptyErrors.contains(ScheduleDraftError.NAME_EMPTY))
 
@@ -60,7 +59,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(errors60.isEmpty())
 
@@ -75,7 +74,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(errors61.contains(ScheduleDraftError.NAME_TOO_LONG))
     }
@@ -93,7 +92,7 @@ class ScheduleDraftValidatorTest {
                 firstDate = today,
                 endDate = null,
                 now = now,
-                zone = zone,
+                zone = zone
             )
 
         assertTrue(testAmount("").contains(ScheduleDraftError.AMOUNT_EMPTY))
@@ -118,7 +117,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(noAccount.contains(ScheduleDraftError.ACCOUNT_MISSING))
 
@@ -133,7 +132,7 @@ class ScheduleDraftValidatorTest {
             endDate = null,
             now = now,
             zone = zone,
-            isEdit = false,
+            isEdit = false
         )
         assertTrue(noCategoryCreate.contains(ScheduleDraftError.CATEGORY_MISSING))
 
@@ -149,7 +148,7 @@ class ScheduleDraftValidatorTest {
             now = now,
             zone = zone,
             isEdit = true,
-            hadCategoryBefore = true,
+            hadCategoryBefore = true
         )
         assertTrue(noCategoryEditHadCategory.contains(ScheduleDraftError.CATEGORY_MISSING))
 
@@ -165,7 +164,7 @@ class ScheduleDraftValidatorTest {
             now = now,
             zone = zone,
             isEdit = true,
-            hadCategoryBefore = false,
+            hadCategoryBefore = false
         )
         assertTrue(noCategoryEditWasUncategorized.isEmpty())
     }
@@ -182,7 +181,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
 
         assertTrue(testInterval(0).contains(ScheduleDraftError.INTERVAL_OUT_OF_RANGE))
@@ -203,7 +202,7 @@ class ScheduleDraftValidatorTest {
             firstDate = LocalDate.of(1999, 12, 31),
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(before2000.contains(ScheduleDraftError.DATE_OUT_OF_RANGE))
 
@@ -217,7 +216,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = LocalDate.of(2101, 1, 1),
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(after2100.contains(ScheduleDraftError.DATE_OUT_OF_RANGE))
 
@@ -231,7 +230,7 @@ class ScheduleDraftValidatorTest {
             firstDate = today,
             endDate = today.minusDays(1),
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(endBeforeStart.contains(ScheduleDraftError.END_BEFORE_START))
     }
@@ -250,7 +249,7 @@ class ScheduleDraftValidatorTest {
             firstDate = start1000,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(errors1000.isEmpty())
 
@@ -266,7 +265,7 @@ class ScheduleDraftValidatorTest {
             firstDate = start1001,
             endDate = null,
             now = now,
-            zone = zone,
+            zone = zone
         )
         assertTrue(errors1001.contains(ScheduleDraftError.TOO_MANY_PAST_OCCURRENCES))
     }

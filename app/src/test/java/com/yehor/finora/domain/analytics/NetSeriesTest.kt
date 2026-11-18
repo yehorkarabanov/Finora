@@ -6,7 +6,11 @@ import org.junit.Test
 
 class NetSeriesTest {
 
-    @Test fun perBucketSubtracts() = assertEquals(listOf(70L, -20L), NetSeries.perBucket(listOf(100L, 0L), listOf(30L, 20L)))
+    @Test
+    fun perBucketSubtracts() = assertEquals(
+        listOf(70L, -20L),
+        NetSeries.perBucket(listOf(100L, 0L), listOf(30L, 20L))
+    )
 
     @Test fun runningAccumulatesFromZero() = assertEquals(listOf(-10L, 90L, 60L), NetSeries.running(listOf(0L, 100L, 0L), listOf(10L, 0L, 30L)))
 

@@ -31,7 +31,7 @@ data class StatsTrend(
     /** The currency the values are in (the scope currency), for the point bubbles. */
     val currency: Currency,
     /** The filter behind the wave, without dates; a bucket's transactions add its dates. */
-    val base: TransactionFilter,
+    val base: TransactionFilter
 )
 
 /**
@@ -54,8 +54,12 @@ fun shownWindow(committed: ChartWindow, selected: PeriodState, preview: TrendPre
     preview?.takeIf { it.base == selected || it.window == committed }?.window ?: committed
 
 /** The period state a gesture that ended on [window] selects; null when [window] is what [period] already shows. */
-fun commitTarget(window: ChartWindow, period: ResolvedPeriod, today: LocalDate, firstDayOfWeek: DayOfWeek): PeriodState? =
-    if (window == displayWindow(period, today)) null else window.toPeriodState(firstDayOfWeek, today)
+fun commitTarget(
+    window: ChartWindow,
+    period: ResolvedPeriod,
+    today: LocalDate,
+    firstDayOfWeek: DayOfWeek
+): PeriodState? = if (window == displayWindow(period, today)) null else window.toPeriodState(firstDayOfWeek, today)
 
 /** Day buckets while the window is short enough for days ([ChartWindow.unit]), month buckets otherwise. */
 fun trendBuckets(period: ResolvedPeriod, zone: ZoneId, previousUnit: BucketUnit?): Pair<BucketUnit, List<Bucket>> {

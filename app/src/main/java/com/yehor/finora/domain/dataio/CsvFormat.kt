@@ -23,7 +23,7 @@ object CsvFormat {
         "tags",
         "description",
         "created_at_utc",
-        "updated_at_utc",
+        "updated_at_utc"
     )
 
     private val FORMULA_CHARS = setOf('=', '+', '-', '@', '\t', '\r')
@@ -33,12 +33,11 @@ object CsvFormat {
         out.append(encoded).append("\r\n")
     }
 
-    private fun escapeField(field: String): String {
-        return if (field.contains(',') || field.contains('"') || field.contains('\r') || field.contains('\n')) {
+    private fun escapeField(field: String): String =
+        if (field.contains(',') || field.contains('"') || field.contains('\r') || field.contains('\n')) {
             "\"" + field.replace("\"", "\"\"") + "\""
         } else {
             field
-        }
     }
 
     fun textField(raw: String?): String {
@@ -50,10 +49,8 @@ object CsvFormat {
         }
     }
 
-    fun tagList(names: List<String>): String {
-        return names.joinToString(";") { name ->
-            name.replace("\\", "\\\\").replace(";", "\\;")
-        }
+    fun tagList(names: List<String>): String = names.joinToString(";") { name ->
+        name.replace("\\", "\\\\").replace(";", "\\;")
     }
 
     fun amount(money: Money): String = money.toPlainString()

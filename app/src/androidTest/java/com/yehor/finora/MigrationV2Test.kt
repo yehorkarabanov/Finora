@@ -48,7 +48,7 @@ class MigrationV2Test {
         db.execSQL("INSERT INTO currency (code, scale, symbol, name) VALUES ('USD', 2, '$', 'Dollar')")
         db.execSQL(
             "INSERT INTO exchange_rate (base_currency, quote_currency, rate, source, quote_date, fetched_at) " +
-                "VALUES ('USD', 'PLN', '3.9126', 'frankfurter', '2026-11-06', 1)",
+                "VALUES ('USD', 'PLN', '3.9126', 'frankfurter', '2026-11-06', 1)"
         )
         assertEquals(emptyList<String>(), InvariantChecker.check(db).filter { it.startsWith("exchange_rate") })
 
@@ -56,11 +56,11 @@ class MigrationV2Test {
             "exchange_rate same currency" to "('PLN', 'PLN', '1', 'frankfurter', '2026-11-06', 1)",
             "exchange_rate invalid rate" to "('PLN', 'USD', '0', 'frankfurter', '2026-11-06', 1)",
             "exchange_rate invalid quote date" to "('PLN', 'USD', '2', 'frankfurter', 'bad', 1)",
-            "exchange_rate blank source" to "('PLN', 'USD', '2', ' ', '2026-11-06', 1)",
+            "exchange_rate blank source" to "('PLN', 'USD', '2', ' ', '2026-11-06', 1)"
         ).forEach { (check, values) ->
             db.execSQL("DELETE FROM exchange_rate WHERE base_currency = 'PLN'")
             db.execSQL(
-                "INSERT INTO exchange_rate (base_currency, quote_currency, rate, source, quote_date, fetched_at) VALUES $values",
+                "INSERT INTO exchange_rate (base_currency, quote_currency, rate, source, quote_date, fetched_at) VALUES $values"
             )
             assertTrue(check, InvariantChecker.check(db).any { it.startsWith(check) })
         }

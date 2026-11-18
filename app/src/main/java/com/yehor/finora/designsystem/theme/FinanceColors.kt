@@ -27,7 +27,7 @@ data class FinanceColors(
      * 10.24:1 on light primaryContainer (#4DFFB2), 7.97:1 on dark primaryContainer (#00E599).
      */
     val onMint: Color,
-    val isDark: Boolean,
+    val isDark: Boolean
 ) {
     /**
      * A stored category/account color as it should be drawn. In dark theme it is lifted toward
@@ -51,7 +51,7 @@ val LightFinanceColors = FinanceColors(
     negative = Color(0xFFC2362B),
     accentGlow = Color(0xFF00A36C).copy(alpha = 0.25f),
     onMint = OnMint,
-    isDark = false,
+    isDark = false
 )
 
 val DarkFinanceColors = FinanceColors(
@@ -63,7 +63,7 @@ val DarkFinanceColors = FinanceColors(
     negative = Color(0xFFFF7A6B),
     accentGlow = Color(0xFF00E599).copy(alpha = 0.35f),
     onMint = OnMint,
-    isDark = true,
+    isDark = true
 )
 
 val LocalFinanceColors = staticCompositionLocalOf { LightFinanceColors }

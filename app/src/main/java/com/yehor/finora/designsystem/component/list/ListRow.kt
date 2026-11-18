@@ -29,16 +29,18 @@ fun ListRow(
     trailing: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
 ) {
     val interaction = remember { MutableInteractionSource() }
     val clickable = if (onClick != null || onLongClick != null) {
-        Modifier.pressScale(interaction).combinedClickable(
-            interactionSource = interaction,
-            indication = LocalIndication.current,
-            onClick = { onClick?.invoke() },
-            onLongClick = onLongClick,
-        )
+        Modifier
+            .pressScale(interaction)
+            .combinedClickable(
+                interactionSource = interaction,
+                indication = LocalIndication.current,
+                onClick = { onClick?.invoke() },
+                onLongClick = onLongClick
+            )
     } else {
         Modifier
     }
@@ -48,7 +50,7 @@ fun ListRow(
             .then(clickable)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         icon()
         Column(Modifier.weight(1f)) {
@@ -57,7 +59,7 @@ fun ListRow(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             if (subtitle != null) {
                 Text(
@@ -65,7 +67,7 @@ fun ListRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }

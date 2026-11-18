@@ -31,7 +31,7 @@ import javax.inject.Singleton
 @Singleton
 class AccountRepository @Inject constructor(
     private val db: FinoraDatabase,
-    private val operationRepo: OperationRepository,
+    private val operationRepo: OperationRepository
 ) {
 
     private fun AccountEntity.toDomain(): Account = Account(
@@ -43,33 +43,33 @@ class AccountRepository @Inject constructor(
         color = color,
         description = description,
         status = status,
-        createdAt = createdAt,
+        createdAt = createdAt
     )
 
-    fun observeAll(): Flow<List<AccountWithBalance>> {
-        return db.accountDao().observeWithBalance()
-            .map { rows ->
-                rows.map { row ->
-                    val currency = CurrencyRegistry.get(row.account.currencyCode)
-                    val balance = try {
-                        Balance.Value(Money(row.balanceMinor, currency))
-                    } catch (e: MoneyOverflowException) {
-                        Balance.Overflow
-                    }
-                    AccountWithBalance(row.account.toDomain(), balance)
+    fun observeAll(): Flow<List<AccountWithBalance>> = db.accountDao().observeWithBalance()
+        .map { rows ->
+            rows.map { row ->
+                val currency = CurrencyRegistry.get(row.account.currencyCode)
+                val balance = try {
+                    Balance.Value(Money(row.balanceMinor, currency))
+                } catch (e: MoneyOverflowException) {
+                    Balance.Overflow
                 }
+                AccountWithBalance(row.account.toDomain(), balance)
             }
-            .catch { e ->
-                if (e is android.database.sqlite.SQLiteException && e.message?.contains("integer overflow", ignoreCase = true) == true) {
-                    emitAll(observeAllFallback())
-                } else {
-                    throw e
-                }
+        }
+        .catch { e ->
+            if (e is android.database.sqlite.SQLiteException &&
+                e.message?.contains("integer overflow", ignoreCase = true) == true
+            ) {
+                emitAll(observeAllFallback())
+            } else {
+                throw e
             }
-    }
+        }
 
-    private fun observeAllFallback(): Flow<List<AccountWithBalance>> {
-        return db.accountDao().observeAll().flatMapLatest { accounts ->
+    private fun observeAllFallback(): Flow<List<AccountWithBalance>> =
+        db.accountDao().observeAll().flatMapLatest { accounts ->
             flow {
                 val list = accounts.map { entity ->
                     val currency = CurrencyRegistry.get(entity.currencyCode)
@@ -81,7 +81,6 @@ class AccountRepository @Inject constructor(
                     AccountWithBalance(entity.toDomain(), balance)
                 }
                 emit(list)
-            }
         }
     }
 
@@ -95,45 +94,47 @@ class AccountRepository @Inject constructor(
         }
     }
 
-    fun observe(id: Long): Flow<AccountDetail?> {
-        return combine(
-            db.accountDao().observeById(id),
-            db.operationDao().observeAll(),
-        ) { entity, _ -> entity }.flatMapLatest { entity ->
-            flow {
-                if (entity == null) {
-                    emit(null)
-                } else {
-                    val currency = CurrencyRegistry.get(entity.currencyCode)
-                    val balance = try {
-                        Balance.Value(Money(operationRepo.balanceMinor(entity.id), currency))
-                    } catch (e: MoneyOverflowException) {
-                        Balance.Overflow
-                    }
-
-                    val openingOp = db.operationDao().openingBalanceOf(entity.id)
-                    val openingBalance = if (openingOp != null) {
-                        val entries = db.ledgerEntryDao().entriesOf(openingOp.id)
-                        val entry = entries.firstOrNull()
-                        if (entry != null) {
-                            OpeningBalance(
-                                operationId = openingOp.id,
-                                money = Money(entry.amountMinor, currency),
-                                occurredAt = openingOp.occurredAt,
-                            )
-                        } else null
-                    } else null
-
-                    val earliestOther = db.ledgerEntryDao().earliestNonOpeningEntryAt(entity.id)
-                    emit(
-                        AccountDetail(
-                            account = entity.toDomain(),
-                            balance = balance,
-                            openingBalance = openingBalance,
-                            earliestOtherEntryAt = earliestOther,
-                        ),
-                    )
+    fun observe(id: Long): Flow<AccountDetail?> = combine(
+        db.accountDao().observeById(id),
+        db.operationDao().observeAll()
+    ) { entity, _ -> entity }.flatMapLatest { entity ->
+        flow {
+            if (entity == null) {
+                emit(null)
+            } else {
+                val currency = CurrencyRegistry.get(entity.currencyCode)
+                val balance = try {
+                    Balance.Value(Money(operationRepo.balanceMinor(entity.id), currency))
+                } catch (e: MoneyOverflowException) {
+                    Balance.Overflow
                 }
+
+                val openingOp = db.operationDao().openingBalanceOf(entity.id)
+                val openingBalance = if (openingOp != null) {
+                    val entries = db.ledgerEntryDao().entriesOf(openingOp.id)
+                    val entry = entries.firstOrNull()
+                    if (entry != null) {
+                        OpeningBalance(
+                            operationId = openingOp.id,
+                            money = Money(entry.amountMinor, currency),
+                            occurredAt = openingOp.occurredAt
+                        )
+                    } else {
+                        null
+                    }
+                } else {
+                    null
+                }
+
+                val earliestOther = db.ledgerEntryDao().earliestNonOpeningEntryAt(entity.id)
+                emit(
+                    AccountDetail(
+                        account = entity.toDomain(),
+                        balance = balance,
+                        openingBalance = openingBalance,
+                        earliestOtherEntryAt = earliestOther
+                    )
+                )
             }
         }
     }
@@ -147,7 +148,7 @@ class AccountRepository @Inject constructor(
         description: String?,
         openingMinor: Long?,
         openingDate: Long?,
-        now: Long = System.currentTimeMillis(),
+        now: Long = System.currentTimeMillis()
     ): Long = db.withTransaction {
         val accountId = db.accountDao().insert(
             AccountEntity(
@@ -158,8 +159,8 @@ class AccountRepository @Inject constructor(
                 color = color,
                 description = description,
                 status = AccountStatus.ACTIVE,
-                createdAt = now,
-            ),
+                createdAt = now
+            )
         )
         if (openingMinor != null && openingMinor != 0L) {
             val opDate = openingDate ?: OpeningDatePolicy(ZoneId.systemDefault()).startOfDay(now)
@@ -168,14 +169,7 @@ class AccountRepository @Inject constructor(
         accountId
     }
 
-    suspend fun update(
-        id: Long,
-        name: String,
-        type: String,
-        icon: String?,
-        color: Long?,
-        description: String?,
-    ) {
+    suspend fun update(id: Long, name: String, type: String, icon: String?, color: Long?, description: String?) {
         db.accountDao().updateDetails(id, name, type, icon, color, description)
     }
 
@@ -193,7 +187,7 @@ class AccountRepository @Inject constructor(
         description: String?,
         openingMinor: Long?,
         openingDate: Long,
-        now: Long = System.currentTimeMillis(),
+        now: Long = System.currentTimeMillis()
     ) = db.withTransaction {
         update(id, name, type, icon, color, description)
         operationRepo.setOpeningBalance(id, openingMinor, openingDate, now)

@@ -8,7 +8,8 @@ import java.io.File
 class DomainAnalyticsCleanlinessTest {
 
     private val floating = Regex("""\b(Float|Double)\b|\d[fF]\b|toDouble|toFloat|\.double\b""")
-    private val systemClock = Regex("""System\.(currentTimeMillis|nanoTime)|Instant\.now|LocalDate\.now|LocalDateTime\.now|Clock\.system""")
+    private val systemClock =
+        Regex("""System\.(currentTimeMillis|nanoTime)|Instant\.now|LocalDate\.now|LocalDateTime\.now|Clock\.system""")
 
     /** A function or property whose return type is Money and whose parameters or receiver include an Estimate. */
     private val estimateToMoney = Regex("""fun\s+(\w+\.)?\w+\s*\([^)]*Estimate[^)]*\)\s*:\s*Money\b""")
@@ -45,9 +46,18 @@ class DomainAnalyticsCleanlinessTest {
             file.readLines().forEachIndexed { i, line ->
                 val code = line.substringBefore("//").trim()
                 if (code.startsWith("*") || code.startsWith("/*")) return@forEachIndexed
-                assertFalse("${file.name}:${i + 1} converts Estimate to Money: $line", estimateToMoney.containsMatchIn(code))
-                assertFalse("${file.name}:${i + 1} converts Estimate to Money: $line", receiverEstimateToMoney.containsMatchIn(code))
-                assertFalse("${file.name}:${i + 1} builds Money from an estimate: $line", moneyConstruction.containsMatchIn(code))
+                assertFalse(
+                    "${file.name}:${i + 1} converts Estimate to Money: $line",
+                    estimateToMoney.containsMatchIn(code)
+                )
+                assertFalse(
+                    "${file.name}:${i + 1} converts Estimate to Money: $line",
+                    receiverEstimateToMoney.containsMatchIn(code)
+                )
+                assertFalse(
+                    "${file.name}:${i + 1} builds Money from an estimate: $line",
+                    moneyConstruction.containsMatchIn(code)
+                )
             }
         }
     }

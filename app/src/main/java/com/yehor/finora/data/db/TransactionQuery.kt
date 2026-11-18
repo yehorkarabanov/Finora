@@ -13,14 +13,16 @@ object TransactionQuery {
         sort: TransactionSort,
         categoryClosure: Set<Long>,
         scopeCurrency: String? = filter.amount?.currency?.code,
-        limit: Int? = null,
+        limit: Int? = null
     ): SimpleSQLiteQuery {
         val args = mutableListOf<Any>()
         val whereClauses = buildWhereClauses(filter, categoryClosure, scopeCurrency, args)
 
         val whereSql = if (whereClauses.isNotEmpty()) {
             "WHERE " + whereClauses.joinToString(" AND ")
-        } else ""
+        } else {
+            ""
+        }
 
         val orderSql = when (sort) {
             TransactionSort.DATE_DESC -> "ORDER BY o.occurred_at DESC, o.id DESC"
@@ -53,10 +55,7 @@ object TransactionQuery {
         return SimpleSQLiteQuery(sql, args.toTypedArray())
     }
 
-    fun buildSummary(
-        filter: TransactionFilter,
-        categoryClosure: Set<Long>,
-    ): SimpleSQLiteQuery {
+    fun buildSummary(filter: TransactionFilter, categoryClosure: Set<Long>): SimpleSQLiteQuery {
         val args = mutableListOf<Any>()
         val baseClauses = buildWhereClauses(filter, categoryClosure, filter.amount?.currency?.code, args)
         val clauses = baseClauses + "o.type IN ('INCOME', 'EXPENSE')"
@@ -75,10 +74,7 @@ object TransactionQuery {
         return SimpleSQLiteQuery(sql, args.toTypedArray())
     }
 
-    fun buildCount(
-        filter: TransactionFilter,
-        categoryClosure: Set<Long>,
-    ): SimpleSQLiteQuery {
+    fun buildCount(filter: TransactionFilter, categoryClosure: Set<Long>): SimpleSQLiteQuery {
         val args = mutableListOf<Any>()
         val whereClauses = buildWhereClauses(filter, categoryClosure, filter.amount?.currency?.code, args)
         val whereSql = if (whereClauses.isNotEmpty()) {
@@ -94,7 +90,7 @@ object TransactionQuery {
         filter: TransactionFilter,
         categoryClosure: Set<Long>,
         scopeCurrency: String?,
-        args: MutableList<Any>,
+        args: MutableList<Any>
     ): List<String> {
         val clauses = mutableListOf<String>()
 
@@ -133,7 +129,8 @@ object TransactionQuery {
 
         if (filter.accountIds.isNotEmpty()) {
             val placeholders = filter.accountIds.joinToString(",") { "?" }
-            clauses += "EXISTS (SELECT 1 FROM ledger_entry e WHERE e.operation_id = o.id AND e.account_id IN ($placeholders))"
+            clauses +=
+                "EXISTS (SELECT 1 FROM ledger_entry e WHERE e.operation_id = o.id AND e.account_id IN ($placeholders))"
             args.addAll(filter.accountIds)
         }
 
@@ -141,12 +138,14 @@ object TransactionQuery {
             when (filter.tagMode) {
                 TagMatchMode.ANY -> {
                     val placeholders = filter.tagIds.joinToString(",") { "?" }
-                    clauses += "EXISTS (SELECT 1 FROM operation_tag t WHERE t.operation_id = o.id AND t.tag_id IN ($placeholders))"
+                    clauses +=
+                        "EXISTS (SELECT 1 FROM operation_tag t WHERE t.operation_id = o.id AND t.tag_id IN ($placeholders))"
                     args.addAll(filter.tagIds)
                 }
                 TagMatchMode.ALL -> {
                     val placeholders = filter.tagIds.joinToString(",") { "?" }
-                    clauses += "(SELECT COUNT(DISTINCT t.tag_id) FROM operation_tag t WHERE t.operation_id = o.id AND t.tag_id IN ($placeholders)) = ?"
+                    clauses +=
+                        "(SELECT COUNT(DISTINCT t.tag_id) FROM operation_tag t WHERE t.operation_id = o.id AND t.tag_id IN ($placeholders)) = ?"
                     args.addAll(filter.tagIds)
                     args.add(filter.tagIds.size)
                 }
@@ -166,7 +165,8 @@ object TransactionQuery {
             requireNotNull(scopeCurrency) { "Scope currency required for amount filter" }
             val min = filter.amount.minMinor ?: 0L
             val max = filter.amount.maxMinor ?: Long.MAX_VALUE
-            clauses += "EXISTS (SELECT 1 FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ? AND ABS(e.amount_minor) >= ? AND ABS(e.amount_minor) <= ?)"
+            clauses +=
+                "EXISTS (SELECT 1 FROM ledger_entry e WHERE e.operation_id = o.id AND e.currency_code = ? AND ABS(e.amount_minor) >= ? AND ABS(e.amount_minor) <= ?)"
             args.add(scopeCurrency)
             args.add(min)
             args.add(max)

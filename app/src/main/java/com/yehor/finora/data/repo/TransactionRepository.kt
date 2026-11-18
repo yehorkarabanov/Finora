@@ -40,23 +40,19 @@ class TransactionRepository @Inject constructor(
     private val db: FinoraDatabase,
     private val operationRepository: OperationRepository,
     private val accountRepository: AccountRepository,
-    private val categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository
 ) {
 
     /** Account definitions without balances, so a balance change does not rebuild the lists. */
-    private fun observeAccounts(): Flow<List<Account>> =
-        accountRepository.observeAll()
-            .map { list -> list.map { it.account } }
-            .distinctUntilChanged()
+    private fun observeAccounts(): Flow<List<Account>> = accountRepository.observeAll()
+        .map { list -> list.map { it.account } }
+        .distinctUntilChanged()
 
     /**
      * A new [Pager] is created only when accounts or categories change. Callers should apply
      * `cachedIn` on the result.
      */
-    fun observePage(
-        filter: TransactionFilter,
-        sort: TransactionSort,
-    ): Flow<PagingData<TransactionItem>> =
+    fun observePage(filter: TransactionFilter, sort: TransactionSort): Flow<PagingData<TransactionItem>> =
         combine(categoryRepository.observeAll(), observeAccounts()) { cats, accounts -> cats to accounts }
             .flatMapLatest { (cats, accounts) ->
                 val tree = CategoryTree(cats)
@@ -67,11 +63,11 @@ class TransactionRepository @Inject constructor(
                     filter = filter,
                     sort = sort,
                     categoryClosure = categoryClosure(filter, tree),
-                    scopeCurrency = scopeCurrency?.code,
+                    scopeCurrency = scopeCurrency?.code
                 )
                 Pager(
                     config = PagingConfig(pageSize = 50, enablePlaceholders = false),
-                    pagingSourceFactory = { db.operationDao().page(query) },
+                    pagingSourceFactory = { db.operationDao().page(query) }
                 ).flow.map { pagingData ->
                     pagingData.map { mapToItem(it, accountMap, catMap, tree) }
                 }
@@ -89,22 +85,21 @@ class TransactionRepository @Inject constructor(
                     sort = TransactionSort.DATE_DESC,
                     categoryClosure = categoryClosure(filter, tree),
                     scopeCurrency = scopeCurrency?.code,
-                    limit = limit,
+                    limit = limit
                 )
                 db.operationDao().listWithDetails(query).map { list ->
                     list.take(limit).map { mapToItem(it, accountMap, catMap, tree) }
                 }
             }
 
-    fun observeTransaction(id: Long): Flow<TransactionItem?> =
-        combine(
-            db.operationDao().observeWithDetails(id),
-            observeAccounts(),
-            categoryRepository.observeAll(),
-        ) { details, accounts, cats ->
-            if (details == null) return@combine null
-            mapToItem(details, accounts.associateBy { it.id }, cats.associateBy { it.id }, CategoryTree(cats))
-        }
+    fun observeTransaction(id: Long): Flow<TransactionItem?> = combine(
+        db.operationDao().observeWithDetails(id),
+        observeAccounts(),
+        categoryRepository.observeAll()
+    ) { details, accounts, cats ->
+        if (details == null) return@combine null
+        mapToItem(details, accounts.associateBy { it.id }, cats.associateBy { it.id }, CategoryTree(cats))
+    }
 
     suspend fun summarize(filter: TransactionFilter): List<CurrencySummary> {
         val tree = CategoryTree(categoryRepository.observeAll().first())
@@ -116,7 +111,7 @@ class TransactionRepository @Inject constructor(
                 currency = currency,
                 income = Money(row.incomeMinor, currency),
                 expense = Money(row.expenseMinor, currency),
-                operationCount = row.operationCount,
+                operationCount = row.operationCount
             )
         }
     }
@@ -128,11 +123,10 @@ class TransactionRepository @Inject constructor(
     }
 
     /** [summarize] again whenever operations, ledger entries, tags or categories change. */
-    fun observeSummary(filter: TransactionFilter): Flow<List<CurrencySummary>> =
-        combine(
-            db.invalidationTracker.createFlow("operation", "ledger_entry", "operation_tag"),
-            categoryRepository.observeAll(),
-        ) { _, _ -> summarize(filter) }
+    fun observeSummary(filter: TransactionFilter): Flow<List<CurrencySummary>> = combine(
+        db.invalidationTracker.createFlow("operation", "ledger_entry", "operation_tag"),
+        categoryRepository.observeAll()
+    ) { _, _ -> summarize(filter) }
 
     suspend fun recentCategoryIds(kind: TransactionKind, limit: Int = 5): List<Long> {
         val type = if (kind == TransactionKind.INCOME) OperationType.INCOME else OperationType.EXPENSE
@@ -155,7 +149,7 @@ class TransactionRepository @Inject constructor(
             description = draft.description,
             tagIds = draft.tagIds,
             newTagNames = draft.newTagNames,
-            moveOpeningBalanceBack = moveOpeningBalanceBack,
+            moveOpeningBalanceBack = moveOpeningBalanceBack
         )
     }
 
@@ -163,7 +157,7 @@ class TransactionRepository @Inject constructor(
         id: Long,
         draft: TransactionDraft,
         moveOpeningBalanceBack: Boolean = false,
-        confirmCurrencyChange: Boolean = false,
+        confirmCurrencyChange: Boolean = false
     ) {
         operationRepository.updateOperation(
             id = id,
@@ -175,7 +169,7 @@ class TransactionRepository @Inject constructor(
             tagIds = draft.tagIds,
             newTagNames = draft.newTagNames,
             moveOpeningBalanceBack = moveOpeningBalanceBack,
-            confirmCurrencyChange = confirmCurrencyChange,
+            confirmCurrencyChange = confirmCurrencyChange
         )
     }
 
@@ -188,7 +182,7 @@ class TransactionRepository @Inject constructor(
         details: OperationWithDetails,
         accountMap: Map<Long, Account>,
         catMap: Map<Long, Category>,
-        tree: CategoryTree,
+        tree: CategoryTree
     ): TransactionItem {
         val op = details.operation
         val category = op.categoryId?.let { catMap[it] }
@@ -206,7 +200,7 @@ class TransactionRepository @Inject constructor(
                 color = null,
                 description = null,
                 status = AccountStatus.ACTIVE,
-                createdAt = 0L,
+                createdAt = 0L
             )
             TransactionEntryView(account = account, money = Money(e.amountMinor, account.currency))
         }
@@ -221,7 +215,7 @@ class TransactionRepository @Inject constructor(
             entries = entries,
             createdAt = op.createdAt,
             updatedAt = op.updatedAt,
-            recurringScheduleId = details.occurrences.firstOrNull()?.scheduleId,
+            recurringScheduleId = details.occurrences.firstOrNull()?.scheduleId
         )
     }
 }

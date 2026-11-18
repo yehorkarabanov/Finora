@@ -37,7 +37,7 @@ class AnalyticsLogicTest {
     private val period = PeriodCalculator.resolve(
         PeriodCalculator.preset(PeriodKind.MONTH, LocalDate.of(2026, 11, 15)),
         ZoneOffset.UTC,
-        DayOfWeek.MONDAY,
+        DayOfWeek.MONDAY
     )
 
     private fun account(id: Long, currency: com.yehor.finora.domain.money.Currency) =
@@ -54,13 +54,13 @@ class AnalyticsLogicTest {
         outdated: Boolean = false,
         excluded: Set<com.yehor.finora.domain.money.Currency> = emptySet(),
         overflowed: Boolean = false,
-        fetchedAt: Long? = null,
+        fetchedAt: Long? = null
     ) = Cell(
         estimate = Estimate(minor, currency, EstimateBasis(converted, outdated)),
         operationCount = 1,
         excluded = excluded,
         overflowed = overflowed,
-        oldestFetchedAt = fetchedAt,
+        oldestFetchedAt = fetchedAt
     )
 
     // ---- AnalyticsFilters ----
@@ -168,8 +168,8 @@ class AnalyticsLogicTest {
         val info = conversionInfo(
             listOf(
                 cell(10, converted = true, fetchedAt = 900, excluded = setOf(usd)),
-                cell(10, converted = true, fetchedAt = 300, excluded = setOf(eur, usd)),
-            ),
+                cell(10, converted = true, fetchedAt = 300, excluded = setOf(eur, usd))
+            )
         )
         assertEquals(300L, info.oldestFetchedAt)
         assertEquals(listOf("EUR", "USD"), info.excluded.map { it.code })
@@ -194,7 +194,7 @@ class AnalyticsLogicTest {
     fun currencyFlowsListsEveryCurrencyWithAnExactNet() {
         val flows = currencyFlows(
             income = listOf(row(1, 1000, usd), row(2, 500, pln)),
-            expense = listOf(row(1, 300, pln)),
+            expense = listOf(row(1, 300, pln))
         )
         assertEquals(listOf("PLN", "USD"), flows.map { it.currency.code })
         val plnFlow = flows[0]

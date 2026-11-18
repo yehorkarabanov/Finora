@@ -9,7 +9,8 @@ import com.yehor.finora.domain.tag.Tag
 
 data class TransactionEntryView(
     val account: Account,
-    val money: Money, // signed
+    // signed
+    val money: Money
 )
 
 data class TransactionItem(
@@ -23,12 +24,7 @@ data class TransactionItem(
     val entries: List<TransactionEntryView>,
     val createdAt: Long,
     val updatedAt: Long,
-    val recurringScheduleId: Long? = null,
+    val recurringScheduleId: Long? = null
 )
 
-data class CurrencySummary(
-    val currency: Currency,
-    val income: Money,
-    val expense: Money,
-    val operationCount: Int,
-)
+data class CurrencySummary(val currency: Currency, val income: Money, val expense: Money, val operationCount: Int)

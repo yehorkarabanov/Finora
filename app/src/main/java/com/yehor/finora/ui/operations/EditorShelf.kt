@@ -78,7 +78,7 @@ internal data class EditorLayout(
     val showQuickAmounts: Boolean,
     val amountMaxFontSize: TextUnit,
     val amountTopPadding: Dp,
-    val amountSpacing: Dp,
+    val amountSpacing: Dp
 )
 
 /**
@@ -98,6 +98,7 @@ private val AmountLift = 24.dp
 
 /** Room kept above the shelf for the shrunken top bar, amount and account pill. */
 private val ShelfTopClearance = 190.dp
+
 /** Top spacer + 48dp top bar: the area the scrim leaves uncovered. */
 private val TopBarClearance = 56.dp
 private val DragDismissDistance = 80.dp
@@ -121,7 +122,7 @@ internal fun EditorScaffold(
     shelfContent: @Composable ColumnScope.() -> Unit,
     shelfFooter: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
-    overlay: @Composable () -> Unit = {},
+    overlay: @Composable () -> Unit = {}
 ) {
     val open = stage == EditorStage.DETAILS
     val reduceMotion = rememberReduceMotion()
@@ -133,7 +134,7 @@ internal fun EditorScaffold(
     val progress by animateFloatAsState(
         targetValue = if (open) 1f else 0f,
         animationSpec = if (reduceMotion) snap() else FinoraMotion.sheet,
-        label = "shelfProgress",
+        label = "shelfProgress"
     )
 
     Surface(modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -148,7 +149,7 @@ internal fun EditorScaffold(
                     .fillMaxSize()
                     .statusBarsPadding()
                     .navigationBarsPadding()
-                    .padding(horizontal = 18.dp),
+                    .padding(horizontal = 18.dp)
             ) {
                 Spacer(Modifier.height(8.dp))
                 topBar()
@@ -167,11 +168,11 @@ internal fun EditorScaffold(
                             transformOrigin = TransformOrigin(0.5f, 0f)
                         },
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(layout.amountSpacing),
+                    verticalArrangement = Arrangement.spacedBy(layout.amountSpacing)
                 ) { amount(layout) }
                 Column(
                     Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) { keypad(layout) }
                 Spacer(Modifier.height(12.dp))
                 PrimaryButton(stringResource(R.string.editor_next), onClick = { onStageChange(EditorStage.DETAILS) })
@@ -181,7 +182,7 @@ internal fun EditorScaffold(
             AnimatedVisibility(
                 visible = open,
                 enter = if (reduceMotion) EnterTransition.None else fadeIn(tween(300)),
-                exit = if (reduceMotion) ExitTransition.None else fadeOut(tween(250)),
+                exit = if (reduceMotion) ExitTransition.None else fadeOut(tween(250))
             ) {
                 // The scrim starts under the top bar so ✕, the kind pill and the ⋯ menu stay usable with the shelf up.
                 Box(
@@ -189,7 +190,7 @@ internal fun EditorScaffold(
                         .fillMaxSize()
                         .padding(top = statusTop + TopBarClearance)
                         .background(MaterialTheme.colorScheme.scrim.copy(alpha = SHELF_SCRIM_ALPHA))
-                        .clickable(interactionSource = null, indication = null) { onStageChange(EditorStage.AMOUNT) },
+                        .clickable(interactionSource = null, indication = null) { onStageChange(EditorStage.AMOUNT) }
                 )
             }
 
@@ -197,7 +198,7 @@ internal fun EditorScaffold(
                 visible = open,
                 modifier = Modifier.align(Alignment.BottomCenter),
                 enter = if (reduceMotion) fadeIn(tween(150)) else slideInVertically(tween(380)) { it },
-                exit = if (reduceMotion) fadeOut(tween(150)) else slideOutVertically(tween(300)) { it },
+                exit = if (reduceMotion) fadeOut(tween(150)) else slideOutVertically(tween(300)) { it }
             ) {
                 DetailsShelf(
                     maxHeight = shelfMaxHeight,
@@ -205,11 +206,15 @@ internal fun EditorScaffold(
                     scroll = shelfScroll,
                     onDismiss = { onStageChange(EditorStage.AMOUNT) },
                     content = shelfContent,
-                    footer = shelfFooter,
+                    footer = shelfFooter
                 )
             }
 
-            Box(Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) { overlay() }
+            Box(
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+            ) { overlay() }
         }
     }
 }
@@ -221,7 +226,7 @@ private fun DetailsShelf(
     scroll: ScrollState,
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
-    footer: @Composable ColumnScope.() -> Unit,
+    footer: @Composable ColumnScope.() -> Unit
 ) {
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -241,12 +246,12 @@ private fun DetailsShelf(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(max = maxHeight)
-            .graphicsLayer { translationY = dragOffset.value },
+            .graphicsLayer { translationY = dragOffset.value }
     ) {
         Column(
             Modifier
                 .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-                .padding(horizontal = 18.dp),
+                .padding(horizontal = 18.dp)
         ) {
             // Handle + header: tap or drag down to drop the shelf back to the keypad.
             Column(
@@ -261,30 +266,38 @@ private fun DetailsShelf(
                             } else {
                                 if (reduceMotionDrag) dragOffset.snapTo(0f) else dragOffset.animateTo(0f)
                             }
-                        },
-                    ),
+                        }
+                    )
             ) {
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .height(28.dp)
                         .clickable(role = Role.Button, onClickLabel = handleLabel, onClick = onDismiss),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Box(
                         Modifier
                             .size(width = 36.dp, height = 4.dp)
-                            .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)),
+                            .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50))
                     )
                 }
-                Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp), verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         stringResource(R.string.editor_details),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
-                    Text(kindLabel, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        kindLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
             Column(
@@ -292,7 +305,7 @@ private fun DetailsShelf(
                     .weight(1f, fill = false)
                     .verticalScroll(scroll)
                     .padding(top = 8.dp),
-                content = content,
+                content = content
             )
             Column(Modifier.padding(top = 8.dp, bottom = 16.dp), content = footer)
         }

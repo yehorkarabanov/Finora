@@ -14,7 +14,7 @@ data class TransferDraft(
     val occurredAt: Long,
     val description: String?,
     val tagIds: Set<Long> = emptySet(),
-    val newTagNames: List<String> = emptyList(),
+    val newTagNames: List<String> = emptyList()
 )
 
 data class TransferItem(
@@ -29,7 +29,7 @@ data class TransferItem(
     val sentMoney: Money,
     val receivedMoney: Money,
     val createdAt: Long,
-    val updatedAt: Long,
+    val updatedAt: Long
 )
 
 enum class TransferDraftError {
@@ -48,5 +48,5 @@ enum class TransferDraftError {
     RECEIVED_AMOUNT_OUT_OF_RANGE,
     CATEGORY_MISSING,
     DESCRIPTION_TOO_LONG,
-    DATE_IN_FUTURE,
+    DATE_IN_FUTURE
 }

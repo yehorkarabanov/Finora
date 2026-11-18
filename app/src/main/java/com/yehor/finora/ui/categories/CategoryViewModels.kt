@@ -32,13 +32,11 @@ data class CategoriesUiState(
     val tree: CategoryTree = CategoryTree(emptyList()),
     val type: CategoryType = CategoryType.EXPENSE,
     val rows: List<PickerRow> = emptyList(),
-    val delete: DeleteDialogState? = null,
+    val delete: DeleteDialogState? = null
 )
 
 @HiltViewModel
-class CategoriesViewModel @Inject constructor(
-    private val repository: CategoryRepository,
-) : ViewModel() {
+class CategoriesViewModel @Inject constructor(private val repository: CategoryRepository) : ViewModel() {
     private val type = MutableStateFlow(CategoryType.EXPENSE)
     private val expanded = MutableStateFlow(emptySet<Long>())
     private val delete = MutableStateFlow<DeleteDialogState?>(null)
@@ -50,7 +48,7 @@ class CategoriesViewModel @Inject constructor(
             tree = tree,
             type = type,
             rows = CategoryPickerModel.rows(tree, type, PickerMode.Assign(), expanded, query = ""),
-            delete = delete,
+            delete = delete
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CategoriesUiState())
 
@@ -77,7 +75,7 @@ class CategoriesViewModel @Inject constructor(
                 impact = impact,
                 target = target,
                 suggestedName = impact.suggestedTarget?.let { tree.category(it)?.name },
-                targetName = (target as? ReassignTarget.To)?.let { tree.category(it.categoryId)?.name },
+                targetName = (target as? ReassignTarget.To)?.let { tree.category(it.categoryId)?.name }
             )
         }
     }
@@ -89,7 +87,7 @@ class CategoriesViewModel @Inject constructor(
                 it?.copy(
                     target = target,
                     targetName = (target as? ReassignTarget.To)?.let { t -> tree.category(t.categoryId)?.name },
-                    failed = false,
+                    failed = false
                 )
             }
         }
@@ -128,7 +126,7 @@ data class CategoryFormState(
     val saved: Boolean = false,
     val createdCategoryId: Long? = null,
     val parentRejected: ParentCheck? = null,
-    val saveFailed: Boolean = false,
+    val saveFailed: Boolean = false
 ) {
     val isEdit: Boolean get() = categoryId != null
     val nameError: CategoryFormLogic.NameError? get() = CategoryFormLogic.nameError(name)
@@ -143,7 +141,7 @@ data class CategoryFormState(
 @HiltViewModel
 class CategoryEditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: CategoryRepository,
+    private val repository: CategoryRepository
 ) : ViewModel() {
     private val categoryId: Long? = savedStateHandle.get<Long>("categoryId")
     private val argType: CategoryType = CategoryFormLogic.typeFromArg(savedStateHandle.get<String>("type"))
@@ -161,13 +159,19 @@ class CategoryEditViewModel @Inject constructor(
                     loaded = true,
                     type = parent?.type ?: argType,
                     parentId = parent?.id,
-                    tree = tree,
+                    tree = tree
                 )
             } else {
                 val c = tree.category(categoryId) ?: return@launch
                 _state.value = CategoryFormState(
-                    categoryId = categoryId, loaded = true, name = c.name, type = c.type, icon = c.icon,
-                    color = c.color, parentId = tree.ancestorsOf(c.id).lastOrNull()?.id, tree = tree,
+                    categoryId = categoryId,
+                    loaded = true,
+                    name = c.name,
+                    type = c.type,
+                    icon = c.icon,
+                    color = c.color,
+                    parentId = tree.ancestorsOf(c.id).lastOrNull()?.id,
+                    tree = tree
                 )
             }
             // Keep the picker fresh if the tree changes while the form is open.

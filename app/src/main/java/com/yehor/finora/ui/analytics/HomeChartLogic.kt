@@ -18,7 +18,7 @@ data class HomeChart(
     /** True when some amount was converted to the display currency, so figures read "≈". */
     val currencyApprox: Boolean,
     /** Rate age, excluded currencies and overflow, for the note under the chart. */
-    val conversion: ConversionInfo = ConversionInfo.NONE,
+    val conversion: ConversionInfo = ConversionInfo.NONE
 )
 
 /**

@@ -1,6 +1,5 @@
 package com.yehor.finora.ui.common
 
-
 import com.yehor.finora.designsystem.icon.IconCatalog
 import com.yehor.finora.designsystem.icon.IconKeys
 import com.yehor.finora.domain.category.Category
@@ -21,9 +20,13 @@ class CategoryPickerModelTest {
     // Food(1) > Restaurants(2) > Coffee(3); Food > Groceries(4); Housing(5); income Salary(10)
     private val tree = CategoryTree(
         listOf(
-            cat(1, "Food"), cat(2, "Restaurants", 1), cat(3, "Coffee", 2), cat(4, "Groceries", 1),
-            cat(5, "Housing"), cat(10, "Salary", type = CategoryType.INCOME),
-        ),
+            cat(1, "Food"),
+            cat(2, "Restaurants", 1),
+            cat(3, "Coffee", 2),
+            cat(4, "Groceries", 1),
+            cat(5, "Housing"),
+            cat(10, "Salary", type = CategoryType.INCOME)
+        )
     )
 
     private fun rows(mode: PickerMode, expanded: Set<Long> = emptySet(), query: String = "") =

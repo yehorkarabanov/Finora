@@ -11,7 +11,6 @@ import androidx.room.RawQuery
 import androidx.room.Transaction
 import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
-import com.yehor.finora.domain.recurring.ScheduleStatus
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.OperationType
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +24,7 @@ data class AccountWithBalanceRow(
 data class OperationAmountRow(
     @ColumnInfo(name = "operation_id") val operationId: Long,
     @ColumnInfo(name = "currency_code") val currencyCode: String,
-    @ColumnInfo(name = "amount_minor") val amountMinor: Long,
+    @ColumnInfo(name = "amount_minor") val amountMinor: Long
 )
 
 /** Raw row of [CategoryDao.directTotals]. `category_id` is null for Uncategorized. */
@@ -33,7 +32,7 @@ data class CategoryDirectTotalRow(
     @ColumnInfo(name = "category_id") val categoryId: Long?,
     @ColumnInfo(name = "currency_code") val currencyCode: String,
     @ColumnInfo(name = "total_minor") val totalMinor: Long,
-    @ColumnInfo(name = "operation_count") val operationCount: Int,
+    @ColumnInfo(name = "operation_count") val operationCount: Int
 )
 
 @Dao
@@ -56,13 +55,15 @@ interface AccountDao {
     @Query("SELECT currency_code FROM account WHERE id = :id")
     suspend fun currencyCodeOf(id: Long): String?
 
-    @Query("""
+    @Query(
+        """
         SELECT a.*, COALESCE(SUM(e.amount_minor), 0) AS balance_minor
         FROM account a
         LEFT JOIN ledger_entry e ON e.account_id = a.id
         GROUP BY a.id
         ORDER BY a.id
-    """)
+    """
+    )
     fun observeWithBalance(): Flow<List<AccountWithBalanceRow>>
 
     @Query("SELECT * FROM account WHERE status = 'ACTIVE' OR id = :originalAccountId ORDER BY id")
@@ -80,11 +81,13 @@ interface AccountDao {
     @Query("DELETE FROM account WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT COUNT(*) FROM ledger_entry e
         INNER JOIN operation o ON e.operation_id = o.id
         WHERE e.account_id = :id AND o.type != 'OPENING_BALANCE'
-    """)
+    """
+    )
     suspend fun nonOpeningEntryCount(id: Long): Int
 }
 
@@ -123,7 +126,8 @@ interface CategoryDao {
     @Query("DELETE FROM category WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT o.category_id      AS category_id,
                e.currency_code    AS currency_code,
                SUM(e.amount_minor) AS total_minor,
@@ -132,9 +136,10 @@ interface CategoryDao {
         JOIN ledger_entry e ON e.operation_id = o.id
         WHERE o.type = :type AND o.occurred_at >= :from AND o.occurred_at < :to
         GROUP BY o.category_id, e.currency_code
-    """)
+    """
+    )
     suspend fun directTotals(
-        type: com.yehor.finora.domain.model.OperationType,
+        type: OperationType,
         from: Long,
         to: Long
     ): List<CategoryDirectTotalRow>
@@ -154,13 +159,15 @@ interface TagDao {
     @Query("SELECT * FROM tag WHERE id = :id")
     suspend fun getById(id: Long): TagEntity?
 
-    @Query("""
+    @Query(
+        """
         SELECT t.*, COUNT(ot.operation_id) AS usageCount
         FROM tag t
         LEFT JOIN operation_tag ot ON ot.tag_id = t.id
         GROUP BY t.id
         ORDER BY t.name
-    """)
+    """
+    )
     fun observeAllWithUsage(): Flow<List<TagWithUsageRow>>
 
     @Query("UPDATE tag SET name = :name, color = :color WHERE id = :id")
@@ -236,20 +243,24 @@ interface OperationDao {
     @Query("UPDATE operation SET occurred_at = :occurredAt, category_id = :categoryId, description = :description, updated_at = :updatedAt WHERE id = :id")
     suspend fun updateFields(id: Long, occurredAt: Long, categoryId: Long?, description: String?, updatedAt: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT DISTINCT category_id FROM operation
         WHERE type = :type AND category_id IS NOT NULL
         ORDER BY occurred_at DESC, id DESC LIMIT :limit
-    """)
+    """
+    )
     suspend fun recentCategoryIds(type: OperationType, limit: Int): List<Long>
 
-    @Query("""
+    @Query(
+        """
         SELECT e.account_id FROM operation o
         JOIN ledger_entry e ON e.operation_id = o.id
         JOIN account a ON a.id = e.account_id
         WHERE o.type IN ('INCOME', 'EXPENSE') AND a.status = 'ACTIVE'
         ORDER BY o.occurred_at DESC, o.id DESC LIMIT 1
-    """)
+    """
+    )
     suspend fun latestAccountId(): Long?
 }
 
@@ -277,17 +288,21 @@ interface LedgerEntryDao {
     @Query("UPDATE ledger_entry SET account_id = :accountId, currency_code = :currencyCode, amount_minor = :amountMinor, occurred_at = :occurredAt WHERE id = :entryId")
     suspend fun updateEntryById(entryId: Long, accountId: Long, currencyCode: String, amountMinor: Long, occurredAt: Long)
 
-    @Query("""
+    @Query(
+        """
         SELECT MIN(e.occurred_at) FROM ledger_entry e
         INNER JOIN operation o ON e.operation_id = o.id
         WHERE e.account_id = :accountId AND o.type != 'OPENING_BALANCE'
-    """)
+    """
+    )
     suspend fun earliestNonOpeningEntryAt(accountId: Long): Long?
 
-    @Query("""
+    @Query(
+        """
         SELECT occurred_at FROM operation
         WHERE opening_account_id = :accountId LIMIT 1
-    """)
+    """
+    )
     suspend fun openingDateOf(accountId: Long): Long?
 }
 
@@ -350,11 +365,13 @@ interface RecurringDao {
     @Query("SELECT * FROM recurring_schedule WHERE id = :id")
     suspend fun getSchedule(id: Long): RecurringScheduleEntity?
 
-    @Query("""
+    @Query(
+        """
         SELECT * FROM recurring_schedule
         WHERE status = 'ACTIVE' AND next_date IS NOT NULL AND next_date <= :todayEpochDay
         ORDER BY id
-    """)
+    """
+    )
     suspend fun dueSchedules(todayEpochDay: Long): List<RecurringScheduleEntity>
 
     @Insert
@@ -402,4 +419,3 @@ interface RecurringDao {
     @Query("SELECT COUNT(*) FROM recurring_schedule WHERE category_id = :categoryId")
     suspend fun scheduleCountForCategory(categoryId: Long): Int
 }
-

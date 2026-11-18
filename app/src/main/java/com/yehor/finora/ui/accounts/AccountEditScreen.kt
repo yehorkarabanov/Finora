@@ -71,10 +71,7 @@ import com.yehor.finora.ui.operations.SmallPill
 import java.time.ZoneOffset
 
 @Composable
-fun AccountEditScreen(
-    onBack: () -> Unit,
-    viewModel: AccountEditViewModel = hiltViewModel(),
-) {
+fun AccountEditScreen(onBack: () -> Unit, viewModel: AccountEditViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(state.saved) { if (state.saved) onBack() }
 
@@ -94,7 +91,7 @@ fun AccountEditScreen(
         onDescription = viewModel::onDescription,
         onAmount = viewModel::onAmount,
         onDate = viewModel::onDate,
-        onSave = viewModel::save,
+        onSave = viewModel::save
     )
 }
 
@@ -112,7 +109,7 @@ internal fun AccountEditContent(
     onDescription: (String) -> Unit,
     onAmount: (String) -> Unit,
     onDate: (Long) -> Unit,
-    onSave: () -> Unit,
+    onSave: () -> Unit
 ) {
     val errors = AccountFormLogic.errors(state)
     val blocker = AccountFormLogic.blocker(state, policy, now)
@@ -132,9 +129,9 @@ internal fun AccountEditContent(
                 label = ctaLabel(state.isEdit, blocker),
                 enabled = blocker == null,
                 onClick = onSave,
-                error = if (state.saveFailed) stringResource(R.string.account_form_error_generic) else null,
+                error = if (state.saveFailed) stringResource(R.string.account_form_error_generic) else null
             )
-        },
+        }
     ) {
         NameGroup(
             state = state,
@@ -143,8 +140,11 @@ internal fun AccountEditContent(
                 nameTouched && AccountDraftError.NAME_EMPTY in errors -> R.string.account_form_error_name_empty
                 else -> null
             },
-            onName = { nameTouched = true; onName(it) },
-            onCurrencyClick = { showCurrencies = true },
+            onName = {
+                nameTouched = true
+                onName(it)
+            },
+            onCurrencyClick = { showCurrencies = true }
         )
 
         SectionHeader(stringResource(R.string.account_form_type), Modifier.padding(top = 8.dp))
@@ -157,10 +157,13 @@ internal fun AccountEditContent(
             errors = errors,
             dateTooLate = dateTooLate,
             onAmount = onAmount,
-            onDateClick = { showDatePicker = true },
+            onDateClick = { showDatePicker = true }
         )
 
-        SectionHeader(stringResource(R.string.picker_icon) + " · " + stringResource(R.string.picker_color), Modifier.padding(top = 8.dp))
+        SectionHeader(
+            stringResource(R.string.picker_icon) + " · " + stringResource(R.string.picker_color),
+            Modifier.padding(top = 8.dp)
+        )
         GroupedCard(Modifier.fillMaxWidth()) {
             IconPicker(IconKeys.accountGroups, state.icon, state.color, ColorPalette.ACCOUNT_DEFAULT, onIcon)
             ShelfDivider()
@@ -169,7 +172,7 @@ internal fun AccountEditContent(
                     stringResource(R.string.picker_color),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 10.dp),
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
                 ColorPicker(state.color, onColor)
             }
@@ -179,15 +182,18 @@ internal fun AccountEditContent(
         DescriptionCard(
             value = state.description,
             isError = AccountDraftError.DESCRIPTION_TOO_LONG in errors,
-            onValueChange = onDescription,
+            onValueChange = onDescription
         )
     }
 
     if (showCurrencies) {
         CurrencySheet(
             selected = state.currency,
-            onSelect = { onCurrency(it); showCurrencies = false },
-            onDismiss = { showCurrencies = false },
+            onSelect = {
+                onCurrency(it)
+                showCurrencies = false
+            },
+            onDismiss = { showCurrencies = false }
         )
     }
     if (showDatePicker) {
@@ -195,8 +201,11 @@ internal fun AccountEditContent(
             initialMillis = state.dateMillis,
             policy = policy,
             latestAllowed = policy.latestAllowed(now, state.earliestOtherEntryAt),
-            onSelect = { onDate(it); showDatePicker = false },
-            onDismiss = { showDatePicker = false },
+            onSelect = {
+                onDate(it)
+                showDatePicker = false
+            },
+            onDismiss = { showDatePicker = false }
         )
     }
 }
@@ -213,20 +222,20 @@ private fun ctaLabel(isEdit: Boolean, blocker: AccountFormBlocker?): String = st
         AccountFormBlocker.AMOUNT_INVALID -> R.string.account_form_blocker_amount
         AccountFormBlocker.DESCRIPTION_TOO_LONG -> R.string.account_form_blocker_description
         AccountFormBlocker.DATE_TOO_LATE -> R.string.account_form_blocker_date
-    },
+    }
 )
 
 /** Name with the live icon badge, then the currency row (locked once the account exists). */
 @Composable
-private fun NameGroup(
-    state: AccountFormState,
-    nameError: Int?,
-    onName: (String) -> Unit,
-    onCurrencyClick: () -> Unit,
-) {
+private fun NameGroup(state: AccountFormState, nameError: Int?, onName: (String) -> Unit, onCurrencyClick: () -> Unit) {
     val currency = state.currency
-    val currencyText = currency?.let { "${it.code} · ${it.name}" } ?: stringResource(R.string.account_form_currency_choose)
-    GroupedCard(Modifier.fillMaxWidth().errorOutline(nameError != null)) {
+    val currencyText =
+        currency?.let { "${it.code} · ${it.name}" } ?: stringResource(R.string.account_form_currency_choose)
+    GroupedCard(
+        Modifier
+            .fillMaxWidth()
+            .errorOutline(nameError != null)
+    ) {
         FormTextRow(
             icon = { IconBadge(state.icon, state.color, ColorPalette.ACCOUNT_DEFAULT, size = 40) },
             label = stringResource(R.string.account_form_name),
@@ -234,8 +243,11 @@ private fun NameGroup(
             onValueChange = onName,
             hint = stringResource(R.string.account_form_name_placeholder),
             textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
-            notes = { if (nameError != null) FieldNote(stringResource(nameError), isError = true) },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.Sentences,
+                imeAction = ImeAction.Done
+            ),
+            notes = { if (nameError != null) FieldNote(stringResource(nameError), isError = true) }
         )
         ShelfDivider()
         ShelfRow(
@@ -246,9 +258,13 @@ private fun NameGroup(
             trailing = {
                 ShelfValue(currencyText, muted = currency == null || state.isEdit)
                 if (!state.isEdit) {
-                    Icon(AppIcons.Dropdown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        AppIcons.Dropdown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-            },
+            }
         )
     }
 }
@@ -257,14 +273,16 @@ private fun NameGroup(
 @Composable
 private fun TypeTrack(selected: AccountType, onSelect: (AccountType) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         AccountType.entries.forEach { type ->
             FilterPill(
                 label = stringResource(type.labelRes()),
                 active = type == selected,
-                onClick = { onSelect(type) },
+                onClick = { onSelect(type) }
             )
         }
     }
@@ -277,20 +295,22 @@ private fun OpeningGroup(
     errors: Set<AccountDraftError>,
     dateTooLate: Boolean,
     onAmount: (String) -> Unit,
-    onDateClick: () -> Unit,
+    onDateClick: () -> Unit
 ) {
     if (!enabled) {
         GroupedCard(Modifier.fillMaxWidth()) {
             Row(
-                Modifier.fillMaxWidth().padding(14.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 ShelfIcon(AppIcons.Income)
                 Text(
                     stringResource(R.string.account_form_unarchive_to_add),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -301,7 +321,11 @@ private fun OpeningGroup(
     val amountError = errors.firstOrNull { it in AMOUNT_ERROR_SET }
     val dateError = dateTooLate || state.dateOrderRejected
     val earliest = state.earliestOtherEntryAt
-    GroupedCard(Modifier.fillMaxWidth().errorOutline(amountError != null || (showDate && dateError))) {
+    GroupedCard(
+        Modifier
+            .fillMaxWidth()
+            .errorOutline(amountError != null || (showDate && dateError))
+    ) {
         val negative = state.amountText.trim().startsWith("-")
         val signToggleLabel = stringResource(R.string.account_form_sign_toggle)
         FormTextRow(
@@ -310,14 +334,17 @@ private fun OpeningGroup(
             value = state.amountText,
             onValueChange = onAmount,
             hint = "0",
-            textStyle = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, fontFeatureSettings = "tnum"),
+            textStyle = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontFeatureSettings = "tnum"
+            ),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
             trailing = {
                 Text(state.currency?.symbol.orEmpty(), style = MaterialTheme.typography.titleMedium)
                 SmallPill(
                     onClick = { onAmount(AccountFormLogic.toggleSign(state.amountText)) },
                     modifier = Modifier.semantics { contentDescription = signToggleLabel },
-                    text = if (negative) "−" else "+",
+                    text = if (negative) "−" else "+"
                 )
             },
             notes = {
@@ -328,19 +355,19 @@ private fun OpeningGroup(
                                 AccountDraftError.AMOUNT_TOO_PRECISE -> R.string.account_form_error_amount_precise
                                 AccountDraftError.AMOUNT_OUT_OF_RANGE -> R.string.account_form_error_amount_range
                                 else -> R.string.account_form_error_amount_invalid
-                            },
+                            }
                         ),
-                        isError = true,
+                        isError = true
                     )
                 }
                 AccountFormLogic.balanceDelta(state)?.let { delta ->
                     Text(
                         stringResource(R.string.account_form_delta_warning, delta.format()),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = MaterialTheme.colorScheme.tertiary
                     )
                 }
-            },
+            }
         )
         if (showDate) {
             ShelfDivider()
@@ -355,13 +382,16 @@ private fun OpeningGroup(
                 },
                 supportingIsError = dateError,
                 trailing = {
-                    ShelfValue(formatDate(state.dateMillis), color = if (dateError) MaterialTheme.colorScheme.error else null)
+                    ShelfValue(
+                        formatDate(state.dateMillis),
+                        color = if (dateError) MaterialTheme.colorScheme.error else null
+                    )
                     Icon(
                         AppIcons.Next,
                         contentDescription = stringResource(R.string.account_form_pick_date),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                },
+                }
             )
         }
     }
@@ -370,12 +400,16 @@ private fun OpeningGroup(
 private val AMOUNT_ERROR_SET = setOf(
     AccountDraftError.AMOUNT_INVALID,
     AccountDraftError.AMOUNT_TOO_PRECISE,
-    AccountDraftError.AMOUNT_OUT_OF_RANGE,
+    AccountDraftError.AMOUNT_OUT_OF_RANGE
 )
 
 @Composable
 private fun DescriptionCard(value: String, isError: Boolean, onValueChange: (String) -> Unit) {
-    GroupedCard(Modifier.fillMaxWidth().errorOutline(isError)) {
+    GroupedCard(
+        Modifier
+            .fillMaxWidth()
+            .errorOutline(isError)
+    ) {
         FormTextRow(
             icon = { ShelfIcon(AppIcons.Edit) },
             label = null,
@@ -385,7 +419,9 @@ private fun DescriptionCard(value: String, isError: Boolean, onValueChange: (Str
             singleLine = false,
             textStyle = MaterialTheme.typography.bodyLarge,
             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-            notes = { if (isError) FieldNote(stringResource(R.string.account_form_error_description_long), isError = true) },
+            notes = {
+                if (isError) FieldNote(stringResource(R.string.account_form_error_description_long), isError = true)
+            }
         )
     }
 }
@@ -395,8 +431,11 @@ private fun CurrencySheet(selected: Currency?, onSelect: (Currency) -> Unit, onD
     var query by rememberSaveable { mutableStateOf("") }
     val matches = remember(query) {
         val q = query.trim()
-        if (q.isEmpty()) CurrencyRegistry.all
-        else CurrencyRegistry.all.filter { it.code.contains(q, true) || it.name.contains(q, true) }
+        if (q.isEmpty()) {
+            CurrencyRegistry.all
+        } else {
+            CurrencyRegistry.all.filter { it.code.contains(q, true) || it.name.contains(q, true) }
+        }
     }
     FinoraSheet(onDismiss = onDismiss) {
         Column(Modifier.fillMaxHeight(0.9f)) {
@@ -404,25 +443,42 @@ private fun CurrencySheet(selected: Currency?, onSelect: (Currency) -> Unit, onD
                 value = query,
                 onValueChange = { query = it },
                 placeholder = stringResource(R.string.account_form_currency_search),
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
-            GroupedCard(Modifier.fillMaxWidth().weight(1f, fill = false)) {
+            GroupedCard(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f, fill = false)
+            ) {
                 LazyColumn {
                     items(matches, key = { it.code }) { c ->
                         val isSelected = c.code == selected?.code
                         ListRow(
                             icon = {
-                                Box(Modifier.size(width = 48.dp, height = 24.dp), contentAlignment = Alignment.CenterStart) {
-                                    Text(c.code, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Box(
+                                    Modifier.size(width = 48.dp, height = 24.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        c.code,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
                             },
                             title = c.name,
                             subtitle = null,
                             trailing = {
-                                if (isSelected) Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                                if (isSelected) {
+                                    Icon(
+                                        AppIcons.Check,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
                             },
                             onClick = { onSelect(c) },
-                            modifier = Modifier.semantics { this.selected = isSelected },
+                            modifier = Modifier.semantics { this.selected = isSelected }
                         )
                     }
                 }
@@ -438,7 +494,7 @@ private fun OpeningDateDialog(
     policy: OpeningDatePolicy,
     latestAllowed: Long,
     onSelect: (Long) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val latestUtc = policy.toPickerUtcMidnight(latestAllowed)
     SingleDateDialog(
@@ -447,7 +503,7 @@ private fun OpeningDateDialog(
             override fun isSelectableDate(utcTimeMillis: Long): Boolean = utcTimeMillis <= latestUtc
         },
         onDismiss = onDismiss,
-        onConfirm = { onSelect(policy.fromPickerUtcMidnight(it)) },
+        onConfirm = { onSelect(policy.fromPickerUtcMidnight(it)) }
     )
 }
 
@@ -481,7 +537,7 @@ private fun AccountEditPreview(dark: Boolean, edit: Boolean) {
             isEdit = true, loaded = true, name = "Main card", type = AccountType.BANK, currency = usd,
             icon = "account_balance", color = ColorPalette.ACCOUNT_DEFAULT, description = "Salary goes here",
             amountText = "-1200.50", dateMillis = 100 * PREVIEW_DAY, originalOpeningMinor = 100_000,
-            earliestOtherEntryAt = 120 * PREVIEW_DAY, saveFailed = true,
+            earliestOtherEntryAt = 120 * PREVIEW_DAY, saveFailed = true
         )
     } else {
         AccountFormState(loaded = true, name = "", amountText = "")
@@ -492,7 +548,7 @@ private fun AccountEditPreview(dark: Boolean, edit: Boolean) {
             policy = OpeningDatePolicy(ZoneOffset.UTC),
             now = 130 * PREVIEW_DAY,
             onBack = {}, onName = {}, onType = {}, onCurrency = {}, onIcon = {}, onColor = {},
-            onDescription = {}, onAmount = {}, onDate = {}, onSave = {},
+            onDescription = {}, onAmount = {}, onDate = {}, onSave = {}
         )
     }
 }

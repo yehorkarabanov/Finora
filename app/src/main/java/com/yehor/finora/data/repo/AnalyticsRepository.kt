@@ -33,7 +33,7 @@ import javax.inject.Singleton
 @Singleton
 class AnalyticsRepository @Inject constructor(
     private val db: FinoraDatabase,
-    private val categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository
 ) {
 
     private fun invalidations(): Flow<Set<String>> =
@@ -63,7 +63,9 @@ class AnalyticsRepository @Inject constructor(
     /** One row per account, archived included. */
     fun observeAccountsOverview(period: ResolvedPeriod): Flow<List<AccountPeriodRow>> =
         combine(invalidations(), db.accountDao().observeAll()) { _, accounts ->
-            val overview = guarded { db.operationDao().overview(AnalyticsQuery.accountsOverview(period.from, period.toExclusive)) }
+            val overview = guarded {
+                db.operationDao().overview(AnalyticsQuery.accountsOverview(period.from, period.toExclusive))
+            }
                 .groupBy { it.accountId }
             accounts.map { account ->
                 val currency = currency(account.currencyCode)
@@ -86,20 +88,22 @@ class AnalyticsRepository @Inject constructor(
     private fun observeGrouped(
         filter: TransactionFilter,
         measure: Measure,
-        build: (TransactionFilter, Measure, Set<Long>) -> androidx.sqlite.db.SimpleSQLiteQuery,
-    ): Flow<List<NativeRow>> =
-        combine(invalidations(), categoryRepository.observeAll()) { _, categories ->
-            val closure = FilterScope.categoryClosure(filter, CategoryTree(categories))
-            guarded { db.operationDao().aggregates(build(filter, measure, closure)) }.map { row ->
-                NativeRow(row.key, Money(row.totalMinor, currency(row.currencyCode)), row.operationCount)
-            }
-        }.distinctUntilChanged()
+        build: (TransactionFilter, Measure, Set<Long>) -> androidx.sqlite.db.SimpleSQLiteQuery
+    ): Flow<List<NativeRow>> = combine(invalidations(), categoryRepository.observeAll()) { _, categories ->
+        val closure = FilterScope.categoryClosure(filter, CategoryTree(categories))
+        guarded { db.operationDao().aggregates(build(filter, measure, closure)) }.map { row ->
+            NativeRow(row.key, Money(row.totalMinor, currency(row.currencyCode)), row.operationCount)
+        }
+    }.distinctUntilChanged()
 
     private suspend fun figures(accountId: Long, period: ResolvedPeriod): AccountFigures? {
         val account = db.accountDao().getById(accountId) ?: return null
         val currency = currency(account.currencyCode)
         val zero = Money.zero(currency)
-        val rows = guarded { db.operationDao().figures(AnalyticsQuery.accountFigures(accountId, period.from, period.toExclusive)) }
+        val rows =
+            guarded {
+                db.operationDao().figures(AnalyticsQuery.accountFigures(accountId, period.from, period.toExclusive))
+            }
         var income = zero
         var expense = zero
         var transfersIn = zero
@@ -122,7 +126,7 @@ class AnalyticsRepository @Inject constructor(
             expense = expense,
             transfersIn = transfersIn,
             transfersOut = transfersOut,
-            initialBalanceInPeriod = initial,
+            initialBalanceInPeriod = initial
         )
     }
 

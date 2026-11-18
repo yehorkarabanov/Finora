@@ -1,6 +1,6 @@
 package com.yehor.finora.ui.recurring
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +22,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -44,29 +47,25 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
-import com.yehor.finora.domain.recurring.GenerationIssue
-import com.yehor.finora.domain.recurring.RecurringSchedule
-import com.yehor.finora.domain.recurring.ScheduleDisplayState
-import com.yehor.finora.domain.recurring.ScheduleStatus
-import com.yehor.finora.domain.recurring.displayState
-import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.display.AmountText
 import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.designsystem.theme.AmountStyle
 import com.yehor.finora.designsystem.theme.PillShape
+import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.domain.recurring.GenerationIssue
+import com.yehor.finora.domain.recurring.RecurringSchedule
+import com.yehor.finora.domain.recurring.ScheduleDisplayState
+import com.yehor.finora.domain.recurring.ScheduleStatus
+import com.yehor.finora.domain.recurring.displayState
 import com.yehor.finora.ui.common.OrganizeTopBar
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.material3.HorizontalDivider
-import com.yehor.finora.designsystem.icon.IconSize
 import com.yehor.finora.ui.common.TagChip
-import com.yehor.finora.designsystem.theme.PreviewTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,7 +73,7 @@ fun RecurringDetailScreen(
     onBack: () -> Unit,
     onEdit: (Long) -> Unit,
     onOpenTransaction: (Long) -> Unit,
-    viewModel: RecurringDetailViewModel = hiltViewModel(),
+    viewModel: RecurringDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -104,24 +103,32 @@ fun RecurringDetailScreen(
                                 onClick = {
                                     menuOpen = false
                                     viewModel.onDeleteRequest()
-                                },
+                                }
                             )
                         }
                     }
                 }
             }
-        },
+        }
     ) { padding ->
         val schedule = state.schedule
         if (schedule == null) {
-            Box(Modifier.fillMaxSize().padding(padding))
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            )
             return@Scaffold
         }
         val displayState = schedule.displayState()
 
         Column(
-            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 18.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             state.issue?.let { IssueBanner(schedule, it, state, viewModel) }
             RecurringHero(schedule)
@@ -142,9 +149,11 @@ internal fun RecurringHero(schedule: RecurringSchedule, modifier: Modifier = Mod
     val displayState = schedule.displayState()
     GroupedCard(modifier.fillMaxWidth()) {
         Column(
-            Modifier.fillMaxWidth().padding(20.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             RecurringScheduleBadge(schedule, 56)
             Text(schedule.name, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
@@ -152,12 +161,12 @@ internal fun RecurringHero(schedule: RecurringSchedule, modifier: Modifier = Mod
                 RecurringListLogic.signedAmount(schedule.kind, schedule.money),
                 style = MaterialTheme.typography.headlineMedium,
                 color = recurringSignedAmountColor(schedule.kind),
-                animate = false,
+                animate = false
             )
             @OptIn(ExperimentalLayoutApi::class)
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 RecurringPill(ruleText(schedule.rule), icon = AppIcons.Recurring)
                 RecurringPill(
@@ -166,7 +175,7 @@ internal fun RecurringHero(schedule: RecurringSchedule, modifier: Modifier = Mod
                         ScheduleDisplayState.PAUSED -> stringResource(R.string.recurring_section_paused)
                         ScheduleDisplayState.ENDED -> stringResource(R.string.recurring_section_ended)
                     },
-                    icon = if (displayState == ScheduleDisplayState.ACTIVE) AppIcons.Calendar else null,
+                    icon = if (displayState == ScheduleDisplayState.ACTIVE) AppIcons.Calendar else null
                 )
             }
         }
@@ -179,24 +188,32 @@ private fun statusText(schedule: RecurringSchedule): String = statusLineText(
         ScheduleDisplayState.ACTIVE -> StatusLine.Next(schedule.nextDate ?: schedule.startDate)
         ScheduleDisplayState.PAUSED -> StatusLine.Paused
         ScheduleDisplayState.ENDED -> StatusLine.Ended(schedule.endDate ?: schedule.startDate)
-    },
+    }
 )
 
 @Composable
 private fun ActionTiles(displayState: ScheduleDisplayState, viewModel: RecurringDetailViewModel) {
     val paused = displayState == ScheduleDisplayState.PAUSED
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
         ActionTile(
             icon = if (paused) AppIcons.Resume else AppIcons.Pause,
             label = stringResource(if (paused) R.string.recurring_action_resume else R.string.recurring_action_pause),
             onClick = if (paused) viewModel::onResumeRequest else viewModel::onPause,
-            modifier = Modifier.weight(1f).fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
         )
         ActionTile(
             icon = AppIcons.SkipNext,
             label = stringResource(R.string.recurring_action_skip_next),
             onClick = viewModel::onSkipNextRequest,
-            modifier = Modifier.weight(1f).fillMaxSize(),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxSize()
         )
     }
 }
@@ -206,19 +223,21 @@ private fun ActionTile(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(22.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
-        border = hairline(MaterialTheme.finance.isDark),
+        border = hairline(MaterialTheme.finance.isDark)
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             RoundIcon(icon, MaterialTheme.colorScheme.primary, size = 44.dp)
             Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
@@ -240,7 +259,7 @@ private fun DetailsGroup(schedule: RecurringSchedule) {
             DetailRowContent(
                 AppIcons.Account,
                 stringResource(R.string.recurring_label_account),
-                "${schedule.account.name} · ${schedule.account.currency.code}",
+                "${schedule.account.name} · ${schedule.account.currency.code}"
             )
         }
         add { DetailRowContent(AppIcons.Category, stringResource(R.string.recurring_label_category), categoryText) }
@@ -254,7 +273,7 @@ private fun DetailsGroup(schedule: RecurringSchedule) {
                         Text(
                             stringResource(R.string.recurring_label_tags),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             schedule.tags.forEach { TagChip(it) }
@@ -277,7 +296,7 @@ private fun DetailRowContent(icon: androidx.compose.ui.graphics.vector.ImageVect
     Row(
         Modifier.semantics(mergeDescendants = true) {},
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         RoundIcon(icon, MaterialTheme.colorScheme.onSurfaceVariant, size = 44.dp)
         Column(Modifier.weight(1f)) {
@@ -291,7 +310,7 @@ private fun DetailRowContent(icon: androidx.compose.ui.graphics.vector.ImageVect
 private fun UpcomingCard(
     schedule: RecurringSchedule,
     upcoming: List<java.time.LocalDate>,
-    displayState: ScheduleDisplayState,
+    displayState: ScheduleDisplayState
 ) {
     RecurringCard {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -300,29 +319,33 @@ private fun UpcomingCard(
                 Text(
                     stringResource(R.string.recurring_detail_upcoming_paused),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (upcoming.isEmpty()) {
                 Text(
                     stringResource(R.string.recurring_detail_upcoming_none),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
                 val amount = RecurringListLogic.signedAmount(schedule.kind, schedule.money)
                 val dimmed = displayState != ScheduleDisplayState.ACTIVE
                 upcoming.forEach { date ->
                     Row(
-                        Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(formatScheduleDate(date), style = MaterialTheme.typography.bodyMedium)
                         Text(
                             amount,
                             style = AmountStyle,
-                            color = if (dimmed) MaterialTheme.colorScheme.onSurfaceVariant else recurringSignedAmountColor(schedule.kind),
+                            color = if (dimmed) MaterialTheme.colorScheme.onSurfaceVariant else recurringSignedAmountColor(
+                                schedule.kind
+                            )
                         )
                     }
                 }
@@ -340,7 +363,7 @@ private fun HistoryCard(history: HistoryView, onOpenTransaction: (Long) -> Unit)
                 Text(
                     stringResource(R.string.recurring_detail_history_empty),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             } else {
                 Column {
@@ -353,7 +376,7 @@ private fun HistoryCard(history: HistoryView, onOpenTransaction: (Long) -> Unit)
                     Text(
                         stringResource(R.string.recurring_detail_history_more, RecurringDetailLogic.HISTORY_LIMIT),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -368,7 +391,7 @@ private fun HistoryItem(row: HistoryRow, onOpenTransaction: (Long) -> Unit) {
             Icon(
                 AppIcons.Recurring,
                 contentDescription = stringResource(R.string.recurring_marker),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(formatScheduleDate(row.date), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
             row.money?.let {
@@ -378,7 +401,7 @@ private fun HistoryItem(row: HistoryRow, onOpenTransaction: (Long) -> Unit) {
                 AppIcons.Next,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(IconSize.Default),
+                modifier = Modifier.size(IconSize.Default)
             )
         }
         is HistoryRow.Deleted -> HistorySecondaryRow(row, stringResource(R.string.recurring_history_deleted))
@@ -397,7 +420,7 @@ private fun HistoryLine(onClick: (() -> Unit)? = null, content: @Composable RowS
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
+        content = content
     )
 }
 
@@ -414,7 +437,7 @@ private fun IssueBanner(
     schedule: RecurringSchedule,
     issue: GenerationIssue,
     state: RecurringDetailUiState,
-    viewModel: RecurringDetailViewModel,
+    viewModel: RecurringDetailViewModel
 ) {
     RecurringCard(color = MaterialTheme.colorScheme.errorContainer) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -428,13 +451,13 @@ private fun IssueBanner(
                             R.string.recurring_issue_opening,
                             nextDate?.let(::formatScheduleDate).orEmpty(),
                             schedule.account.name,
-                            state.openingDate?.let(::formatScheduleDate).orEmpty(),
+                            state.openingDate?.let(::formatScheduleDate).orEmpty()
                         )
                         GenerationIssue.BALANCE_OVERFLOW -> stringResource(R.string.recurring_issue_overflow, schedule.account.name)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
             }
             if (issue == GenerationIssue.BEFORE_OPENING_BALANCE) {
@@ -458,7 +481,7 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onDismissDialog) { Text(stringResource(R.string.action_cancel)) }
-            },
+            }
         )
         is DetailDialog.Resume -> {
             val info = dialog.info
@@ -476,12 +499,12 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
                         TextButton(onClick = viewModel::onResumeSkip) {
                             Text(
                                 info.continueFrom?.let { stringResource(R.string.recurring_resume_skip, formatScheduleDate(it)) }
-                                    ?: stringResource(R.string.recurring_resume_skip_ended),
+                                    ?: stringResource(R.string.recurring_resume_skip_ended)
                             )
                         }
                         TextButton(onClick = viewModel::onDismissDialog) { Text(stringResource(R.string.action_cancel)) }
                     }
-                },
+                }
             )
         }
         is DetailDialog.Delete -> AlertDialog(
@@ -493,7 +516,7 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
                         stringResource(R.string.recurring_delete_body_none)
                     } else {
                         pluralStringResource(R.plurals.recurring_delete_body, dialog.generatedCount, dialog.generatedCount)
-                    },
+                    }
                 )
             },
             confirmButton = {
@@ -503,7 +526,7 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onDismissDialog) { Text(stringResource(R.string.action_cancel)) }
-            },
+            }
         )
         is DetailDialog.MoveBack -> AlertDialog(
             onDismissRequest = viewModel::onDismissDialog,
@@ -516,7 +539,7 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
             },
             dismissButton = {
                 TextButton(onClick = viewModel::onDismissDialog) { Text(stringResource(R.string.action_cancel)) }
-            },
+            }
         )
         is DetailDialog.Error -> AlertDialog(
             onDismissRequest = viewModel::onDismissDialog,
@@ -527,13 +550,13 @@ private fun DetailDialogs(dialog: DetailDialog?, viewModel: RecurringDetailViewM
                         when (dialog.kind) {
                             DetailError.ACCOUNT_ARCHIVED -> R.string.recurring_error_archived
                             DetailError.BALANCE_OVERFLOW -> R.string.recurring_error_overflow
-                        },
-                    ),
+                        }
+                    )
                 )
             },
             confirmButton = {
                 TextButton(onClick = viewModel::onDismissDialog) { Text(stringResource(R.string.recurring_error_ok)) }
-            },
+            }
         )
     }
 }

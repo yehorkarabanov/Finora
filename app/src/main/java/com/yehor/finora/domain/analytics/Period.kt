@@ -21,7 +21,7 @@ data class ResolvedPeriod(
     /** Epoch ms, inclusive. */
     val from: Long,
     /** Epoch ms, exclusive. */
-    val toExclusive: Long,
+    val toExclusive: Long
 ) {
     val dayCount: Long get() = ChronoUnit.DAYS.between(fromDate, toDateInclusive) + 1
 }
@@ -38,7 +38,7 @@ object PeriodCalculator {
             fromDate = fromDate,
             toDateInclusive = toDate,
             from = startOfDay(fromDate, zone),
-            toExclusive = startOfDay(toDate.plusDays(1), zone),
+            toExclusive = startOfDay(toDate.plusDays(1), zone)
         )
     }
 
@@ -84,6 +84,5 @@ object PeriodCalculator {
         return if (end.isBefore(period.anchor)) period.anchor to period.anchor else period.anchor to end
     }
 
-    internal fun startOfDay(date: LocalDate, zone: ZoneId): Long =
-        date.atStartOfDay(zone).toInstant().toEpochMilli()
+    internal fun startOfDay(date: LocalDate, zone: ZoneId): Long = date.atStartOfDay(zone).toInstant().toEpochMilli()
 }

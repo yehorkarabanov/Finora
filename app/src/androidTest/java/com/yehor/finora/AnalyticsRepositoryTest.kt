@@ -2,17 +2,35 @@ package com.yehor.finora
 
 import androidx.room.Room
 import androidx.test.platform.app.InstrumentationRegistry
-import com.yehor.finora.data.db.*
-import com.yehor.finora.data.repo.*
-import com.yehor.finora.domain.analytics.*
-import com.yehor.finora.domain.model.*
-import com.yehor.finora.domain.money.*
-import com.yehor.finora.domain.operation.*
+import com.yehor.finora.data.db.AccountEntity
+import com.yehor.finora.data.db.CategoryEntity
+import com.yehor.finora.data.db.FinoraDatabase
+import com.yehor.finora.data.db.FinoraDatabaseCallback
+import com.yehor.finora.data.db.TagEntity
+import com.yehor.finora.data.repo.AccountRepository
+import com.yehor.finora.data.repo.AnalyticsRepository
+import com.yehor.finora.data.repo.CategoryRepository
+import com.yehor.finora.data.repo.OperationRepository
+import com.yehor.finora.data.repo.TransactionRepository
+import com.yehor.finora.data.repo.TransferRepository
+import com.yehor.finora.domain.analytics.Bucket
+import com.yehor.finora.domain.analytics.Measure
+import com.yehor.finora.domain.analytics.Period
+import com.yehor.finora.domain.analytics.PeriodKind
+import com.yehor.finora.domain.analytics.ResolvedPeriod
+import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.domain.operation.TransactionDraft
+import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionKind
+import com.yehor.finora.domain.operation.TransferDraft
 import com.yehor.finora.domain.tag.TagMatchMode
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.LocalDate
@@ -46,22 +64,32 @@ class AnalyticsRepositoryTest {
     private suspend fun account(code: String, status: AccountStatus = AccountStatus.ACTIVE): Long =
         db.accountDao().insert(
             AccountEntity(
-                name = "Account $code", currencyCode = code, type = "CASH", icon = null, color = null,
-                description = null, status = status, createdAt = 0L
+                name = "Account $code",
+                currencyCode = code,
+                type = "CASH",
+                icon = null,
+                color = null,
+                description = null,
+                status = status,
+                createdAt = 0L
             )
         )
 
     private suspend fun category(name: String, type: CategoryType, parentId: Long? = null): Long =
         db.categoryDao().insert(
             CategoryEntity(
-                name = name, icon = null, color = null, type = type, parentId = parentId, createdAt = 0L
+                name = name,
+                icon = null,
+                color = null,
+                type = type,
+                parentId = parentId,
+                createdAt = 0L
             )
         )
 
-    private suspend fun tag(name: String): Long =
-        db.tagDao().insert(
-            TagEntity(name = name, color = null, createdAt = 0L)
-        )
+    private suspend fun tag(name: String): Long = db.tagDao().insert(
+        TagEntity(name = name, color = null, createdAt = 0L)
+    )
 
     private suspend fun transaction(
         kind: TransactionKind,
@@ -70,20 +98,18 @@ class AnalyticsRepositoryTest {
         categoryId: Long?,
         occurredAt: Long,
         tagIds: Set<Long> = emptySet()
-    ): Long {
-        return transactions.create(
-            TransactionDraft(
-                kind = kind,
-                accountId = accountId,
-                amountMinor = amountMinor,
-                categoryId = categoryId,
-                occurredAt = occurredAt,
-                description = "tx",
-                tagIds = tagIds,
-                newTagNames = emptyList()
-            )
+    ): Long = transactions.create(
+        TransactionDraft(
+            kind = kind,
+            accountId = accountId,
+            amountMinor = amountMinor,
+            categoryId = categoryId,
+            occurredAt = occurredAt,
+            description = "tx",
+            tagIds = tagIds,
+            newTagNames = emptyList()
         )
-    }
+    )
 
     private suspend fun transfer(
         sourceAccountId: Long,
@@ -93,21 +119,19 @@ class AnalyticsRepositoryTest {
         occurredAt: Long,
         categoryId: Long? = null,
         tagIds: Set<Long> = emptySet()
-    ): Long {
-        return transfers.create(
-            TransferDraft(
-                sourceAccountId = sourceAccountId,
-                destAccountId = destAccountId,
-                sentAmountMinor = sentAmountMinor,
-                receivedAmountMinor = receivedAmountMinor,
-                categoryId = categoryId,
-                occurredAt = occurredAt,
-                description = "transfer",
-                tagIds = tagIds,
-                newTagNames = emptyList()
-            )
+    ): Long = transfers.create(
+        TransferDraft(
+            sourceAccountId = sourceAccountId,
+            destAccountId = destAccountId,
+            sentAmountMinor = sentAmountMinor,
+            receivedAmountMinor = receivedAmountMinor,
+            categoryId = categoryId,
+            occurredAt = occurredAt,
+            description = "transfer",
+            tagIds = tagIds,
+            newTagNames = emptyList()
         )
-    }
+    )
 
     @Test
     fun testCoreCorrectness() = runBlocking {
@@ -145,7 +169,7 @@ class AnalyticsRepositoryTest {
         // Let's check that totals are correct and don't include transfers or opening balance
         // Groceries expense: 150.00 PLN
         // Food expense: 50.00 PLN + 30.00 EUR (since both are Food category, but distinct currencies!)
-        
+
         val groceriesRow = categoryExpenses.find { it.key == groceries }
         assertNotNull(groceriesRow)
         assertEquals(150_00L, groceriesRow!!.money.amountMinor)
@@ -165,9 +189,11 @@ class AnalyticsRepositoryTest {
         // We will test AccountPeriodRow in accounts overview or account figures.
         // Let's check accountsOverview
         val period = ResolvedPeriod(
-            Period(PeriodKind.CUSTOM, LocalDate.of(2026,1,1)),
-            LocalDate.of(2026,1,1), LocalDate.of(2026,12,31),
-            0L, 10000L
+            Period(PeriodKind.CUSTOM, LocalDate.of(2026, 1, 1)),
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 12, 31),
+            0L,
+            10000L
         )
         val overview = analyticsRepo.observeAccountsOverview(period).first()
         val plnOverview = overview.find { it.accountId == pln }
@@ -226,7 +252,7 @@ class AnalyticsRepositoryTest {
 
         // Tags: ANY returns the union, ALL the intersection, a multi-tag transaction counts under each tag,
         // and the "No tag" row holds exactly the untagged ones.
-        
+
         val tagRows = analyticsRepo.observeByTag(TransactionFilter(), Measure.EXPENSE).first()
         val rowA = tagRows.find { it.key == tagA }
         val rowB = tagRows.find { it.key == tagB }
@@ -287,7 +313,7 @@ class AnalyticsRepositoryTest {
 
         val buckets = listOf(
             Bucket(0, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 1), 500L, 1500L),
-            Bucket(1, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 2), 1500L, 2500L),
+            Bucket(1, LocalDate.of(2026, 11, 2), LocalDate.of(2026, 11, 2), 1500L, 2500L)
         )
 
         val bucketRows = analyticsRepo.observeByBucket(TransactionFilter(), Measure.EXPENSE, buckets).first()
@@ -310,8 +336,10 @@ class AnalyticsRepositoryTest {
 
         val period = ResolvedPeriod(
             Period(PeriodKind.CUSTOM, LocalDate.of(2026, 11, 1)),
-            LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 5),
-            500L, 2500L
+            LocalDate.of(2026, 11, 1),
+            LocalDate.of(2026, 11, 5),
+            500L,
+            2500L
         )
 
         transaction(TransactionKind.INCOME, pln, 500_00L, catIn, 1000L)

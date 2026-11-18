@@ -65,7 +65,7 @@ private fun tagTint(tag: Tag): Color = tag.color?.let { MaterialTheme.finance.ac
 internal fun LazyListScope.tagRankingItems(
     content: StatsContent.TagRanking,
     state: StatisticsUiState,
-    vm: StatisticsViewModel,
+    vm: StatisticsViewModel
 ) {
     val env = state.env ?: return
     item(key = "tag_ranking") {
@@ -76,7 +76,7 @@ internal fun LazyListScope.tagRankingItems(
             title = stringResource(R.string.stats_tags_ranking_title, periodShortName(env.period, env.today)),
             onMeasure = vm::setTagMeasure,
             onOpen = vm::toggleTag,
-            onCombine = vm::combineTags,
+            onCombine = vm::combineTags
         )
     }
 }
@@ -94,7 +94,7 @@ internal fun TagRankingSection(
     onMeasure: (Measure) -> Unit,
     onOpen: (Long) -> Unit,
     onCombine: (Set<Long>) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var picked by rememberSaveable { mutableStateOf(longArrayOf()) }
     // Picks of tags that left the ranking (another period, a deleted tag) do not count.
@@ -106,22 +106,31 @@ internal fun TagRankingSection(
     BackHandler(enabled = picking) { picked = longArrayOf() }
 
     Column(modifier.fillMaxWidth()) {
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
                 fontFamily = SpaceGrotesk,
                 fontWeight = FontWeight.Bold,
                 maxLines = 2,
-                modifier = Modifier.weight(1f).padding(end = 8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
             )
             val flows = listOf(Measure.EXPENSE, Measure.INCOME)
             SegmentedPill(
-                options = listOf(stringResource(R.string.stats_measure_spent), stringResource(R.string.stats_measure_earned)),
+                options = listOf(
+                    stringResource(R.string.stats_measure_spent),
+                    stringResource(R.string.stats_measure_earned)
+                ),
                 selected = flows.indexOf(measure),
                 onSelect = { onMeasure(flows[it]) },
                 enabled = measureEnabled,
-                modifier = Modifier.width(184.dp),
+                modifier = Modifier.width(184.dp)
             )
         }
         if (rows.isEmpty()) {
@@ -130,36 +139,50 @@ internal fun TagRankingSection(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp)
             )
             return@Column
         }
-        GroupedCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        GroupedCard(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
             rows.forEach { row ->
                 val id = row.tag.id
                 TagRankItem(
                     row = row,
                     selected = id in pickedIds,
                     onClick = { if (picking) toggle(id) else onOpen(id) },
-                    onLongClick = { toggle(id) },
+                    onLongClick = { toggle(id) }
                 )
             }
         }
         if (picking) {
             Row(
-                Modifier.fillMaxWidth().padding(top = 12.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Box(
-                    Modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button) { picked = longArrayOf() }
+                    Modifier
+                        .heightIn(min = 48.dp)
+                        .clip(PillShape)
+                        .clickable(role = Role.Button) {
+                            picked =
+                                longArrayOf()
+                        }
                         .padding(horizontal = 16.dp),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         stringResource(R.string.action_cancel),
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 PrimaryButton(
@@ -168,7 +191,7 @@ internal fun TagRankingSection(
                         onCombine(pickedIds)
                         picked = longArrayOf()
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
             }
         } else {
@@ -177,7 +200,9 @@ internal fun TagRankingSection(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
             )
         }
     }
@@ -194,7 +219,7 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
     val fraction = animateFloatAsState(
         row.fraction,
         if (reduceMotion) snap() else tween(BAR_MS),
-        label = "tagBar",
+        label = "tagBar"
     )
     Row(
         Modifier
@@ -203,18 +228,21 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
-                onLongClickLabel = stringResource(R.string.stats_tags_pick),
+                onLongClickLabel = stringResource(R.string.stats_tags_pick)
             )
             .semantics { this.selected = selected }
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             Modifier
                 .size(38.dp)
-                .background(if (selected) scheme.primary.copy(alpha = 0.16f) else scheme.surfaceContainerHighest, RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center,
+                .background(
+                    if (selected) scheme.primary.copy(alpha = 0.16f) else scheme.surfaceContainerHighest,
+                    RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
             if (selected) {
                 Icon(AppIcons.Check, contentDescription = null, tint = scheme.primary, modifier = Modifier.size(20.dp))
@@ -230,7 +258,9 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp)
                 )
                 AmountText(row.cell, color = scheme.onSurface)
             }
@@ -244,15 +274,21 @@ private fun TagRankItem(row: TagRankRow, selected: Boolean, onClick: () -> Unit,
                     .drawBehind {
                         val f = fraction.value.coerceIn(0f, 1f)
                         if (f > 0f) {
-                            drawRoundRect(tint, size = Size(size.width * f, size.height), cornerRadius = CornerRadius(size.height / 2f))
+                            drawRoundRect(
+                                tint,
+                                size = Size(size.width * f, size.height),
+                                cornerRadius = CornerRadius(
+                                    size.height / 2f
+                                )
+                            )
                         }
-                    },
+                    }
             )
             Text(
                 pluralStringResource(R.plurals.analytics_operations, row.cell.operationCount, row.cell.operationCount),
                 style = MaterialTheme.typography.bodySmall,
                 color = scheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }

@@ -7,13 +7,10 @@ import com.yehor.finora.domain.tag.TagNameError
  * A non-opening entry, or the opening balance itself, would break the rule that an account's
  * opening balance is dated on or before every other entry of that account (design 4.6, O1).
  */
-class OpeningBalanceOrderException(
-    val accountId: Long,
-    val openingAt: Long,
-    val entryAt: Long,
-) : InvariantViolationException(
-    "Opening balance of account $accountId (at $openingAt) must not be after an entry at $entryAt",
-)
+class OpeningBalanceOrderException(val accountId: Long, val openingAt: Long, val entryAt: Long) :
+    InvariantViolationException(
+        "Opening balance of account $accountId (at $openingAt) must not be after an entry at $entryAt"
+    )
 
 /** A category create or move was refused by `CategoryRules.checkParent`. */
 class InvalidCategoryParentException(val reason: ParentCheck) :
@@ -24,8 +21,7 @@ class FutureDateException(val occurredAt: Long, val now: Long) :
     InvariantViolationException("Operation date ($occurredAt) is in the future relative to $now")
 
 /** A tag name is invalid according to TagNameRules. */
-class InvalidTagNameException(val error: TagNameError) :
-    IllegalArgumentException("Invalid tag name: $error")
+class InvalidTagNameException(val error: TagNameError) : IllegalArgumentException("Invalid tag name: $error")
 
 /** A tag with the same case-insensitive name already exists. */
 class DuplicateTagNameException(val existingId: Long) :

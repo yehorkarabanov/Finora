@@ -17,8 +17,6 @@ import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.Category
 import com.yehor.finora.domain.model.AccountStatus
 import com.yehor.finora.domain.model.CategoryType
-import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
-import kotlinx.coroutines.flow.filterNotNull
 import com.yehor.finora.domain.model.OperationType
 import com.yehor.finora.domain.money.AmountParseResult
 import com.yehor.finora.domain.money.AmountParser
@@ -35,11 +33,13 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.operation.TransactionKind
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.domain.tag.TagNameRules
+import com.yehor.finora.ui.navigation.CREATED_CATEGORY_ID_KEY
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -86,7 +86,7 @@ data class TransactionEditUiState(
     /** True while a "save and create another" request is in flight (including its confirmation dialogs). */
     val createAnother: Boolean = false,
     /** Incremented each time "save and create another" succeeds; the screen shows a confirmation. */
-    val savedAnotherCount: Int = 0,
+    val savedAnotherCount: Int = 0
 ) {
     val selectedAccount: Account?
         get() = accounts.find { it.account.id == selectedAccountId }?.account
@@ -105,7 +105,7 @@ class TransactionEditViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
     private val recurringRepository: RecurringRepository,
     categoryRepository: CategoryRepository,
-    tagRepository: TagRepository,
+    tagRepository: TagRepository
 ) : ViewModel() {
 
     // This VM is created for every mode of the unified editor; in Transfer mode it is a fresh Expense draft.
@@ -117,6 +117,7 @@ class TransactionEditViewModel @Inject constructor(
         savedStateHandle.get<Long>("operationId")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
     private val duplicateOf: Long? =
         savedStateHandle.get<Long>("duplicateOf")?.takeIf { it > 0 && mode != EditorMode.TRANSFER }
+
     /** Account the editor was opened for (account detail actions); only used for a new transaction. */
     private val presetArg: Long = savedStateHandle.get<Long>("sourceAccountId") ?: -1L
     private val initialKind: TransactionKind =
@@ -126,27 +127,29 @@ class TransactionEditViewModel @Inject constructor(
         TransactionEditUiState(
             isEdit = operationId != null,
             operationId = operationId ?: 0,
-            kind = initialKind,
-        ),
+            kind = initialKind
+        )
     )
 
     val state: StateFlow<TransactionEditUiState> = combine(
         _state,
         accountRepository.observeAll(),
         categoryRepository.observeAll(),
-        tagRepository.observeAllWithUsage(),
+        tagRepository.observeAllWithUsage()
     ) { current, accountsWithBalance, categories, tagsWithUsage ->
         val originalId = current.originalAccountId
         val pickable = accountsWithBalance.map { it.account }
             .filter { it.status == AccountStatus.ACTIVE || it.id == originalId }
-            .map { PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId) }
+            .map {
+                PickableAccount(it, isArchivedOriginal = it.status == AccountStatus.ARCHIVED && it.id == originalId)
+            }
         val withAccounts = current.copy(
             accounts = pickable,
             categories = categories,
             allTags = tagsWithUsage.map { it.tag },
             balances = accountsWithBalance.mapNotNull { row ->
                 (row.balance as? Balance.Value)?.let { row.account.id to it.money }
-            }.toMap(),
+            }.toMap()
         )
         withAccounts.copy(
             errors = TransactionDraftValidator.validate(
@@ -157,8 +160,8 @@ class TransactionEditViewModel @Inject constructor(
                 description = current.description,
                 currency = withAccounts.currency,
                 isEdit = current.isEdit,
-                hadCategoryBefore = current.hadCategoryBefore,
-            ),
+                hadCategoryBefore = current.hadCategoryBefore
+            )
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
@@ -168,12 +171,18 @@ class TransactionEditViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 savedStateHandle.getStateFlow<Long?>(CREATED_CATEGORY_ID_KEY, null),
-                categoryRepository.observeAll(),
+                categoryRepository.observeAll()
             ) { id, categories -> categories.firstOrNull { it.id == id } }
                 .filterNotNull()
                 .collect { created ->
                     if (created.type == CategoryType.TRANSFER) return@collect // the transfer VM handles it
-                    val kind = if (created.type == CategoryType.INCOME) TransactionKind.INCOME else TransactionKind.EXPENSE
+                    val kind = if (created.type ==
+                        CategoryType.INCOME
+                    ) {
+                        TransactionKind.INCOME
+                    } else {
+                        TransactionKind.EXPENSE
+                    }
                     if (_state.value.kind == kind) onCategoryChange(created.id)
                     savedStateHandle.remove<Long>(CREATED_CATEGORY_ID_KEY)
                 }
@@ -210,7 +219,7 @@ class TransactionEditViewModel @Inject constructor(
             amountText = magnitude.toPlainString(),
             selectedCategoryId = item.category?.id,
             description = item.description.orEmpty(),
-            selectedTagIds = item.tags.map { it.id }.toSet(),
+            selectedTagIds = item.tags.map { it.id }.toSet()
         )
         _state.value = if (operationId != null) {
             val split = TransactionDateTime.split(item.occurredAt, ZoneId.systemDefault())
@@ -222,7 +231,7 @@ class TransactionEditViewModel @Inject constructor(
                 hadCategoryBefore = item.category != null,
                 date = split.date,
                 time = split.time,
-                deleteBalanceChange = -entry.money,
+                deleteBalanceChange = -entry.money
             )
         } else {
             // Duplicate: date and time default to now, and an archived account is not carried over.
@@ -271,7 +280,7 @@ class TransactionEditViewModel @Inject constructor(
             selectedAccountId = accountId ?: s.selectedAccountId,
             date = date ?: s.date,
             time = time ?: s.time,
-            description = if (s.description.isEmpty()) description else s.description,
+            description = if (s.description.isEmpty()) description else s.description
         )
     }
 
@@ -282,7 +291,7 @@ class TransactionEditViewModel @Inject constructor(
     fun onToggleTag(tagId: Long) {
         val current = _state.value.selectedTagIds
         _state.value = _state.value.copy(
-            selectedTagIds = if (tagId in current) current - tagId else current + tagId,
+            selectedTagIds = if (tagId in current) current - tagId else current + tagId
         )
     }
 
@@ -328,7 +337,7 @@ class TransactionEditViewModel @Inject constructor(
             occurredAt = instantOf(current.date, current.time),
             description = current.description,
             tagIds = current.selectedTagIds,
-            newTagNames = current.pendingTagNames,
+            newTagNames = current.pendingTagNames
         )
 
         viewModelScope.launch {
@@ -338,7 +347,7 @@ class TransactionEditViewModel @Inject constructor(
                         id = current.operationId,
                         draft = draft,
                         moveOpeningBalanceBack = moveOpeningBalanceBack,
-                        confirmCurrencyChange = confirmCurrencyChange,
+                        confirmCurrencyChange = confirmCurrencyChange
                     )
                 } else {
                     transactionRepository.create(draft, moveOpeningBalanceBack)
@@ -346,23 +355,32 @@ class TransactionEditViewModel @Inject constructor(
                 if (current.createAnother) {
                     resetForNextEntry()
                 } else {
-                    _state.value = _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                    _state.value =
+                        _state.value.copy(saved = true, reassignmentInfo = null, showOpeningOrderDialog = false)
                 }
             } catch (_: CurrencyChangeNotConfirmedException) {
                 val oldMoney = current.originalMoney ?: return@launch
                 _state.value = _state.value.copy(
                     reassignmentInfo = ReassignmentDialogInfo(
                         oldFormatted = "${oldMoney.toPlainString()} ${oldMoney.currency.code}",
-                        newFormatted = "${Money(parsed.minor, account.currency).toPlainString()} ${account.currency.code}",
-                        oldAccountName = current.accounts.find { it.account.id == current.originalAccountId }?.account?.name.orEmpty(),
+                        newFormatted = "${
+                            Money(
+                                parsed.minor,
+                                account.currency
+                            ).toPlainString()
+                        } ${account.currency.code}",
+                        oldAccountName = current.accounts.find {
+                            it.account.id == current.originalAccountId
+                        }?.account?.name.orEmpty(),
                         newAccountName = account.name,
-                        isExpense = current.kind == TransactionKind.EXPENSE,
-                    ),
+                        isExpense = current.kind == TransactionKind.EXPENSE
+                    )
                 )
             } catch (_: OpeningBalanceOrderException) {
                 _state.value = _state.value.copy(showOpeningOrderDialog = true, reassignmentInfo = null)
             } catch (_: MoneyOverflowException) {
-                _state.value = _state.value.copy(isOverflow = true, reassignmentInfo = null, showOpeningOrderDialog = false)
+                _state.value =
+                    _state.value.copy(isOverflow = true, reassignmentInfo = null, showOpeningOrderDialog = false)
             } catch (_: FutureDateException) {
                 // The form validator rejects future dates; this only happens when the clock passes the chosen minute.
             }
@@ -382,7 +400,7 @@ class TransactionEditViewModel @Inject constructor(
             reassignmentInfo = null,
             showOpeningOrderDialog = false,
             createAnother = false,
-            savedAnotherCount = _state.value.savedAnotherCount + 1,
+            savedAnotherCount = _state.value.savedAnotherCount + 1
         )
         loadRecentCategories(_state.value.kind)
     }
@@ -411,11 +429,10 @@ class TransactionEditViewModel @Inject constructor(
         }
     }
 
-    private fun instantOf(date: LocalDate, time: LocalTime): Long =
-        TransactionDateTime.combine(
-            TransactionDateTime.pickerUtcMidnight(date),
-            time.hour,
-            time.minute,
-            ZoneId.systemDefault(),
-        )
+    private fun instantOf(date: LocalDate, time: LocalTime): Long = TransactionDateTime.combine(
+        TransactionDateTime.pickerUtcMidnight(date),
+        time.hour,
+        time.minute,
+        ZoneId.systemDefault()
+    )
 }

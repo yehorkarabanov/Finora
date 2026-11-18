@@ -25,7 +25,7 @@ fun ruleText(rule: RecurrenceRule): String {
                 RecurrenceUnit.WEEK -> R.string.recurring_every_week
                 RecurrenceUnit.MONTH -> R.string.recurring_every_month
                 RecurrenceUnit.YEAR -> R.string.recurring_every_year
-            },
+            }
         )
     }
     val plural = when (rule.unit) {
@@ -44,7 +44,7 @@ fun unitLabel(unit: RecurrenceUnit): String = stringResource(
         RecurrenceUnit.WEEK -> R.string.recurring_unit_weeks
         RecurrenceUnit.MONTH -> R.string.recurring_unit_months
         RecurrenceUnit.YEAR -> R.string.recurring_unit_years
-    },
+    }
 )
 
 @Composable
@@ -55,7 +55,7 @@ fun presetLabel(preset: FrequencyPreset): String = stringResource(
         FrequencyPreset.MONTHLY -> R.string.recurring_freq_monthly
         FrequencyPreset.YEARLY -> R.string.recurring_freq_yearly
         FrequencyPreset.CUSTOM -> R.string.recurring_freq_custom
-    },
+    }
 )
 
 @Composable
@@ -68,15 +68,14 @@ fun statusLineText(line: StatusLine): String = when (line) {
             GenerationIssue.ACCOUNT_ARCHIVED -> R.string.recurring_issue_archived_short
             GenerationIssue.BEFORE_OPENING_BALANCE -> R.string.recurring_issue_opening_short
             GenerationIssue.BALANCE_OVERFLOW -> R.string.recurring_issue_overflow_short
-        },
+        }
     )
 }
 
 /** "1 Dec 2026" for one date, "1 Dec 2026 to 5 Dec 2026" for a range. */
 @Composable
-fun rangeText(first: LocalDate, last: LocalDate): String =
-    if (first == last) {
-        stringResource(R.string.recurring_range_single, formatScheduleDate(first))
-    } else {
-        stringResource(R.string.recurring_range_multi, formatScheduleDate(first), formatScheduleDate(last))
-    }
+fun rangeText(first: LocalDate, last: LocalDate): String = if (first == last) {
+    stringResource(R.string.recurring_range_single, formatScheduleDate(first))
+} else {
+    stringResource(R.string.recurring_range_multi, formatScheduleDate(first), formatScheduleDate(last))
+}

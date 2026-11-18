@@ -12,7 +12,7 @@ data class ConvertedSummary(
     val expense: Estimate?,
     val net: Estimate?,
     val excluded: List<Currency>,
-    val oldestFetchedAt: Long?,
+    val oldestFetchedAt: Long?
 ) {
     val outdated: Boolean
         get() = listOf(income, expense, net).any { it?.basis?.hasOutdatedRate == true }
@@ -21,12 +21,7 @@ data class ConvertedSummary(
 object SummaryConversion {
 
     /** Null for an empty or single-currency summary, which stays native. */
-    fun build(
-        summary: List<CurrencySummary>,
-        display: Currency,
-        table: RateTable,
-        now: Long,
-    ): ConvertedSummary? {
+    fun build(summary: List<CurrencySummary>, display: Currency, table: RateTable, now: Long): ConvertedSummary? {
         if (summary.size < 2) return null
         val converter = RateConverter(table, now)
         val income = converter.value(summary.map { it.income }, display)
@@ -45,7 +40,7 @@ object SummaryConversion {
             expense = expense.total,
             net = net,
             excluded = (income.excluded + expense.excluded).sortedBy { it.code },
-            oldestFetchedAt = listOfNotNull(income.oldestFetchedAt, expense.oldestFetchedAt).minOrNull(),
+            oldestFetchedAt = listOfNotNull(income.oldestFetchedAt, expense.oldestFetchedAt).minOrNull()
         )
     }
 }

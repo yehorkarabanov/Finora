@@ -12,7 +12,7 @@ fun PreviewTheme(dark: Boolean, content: @Composable () -> Unit) {
             colorScheme = if (dark) FinoraDarkColorScheme else FinoraLightColorScheme,
             typography = FinoraTypography,
             shapes = FinoraShapes,
-            content = content,
+            content = content
         )
     }
 }

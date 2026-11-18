@@ -44,13 +44,13 @@ internal fun FormScreen(
     onBack: () -> Unit,
     bottomBar: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit
 ) {
     Scaffold(
         modifier = modifier.imePadding(),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = { OrganizeTopBar(title, onBack) },
-        bottomBar = bottomBar,
+        bottomBar = bottomBar
     ) { padding ->
         Column(
             Modifier
@@ -59,7 +59,7 @@ internal fun FormScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            content = content,
+            content = content
         )
     }
 }
@@ -71,14 +71,14 @@ internal fun FormCtaBar(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    error: String? = null,
+    error: String? = null
 ) {
     Column(
         modifier
             .fillMaxWidth()
             .navigationBarsPadding()
             .padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (error != null) {
             Text(
@@ -86,7 +86,7 @@ internal fun FormCtaBar(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
         }
         PrimaryButton(text = label, onClick = onClick, enabled = enabled)
@@ -105,7 +105,7 @@ internal fun FieldNote(text: String, isError: Boolean, modifier: Modifier = Modi
         text,
         style = MaterialTheme.typography.bodySmall,
         color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
@@ -126,20 +126,26 @@ internal fun FormTextRow(
     textStyle: TextStyle = MaterialTheme.typography.titleMedium,
     keyboardOptions: KeyboardOptions = KeyboardOptions(
         capitalization = KeyboardCapitalization.Sentences,
-        imeAction = ImeAction.Done,
+        imeAction = ImeAction.Done
     ),
     trailing: (@Composable () -> Unit)? = null,
-    notes: @Composable ColumnScope.() -> Unit = {},
+    notes: @Composable ColumnScope.() -> Unit = {}
 ) {
     Row(
-        modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         icon()
         Column(Modifier.weight(1f)) {
             if (label != null) {
-                Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             BasicTextField(
                 value = value,
@@ -149,15 +155,21 @@ internal fun FormTextRow(
                 textStyle = textStyle.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = keyboardOptions,
-                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
                 decorationBox = { inner ->
                     Box {
                         if (value.isEmpty()) {
-                            Text(hint, style = textStyle, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+                            Text(
+                                hint,
+                                style = textStyle,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                            )
                         }
                         inner()
                     }
-                },
+                }
             )
             notes()
         }

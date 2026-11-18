@@ -15,7 +15,7 @@ data class ValuationCardState(
     /** Currencies left out of the total (no direct rate, or a balance out of range). */
     val excluded: List<Currency>,
     /** Oldest `fetched_at` among the rates used, shown when [outdated]. */
-    val oldestFetchedAt: Long?,
+    val oldestFetchedAt: Long?
 ) {
     val outdated: Boolean get() = total?.basis?.hasOutdatedRate == true
     val estimated: Boolean get() = total?.basis?.usesConversion == true
@@ -24,12 +24,7 @@ data class ValuationCardState(
 object ValuationCardLogic {
 
     /** Only active accounts count (PRD 11.4, 11.5). Null when there is no active account. */
-    fun build(
-        active: List<AccountWithBalance>,
-        display: Currency,
-        table: RateTable,
-        now: Long,
-    ): ValuationCardState? {
+    fun build(active: List<AccountWithBalance>, display: Currency, table: RateTable, now: Long): ValuationCardState? {
         if (active.isEmpty()) return null
         val amounts = mutableListOf<Money>()
         val overflowCurrencies = mutableSetOf<Currency>()
@@ -43,7 +38,7 @@ object ValuationCardLogic {
         return ValuationCardState(
             total = valuation.total,
             excluded = (valuation.excluded + overflowCurrencies).sortedBy { it.code },
-            oldestFetchedAt = valuation.oldestFetchedAt,
+            oldestFetchedAt = valuation.oldestFetchedAt
         )
     }
 }

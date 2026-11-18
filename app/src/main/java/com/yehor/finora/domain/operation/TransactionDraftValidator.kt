@@ -13,7 +13,7 @@ enum class TransactionDraftError {
     ACCOUNT_MISSING,
     CATEGORY_MISSING,
     DESCRIPTION_TOO_LONG,
-    DATE_IN_FUTURE,
+    DATE_IN_FUTURE
 }
 
 object TransactionDraftValidator {
@@ -28,7 +28,7 @@ object TransactionDraftValidator {
         currency: Currency,
         now: Long = System.currentTimeMillis(),
         isEdit: Boolean = false,
-        hadCategoryBefore: Boolean = true,
+        hadCategoryBefore: Boolean = true
     ): Set<TransactionDraftError> {
         val errors = mutableSetOf<TransactionDraftError>()
 

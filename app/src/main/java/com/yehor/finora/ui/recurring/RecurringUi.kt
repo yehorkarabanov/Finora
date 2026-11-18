@@ -25,14 +25,14 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.yehor.finora.domain.analytics.UpcomingItem
-import com.yehor.finora.domain.money.Money
-import com.yehor.finora.domain.operation.TransactionKind
-import java.time.LocalDate
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.designsystem.theme.finance
 import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.domain.analytics.UpcomingItem
+import com.yehor.finora.domain.money.Money
+import com.yehor.finora.domain.operation.TransactionKind
+import java.time.LocalDate
 
 // Reusable building blocks of the recurring screens (design system 5.1 / 5.3 / 5.5).
 
@@ -41,9 +41,15 @@ internal fun RecurringCard(
     modifier: Modifier = Modifier,
     shape: Shape = RoundedCornerShape(22.dp),
     color: Color = MaterialTheme.colorScheme.surfaceContainer,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
-    Surface(modifier.fillMaxWidth(), shape = shape, color = color, border = hairline(MaterialTheme.finance.isDark), content = content)
+    Surface(
+        modifier.fillMaxWidth(),
+        shape = shape,
+        color = color,
+        border = hairline(MaterialTheme.finance.isDark),
+        content = content
+    )
 }
 
 @Composable
@@ -51,17 +57,19 @@ internal fun RecurringSectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
-    onAction: (() -> Unit)? = null,
+    onAction: (() -> Unit)? = null
 ) {
     Row(
         modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
         )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction) { Text(actionLabel) }
@@ -76,14 +84,14 @@ internal fun RecurringPill(text: String, modifier: Modifier = Modifier, icon: Im
         Row(
             Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (icon != null) {
                 Icon(
                     icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(14.dp)
                 )
             }
             Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -97,14 +105,19 @@ internal fun RecurringKindBadge(kind: TransactionKind, size: Dp, modifier: Modif
     val income = kind == TransactionKind.INCOME
     val finance = MaterialTheme.finance
     Box(
-        modifier.size(size).clip(CircleShape).background(if (income) finance.incomeContainer else finance.expenseContainer),
-        contentAlignment = Alignment.Center,
+        modifier
+            .size(
+                size
+            )
+            .clip(CircleShape)
+            .background(if (income) finance.incomeContainer else finance.expenseContainer),
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             if (income) AppIcons.Income else AppIcons.Expense,
             contentDescription = null,
             tint = if (income) finance.income else finance.expense,
-            modifier = Modifier.size(size * 0.55f),
+            modifier = Modifier.size(size * 0.55f)
         )
     }
 }
@@ -120,8 +133,11 @@ fun nextThirtyDays(items: List<UpcomingItem>, today: LocalDate): Pair<Long, Long
     var income = 0L
     items.forEach { item ->
         if (item.date < today || item.date > last) return@forEach
-        if (item.schedule.kind == TransactionKind.INCOME) income += item.schedule.money.amountMinor
-        else out += item.schedule.money.amountMinor
+        if (item.schedule.kind == TransactionKind.INCOME) {
+            income += item.schedule.money.amountMinor
+        } else {
+            out += item.schedule.money.amountMinor
+        }
     }
     return out to income
 }

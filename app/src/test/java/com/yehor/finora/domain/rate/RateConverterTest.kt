@@ -25,12 +25,20 @@ class RateConverterTest {
     private fun table(vararg entries: Triple<kotlin.Pair<com.yehor.finora.domain.money.Currency, com.yehor.finora.domain.money.Currency>, String, Long>) =
         RateTable(
             entries.associate { (pair, rate, fetchedAt) ->
-                CurrencyPair(pair.first, pair.second) to RateQuote(BigDecimal(rate), LocalDate.of(2026, 11, 6), fetchedAt)
-            },
+                CurrencyPair(pair.first, pair.second) to RateQuote(
+                    BigDecimal(rate),
+                    LocalDate.of(2026, 11, 6),
+                    fetchedAt
+                )
+            }
         )
 
-    private fun rate(from: com.yehor.finora.domain.money.Currency, to: com.yehor.finora.domain.money.Currency, rate: String, fetchedAt: Long = now) =
-        Triple(from to to, rate, fetchedAt)
+    private fun rate(
+        from: com.yehor.finora.domain.money.Currency,
+        to: com.yehor.finora.domain.money.Currency,
+        rate: String,
+        fetchedAt: Long = now
+    ) = Triple(from to to, rate, fetchedAt)
 
     private fun convert(table: RateTable, money: Money, to: com.yehor.finora.domain.money.Currency) =
         (RateConverter(table, now).convert(money, to) as ConversionResult.Converted).estimate

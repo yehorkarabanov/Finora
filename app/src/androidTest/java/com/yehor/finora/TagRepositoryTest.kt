@@ -70,7 +70,16 @@ class TagRepositoryTest {
     @Test
     fun renameAndRecolorDoesNotTouchOperationUpdatedAt() = runBlocking {
         val accId = db.accountDao().insert(
-            AccountEntity(name = "A", currencyCode = "USD", type = "CASH", icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L)
+            AccountEntity(
+                name = "A",
+                currencyCode = "USD",
+                type = "CASH",
+                icon = null,
+                color = null,
+                description = null,
+                status = AccountStatus.ACTIVE,
+                createdAt = 0L
+            )
         )
         val tagId = tagRepo.create("Food", null)
         val opId = opRepo.insertOperation(
@@ -78,7 +87,7 @@ class TagRepositoryTest {
             occurredAt = 1000L,
             entries = listOf(EntryDraft(accId, -100L)),
             tagIds = setOf(tagId),
-            now = 5000L,
+            now = 5000L
         )
 
         val beforeOp = db.operationDao().getById(opId)!!
@@ -100,14 +109,23 @@ class TagRepositoryTest {
     @Test
     fun deleteTagRemovesLinksKeepsOperation() = runBlocking {
         val accId = db.accountDao().insert(
-            AccountEntity(name = "A", currencyCode = "USD", type = "CASH", icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L)
+            AccountEntity(
+                name = "A",
+                currencyCode = "USD",
+                type = "CASH",
+                icon = null,
+                color = null,
+                description = null,
+                status = AccountStatus.ACTIVE,
+                createdAt = 0L
+            )
         )
         val tagId = tagRepo.create("Travel", null)
         val opId = opRepo.insertOperation(
             type = OperationType.EXPENSE,
             occurredAt = 1000L,
             entries = listOf(EntryDraft(accId, -100L)),
-            tagIds = setOf(tagId),
+            tagIds = setOf(tagId)
         )
 
         tagRepo.delete(tagId)

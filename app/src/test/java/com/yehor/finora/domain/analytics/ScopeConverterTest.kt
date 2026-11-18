@@ -99,7 +99,11 @@ class ScopeConverterTest {
 
     @Test
     fun nativeScopeSkipsOtherCurrencies() {
-        val cell = ScopeConverter(CurrencyScope.Native(usd), table, now).cell(listOf(amount(700, usd), amount(900, pln)))
+        val cell = ScopeConverter(
+            CurrencyScope.Native(usd),
+            table,
+            now
+        ).cell(listOf(amount(700, usd), amount(900, pln)))
         assertEquals(700L, cell.estimate!!.amountMinor)
     }
 

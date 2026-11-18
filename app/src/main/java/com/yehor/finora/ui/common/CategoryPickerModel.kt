@@ -25,7 +25,7 @@ data class PickerRow(
     val expanded: Boolean,
     val selectable: Boolean,
     /** "Food › Groceries", used to tell equal names apart in search results. */
-    val path: String,
+    val path: String
 )
 
 /** Pure flatten, expand, search and filter logic of the category tree picker. */
@@ -36,7 +36,7 @@ object CategoryPickerModel {
         type: CategoryType,
         mode: PickerMode,
         expanded: Set<Long>,
-        query: String,
+        query: String
     ): List<PickerRow> {
         val visible = visibleIds(tree, type, mode)
         val selectable = selectableIds(mode, visible)
@@ -75,14 +75,14 @@ object CategoryPickerModel {
         children: List<CategoryNode>,
         expanded: Boolean,
         selectable: Boolean,
-        visible: Set<Long>,
+        visible: Set<Long>
     ) = PickerRow(
         category = c,
         level = level,
         hasChildren = children.any { it.category.id in visible },
         expanded = expanded,
         selectable = selectable,
-        path = (tree.ancestorsOf(c.id).map { it.name } + c.name).joinToString(" › "),
+        path = (tree.ancestorsOf(c.id).map { it.name } + c.name).joinToString(" › ")
     )
 
     private fun allIds(tree: CategoryTree, type: CategoryType): Set<Long> {

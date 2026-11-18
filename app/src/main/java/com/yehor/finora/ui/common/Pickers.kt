@@ -1,10 +1,5 @@
 package com.yehor.finora.ui.common
 
-
-import com.yehor.finora.designsystem.icon.AppIcons
-import com.yehor.finora.designsystem.icon.IconCatalog
-import com.yehor.finora.designsystem.icon.IconGroup
-import com.yehor.finora.designsystem.icon.IconKeys
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -51,21 +46,28 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.yehor.finora.R
-import com.yehor.finora.ui.operations.FilterSearchField
 import com.yehor.finora.designsystem.component.list.GroupedCard
 import com.yehor.finora.designsystem.component.list.SectionHeader
 import com.yehor.finora.designsystem.component.sheet.FinoraSheet
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.icon.IconCatalog
+import com.yehor.finora.designsystem.icon.IconGroup
+import com.yehor.finora.designsystem.icon.IconKeys
 import com.yehor.finora.designsystem.theme.PreviewTheme
-import com.yehor.finora.designsystem.theme.hairline
 import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.ui.operations.FilterSearchField
 
 /** A round colored badge with an icon, used for accounts and categories. */
 @Composable
 fun IconBadge(icon: String?, color: Long?, fallbackColor: Long, modifier: Modifier = Modifier, size: Int = 40) {
     val tint = MaterialTheme.finance.accent(ColorPalette.resolve(color, fallbackColor))
     Box(
-        modifier.size(size.dp).clip(CircleShape).background(tint.copy(alpha = 0.18f)),
-        contentAlignment = Alignment.Center,
+        modifier
+            .size(size.dp)
+            .clip(CircleShape)
+            .background(tint.copy(alpha = 0.18f)),
+        contentAlignment = Alignment.Center
     ) {
         Icon(IconCatalog.get(icon), contentDescription = null, tint = tint, modifier = Modifier.size((size * 0.55f).dp))
     }
@@ -101,7 +103,7 @@ fun IconPicker(
     color: Long?,
     fallbackColor: Long,
     onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var open by rememberSaveable { mutableStateOf(false) }
     IconPickerRow(selected, color, fallbackColor, onClick = { open = true }, modifier = modifier)
@@ -112,8 +114,11 @@ fun IconPicker(
                 selected = selected,
                 color = color,
                 fallbackColor = fallbackColor,
-                onSelect = { onSelect(it); open = false },
-                modifier = Modifier.fillMaxHeight(0.9f),
+                onSelect = {
+                    onSelect(it)
+                    open = false
+                },
+                modifier = Modifier.fillMaxHeight(0.9f)
             )
         }
     }
@@ -126,7 +131,7 @@ internal fun IconPickerRow(
     color: Long?,
     fallbackColor: Long,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val clickLabel = stringResource(R.string.picker_icon_choose)
     Row(
@@ -136,14 +141,14 @@ internal fun IconPickerRow(
             .heightIn(min = 48.dp)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         IconBadge(selected, color, fallbackColor, size = 40)
         Column(Modifier.weight(1f)) {
             Text(
                 stringResource(R.string.picker_icon),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(stringResource(IconCatalog.label(selected)), style = MaterialTheme.typography.bodyLarge)
         }
@@ -159,7 +164,7 @@ internal fun IconPickerSheetContent(
     color: Long?,
     fallbackColor: Long,
     onSelect: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val tint = MaterialTheme.finance.accent(ColorPalette.resolve(color, fallbackColor))
     val resources = LocalResources.current
@@ -186,14 +191,14 @@ internal fun IconPickerSheetContent(
             value = query,
             onValueChange = { query = it },
             placeholder = stringResource(R.string.picker_icon_search),
-            modifier = Modifier.padding(bottom = 8.dp),
+            modifier = Modifier.padding(bottom = 8.dp)
         )
         if (visible.isEmpty()) {
             Text(
                 stringResource(R.string.picker_no_results),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(16.dp)
             )
         }
         LazyVerticalGrid(
@@ -201,13 +206,15 @@ internal fun IconPickerSheetContent(
             modifier = Modifier.weight(1f, fill = false),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp)
         ) {
             visible.forEach { group ->
                 item(key = "header-${group.id}", span = { GridItemSpan(maxLineSpan) }) {
                     SectionHeader(
                         stringResource(groupLabel(group.id)),
-                        modifier = Modifier.padding(top = 8.dp).semantics { heading() },
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .semantics { heading() }
                     )
                 }
                 items(group.keys, key = { "${group.id}-$it" }) { key ->
@@ -228,14 +235,17 @@ private fun IconOption(key: String, label: String, isSelected: Boolean, tint: Co
             border = if (isSelected) BorderStroke(2.dp, tint) else hairline(MaterialTheme.finance.isDark),
             modifier = Modifier
                 .size(48.dp)
-                .semantics { contentDescription = description; this.selected = isSelected }
-                .clickable(role = Role.RadioButton) { onSelect(key) },
+                .semantics {
+                    contentDescription = description
+                    this.selected = isSelected
+                }
+                .clickable(role = Role.RadioButton) { onSelect(key) }
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     IconCatalog.get(key),
                     contentDescription = null,
-                    tint = if (isSelected) tint else MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = if (isSelected) tint else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -245,12 +255,12 @@ private fun IconOption(key: String, label: String, isSelected: Boolean, tint: Co
 /** Grid of the palette colors. A [selected] color outside the palette selects none. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ColorPicker(
-    selected: Long?,
-    onSelect: (Long) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(0.dp), verticalArrangement = Arrangement.spacedBy(0.dp)) {
+fun ColorPicker(selected: Long?, onSelect: (Long) -> Unit, modifier: Modifier = Modifier) {
+    FlowRow(
+        modifier,
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
         ColorPalette.colors.forEachIndexed { index, argb ->
             val isSelected = argb == selected
             val description = stringResource(R.string.picker_color_item, index + 1)
@@ -259,15 +269,35 @@ fun ColorPicker(
                 Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .semantics { contentDescription = description; this.selected = isSelected }
+                    .semantics {
+                        contentDescription = description
+                        this.selected = isSelected
+                    }
                     .clickable(role = Role.RadioButton) { onSelect(argb) }
                     .padding(4.dp)
                     .clip(CircleShape)
                     .background(Color(argb))
-                    .then(if (isSelected) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier),
-                contentAlignment = Alignment.Center,
+                    .then(
+                        if (isSelected) {
+                            Modifier.border(
+                                2.dp,
+                                MaterialTheme.colorScheme.onSurface,
+                                CircleShape
+                            )
+                        } else {
+                            Modifier
+                        }
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                if (isSelected) Icon(AppIcons.Check, contentDescription = null, tint = Color.White, modifier = Modifier.padding(4.dp))
+                if (isSelected) {
+                    Icon(
+                        AppIcons.Check,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
             }
         }
     }
@@ -314,7 +344,9 @@ private fun IconSheetPreview(dark: Boolean) {
                 color = 0xFFEA6A0CL,
                 fallbackColor = ColorPalette.ACCOUNT_DEFAULT,
                 onSelect = {},
-                modifier = Modifier.fillMaxHeight().padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .padding(horizontal = 20.dp)
             )
         }
     }

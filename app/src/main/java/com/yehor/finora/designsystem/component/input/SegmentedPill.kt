@@ -45,7 +45,7 @@ fun SegmentedPill(
     selected: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     val scheme = MaterialTheme.colorScheme
     val isDark = MaterialTheme.finance.isDark
@@ -57,19 +57,19 @@ fun SegmentedPill(
             .fillMaxWidth()
             .background(scheme.surfaceContainerLow, PillShape)
             .border(hairline(isDark), PillShape)
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 4.dp)
     ) {
         options.forEachIndexed { index, label ->
             val isSelected = index == selected
             val container by animateColorAsState(
                 if (isSelected) selectedFill else Color.Transparent,
                 animationSpec = if (reduce) snap() else spring(),
-                label = "segmentBg",
+                label = "segmentBg"
             )
             val borderAlpha by animateFloatAsState(
                 if (isSelected && !isDark) 1f else 0f,
                 animationSpec = if (reduce) snap() else spring(),
-                label = "segmentBorder",
+                label = "segmentBorder"
             )
             val interaction = remember { MutableInteractionSource() }
             // 48dp hit area without indication; feedback is drawn on the inner pill so it stays pill-shaped.
@@ -83,10 +83,10 @@ fun SegmentedPill(
                         interactionSource = interaction,
                         indication = null,
                         role = Role.Tab,
-                        onClick = { onSelect(index) },
+                        onClick = { onSelect(index) }
                     )
                     .padding(vertical = 5.dp),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
@@ -94,9 +94,12 @@ fun SegmentedPill(
                         .pressScale(interaction)
                         .clip(PillShape)
                         .background(container)
-                        .border(BorderStroke(1.dp, lightHairline.copy(alpha = lightHairline.alpha * borderAlpha)), PillShape)
+                        .border(
+                            BorderStroke(1.dp, lightHairline.copy(alpha = lightHairline.alpha * borderAlpha)),
+                            PillShape
+                        )
                         .indication(interaction, ripple()),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         label,
@@ -105,7 +108,7 @@ fun SegmentedPill(
                             isSelected -> scheme.onSurface
                             enabled -> scheme.onSurfaceVariant
                             else -> scheme.onSurfaceVariant.copy(alpha = 0.38f)
-                        },
+                        }
                     )
                 }
             }

@@ -41,7 +41,13 @@ object RecurrenceCalculator {
         return if (end != null && candidate > end) null else candidate
     }
 
-    fun between(anchor: LocalDate, rule: RecurrenceRule, from: LocalDate, toInclusive: LocalDate, limit: Int): List<LocalDate> {
+    fun between(
+        anchor: LocalDate,
+        rule: RecurrenceRule,
+        from: LocalDate,
+        toInclusive: LocalDate,
+        limit: Int
+    ): List<LocalDate> {
         if (from > toInclusive || limit <= 0) return emptyList()
         val result = mutableListOf<LocalDate>()
         var current = if (anchor >= from) anchor else firstAfter(anchor, rule, from.minusDays(1))
@@ -52,7 +58,5 @@ object RecurrenceCalculator {
         return result
     }
 
-    fun startOfDay(date: LocalDate, zone: ZoneId): Long {
-        return date.atStartOfDay(zone).toInstant().toEpochMilli()
-    }
+    fun startOfDay(date: LocalDate, zone: ZoneId): Long = date.atStartOfDay(zone).toInstant().toEpochMilli()
 }

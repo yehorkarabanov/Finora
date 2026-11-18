@@ -27,14 +27,14 @@ class AnalyticsClock(
     private val nowMillis: () -> Long,
     private val zoneProvider: () -> ZoneId,
     private val firstDay: () -> DayOfWeek,
-    zoneChanges: Flow<Unit>,
+    zoneChanges: Flow<Unit>
 ) {
     @Inject
     constructor(@ApplicationContext context: Context) : this(
         System::currentTimeMillis,
         ZoneId::systemDefault,
         { WeekFields.of(Locale.getDefault()).firstDayOfWeek },
-        timeZoneChanges(context),
+        timeZoneChanges(context)
     )
 
     private val ticker = DayTicker(nowMillis, zoneProvider, zoneChanges)

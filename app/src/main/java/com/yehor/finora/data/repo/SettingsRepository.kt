@@ -18,10 +18,7 @@ import javax.inject.Singleton
 
 /** Typed access to the `app_setting` table. DataStore is not used. */
 @Singleton
-class SettingsRepository @Inject constructor(
-    private val settings: AppSettingDao,
-    accounts: AccountDao,
-) {
+class SettingsRepository @Inject constructor(private val settings: AppSettingDao, accounts: AccountDao) {
     val themeMode: Flow<ThemeMode> =
         settings.observe(KEY_THEME_MODE).map { ThemeMode.fromStorage(it) }.distinctUntilChanged()
 
@@ -32,12 +29,12 @@ class SettingsRepository @Inject constructor(
     /** The effective Display Currency, following the user's accounts until they pick one. */
     val displayCurrency: Flow<ResolvedDisplayCurrency> = combine(
         explicitDisplayCurrencyCode,
-        accounts.observeAll(),
+        accounts.observeAll()
     ) { explicit, list ->
         DisplayCurrencyResolver.resolve(
             explicitCode = explicit,
             accounts = list.map { AccountCurrencyInfo(it.id, it.currencyCode, it.status) },
-            localeCurrencyCode = localeCurrencyCode(),
+            localeCurrencyCode = localeCurrencyCode()
         )
     }.distinctUntilChanged()
 

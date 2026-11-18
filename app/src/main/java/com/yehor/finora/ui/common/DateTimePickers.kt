@@ -46,7 +46,7 @@ fun DateField(
     modifier: Modifier = Modifier,
     label: String = stringResource(R.string.transaction_form_date),
     /** The month the picker opens on while [date] is empty. */
-    emptyPickerDate: LocalDate = maxDate,
+    emptyPickerDate: LocalDate = maxDate
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -56,12 +56,12 @@ fun DateField(
             onValueChange = {},
             readOnly = true,
             label = { Text(label) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .clickable { showDialog = true },
+                .clickable { showDialog = true }
         )
     }
 
@@ -76,7 +76,7 @@ fun DateField(
             onConfirm = {
                 onDateChange(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate())
                 showDialog = false
-            },
+            }
         )
     }
 }
@@ -90,7 +90,7 @@ fun DateTimeField(
     onDateChange: (LocalDate) -> Unit,
     onTimeChange: (LocalTime) -> Unit,
     maxDate: LocalDate,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     var open by remember { mutableStateOf(false) }
 
@@ -101,12 +101,12 @@ fun DateTimeField(
             onValueChange = {},
             readOnly = true,
             label = { Text(stringResource(R.string.transaction_form_date_time)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .clickable { open = true },
+                .clickable { open = true }
         )
     }
 
@@ -120,7 +120,7 @@ fun DateTimeField(
             onDateChange(pickedDate)
             onTimeChange(pickedTime)
             open = false
-        },
+        }
     )
 }
 
@@ -132,7 +132,7 @@ fun DateTimePickerFlow(
     time: LocalTime,
     maxDate: LocalDate,
     onDismiss: () -> Unit,
-    onPicked: (LocalDate, LocalTime) -> Unit,
+    onPicked: (LocalDate, LocalTime) -> Unit
 ) {
     if (open) DateTimePickerDialog(date, time, maxDate, onDismiss, onConfirm = onPicked)
 }

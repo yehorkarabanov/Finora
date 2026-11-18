@@ -9,7 +9,7 @@ data class Category(
     val color: Long?,
     val type: CategoryType,
     val parentId: Long?,
-    val createdAt: Long,
+    val createdAt: Long
 )
 
 data class CategoryNode(val category: Category, val children: List<CategoryNode>)

@@ -39,13 +39,15 @@ class FrankfurterClientTest {
     @After
     fun tearDown() = server.stop(0)
 
-    private fun fetch(base: String, vararg quotes: String) =
-        runBlocking { client.fetchRates(base, quotes.toSet()) }
+    private fun fetch(base: String, vararg quotes: String) = runBlocking { client.fetchRates(base, quotes.toSet()) }
 
     private fun assertBadPayload(body: String, base: String = "UAH", vararg quotes: String = arrayOf("PLN")) {
         handler = { 200 to body }
         val e = runCatching { fetch(base, *quotes) }.exceptionOrNull()
-        assertTrue("expected BAD_PAYLOAD for $body but got $e", e is RateFetchException && e.reason == RateFetchReason.BAD_PAYLOAD)
+        assertTrue(
+            "expected BAD_PAYLOAD for $body but got $e",
+            e is RateFetchException && e.reason == RateFetchReason.BAD_PAYLOAD
+        )
     }
 
     @Test
@@ -83,7 +85,9 @@ class FrankfurterClientTest {
         handler = { target ->
             when {
                 target.startsWith("/v2/rates") -> 422 to """{"message":"unknown"}"""
-                target == "/v2/rate/USD/PLN" -> 200 to """{"date":"2026-11-06","base":"USD","quote":"PLN","rate":3.9126}"""
+                target == "/v2/rate/USD/PLN" ->
+                    200 to
+                        """{"date":"2026-11-06","base":"USD","quote":"PLN","rate":3.9126}"""
                 else -> 404 to ""
             }
         }
@@ -101,7 +105,7 @@ class FrankfurterClientTest {
         assertBadPayload("""[{"date":"2026-11-06","base":"UAH","quote":"USD","rate":1}]""")
         assertBadPayload("""[{"date":"yesterday","base":"UAH","quote":"PLN","rate":1}]""")
         assertBadPayload(
-            """[{"date":"2026-11-06","base":"UAH","quote":"PLN","rate":1},{"date":"2026-11-06","base":"UAH","quote":"PLN","rate":2}]""",
+            """[{"date":"2026-11-06","base":"UAH","quote":"PLN","rate":1},{"date":"2026-11-06","base":"UAH","quote":"PLN","rate":2}]"""
         )
     }
 
@@ -129,7 +133,9 @@ class FrankfurterClientTest {
     @Test
     fun refusedConnectionIsNoNetwork() {
         val port = ServerSocket(0).use { it.localPort }
-        val e = runCatching { runBlocking { FrankfurterClient("http://localhost:$port").fetchRates("UAH", setOf("PLN")) } }
+        val e = runCatching {
+            runBlocking { FrankfurterClient("http://localhost:$port").fetchRates("UAH", setOf("PLN")) }
+        }
             .exceptionOrNull()
         assertTrue("got $e", e is RateFetchException && e.reason == RateFetchReason.NO_NETWORK)
     }

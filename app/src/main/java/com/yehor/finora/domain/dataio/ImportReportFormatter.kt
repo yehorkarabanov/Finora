@@ -18,7 +18,7 @@ object ImportReportFormatter {
         accounts: Map<Long, String> = emptyMap(),
         categories: Map<Long, String> = emptyMap(),
         tags: Map<Long, String> = emptyMap(),
-        schedules: Map<Long, String> = emptyMap(),
+        schedules: Map<Long, String> = emptyMap()
     ): String {
         val parts = subject.trim().split(" ", limit = 2)
         if (parts.size != 2) return subject

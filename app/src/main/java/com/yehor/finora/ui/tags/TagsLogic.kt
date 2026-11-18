@@ -20,7 +20,7 @@ object TagsListLogic {
 
     fun sort(tags: List<TagWithUsage>, order: TagSortOrder): List<TagWithUsage> = when (order) {
         TagSortOrder.MOST_USED -> tags.sortedWith(
-            compareByDescending<TagWithUsage> { it.usageCount }.thenBy { TagNameRules.key(it.tag.name) },
+            compareByDescending<TagWithUsage> { it.usageCount }.thenBy { TagNameRules.key(it.tag.name) }
         )
         TagSortOrder.NAME -> tags.sortedBy { TagNameRules.key(it.tag.name) }
     }
@@ -39,6 +39,5 @@ object TagFormLogic {
         null -> if (isEdit) TagFormAction.SAVE else TagFormAction.CREATE
     }
 
-    fun isEnabled(action: TagFormAction): Boolean =
-        action == TagFormAction.CREATE || action == TagFormAction.SAVE
+    fun isEnabled(action: TagFormAction): Boolean = action == TagFormAction.CREATE || action == TagFormAction.SAVE
 }

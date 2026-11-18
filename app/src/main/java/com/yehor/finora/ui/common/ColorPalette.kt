@@ -46,7 +46,7 @@ object ColorPalette {
         0xFF5F8A6EL, // sage
         0xFF64748BL, // slate
         0xFF71717AL, // grey
-        0xFF52525BL, // charcoal
+        0xFF52525BL // charcoal
     )
 
     const val ACCOUNT_DEFAULT = 0xFF2563EBL // blue

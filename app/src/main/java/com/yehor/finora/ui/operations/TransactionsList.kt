@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -33,7 +34,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.yehor.finora.R
-import com.yehor.finora.ui.navigation.ShellFabClearance
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.display.AmountText
 import com.yehor.finora.designsystem.component.list.GroupedCard
@@ -49,9 +49,9 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.accounts.NotIncludedLine
 import com.yehor.finora.ui.accounts.formatDate
 import com.yehor.finora.ui.common.TransactionRow
+import com.yehor.finora.ui.navigation.ShellFabClearance
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 private const val MINUS = "−"
 
@@ -66,7 +66,7 @@ internal class RowSource(
     /** Reads a row and lets Paging prefetch around it. */
     val get: (Int) -> TransactionListRow?,
     /** True once the last page is loaded; until then the last day may be incomplete. */
-    val endReached: Boolean,
+    val endReached: Boolean
 )
 
 /** One card of the list: a day (with its header) or, for sorts that drop day headers, a chunk of rows. */
@@ -75,7 +75,7 @@ internal data class ListSection(
     val group: DayGroup?,
     val start: Int,
     val endExclusive: Int,
-    val net: Money?,
+    val net: Money?
 )
 
 /** Splits the flat header/entry rows into cards. */
@@ -119,11 +119,19 @@ internal fun TransactionsList(
     source: RowSource,
     listState: LazyListState,
     onOpenTransaction: (TransactionItem) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     // Not remembered: loaded rows can change without the count changing (an in-place edit), and a stale day net is wrong.
     val sections = buildSections(source)
-    LazyColumn(modifier.fillMaxSize(), state = listState, contentPadding = PaddingValues(top = 4.dp, bottom = 8.dp + ShellFabClearance)) {
+    LazyColumn(
+        modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(
+            top = 4.dp,
+            bottom =
+                8.dp + ShellFabClearance
+        )
+    ) {
         if (state.filter.isActive && state.summary.isNotEmpty()) {
             item(key = "summary") {
                 SummaryCard(state, Modifier.padding(horizontal = 18.dp, vertical = 8.dp))
@@ -134,7 +142,20 @@ internal fun TransactionsList(
                 stickyHeader(key = section.key) { DayHeader(section.group, section.net) }
             }
             item(key = "card_${section.key}") {
-                GroupedCard(Modifier.fillMaxWidth().padding(horizontal = 18.dp).padding(top = if (section.group == null) 8.dp else 0.dp)) {
+                GroupedCard(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 18.dp)
+                        .padding(
+                            top = if (section.group ==
+                                null
+                            ) {
+                                8.dp
+                            } else {
+                                0.dp
+                            }
+                        )
+                ) {
                     var first = true
                     for (index in section.start until section.endExclusive) {
                         val entry = source.get(index) as? TransactionListRow.Entry ?: continue
@@ -152,14 +173,17 @@ internal fun TransactionsList(
 
 @Composable
 private fun DayHeader(group: DayGroup, net: Money?) {
-    val locale = Locale.getDefault()
+    val locale = LocalConfiguration.current.locales[0]
     // Locale-aware field order ("Nov 10" / "10 нояб.").
-    val format = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "MMMd"), locale) }
-    val yearFormat = remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "yMMMd"), locale) }
+    val format =
+        remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "MMMd"), locale) }
+    val yearFormat =
+        remember(locale) { DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, "yMMMd"), locale) }
     val today = LocalDate.now()
     val text = when (group) {
         DayGroup.Today -> stringResource(R.string.transactions_day_today) + " · " + today.format(format)
-        DayGroup.Yesterday -> stringResource(R.string.transactions_day_yesterday) + " · " + today.minusDays(1).format(format)
+        DayGroup.Yesterday -> stringResource(R.string.transactions_day_yesterday) + " · " +
+            today.minusDays(1).format(format)
         is DayGroup.Date ->
             group.localDate.format(if (group.localDate.year == today.year) format else yearFormat)
     }.uppercase(locale)
@@ -168,7 +192,7 @@ private fun DayHeader(group: DayGroup, net: Money?) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .padding(start = 22.dp, end = 22.dp, top = 14.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text,
@@ -176,7 +200,9 @@ private fun DayHeader(group: DayGroup, net: Money?) {
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
         )
         if (net != null) {
             val minor = net.amountMinor
@@ -193,7 +219,7 @@ private fun DayHeader(group: DayGroup, net: Money?) {
                     minor < 0 -> MaterialTheme.finance.expense
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
-                animate = false,
+                animate = false
             )
         }
     }
@@ -206,12 +232,17 @@ private fun DayHeader(group: DayGroup, net: Money?) {
 internal fun SummaryCard(state: TransactionsUiState, modifier: Modifier = Modifier) {
     val count = state.summary.sumOf { it.operationCount }
     GroupedCard(modifier.fillMaxWidth()) {
-        Column(Modifier.padding(horizontal = 4.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            Modifier.padding(horizontal = 4.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 pluralStringResource(R.plurals.analytics_operations, count, count),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 14.dp).semantics { heading() },
+                modifier = Modifier
+                    .padding(horizontal = 14.dp)
+                    .semantics { heading() }
             )
             val multiCurrency = state.summary.size > 1
             state.summary.forEach { summary -> SummaryRow(summary, showCurrency = multiCurrency) }
@@ -220,18 +251,24 @@ internal fun SummaryCard(state: TransactionsUiState, modifier: Modifier = Modifi
                     val parts = listOfNotNull(
                         converted.income?.let { stringResource(R.string.valuation_converted_income, it.format()) },
                         converted.expense?.let { stringResource(R.string.valuation_converted_expense, it.format()) },
-                        converted.net?.let { stringResource(R.string.valuation_converted_net, it.format()) },
+                        converted.net?.let { stringResource(R.string.valuation_converted_net, it.format()) }
                     )
                     Text(
-                        if (parts.isEmpty()) stringResource(R.string.valuation_unavailable) else parts.joinToString("  "),
+                        if (parts.isEmpty()) {
+                            stringResource(
+                                R.string.valuation_unavailable
+                            )
+                        } else {
+                            parts.joinToString("  ")
+                        },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (converted.outdated) {
                         Text(
                             stringResource(R.string.valuation_outdated, formatDate(converted.oldestFetchedAt)),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.error,
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                     NotIncludedLine(converted.excluded)
@@ -261,7 +298,7 @@ private fun SummaryRow(summary: CurrencySummary, showCurrency: Boolean) {
                 currency.code,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 14.dp),
+                modifier = Modifier.padding(horizontal = 14.dp)
             )
         }
         Row(Modifier.fillMaxWidth()) {
@@ -269,14 +306,14 @@ private fun SummaryRow(summary: CurrencySummary, showCurrency: Boolean) {
                 stringResource(R.string.transactions_summary_income_label),
                 "+" + summary.income.format(),
                 MaterialTheme.finance.income,
-                Modifier.weight(1f),
+                Modifier.weight(1f)
             )
             SummaryDivider()
             SummaryFigure(
                 stringResource(R.string.transactions_summary_expense_label),
                 MINUS + summary.expense.format(),
                 MaterialTheme.colorScheme.onSurface,
-                Modifier.weight(1f),
+                Modifier.weight(1f)
             )
             SummaryDivider()
             SummaryFigure(stringResource(R.string.dashboard_net), netText, netColor, Modifier.weight(1f))
@@ -291,7 +328,7 @@ private fun RowScope.SummaryDivider() {
             .width(1.dp)
             .height(36.dp)
             .align(Alignment.CenterVertically)
-            .background(hairline(MaterialTheme.finance.isDark).brush),
+            .background(hairline(MaterialTheme.finance.isDark).brush)
     )
 }
 
@@ -305,7 +342,7 @@ private fun SummaryFigure(label: String, value: String, color: Color, modifier: 
             letterSpacing = 1.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
         AmountText(value, MaterialTheme.typography.titleMedium, color, animate = false)
     }
@@ -314,30 +351,49 @@ private fun SummaryFigure(label: String, value: String, color: Color, modifier: 
 // ---- Empty ----
 
 @Composable
-internal fun EmptyState(filtered: Boolean, onClearFilters: () -> Unit, onAdd: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize().padding(32.dp), contentAlignment = Alignment.Center) {
+internal fun EmptyState(
+    filtered: Boolean,
+    onClearFilters: () -> Unit,
+    onAdd: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .padding(32.dp), contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             RoundIcon(
                 if (filtered) AppIcons.SearchEmpty else AppIcons.Receipt,
                 MaterialTheme.colorScheme.onSurfaceVariant,
-                size = 64.dp,
+                size = 64.dp
             )
             Text(
-                stringResource(if (filtered) R.string.transactions_empty_filter_title else R.string.transactions_empty_title),
+                stringResource(
+                    if (filtered) R.string.transactions_empty_filter_title else R.string.transactions_empty_title
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                stringResource(if (filtered) R.string.transactions_empty_filter_body else R.string.transactions_empty_body),
+                stringResource(
+                    if (filtered) R.string.transactions_empty_filter_body else R.string.transactions_empty_body
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
-            Box(Modifier.padding(top = 12.dp).width(240.dp)) {
+            Box(
+                Modifier
+                    .padding(top = 12.dp)
+                    .width(240.dp)
+            ) {
                 PrimaryButton(
-                    text = stringResource(if (filtered) R.string.transactions_clear_filters else R.string.transactions_add),
-                    onClick = if (filtered) onClearFilters else onAdd,
+                    text = stringResource(
+                        if (filtered) R.string.transactions_clear_filters else R.string.transactions_add
+                    ),
+                    onClick = if (filtered) onClearFilters else onAdd
                 )
             }
         }

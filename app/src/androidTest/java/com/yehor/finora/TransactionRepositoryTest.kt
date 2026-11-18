@@ -45,10 +45,26 @@ class TransactionRepositoryTest {
     @Test
     fun createAndObserveRecentAndSummarize() = runBlocking {
         val accId = db.accountDao().insert(
-            AccountEntity(name = "Santander", currencyCode = "PLN", type = "BANK", icon = null, color = null, description = null, status = AccountStatus.ACTIVE, createdAt = 0L)
+            AccountEntity(
+                name = "Santander",
+                currencyCode = "PLN",
+                type = "BANK",
+                icon = null,
+                color = null,
+                description = null,
+                status = AccountStatus.ACTIVE,
+                createdAt = 0L
+            )
         )
         val catId = db.categoryDao().insert(
-            CategoryEntity(name = "Groceries", icon = null, color = null, type = CategoryType.EXPENSE, parentId = null, createdAt = 0L)
+            CategoryEntity(
+                name = "Groceries",
+                icon = null,
+                color = null,
+                type = CategoryType.EXPENSE,
+                parentId = null,
+                createdAt = 0L
+            )
         )
 
         val draft = TransactionDraft(
@@ -59,7 +75,7 @@ class TransactionRepositoryTest {
             occurredAt = 1000L,
             description = "Supermarket",
             tagIds = emptySet(),
-            newTagNames = listOf("Debt"),
+            newTagNames = listOf("Debt")
         )
         val id = transRepo.create(draft)
         assertTrue(id > 0)

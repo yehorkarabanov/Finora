@@ -8,8 +8,6 @@ import javax.inject.Inject
 
 /** Reads the result of a restore once, on the first screen after the restart (design 6.5, Outcome). */
 @HiltViewModel
-class ShellViewModel @Inject constructor(
-    backupRepository: BackupRepository,
-) : ViewModel() {
+class ShellViewModel @Inject constructor(backupRepository: BackupRepository) : ViewModel() {
     val restoreOutcome: ImportOutcome? = backupRepository.consumeOutcome()
 }

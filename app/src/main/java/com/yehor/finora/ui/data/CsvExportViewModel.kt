@@ -17,11 +17,9 @@ import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.tag.Tag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.ZoneId
@@ -35,7 +33,7 @@ data class CsvExportUiState(
     val errorMessage: String? = null,
     val accounts: List<Account> = emptyList(),
     val categories: List<Category> = emptyList(),
-    val tags: List<Tag> = emptyList(),
+    val tags: List<Tag> = emptyList()
 )
 
 @HiltViewModel
@@ -45,7 +43,7 @@ class CsvExportViewModel @Inject constructor(
     private val backupRepository: BackupRepository,
     private val accountRepository: AccountRepository,
     private val categoryRepository: CategoryRepository,
-    private val tagRepository: TagRepository,
+    private val tagRepository: TagRepository
 ) : ViewModel() {
 
     private val initialFilter: TransactionFilter = run {
@@ -65,7 +63,7 @@ class CsvExportViewModel @Inject constructor(
             combine(
                 accountRepository.observeAll(),
                 categoryRepository.observeAll(),
-                tagRepository.observeAll(),
+                tagRepository.observeAll()
             ) { accs, cats, tags ->
                 Triple(accs.map { it.account }, cats, tags)
             }.collect { (accs, cats, tags) ->
@@ -73,7 +71,7 @@ class CsvExportViewModel @Inject constructor(
                     it.copy(
                         accounts = accs,
                         categories = cats,
-                        tags = tags,
+                        tags = tags
                     )
                 }
             }
@@ -106,7 +104,7 @@ class CsvExportViewModel @Inject constructor(
                 it.copy(
                     isBusy = false,
                     exportResult = res.getOrNull(),
-                    errorMessage = res.exceptionOrNull()?.message,
+                    errorMessage = res.exceptionOrNull()?.message
                 )
             }
         }

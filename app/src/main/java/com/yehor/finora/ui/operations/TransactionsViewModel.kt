@@ -73,7 +73,7 @@ data class TransactionsUiState(
     val categories: List<Category> = emptyList(),
     val tags: List<Tag> = emptyList(),
     /** Tag id to the number of transactions that carry it. */
-    val tagUsage: Map<Long, Int> = emptyMap(),
+    val tagUsage: Map<Long, Int> = emptyMap()
 )
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -85,7 +85,7 @@ class TransactionsViewModel @Inject constructor(
     categoryRepository: CategoryRepository,
     tagRepository: TagRepository,
     rateRepository: RateRepository,
-    settingsRepository: SettingsRepository,
+    settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val initialFilter = savedStateHandle.get<String>("filter")
@@ -99,7 +99,7 @@ class TransactionsViewModel @Inject constructor(
                 setOf(OperationType.TRANSFER)
             } else {
                 emptySet()
-            },
+            }
         )
 
     private val _filter = MutableStateFlow(initialFilter)
@@ -119,7 +119,12 @@ class TransactionsViewModel @Inject constructor(
         .map { list -> list.map { it.tag } }
         .distinctUntilChanged()
 
-    private val normalized: Flow<NormalizedFilter> = combine(_filter, _sort, accounts, categories, tags) { f, s, a, c, t ->
+    private val normalized: Flow<NormalizedFilter> = combine(_filter, _sort, accounts, categories, tags) { f,
+                                                                                                           s,
+                                                                                                           a,
+                                                                                                           c,
+                                                                                                           t
+        ->
         FilterScope.normalize(f, s, a, c.map { it.id }.toSet(), t.map { it.id }.toSet())
     }.distinctUntilChanged()
 
@@ -133,13 +138,17 @@ class TransactionsViewModel @Inject constructor(
     private val summaryWithConversion: Flow<Pair<List<CurrencySummary>, ConvertedSummary?>> = combine(
         summary,
         rateRepository.observeTable(),
-        settingsRepository.displayCurrency,
+        settingsRepository.displayCurrency
     ) { s, table, display ->
         s to SummaryConversion.build(s, display.currency, table, System.currentTimeMillis())
     }
 
     val state: StateFlow<TransactionsUiState> = combine(
-        normalized, summaryWithConversion, accounts, categories, tagsWithUsage,
+        normalized,
+        summaryWithConversion,
+        accounts,
+        categories,
+        tagsWithUsage
     ) { n, s, a, c, tu ->
         TransactionsUiState(
             filter = n.filter,
@@ -150,7 +159,7 @@ class TransactionsViewModel @Inject constructor(
             accounts = a,
             categories = c,
             tags = tu.map { it.tag },
-            tagUsage = tu.associate { it.tag.id to it.usageCount },
+            tagUsage = tu.associate { it.tag.id to it.usageCount }
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TransactionsUiState(filter = initialFilter))
 
@@ -196,7 +205,10 @@ class TransactionsViewModel @Inject constructor(
     }
 
     /** Day headers only make sense when the list is ordered by date. */
-    private fun withDayHeaders(data: PagingData<TransactionItem>, sort: TransactionSort): PagingData<TransactionListRow> {
+    private fun withDayHeaders(
+        data: PagingData<TransactionItem>,
+        sort: TransactionSort
+    ): PagingData<TransactionListRow> {
         val rows = data.map<TransactionItem, TransactionListRow> { TransactionListRow.Entry(it) }
         if (sort != TransactionSort.DATE_DESC && sort != TransactionSort.DATE_ASC) return rows
         val now = System.currentTimeMillis()

@@ -27,19 +27,15 @@ object DataSummaryReader {
             firstOperationAt = firstOp,
             lastOperationAt = lastOp,
             databaseBytes = databaseBytes,
-            schemaVersion = schemaVersion,
+            schemaVersion = schemaVersion
         )
     }
 
-    private fun queryLong(db: SupportSQLiteDatabase, sql: String): Long {
-        return db.query(sql).use { c ->
-            if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else 0L
-        }
+    private fun queryLong(db: SupportSQLiteDatabase, sql: String): Long = db.query(sql).use { c ->
+        if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else 0L
     }
 
-    private fun queryLongOrNull(db: SupportSQLiteDatabase, sql: String): Long? {
-        return db.query(sql).use { c ->
-            if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else null
-        }
+    private fun queryLongOrNull(db: SupportSQLiteDatabase, sql: String): Long? = db.query(sql).use { c ->
+        if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else null
     }
 }

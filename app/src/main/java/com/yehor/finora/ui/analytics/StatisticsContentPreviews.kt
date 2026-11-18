@@ -59,13 +59,18 @@ private object Sample {
     val taxi = category(30, "Taxi", "car", null, 2)
     val categories = listOf(food, transport, subscriptions, restaurants, groceries, delivery, dineIn, taxi)
 
-    private fun line(category: Category?, minor: Long, total: Long, children: Boolean = false, direct: Boolean = false) =
-        CategoryLine(
-            DrillRow(category?.id, category, cell(minor, 4), isDirect = direct, hasChildren = children),
-            Share((minor * 1000 / total).toInt()),
-            previous = null,
-            delta = null,
-        )
+    private fun line(
+        category: Category?,
+        minor: Long,
+        total: Long,
+        children: Boolean = false,
+        direct: Boolean = false
+    ) = CategoryLine(
+        DrillRow(category?.id, category, cell(minor, 4), isDirect = direct, hasChildren = children),
+        Share((minor * 1000 / total).toInt()),
+        previous = null,
+        delta = null
+    )
 
     private fun report(breadcrumb: List<Category>, lines: List<CategoryLine>): CategoryReport = CategoryReport(
         total = cell(142_050),
@@ -74,7 +79,7 @@ private object Sample {
         levelTotal = cell(lines.sumOf { it.row.cell.estimate?.amountMinor ?: 0L }),
         breadcrumb = breadcrumb,
         lines = lines,
-        split = TopSplit(lines.map { it.row }, null, null),
+        split = TopSplit(lines.map { it.row }, null, null)
     )
 
     val level1 = report(
@@ -83,8 +88,8 @@ private object Sample {
             line(food, 81_200, 142_050, children = true),
             line(transport, 31_050, 142_050, children = true),
             line(subscriptions, 18_000, 142_050),
-            line(null, 11_800, 142_050),
-        ),
+            line(null, 11_800, 142_050)
+        )
     )
 
     /** Food & Dining › Restaurants, with money booked on Restaurants itself. */
@@ -93,43 +98,51 @@ private object Sample {
         listOf(
             line(delivery, 29_000, 47_000),
             line(dineIn, 16_000, 47_000),
-            line(restaurants, 2_000, 47_000, direct = true),
-        ),
+            line(restaurants, 2_000, 47_000, direct = true)
+        )
     )
 
     private fun tag(id: Long, name: String) = Tag(id, name, null, 0L)
     val tags = listOf(tag(1, "trip"), tag(2, "work"), tag(3, "gifts"), tag(4, "kids"))
     val ranking = rankTags(
         tags,
-        mapOf(1L to cell(161_000, 31), 2L to cell(70_000, 17), 3L to cell(24_000, 5), 4L to cell(9_600, 8)),
+        mapOf(1L to cell(161_000, 31), 2L to cell(70_000, 17), 3L to cell(24_000, 5), 4L to cell(9_600, 8))
     )
 
-    private fun account(id: Long, name: String, icon: String, color: Long, status: AccountStatus = AccountStatus.ACTIVE) =
-        Account(id, name, pln, AccountType.BANK, icon, color, null, status, 0L)
+    private fun account(
+        id: Long,
+        name: String,
+        icon: String,
+        color: Long,
+        status: AccountStatus = AccountStatus.ACTIVE
+    ) = Account(id, name, pln, AccountType.BANK, icon, color, null, status, 0L)
 
     val accounts = listOf(
         AccountPeriodView(
             account(1, "Revolut", "bank", 0xFFC4A0FFL),
-            AccountPeriodRow(1, Money(420_000, pln), Money(161_000, pln), Money(259_000, pln)),
+            AccountPeriodRow(1, Money(420_000, pln), Money(161_000, pln), Money(259_000, pln))
         ),
         AccountPeriodView(
             account(2, "Wallet", "wallet", 0xFFFFA05AL),
-            AccountPeriodRow(2, Money(0, pln), Money(70_000, pln), Money(-70_000, pln)),
-        ),
+            AccountPeriodRow(2, Money(0, pln), Money(70_000, pln), Money(-70_000, pln))
+        )
     )
     val archived = listOf(
         AccountPeriodView(
             account(3, "Old savings", "savings", 0xFF00E599L, AccountStatus.ARCHIVED),
-            AccountPeriodRow(3, Money(0, pln), Money(0, pln), Money(0, pln)),
-        ),
+            AccountPeriodRow(3, Money(0, pln), Money(0, pln), Money(0, pln))
+        )
     )
 }
 
 @Composable
 private fun ContentPreview(dark: Boolean, content: @Composable () -> Unit) = PreviewTheme(dark) {
     Column(
-        Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(horizontal = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(horizontal = 18.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) { content() }
 }
 
@@ -143,7 +156,7 @@ private fun CategoriesPreview(dark: Boolean, report: CategoryReport) = ContentPr
         categories = Sample.categories,
         onEnter = {},
         onBack = {},
-        onOpen = {},
+        onOpen = {}
     )
 }
 
@@ -172,7 +185,7 @@ private fun TagRankingPreview(dark: Boolean) = ContentPreview(dark) {
         title = "Tags in November",
         onMeasure = {},
         onOpen = {},
-        onCombine = {},
+        onCombine = {}
     )
 }
 
@@ -196,7 +209,7 @@ private fun TagDetailPreview(dark: Boolean) {
         income = Sample.cell(90_000),
         expense = Sample.cell(231_000, 48),
         net = Sample.cell(-141_000),
-        transferred = Sample.cell(0, 0),
+        transferred = Sample.cell(0, 0)
     )
     ContentPreview(dark) {
         TagChips(Sample.tags, setOf(1L, 2L), TagMatchMode.ANY, onToggle = {}, onMode = {})
@@ -206,7 +219,7 @@ private fun TagDetailPreview(dark: Boolean) {
             delta = delta(Sample.cell(231_000).estimate, Sample.cell(206_000).estimate),
             previous = previous,
             today = today,
-            onOpen = {},
+            onOpen = {}
         )
         OverTimeCard(
             points = points,
@@ -215,7 +228,7 @@ private fun TagDetailPreview(dark: Boolean) {
             measureEnabled = true,
             today = today,
             onMeasure = {},
-            onOpenBucket = {},
+            onOpenBucket = {}
         )
     }
 }

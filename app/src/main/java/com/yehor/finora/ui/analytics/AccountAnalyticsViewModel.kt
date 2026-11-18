@@ -44,7 +44,7 @@ sealed interface AccountAnalyticsUiState {
         val seriesUnit: BucketUnit,
         val recent: List<TransactionItem>,
         /** The account and the period, for "Show all". */
-        val filter: TransactionFilter,
+        val filter: TransactionFilter
     ) : AccountAnalyticsUiState
 }
 
@@ -56,7 +56,7 @@ class AccountAnalyticsViewModel @Inject constructor(
     private val environment: AnalyticsEnvironment,
     private val analytics: AnalyticsRepository,
     accounts: AccountRepository,
-    private val transactions: TransactionRepository,
+    private val transactions: TransactionRepository
 ) : ViewModel() {
 
     private val accountId: Long = checkNotNull(savedState["accountId"])
@@ -73,7 +73,7 @@ class AccountAnalyticsViewModel @Inject constructor(
         val filter = TransactionFilter(
             accountIds = setOf(accountId),
             from = env.period.from,
-            toExclusive = env.period.toExclusive,
+            toExclusive = env.period.toExclusive
         )
         val figures: Flow<AccountFigures?> = analytics.observeAccountFigures(accountId, env.period)
             .catch { e -> if (e is MoneyOverflowException) emit(null) else throw e }

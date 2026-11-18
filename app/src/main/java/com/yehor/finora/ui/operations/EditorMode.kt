@@ -4,7 +4,7 @@ package com.yehor.finora.ui.operations
 enum class EditorMode(val arg: String) {
     EXPENSE("EXPENSE"),
     INCOME("INCOME"),
-    TRANSFER("TRANSFER"),
+    TRANSFER("TRANSFER")
     ;
 
     companion object {

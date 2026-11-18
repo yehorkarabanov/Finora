@@ -13,7 +13,7 @@ data class Account(
     val color: Long?,
     val description: String?,
     val status: AccountStatus,
-    val createdAt: Long,
+    val createdAt: Long
 )
 
 sealed interface Balance {
@@ -30,7 +30,7 @@ data class AccountDetail(
     val account: Account,
     val balance: Balance,
     val openingBalance: OpeningBalance?,
-    val earliestOtherEntryAt: Long?,
+    val earliestOtherEntryAt: Long?
 )
 
 /** An account offered by a picker. [isArchivedOriginal] is true only for the edited operation's own archived account. */

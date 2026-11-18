@@ -21,7 +21,7 @@ class TransactionDraftValidatorTest {
             currency = usd,
             now = now,
             isEdit = false,
-            hadCategoryBefore = false,
+            hadCategoryBefore = false
         )
         assertTrue(errors.isEmpty())
     }
@@ -30,23 +30,23 @@ class TransactionDraftValidatorTest {
     fun amountErrors() {
         assertEquals(
             setOf(TransactionDraftError.AMOUNT_EMPTY),
-            TransactionDraftValidator.validate("", 1L, 2L, now, null, usd, now, false, false),
+            TransactionDraftValidator.validate("", 1L, 2L, now, null, usd, now, false, false)
         )
         assertEquals(
             setOf(TransactionDraftError.AMOUNT_INVALID),
-            TransactionDraftValidator.validate("abc", 1L, 2L, now, null, usd, now, false, false),
+            TransactionDraftValidator.validate("abc", 1L, 2L, now, null, usd, now, false, false)
         )
         assertEquals(
             setOf(TransactionDraftError.AMOUNT_TOO_PRECISE),
-            TransactionDraftValidator.validate("10.555", 1L, 2L, now, null, usd, now, false, false),
+            TransactionDraftValidator.validate("10.555", 1L, 2L, now, null, usd, now, false, false)
         )
         assertEquals(
             setOf(TransactionDraftError.AMOUNT_NOT_POSITIVE),
-            TransactionDraftValidator.validate("0", 1L, 2L, now, null, usd, now, false, false),
+            TransactionDraftValidator.validate("0", 1L, 2L, now, null, usd, now, false, false)
         )
         assertEquals(
             setOf(TransactionDraftError.AMOUNT_NOT_POSITIVE),
-            TransactionDraftValidator.validate("-5.00", 1L, 2L, now, null, usd, now, false, false),
+            TransactionDraftValidator.validate("-5.00", 1L, 2L, now, null, usd, now, false, false)
         )
     }
 

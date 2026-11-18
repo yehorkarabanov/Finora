@@ -128,6 +128,8 @@ internal fun splitWeight(cell: Cell): Float =
  * segment that is gone shrinks away. Instant under reduced motion.
  */
 @Composable
+// Animatables are created once, on first composition, and held in a remembered map.
+@Suppress("RememberInComposition")
 fun AnimatedSplitBar(parts: List<SplitPart>, modifier: Modifier = Modifier) {
     val instant = rememberReduceMotion() || LocalInspectionMode.current
     val weights = remember { mutableStateMapOf<Any, Animatable<Float, AnimationVector1D>>() }
@@ -172,7 +174,7 @@ fun AnimatedSplitBar(parts: List<SplitPart>, modifier: Modifier = Modifier) {
                 weight to color
             }
         },
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
@@ -187,27 +189,38 @@ internal fun StatsSectionTitle(
     modifier: Modifier = Modifier,
     link: String? = null,
     onLink: (() -> Unit)? = null,
-    trailing: (@Composable () -> Unit)? = null,
+    trailing: (@Composable () -> Unit)? = null
 ) {
-    Row(modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically
+    ) {
         Text(
             title,
             style = MaterialTheme.typography.titleMedium,
             fontFamily = SpaceGrotesk,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f).semantics { heading() },
+            modifier = Modifier
+                .weight(1f)
+                .semantics { heading() }
         )
         if (link != null && onLink != null) {
             Box(
-                Modifier.heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onLink).padding(horizontal = 4.dp),
-                contentAlignment = Alignment.Center,
+                Modifier
+                    .heightIn(
+                        min = 48.dp
+                    )
+                    .clickable(role = Role.Button, onClick = onLink)
+                    .padding(horizontal = 4.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     link,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -224,7 +237,9 @@ internal fun PercentBadge(share: Share, tint: Color, modifier: Modifier = Modifi
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
         color = tint,
-        modifier = modifier.background(tint.copy(alpha = 0.15f), PillShape).padding(horizontal = 8.dp, vertical = 2.dp),
+        modifier = modifier
+            .background(tint.copy(alpha = 0.15f), PillShape)
+            .padding(horizontal = 8.dp, vertical = 2.dp)
     )
 }
 
@@ -239,7 +254,10 @@ internal fun DashedRoundIcon(icon: ImageVector, modifier: Modifier = Modifier, s
             drawCircle(
                 color = ring,
                 radius = (this.size.minDimension - stroke) / 2f,
-                style = Stroke(width = stroke, pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
+                style = Stroke(
+                    width = stroke,
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))
+                )
             )
         }
         Icon(icon, contentDescription = null, tint = muted, modifier = Modifier.size(size * 0.5f))
@@ -261,7 +279,7 @@ internal fun StatRow(
     modifier: Modifier = Modifier,
     dimTitle: Boolean = false,
     muted: Boolean = false,
-    onClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val scheme = MaterialTheme.colorScheme
     Row(
@@ -272,7 +290,7 @@ internal fun StatRow(
             .heightIn(min = 56.dp)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         icon()
         Column(Modifier.weight(1f)) {
@@ -282,7 +300,7 @@ internal fun StatRow(
                 fontWeight = FontWeight.SemiBold,
                 color = if (dimTitle) scheme.onSurfaceVariant else scheme.onSurface,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
             if (!subtitle.isNullOrEmpty()) {
                 Text(
@@ -290,7 +308,7 @@ internal fun StatRow(
                     style = MaterialTheme.typography.bodySmall,
                     color = scheme.onSurfaceVariant,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
@@ -318,7 +336,7 @@ internal fun CategoryCard(
     onEnter: (Long) -> Unit,
     onBack: (Int) -> Unit,
     onOpen: (TransactionFilter) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val byId = remember(categories) { categories.associateBy { it.id } }
     val childCount = remember(categories) { categories.groupingBy { it.parentId }.eachCount() }
@@ -334,14 +352,21 @@ internal fun CategoryCard(
                     if (current == null) {
                         base.copy(types = setOf(measure.operationType()))
                     } else {
-                        AnalyticsFilters.drill(base, measure, DrillRow(current.id, current, report.total, isDirect = false, hasChildren = true))
-                    },
+                        AnalyticsFilters.drill(
+                            base,
+                            measure,
+                            DrillRow(current.id, current, report.total, isDirect = false, hasChildren = true)
+                        )
+                    }
                 )
-            },
+            }
         )
         if (report.breadcrumb.isNotEmpty()) {
             Breadcrumb(report.breadcrumb, onBack)
-            AmountText(report.levelTotal, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = SpaceGrotesk))
+            AmountText(
+                report.levelTotal,
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = SpaceGrotesk)
+            )
         }
         val parts = report.lines.mapIndexedNotNull { index, line ->
             val row = line.row
@@ -362,17 +387,23 @@ internal fun CategoryCard(
                         SizeTransform(clip = false)
                 }
             },
-            label = "categoryLevel",
+            label = "categoryLevel"
         ) { level ->
             if (level.lines.isEmpty()) {
                 Text(
                     stringResource(R.string.stats_no_data),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp)
                 )
             } else {
-                GroupedCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+                GroupedCard(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp)
+                ) {
                     level.lines.forEachIndexed { index, line ->
                         CategoryRow(
                             line = line,
@@ -384,7 +415,7 @@ internal fun CategoryCard(
                                 line.row.categoryId != null && line.row.hasChildren && !line.row.isDirect ->
                                     ({ onEnter(line.row.categoryId) })
                                 else -> ({ onOpen(AnalyticsFilters.drill(base, measure, line.row)) })
-                            },
+                            }
                         )
                     }
                 }
@@ -425,7 +456,7 @@ private fun CategoryRow(line: CategoryLine, tint: Color, children: Int, compare:
         tint = tint,
         dimTitle = row.isDirect,
         muted = previousOnly,
-        onClick = onOpen,
+        onClick = onOpen
     )
 }
 
@@ -433,9 +464,11 @@ private fun CategoryRow(line: CategoryLine, tint: Color, children: Int, compare:
 @Composable
 private fun Breadcrumb(trail: List<Category>, onBack: (Int) -> Unit) {
     Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         CrumbChip(stringResource(R.string.stats_crumb_all), current = false) { onBack(0) }
         trail.forEachIndexed { index, category ->
@@ -449,8 +482,10 @@ private fun Breadcrumb(trail: List<Category>, onBack: (Int) -> Unit) {
 private fun CrumbChip(text: String, current: Boolean, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     Box(
-        Modifier.heightIn(min = 48.dp).clickable(enabled = !current, role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
+        Modifier
+            .heightIn(min = 48.dp)
+            .clickable(enabled = !current, role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text,
@@ -460,7 +495,7 @@ private fun CrumbChip(text: String, current: Boolean, onClick: () -> Unit) {
             maxLines = 1,
             modifier = Modifier
                 .background(if (current) scheme.primary.copy(alpha = 0.12f) else scheme.surfaceContainer, PillShape)
-                .padding(horizontal = 10.dp, vertical = 5.dp),
+                .padding(horizontal = 10.dp, vertical = 5.dp)
         )
     }
 }
@@ -475,19 +510,28 @@ data class BreakdownItem(
     val tint: Color,
     val cell: Cell,
     val share: Share?,
-    val onClick: (() -> Unit)?,
+    val onClick: (() -> Unit)?
 )
 
 /** A titled breakdown: split bar over a grouped card of rows with amounts and shares. */
 @Composable
-internal fun BreakdownCard(title: String, items: List<BreakdownItem>, modifier: Modifier = Modifier, note: String? = null) {
+internal fun BreakdownCard(
+    title: String,
+    items: List<BreakdownItem>,
+    modifier: Modifier = Modifier,
+    note: String? = null
+) {
     Column(modifier.fillMaxWidth()) {
         StatsSectionTitle(title)
         if (note != null) {
             Text(note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         AnimatedSplitBar(items.map { SplitPart(it.key, splitWeight(it.cell), it.tint) }, Modifier.padding(top = 12.dp))
-        GroupedCard(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+        GroupedCard(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp)
+        ) {
             items.forEach { item ->
                 StatRow(
                     icon = { RoundIcon(item.icon, item.tint) },
@@ -497,7 +541,7 @@ internal fun BreakdownCard(title: String, items: List<BreakdownItem>, modifier: 
                     cell = item.cell,
                     share = item.share,
                     tint = item.tint,
-                    onClick = item.onClick,
+                    onClick = item.onClick
                 )
             }
         }

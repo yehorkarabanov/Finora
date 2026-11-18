@@ -20,34 +20,34 @@ object IconKeys {
         IconGroup("banks", listOf("bank", "savings", "deposit", "euro", "dollar")),
         IconGroup(
             "investments",
-            listOf("investments", "brokerage", "crypto", "gold", "real_estate", "pension", "dividends"),
+            listOf("investments", "brokerage", "crypto", "gold", "real_estate", "pension", "dividends")
         ),
-        IconGroup("other", listOf("business", "gift_card", "loan", "favorite", "other")),
+        IconGroup("other", listOf("business", "gift_card", "loan", "favorite", "other"))
     )
 
     /** Groups offered for categories. Includes every icon used by the default categories. */
     val categoryGroups: List<IconGroup> = listOf(
         IconGroup(
             "food",
-            listOf("groceries", "restaurant", "coffee", "bakery", "bar", "delivery", "pizza", "dessert"),
+            listOf("groceries", "restaurant", "coffee", "bakery", "bar", "delivery", "pizza", "dessert")
         ),
         IconGroup(
             "transport",
             listOf(
                 "car", "fuel", "bus", "train", "taxi", "bike", "scooter", "motorcycle", "parking",
-                "ev_charging", "car_repair", "flight", "ship",
-            ),
+                "ev_charging", "car_repair", "flight", "ship"
+            )
         ),
         IconGroup(
             "home",
             listOf(
                 "home", "rent", "utilities", "water", "gas", "internet", "phone", "tv",
-                "furniture", "kitchen", "garden", "cleaning", "repairs",
-            ),
+                "furniture", "kitchen", "garden", "cleaning", "repairs"
+            )
         ),
         IconGroup(
             "shopping",
-            listOf("shopping", "clothing", "electronics", "beauty", "jewelry", "books"),
+            listOf("shopping", "clothing", "electronics", "beauty", "jewelry", "books")
         ),
         IconGroup("health", listOf("health", "pharmacy", "doctor", "fitness", "mental_health", "vaccine")),
         IconGroup("education", listOf("school", "courses", "kids", "toys", "baby")),
@@ -55,22 +55,22 @@ object IconKeys {
             "leisure",
             listOf(
                 "entertainment", "music", "games", "sports", "travel", "hotel", "beach", "camera",
-                "events", "tickets", "hiking",
-            ),
+                "events", "tickets", "hiking"
+            )
         ),
         IconGroup("personal", listOf("gift", "pets", "charity", "haircut", "laundry", "family")),
         IconGroup(
             "finance",
             listOf(
                 "subscriptions", "fees", "taxes", "insurance", "loan", "interest", "savings",
-                "investments", "exchange", "transfer", "refund", "atm",
-            ),
+                "investments", "exchange", "transfer", "refund", "atm"
+            )
         ),
         IconGroup(
             "income",
-            listOf("salary", "freelance", "business", "bonus", "rental_income", "dividends", "store"),
+            listOf("salary", "freelance", "business", "bonus", "rental_income", "dividends", "store")
         ),
-        IconGroup("other", listOf("favorite", "flag", "other")),
+        IconGroup("other", listOf("favorite", "flag", "other"))
     )
 
     /** Icons offered for accounts, flattened from [accountGroups]. */

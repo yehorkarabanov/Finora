@@ -45,9 +45,13 @@ class DefaultCategorySeedTest {
         val database = inMemory(seed = true)
         database.categoryDao().insert(
             CategoryEntity(
-                name = "Mine", icon = null, color = null, type = CategoryType.EXPENSE,
-                parentId = null, createdAt = 0,
-            ),
+                name = "Mine",
+                icon = null,
+                color = null,
+                type = CategoryType.EXPENSE,
+                parentId = null,
+                createdAt = 0
+            )
         )
         assertEquals(DefaultCategories.totalCount + 1, database.categoryDao().getAll().size)
     }
@@ -69,7 +73,7 @@ class DefaultCategorySeedTest {
         val food = all.single { it.name == "Food" }
         assertEquals(
             setOf("Groceries", "Restaurants & Cafes"),
-            all.filter { it.parentId == food.id }.map { it.name }.toSet(),
+            all.filter { it.parentId == food.id }.map { it.name }.toSet()
         )
         val violations = InvariantChecker.check(database.openHelper.writableDatabase)
         assertTrue(violations.toString(), violations.isEmpty())

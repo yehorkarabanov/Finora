@@ -21,7 +21,7 @@ object EffectiveRateCalculator {
         val inverse = sentMajor.divide(receivedMajor, RATE_SCALE, RoundingMode.HALF_UP)
         return EffectiveRate(
             forward = "1 ${sent.currency.code} = ${forward.toPlainString()} ${received.currency.code}",
-            inverse = "1 ${received.currency.code} = ${inverse.toPlainString()} ${sent.currency.code}",
+            inverse = "1 ${received.currency.code} = ${inverse.toPlainString()} ${sent.currency.code}"
         )
     }
 }

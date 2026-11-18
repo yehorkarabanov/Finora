@@ -9,25 +9,23 @@ import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.analytics.AccountPeriodRow
 import com.yehor.finora.domain.analytics.BucketPlan
 import com.yehor.finora.domain.analytics.BucketUnit
-import com.yehor.finora.domain.analytics.Period
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Measure
+import com.yehor.finora.domain.analytics.Period
 import com.yehor.finora.domain.analytics.PeriodCalculator
 import com.yehor.finora.domain.analytics.PeriodKind
-import com.yehor.finora.domain.analytics.ResolvedPeriod
 import com.yehor.finora.domain.analytics.Reports
+import com.yehor.finora.domain.analytics.ResolvedPeriod
 import com.yehor.finora.domain.analytics.ScopeConverter
 import com.yehor.finora.domain.operation.FilterCodec
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.tag.TagMatchMode
+import com.yehor.finora.ui.analytics.StatisticsViewModel.Companion.PREVIEW_THROTTLE_MS
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,7 +34,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
 import java.time.YearMonth
@@ -53,20 +54,20 @@ data class StatsControls(
     val path: List<Long> = emptyList(),
     /** Types, accounts, categories, tags and match mode of the Tags tab. Dates come from the period. */
     val tagFilter: TransactionFilter = TransactionFilter(),
-    val tagMeasure: Measure = Measure.EXPENSE,
+    val tagMeasure: Measure = Measure.EXPENSE
 )
 
 data class FlowTab(
     val report: FlowReport,
     /** The period filter the rows were counted with. */
-    val base: TransactionFilter,
+    val base: TransactionFilter
 )
 
 data class TagsTab(
     /** The full filter, with period and scope, for hand-offs to Transactions (R15). */
     val filter: TransactionFilter,
     val report: TagsReport,
-    val recent: List<TransactionItem>,
+    val recent: List<TransactionItem>
 )
 
 data class AccountPeriodView(val account: Account, val row: AccountPeriodRow)
@@ -89,7 +90,7 @@ data class StatisticsUiState(
     val conversion: ConversionInfo = ConversionInfo.NONE,
     val content: StatsContent? = null,
     /** The previous period of the same kind, for the Compare label. */
-    val previousPeriod: ResolvedPeriod? = null,
+    val previousPeriod: ResolvedPeriod? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,7 +99,7 @@ class StatisticsViewModel @Inject constructor(
     private val savedState: SavedStateHandle,
     private val environment: AnalyticsEnvironment,
     private val analytics: AnalyticsRepository,
-    private val transactions: TransactionRepository,
+    private val transactions: TransactionRepository
 ) : ViewModel() {
 
     private val _controls = MutableStateFlow(restore())
@@ -113,7 +114,9 @@ class StatisticsViewModel @Inject constructor(
             argTag != null -> TransactionFilter(tagIds = setOf(argTag))
             else -> TransactionFilter()
         }
-        val accounts = savedState.get<String>(KEY_ACCOUNTS).orEmpty().split(',').mapNotNull { it.toLongOrNull() }.toSet()
+        val accounts = savedState.get<String>(KEY_ACCOUNTS).orEmpty().split(',').mapNotNull {
+            it.toLongOrNull()
+        }.toSet()
         return StatsControls(
             tab = tab,
             selectedAccountIds = accounts,
@@ -121,7 +124,7 @@ class StatisticsViewModel @Inject constructor(
             path = savedState.get<String>(KEY_PATH).orEmpty().split(',').mapNotNull { it.toLongOrNull() },
             tagFilter = tagFilter,
             tagMeasure = savedState.get<String>(KEY_TAG_MEASURE)
-                ?.let { name -> Measure.entries.firstOrNull { it.name == name } } ?: Measure.EXPENSE,
+                ?.let { name -> Measure.entries.firstOrNull { it.name == name } } ?: Measure.EXPENSE
         )
     }
 
@@ -162,7 +165,10 @@ class StatisticsViewModel @Inject constructor(
         env,
         _controls,
         // A StateFlow is conflated: while the delay runs, only the newest window waits.
-        preview.transform { emit(it); delay(PREVIEW_THROTTLE_MS) },
+        preview.transform {
+            emit(it)
+            delay(PREVIEW_THROTTLE_MS)
+        }
     ) { env, controls, preview -> Triple(env, controls, preview) }
         .flatMapLatest { (env, controls, preview) -> trend(env, controls, preview) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -174,8 +180,14 @@ class StatisticsViewModel @Inject constructor(
 
     fun toggleAccount(accountId: Long) = change { c ->
         c.copy(
-            selectedAccountIds = if (accountId in c.selectedAccountIds) c.selectedAccountIds - accountId else c.selectedAccountIds + accountId,
-            path = emptyList(),
+            selectedAccountIds = if (accountId in
+                c.selectedAccountIds
+            ) {
+                c.selectedAccountIds - accountId
+            } else {
+                c.selectedAccountIds + accountId
+            },
+            path = emptyList()
         )
     }
 
@@ -269,7 +281,7 @@ class StatisticsViewModel @Inject constructor(
                 types = filter.types,
                 accountIds = filter.accountIds,
                 categoryIds = filter.categoryIds,
-                includeUncategorized = filter.includeUncategorized,
+                includeUncategorized = filter.includeUncategorized
             )
         }
     }
@@ -303,7 +315,7 @@ class StatisticsViewModel @Inject constructor(
                 scope = scope,
                 conversion = conversionInfo(cells),
                 content = content,
-                previousPeriod = previous,
+                previousPeriod = previous
             )
         }
     }
@@ -313,12 +325,12 @@ class StatisticsViewModel @Inject constructor(
         controls: StatsControls,
         scope: CurrencyScope,
         measure: Measure,
-        previous: ResolvedPeriod?,
+        previous: ResolvedPeriod?
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
         val base = TransactionFilter(
             from = env.period.from,
             toExclusive = env.period.toExclusive,
-            accountIds = controls.selectedAccountIds,
+            accountIds = controls.selectedAccountIds
         )
         val previousBase = previous?.let {
             TransactionFilter(from = it.from, toExclusive = it.toExclusive, accountIds = controls.selectedAccountIds)
@@ -330,7 +342,7 @@ class StatisticsViewModel @Inject constructor(
             current,
             before,
             analytics.observeByAccount(base, measure).asRows(),
-            analytics.observeByTag(base, measure).asRows(),
+            analytics.observeByTag(base, measure).asRows()
         ) { cur, prev, byAccount, byTag ->
             val report = ReportBuilder.flow(env, scope, measure, cur, prev, byAccount, byTag, path)
             StatsContent.Flows(FlowTab(report, base)) to cellsOf(report)
@@ -352,11 +364,19 @@ class StatisticsViewModel @Inject constructor(
             window.toPeriodState(env.firstDayOfWeek, env.today).resolve(env.today, env.zone, env.firstDayOfWeek)
         }
         // ... while the buckets cover only the window: a running period stops at today.
-        val visible = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, window.start, window.end), env.zone, env.firstDayOfWeek)
+        val visible = PeriodCalculator.resolve(
+            Period(PeriodKind.CUSTOM, window.start, window.end),
+            env.zone,
+            env.firstDayOfWeek
+        )
         val (unit, buckets) = trendBuckets(visible, env.zone, lastUnit)
         lastUnit = unit
         val previousBuckets = if (controls.compare) {
-            val previous = PeriodCalculator.resolve(PeriodCalculator.previous(period.period), env.zone, env.firstDayOfWeek)
+            val previous = PeriodCalculator.resolve(
+                PeriodCalculator.previous(period.period),
+                env.zone,
+                env.firstDayOfWeek
+            )
             BucketPlan.split(previous.fromDate, previous.toDateInclusive, unit, env.zone)
         } else {
             null
@@ -364,14 +384,15 @@ class StatisticsViewModel @Inject constructor(
         val scope = resolveScope(controls.selectedAccountIds, env.allAccounts, env.display)
         val base = TransactionFilter(
             accountIds = controls.selectedAccountIds,
-            categoryIds = controls.path.lastOrNull()?.let { setOf(it) } ?: emptySet(),
+            categoryIds = controls.path.lastOrNull()?.let { setOf(it) } ?: emptySet()
         )
         val converter = ScopeConverter(scope, env.table, env.now)
         val before = previousBuckets?.let { analytics.observeByBucket(base, measure, it).asRows() } ?: flowOf(null)
         return combine(analytics.observeByBucket(base, measure, buckets).asRows(), before) { rows, previousRows ->
             val points = Reports.trend(buckets, rows.list(), converter)
             val compare = if (previousBuckets != null && previousRows != null) {
-                val previousValues = trendValues(Reports.trend(previousBuckets, previousRows.list(), converter), env.today)
+                val previousValues =
+                    trendValues(Reports.trend(previousBuckets, previousRows.list(), converter), env.today)
                 alignPrevious(buckets, previousBuckets).map { index -> index?.let { previousValues[it] } }
             } else {
                 null
@@ -385,7 +406,7 @@ class StatisticsViewModel @Inject constructor(
                 compare = compare,
                 average = trendAverage(points, env.today, scope.currency()),
                 currency = scope.currency(),
-                base = base,
+                base = base
             )
         }
     }
@@ -394,7 +415,7 @@ class StatisticsViewModel @Inject constructor(
         env: AnalyticsEnv,
         controls: StatsControls,
         scope: CurrencyScope,
-        previous: ResolvedPeriod?,
+        previous: ResolvedPeriod?
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
         // A picked tag that was deleted since does not count (it has no chip to remove it by).
         val knownTags = env.tags.map { it.id }.toSet()
@@ -403,7 +424,7 @@ class StatisticsViewModel @Inject constructor(
         val filter = chosen.copy(
             from = env.period.from,
             toExclusive = env.period.toExclusive,
-            accountIds = effectiveAccountIds,
+            accountIds = effectiveAccountIds
         )
         val measure = chosen.types.singleOrNull()?.let { type ->
             Measure.entries.firstOrNull { it.operationType() == type }
@@ -415,23 +436,32 @@ class StatisticsViewModel @Inject constructor(
         fun totals(f: TransactionFilter) = combine(
             analytics.observeByCategory(f, Measure.INCOME).asRows(),
             analytics.observeByCategory(f, Measure.EXPENSE).asRows(),
-            analytics.observeByCategory(f, Measure.TRANSFER).asRows(),
+            analytics.observeByCategory(f, Measure.TRANSFER).asRows()
         ) { income, expense, transfer -> Triple(income, expense, transfer) }
 
         val currentTotals = totals(filter)
         val previousTotals = previousFilter?.let { totals(it) } ?: flowOf(null)
         val measureRows = analytics.observeByCategory(filter, measure).asRows()
-        val previousMeasureRows = previousFilter?.let { analytics.observeByCategory(it, measure).asRows() } ?: flowOf(null)
+        val previousMeasureRows =
+            previousFilter?.let { analytics.observeByCategory(it, measure).asRows() } ?: flowOf(null)
         val byAccount = analytics.observeByAccount(filter, measure).asRows()
         val byDate = analytics.observeByBucket(filter, measure, buckets).asRows()
         val recent = transactions.observeRecent(filter, TAG_RECENT)
 
-        val reports = combine(currentTotals, previousTotals, measureRows, previousMeasureRows) { t, pt, rows, prevRows ->
-            TagParts(t, pt, rows, prevRows)
-        }
+        val reports =
+            combine(currentTotals, previousTotals, measureRows, previousMeasureRows) { t, pt, rows, prevRows ->
+                TagParts(t, pt, rows, prevRows)
+            }
         return combine(reports, byAccount, byDate, recent) { parts, accountRows, dateRows, items ->
             val types = filter.types
-            val figures = ReportBuilder.figures(env, scope, types, parts.totals.first, parts.totals.second, parts.totals.third)
+            val figures = ReportBuilder.figures(
+                env,
+                scope,
+                types,
+                parts.totals.first,
+                parts.totals.second,
+                parts.totals.third
+            )
             val previousFigures = parts.previousTotals?.let {
                 ReportBuilder.figures(env, scope, types, it.first, it.second, it.third)
             }
@@ -444,7 +474,7 @@ class StatisticsViewModel @Inject constructor(
                 category = category,
                 byAccount = ReportBuilder.breakdown(accountRows, converter, category.total),
                 byDate = Reports.trend(buckets, dateRows.list(), converter),
-                dateUnit = unit,
+                dateUnit = unit
             )
             val cells = listOfNotNull(figures.income, figures.expense, figures.net, figures.transferred) +
                 category.lines.map { it.row.cell } + report.byAccount.map { it.cell } + report.byDate.map { it.cell }
@@ -456,20 +486,19 @@ class StatisticsViewModel @Inject constructor(
         env: AnalyticsEnv,
         scope: CurrencyScope,
         filter: TransactionFilter,
-        measure: Measure,
-    ): Flow<Pair<StatsContent, Collection<Cell>>> =
-        analytics.observeByTag(filter, measure).asRows().map { rows ->
-            val cells = Reports.cells(rows.list(), ScopeConverter(scope, env.table, env.now))
-            val ranked = rankTags(env.tags, cells)
-            val shown = ranked.map { it.cell } + listOfNotNull(ReportBuilder.OVERFLOW.takeIf { rows.overflowed })
-            StatsContent.TagRanking(ranked, measure) to shown
-        }
+        measure: Measure
+    ): Flow<Pair<StatsContent, Collection<Cell>>> = analytics.observeByTag(filter, measure).asRows().map { rows ->
+        val cells = Reports.cells(rows.list(), ScopeConverter(scope, env.table, env.now))
+        val ranked = rankTags(env.tags, cells)
+        val shown = ranked.map { it.cell } + listOfNotNull(ReportBuilder.OVERFLOW.takeIf { rows.overflowed })
+        StatsContent.TagRanking(ranked, measure) to shown
+    }
 
     private class TagParts(
         val totals: Triple<Rows, Rows, Rows>,
         val previousTotals: Triple<Rows, Rows, Rows>?,
         val rows: Rows,
-        val previousRows: Rows?,
+        val previousRows: Rows?
     )
 
     private fun accounts(env: AnalyticsEnv, controls: StatsControls): Flow<Pair<StatsContent, Collection<Cell>>> =
@@ -487,11 +516,10 @@ class StatisticsViewModel @Inject constructor(
             StatsContent.Accounts(views) to emptyList()
         }
 
-    private fun cellsOf(report: FlowReport): List<Cell> =
-        listOf(report.category.total) +
-            report.category.lines.map { it.row.cell } +
-            report.byAccount.map { it.cell } +
-            report.byTag.map { it.cell }
+    private fun cellsOf(report: FlowReport): List<Cell> = listOf(report.category.total) +
+        report.category.lines.map { it.row.cell } +
+        report.byAccount.map { it.cell } +
+        report.byTag.map { it.cell }
 
     companion object {
         private const val KEY_TAB = "tab"

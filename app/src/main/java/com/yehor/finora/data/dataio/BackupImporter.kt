@@ -9,7 +9,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.yehor.finora.data.db.FinoraDatabase
 import com.yehor.finora.data.db.FinoraDatabaseFactory
 import com.yehor.finora.data.db.InvariantChecker
-import com.yehor.finora.domain.dataio.DataSummary
 import com.yehor.finora.domain.dataio.ImportFailure
 import com.yehor.finora.domain.dataio.ImportProblem
 import com.yehor.finora.domain.dataio.ImportReportFormatter
@@ -29,10 +28,7 @@ import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-class BackupImporter(
-    private val context: Context,
-    private val liveDb: FinoraDatabase,
-) {
+class BackupImporter(private val context: Context, private val liveDb: FinoraDatabase) {
 
     private companion object {
         const val TAG = "BackupImporter"
@@ -41,10 +37,7 @@ class BackupImporter(
     private val json = Json { ignoreUnknownKeys = true }
     private val maxFileSizeBytes = 512L * 1024 * 1024
 
-    suspend fun stage(
-        source: Uri,
-        onProgress: (String) -> Unit = {},
-    ): StagingResult = withContext(Dispatchers.IO) {
+    suspend fun stage(source: Uri, onProgress: (String) -> Unit = {}): StagingResult = withContext(Dispatchers.IO) {
         val databasesDir = context.getDatabasePath(FinoraDatabase.FILE_NAME).parentFile
             ?: File(context.applicationInfo.dataDir, "databases")
         databasesDir.mkdirs()
@@ -127,7 +120,7 @@ class BackupImporter(
             // Step 2: room_master_table and core tables
             val masterTableCount = rawDb.rawQuery(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name='room_master_table'",
-                null,
+                null
             ).use { it.count }
             if (masterTableCount != 1) {
                 cleanupStaging()
@@ -177,7 +170,7 @@ class BackupImporter(
             // Step 5: Unsafe objects (triggers, views, virtual tables)
             val unsafeCount = rawDb.rawQuery(
                 "SELECT name FROM sqlite_master WHERE type IN ('trigger', 'view') OR (sql IS NOT NULL AND upper(sql) LIKE '%CREATE VIRTUAL TABLE%')",
-                null,
+                null
             ).use { it.count }
             if (unsafeCount > 0) {
                 cleanupStaging()
@@ -257,13 +250,15 @@ class BackupImporter(
                 return@withContext StagingResult.Rejected(
                     ImportFailure.INVARIANT_VIOLATIONS,
                     enriched,
-                    rawProblems.size,
+                    rawProblems.size
                 )
             }
 
             // Step 12: Balance overflow
             try {
-                stagingSupportDb.query("SELECT account_id, SUM(amount_minor) FROM ledger_entry GROUP BY account_id").use { c ->
+                stagingSupportDb.query(
+                    "SELECT account_id, SUM(amount_minor) FROM ledger_entry GROUP BY account_id"
+                ).use { c ->
                     while (c.moveToNext()) {
                         c.getLong(1)
                     }
@@ -282,7 +277,7 @@ class BackupImporter(
                 return@withContext StagingResult.Rejected(
                     ImportFailure.INVARIANT_VIOLATIONS,
                     tagDuplicates,
-                    tagDuplicates.size,
+                    tagDuplicates.size
                 )
             }
 
@@ -299,11 +294,14 @@ class BackupImporter(
                 summary = summary,
                 upgradedFrom = upgradedFrom,
                 sizeBytes = stagingFile.length(),
-                sha256 = sha256,
+                sha256 = sha256
             )
         } catch (e: Exception) {
             Log.w(TAG, "Staging validation failed: ${e.javaClass.name}: ${e.message}")
-            try { stagingRoomDb.close() } catch (_: Exception) {}
+            try {
+                stagingRoomDb.close()
+            } catch (_: Exception) {
+            }
             cleanupStaging()
             StagingResult.Rejected(ImportFailure.CORRUPT, emptyList(), 0)
         }
@@ -324,7 +322,7 @@ class BackupImporter(
             sizeBytes = ready.sizeBytes,
             sha256 = ready.sha256,
             createdAt = System.currentTimeMillis(),
-            summary = ready.summary,
+            summary = ready.summary
         )
 
         val tmpMarker = File(databasesDir, PendingImportApplier.MARKER_TMP_FILE_NAME)
@@ -336,27 +334,25 @@ class BackupImporter(
                 tmpMarker.toPath(),
                 finalMarker.toPath(),
                 StandardCopyOption.REPLACE_EXISTING,
-                StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.ATOMIC_MOVE
             )
         } catch (_: AtomicMoveNotSupportedException) {
             Files.move(
                 tmpMarker.toPath(),
                 finalMarker.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
+                StandardCopyOption.REPLACE_EXISTING
             )
         }
 
         ProcessRestarter.restart(context)
     }
 
-    private fun getReportedSize(uri: Uri): Long? {
-        return try {
-            context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->
-                if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else null
-            }
-        } catch (_: Exception) {
-            null
+    private fun getReportedSize(uri: Uri): Long? = try {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { c ->
+            if (c.moveToFirst() && !c.isNull(0)) c.getLong(0) else null
         }
+    } catch (_: Exception) {
+        null
     }
 
     private fun verifyAndSyncCurrencies(db: SupportSQLiteDatabase): Boolean {
@@ -374,7 +370,7 @@ class BackupImporter(
         CurrencyRegistry.all.forEach { cur ->
             db.execSQL(
                 "INSERT OR IGNORE INTO currency (code, scale, symbol, name) VALUES (?, ?, ?, ?)",
-                arrayOf<Any>(cur.code, cur.scale, cur.symbol, cur.name),
+                arrayOf<Any>(cur.code, cur.scale, cur.symbol, cur.name)
             )
         }
         return true
@@ -383,7 +379,9 @@ class BackupImporter(
     private fun verifyObjectSet(stagingDb: SupportSQLiteDatabase, liveDb: SupportSQLiteDatabase): Boolean {
         fun getObjects(db: SupportSQLiteDatabase): Set<Pair<String, String>> {
             val set = mutableSetOf<Pair<String, String>>()
-            db.query("SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%' AND name != 'room_master_table'").use { c ->
+            db.query(
+                "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND name NOT LIKE 'android_%' AND name != 'room_master_table'"
+            ).use { c ->
                 while (c.moveToNext()) {
                     set.add(c.getString(0) to c.getString(1))
                 }
@@ -429,7 +427,7 @@ class BackupImporter(
                 accounts = accounts,
                 categories = categories,
                 tags = tags,
-                schedules = schedules,
+                schedules = schedules
             )
             ImportProblem(p.check, enrichedSubject)
         }

@@ -24,21 +24,21 @@ class DefaultCategoriesTest {
         assertEquals(
             listOf(
                 "Food", "Housing", "Transport", "Shopping", "Entertainment",
-                "Health", "Subscriptions", "Fees & Charges", "Other",
+                "Health", "Subscriptions", "Fees & Charges", "Other"
             ),
-            DefaultCategories.expense.map { it.name },
+            DefaultCategories.expense.map { it.name }
         )
         assertEquals(
             listOf("Groceries", "Restaurants & Cafes"),
-            DefaultCategories.expense.first().children.map { it.name },
+            DefaultCategories.expense.first().children.map { it.name }
         )
         assertEquals(
             listOf("Salary", "Freelance", "Investment Income", "Gifts", "Refunds", "Other"),
-            DefaultCategories.income.map { it.name },
+            DefaultCategories.income.map { it.name }
         )
         assertEquals(
             listOf("Own Account Transfer", "Currency Exchange", "Savings Transfer", "Investment Deposit", "Other"),
-            DefaultCategories.transfer.map { it.name },
+            DefaultCategories.transfer.map { it.name }
         )
     }
 
@@ -70,7 +70,7 @@ class DefaultCategoriesTest {
     fun totalCountMatchesTheTree() {
         assertEquals(
             DefaultCategories.all.sumOf { it.second.walk().size },
-            DefaultCategories.totalCount,
+            DefaultCategories.totalCount
         )
     }
 

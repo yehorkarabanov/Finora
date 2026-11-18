@@ -1,6 +1,8 @@
 package com.yehor.finora.ui.tags
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,23 +43,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.yehor.finora.R
-import com.yehor.finora.domain.tag.Tag
-import com.yehor.finora.domain.tag.TagNameError
-import com.yehor.finora.domain.tag.TagWithUsage
 import com.yehor.finora.designsystem.component.button.PrimaryButton
 import com.yehor.finora.designsystem.component.button.RoundIconButton
 import com.yehor.finora.designsystem.component.input.FilterPill
@@ -66,24 +68,27 @@ import com.yehor.finora.designsystem.component.list.RoundIcon
 import com.yehor.finora.designsystem.component.sheet.FinoraSheet
 import com.yehor.finora.designsystem.icon.AppIcons
 import com.yehor.finora.designsystem.theme.PillShape
-import com.yehor.finora.ui.common.OrganizeTopBar
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.Role
-import com.yehor.finora.designsystem.theme.hairline
-import androidx.compose.ui.text.style.TextAlign
-import com.yehor.finora.ui.common.ColorPicker
 import com.yehor.finora.designsystem.theme.PreviewTheme
 import com.yehor.finora.designsystem.theme.finance
+import com.yehor.finora.designsystem.theme.hairline
+import com.yehor.finora.domain.tag.Tag
+import com.yehor.finora.domain.tag.TagNameError
+import com.yehor.finora.domain.tag.TagWithUsage
+import com.yehor.finora.ui.common.ColorPicker
+import com.yehor.finora.ui.common.OrganizeTopBar
 
 @Composable
 fun TagsScreen(
     onBack: () -> Unit,
     onShowTransactions: (Long) -> Unit,
     onAnalyze: (Long) -> Unit,
-    viewModel: TagsViewModel = hiltViewModel(),
+    viewModel: TagsViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(
+        checkNotNull<androidx.lifecycle.ViewModelStoreOwner>(
+            LocalViewModelStoreOwner.current
+        ) {
+            "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+        }, null
+    )
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
@@ -104,7 +109,7 @@ fun TagsScreen(
         onDismissDialog = viewModel::onDismissDialog,
         onSaveTag = viewModel::onSaveTag,
         onDismissDelete = viewModel::onDismissDelete,
-        onConfirmDelete = viewModel::onConfirmDelete,
+        onConfirmDelete = viewModel::onConfirmDelete
     )
 }
 
@@ -124,7 +129,7 @@ internal fun TagsContent(
     onDismissDialog: () -> Unit,
     onSaveTag: (String, Long?) -> Unit,
     onDismissDelete: () -> Unit,
-    onConfirmDelete: () -> Unit,
+    onConfirmDelete: () -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -134,10 +139,14 @@ internal fun TagsContent(
                     RoundIconButton(AppIcons.Add, stringResource(R.string.tags_add), onAdd)
                 }
             }
-        },
+        }
     ) { padding ->
         if (state.tags.isEmpty()) {
-            TagsEmptyState(onAdd = onAdd, modifier = Modifier.fillMaxSize().padding(padding))
+            TagsEmptyState(
+                onAdd = onAdd, modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            )
         } else {
             TagsList(
                 tags = state.tags,
@@ -149,7 +158,9 @@ internal fun TagsContent(
                 onDeleteRequest = onDeleteRequest,
                 onShowTransactions = onShowTransactions,
                 onAnalyze = onAnalyze,
-                modifier = Modifier.fillMaxSize().padding(padding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
             )
         }
 
@@ -173,7 +184,7 @@ private fun TagsList(
     onDeleteRequest: (TagWithUsage) -> Unit,
     onShowTransactions: (Long) -> Unit,
     onAnalyze: (Long) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val showSearch = TagsListLogic.showSearch(tags.size)
     val effectiveQuery = if (showSearch) query else ""
@@ -181,27 +192,31 @@ private fun TagsList(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp),
+        contentPadding = PaddingValues(start = 18.dp, end = 18.dp, top = 4.dp, bottom = 24.dp)
     ) {
         if (showSearch) {
             item(key = "search") {
                 TagSearchField(
                     query = query,
                     onQueryChange = onQueryChange,
-                    modifier = Modifier.padding(bottom = 10.dp),
+                    modifier = Modifier.padding(bottom = 10.dp)
                 )
             }
         }
         item(key = "header") {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = pluralStringResource(R.plurals.tag_count, visible.size, visible.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f).semantics { heading() },
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { heading() }
                 )
                 if (tags.size > 1) {
                     SortPill(sortOrder = sortOrder, onSortChange = onSortChange)
@@ -214,14 +229,18 @@ private fun TagsList(
             item(key = "tags") {
                 GroupedCard(Modifier.fillMaxWidth()) {
                     visible.forEachIndexed { index, item ->
-                        if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        if (index >
+                            0
+                        ) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        }
                         TagRow(
                             item = item,
                             onClick = { onShowTransactions(item.tag.id) },
                             onEdit = { onEdit(item.tag) },
                             onDelete = { onDeleteRequest(item) },
                             onShowTransactions = { onShowTransactions(item.tag.id) },
-                            onAnalyze = { onAnalyze(item.tag.id) },
+                            onAnalyze = { onAnalyze(item.tag.id) }
                         )
                     }
                 }
@@ -231,11 +250,7 @@ private fun TagsList(
 }
 
 @Composable
-private fun TagSearchField(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun TagSearchField(query: String, onQueryChange: (String) -> Unit, modifier: Modifier = Modifier) {
     TextField(
         value = query,
         onValueChange = onQueryChange,
@@ -257,8 +272,8 @@ private fun TagSearchField(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-        ),
+            errorIndicatorColor = Color.Transparent
+        )
     )
 }
 
@@ -276,13 +291,26 @@ private fun SortPill(sortOrder: TagSortOrder, onSortChange: (TagSortOrder) -> Un
             .border(hairline(isDark), PillShape)
             .padding(horizontal = 12.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Icon(AppIcons.Sort, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(16.dp))
+        Icon(
+            AppIcons.Sort,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
+        )
         Text(
-            stringResource(if (sortOrder == TagSortOrder.MOST_USED) R.string.tag_sort_most_used else R.string.tag_sort_name),
+            stringResource(
+                if (sortOrder ==
+                    TagSortOrder.MOST_USED
+                ) {
+                    R.string.tag_sort_most_used
+                } else {
+                    R.string.tag_sort_name
+                }
+            ),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -290,20 +318,22 @@ private fun SortPill(sortOrder: TagSortOrder, onSortChange: (TagSortOrder) -> Un
 @Composable
 private fun NoResults(query: String) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 40.dp, horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             AppIcons.SearchEmpty,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = stringResource(R.string.tag_no_results, query.trim()),
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -313,21 +343,23 @@ private fun TagsEmptyState(onAdd: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier.padding(18.dp), contentAlignment = Alignment.Center) {
         GroupedCard(Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 RoundIcon(AppIcons.Tag, MaterialTheme.colorScheme.primary, size = 64.dp)
                 Text(
                     stringResource(R.string.tags_empty_title),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.semantics { heading() },
+                    modifier = Modifier.semantics { heading() }
                 )
                 Text(
                     stringResource(R.string.tags_empty_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
                 PrimaryButton(stringResource(R.string.tags_add), onAdd)
             }
@@ -348,7 +380,7 @@ private fun TagRow(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onShowTransactions: () -> Unit,
-    onAnalyze: () -> Unit,
+    onAnalyze: () -> Unit
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     ListRow(
@@ -364,39 +396,49 @@ private fun TagRow(
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_edit)) },
                         leadingIcon = { Icon(AppIcons.Edit, contentDescription = null) },
-                        onClick = { menuOpen = false; onEdit() },
+                        onClick = {
+                            menuOpen = false
+                            onEdit()
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_show_transactions)) },
                         leadingIcon = { Icon(AppIcons.Next, contentDescription = null) },
-                        onClick = { menuOpen = false; onShowTransactions() },
+                        onClick = {
+                            menuOpen = false
+                            onShowTransactions()
+                        }
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.action_analyze)) },
                         leadingIcon = { Icon(AppIcons.Sort, contentDescription = null) },
-                        onClick = { menuOpen = false; onAnalyze() },
+                        onClick = {
+                            menuOpen = false
+                            onAnalyze()
+                        }
                     )
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error) },
+                        text = {
+                            Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
+                        },
                         leadingIcon = {
                             Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                         },
-                        onClick = { menuOpen = false; onDelete() },
+                        onClick = {
+                            menuOpen = false
+                            onDelete()
+                        }
                     )
                 }
             }
         },
         modifier = Modifier.heightIn(min = 56.dp),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
 @Composable
-private fun TagEditSheet(
-    state: TagDialogState,
-    onDismiss: () -> Unit,
-    onSave: (String, Long?) -> Unit,
-) {
+private fun TagEditSheet(state: TagDialogState, onDismiss: () -> Unit, onSave: (String, Long?) -> Unit) {
     var name by rememberSaveable(state.tagId, state.isEdit) { mutableStateOf(state.name) }
     var color by rememberSaveable(state.tagId, state.isEdit) { mutableStateOf(state.color) }
     val focusRequester = remember { FocusRequester() }
@@ -411,7 +453,7 @@ private fun TagEditSheet(
             onColorChange = { color = it },
             onSave = { onSave(name, color) },
             nameFocusRequester = focusRequester,
-            modifier = Modifier.imePadding(),
+            modifier = Modifier.imePadding()
         )
     }
 }
@@ -425,7 +467,7 @@ internal fun TagEditSheetContent(
     onColorChange: (Long?) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
-    nameFocusRequester: FocusRequester? = null,
+    nameFocusRequester: FocusRequester? = null
 ) {
     val action = TagFormLogic.action(name, state.isEdit)
     val enabled = TagFormLogic.isEnabled(action)
@@ -435,18 +477,25 @@ internal fun TagEditSheetContent(
         modifier = modifier
             .verticalScroll(rememberScrollState())
             .padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
             stringResource(if (state.isEdit) R.string.tag_form_edit_title else R.string.tag_form_new_title),
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.semantics { heading() },
+            modifier = Modifier.semantics { heading() }
         )
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             GroupedCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
                         TagBadge(color = color)
                         val trimmed = name.trim()
                         Text(
@@ -458,7 +507,7 @@ internal fun TagEditSheetContent(
                                 MaterialTheme.colorScheme.onSurface
                             },
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                     TextField(
@@ -475,7 +524,9 @@ internal fun TagEditSheetContent(
                             when {
                                 state.isDuplicate -> Text(stringResource(R.string.tag_form_error_duplicate))
                                 state.error == TagNameError.EMPTY -> Text(stringResource(R.string.tag_form_error_empty))
-                                state.error == TagNameError.TOO_LONG -> Text(stringResource(R.string.tag_form_error_too_long))
+                                state.error == TagNameError.TOO_LONG -> Text(
+                                    stringResource(R.string.tag_form_error_too_long)
+                                )
                             }
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -486,18 +537,22 @@ internal fun TagEditSheetContent(
                             errorContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent,
-                        ),
+                            errorIndicatorColor = Color.Transparent
+                        )
                     )
                 }
             }
             GroupedCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             stringResource(R.string.picker_color),
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         NoColorPill(selected = color == null, onClick = { onColorChange(null) })
                     }
@@ -513,10 +568,10 @@ internal fun TagEditSheetContent(
                     TagFormAction.SAVE -> R.string.action_save
                     TagFormAction.ENTER_NAME -> R.string.tag_form_error_empty
                     TagFormAction.NAME_TOO_LONG -> R.string.tag_form_error_too_long
-                },
+                }
             ),
             onClick = onSave,
-            enabled = enabled,
+            enabled = enabled
         )
     }
 }
@@ -527,11 +582,7 @@ private fun NoColorPill(selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun TagDeleteDialog(
-    state: TagDeleteDialogState,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-) {
+private fun TagDeleteDialog(state: TagDeleteDialogState, onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         icon = { Icon(AppIcons.Delete, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
@@ -547,7 +598,7 @@ private fun TagDeleteDialog(
             TextButton(
                 onClick = onConfirm,
                 shape = PillShape,
-                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
             ) {
                 Text(stringResource(R.string.action_delete))
             }
@@ -556,7 +607,7 @@ private fun TagDeleteDialog(
             TextButton(onClick = onDismiss) {
                 Text(stringResource(R.string.action_cancel))
             }
-        },
+        }
     )
 }
 
@@ -566,7 +617,7 @@ private fun sampleTags(): List<TagWithUsage> = listOf(
     TagWithUsage(Tag(1, "Vacation", 0xFF2563EB, 0), 12),
     TagWithUsage(Tag(2, "Work", 0xFF16A34A, 0), 5),
     TagWithUsage(Tag(3, "Gifts", null, 0), 1),
-    TagWithUsage(Tag(4, "Unused", 0xFFDC2626, 0), 0),
+    TagWithUsage(Tag(4, "Unused", 0xFFDC2626, 0), 0)
 )
 
 @Composable
@@ -576,7 +627,7 @@ private fun PreviewList(dark: Boolean, state: TagsUiState) {
             state = state, query = "", sortOrder = TagSortOrder.MOST_USED,
             onQueryChange = {}, onSortChange = {}, onBack = {}, onAdd = {}, onEdit = {},
             onDeleteRequest = {}, onShowTransactions = {}, onAnalyze = {}, onDismissDialog = {},
-            onSaveTag = { _, _ -> }, onDismissDelete = {}, onConfirmDelete = {},
+            onSaveTag = { _, _ -> }, onDismissDelete = {}, onConfirmDelete = {}
         )
     }
 }
@@ -608,7 +659,7 @@ private fun PreviewSheet(dark: Boolean) {
                 color = 0xFF2563EB,
                 onNameChange = {},
                 onColorChange = {},
-                onSave = {},
+                onSave = {}
             )
         }
     }

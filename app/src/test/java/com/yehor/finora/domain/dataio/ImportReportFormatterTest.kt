@@ -34,19 +34,19 @@ class ImportReportFormatterTest {
 
         assertEquals(
             "account 7 \"Santander\"",
-            ImportReportFormatter.enrichSubject("account 7", accounts = accounts),
+            ImportReportFormatter.enrichSubject("account 7", accounts = accounts)
         )
         assertEquals(
             "category 3 \"Groceries\"",
-            ImportReportFormatter.enrichSubject("category 3", categories = categories),
+            ImportReportFormatter.enrichSubject("category 3", categories = categories)
         )
         assertEquals(
             "tag 5 \"trip-2026\"",
-            ImportReportFormatter.enrichSubject("tag 5", tags = tags),
+            ImportReportFormatter.enrichSubject("tag 5", tags = tags)
         )
         assertEquals(
             "schedule 2 \"Rent\"",
-            ImportReportFormatter.enrichSubject("schedule 2", schedules = schedules),
+            ImportReportFormatter.enrichSubject("schedule 2", schedules = schedules)
         )
 
         // Unknown subject or unknown ID kept as is

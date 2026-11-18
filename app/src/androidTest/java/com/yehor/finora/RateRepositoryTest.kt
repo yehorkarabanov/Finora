@@ -64,15 +64,23 @@ class RateRepositoryTest {
     private suspend fun account(code: String, status: AccountStatus = AccountStatus.ACTIVE) {
         db.accountDao().insert(
             AccountEntity(
-                name = code, currencyCode = code, type = "CASH", icon = null, color = null,
-                description = null, status = status, createdAt = 0,
-            ),
+                name = code,
+                currencyCode = code,
+                type = "CASH",
+                icon = null,
+                color = null,
+                description = null,
+                status = status,
+                createdAt = 0
+            )
         )
     }
 
     @Test
     fun requestsAllAccountCurrenciesIncludingArchivedGroupedByBase() = runBlocking {
-        account("UAH"); account("USD"); account("EUR", AccountStatus.ARCHIVED)
+        account("UAH")
+        account("USD")
+        account("EUR", AccountStatus.ARCHIVED)
         repo.settingsDisplay("PLN")
         repo.refreshIfNeeded()
         val calls = client.calls.associate { it.first to it.second }
@@ -81,9 +89,9 @@ class RateRepositoryTest {
                 "UAH" to setOf("PLN", "USD", "EUR"),
                 "USD" to setOf("PLN", "UAH", "EUR"),
                 "EUR" to setOf("PLN", "UAH", "USD"),
-                "PLN" to setOf("UAH", "USD", "EUR"),
+                "PLN" to setOf("UAH", "USD", "EUR")
             ),
-            calls,
+            calls
         )
         val rows = db.rateDao().getAll()
         assertEquals(12, rows.size)
@@ -93,7 +101,8 @@ class RateRepositoryTest {
 
     @Test
     fun notMoreThanOncePer24Hours() = runBlocking {
-        account("UAH"); account("USD")
+        account("UAH")
+        account("USD")
         repo.refreshIfNeeded()
         val first = client.calls.size
         now += 24L * 3600_000 - 60_000
@@ -106,7 +115,8 @@ class RateRepositoryTest {
 
     @Test
     fun failedRefreshKeepsCacheAndWaitsFifteenMinutes() = runBlocking {
-        account("UAH"); account("USD")
+        account("UAH")
+        account("USD")
         repo.refreshIfNeeded()
         val before = db.rateDao().getAll()
         client.failing = true
@@ -125,14 +135,16 @@ class RateRepositoryTest {
 
     @Test
     fun concurrentRequestsMakeOneCallPerBase() = runBlocking {
-        account("UAH"); account("USD")
+        account("UAH")
+        account("USD")
         (1..10).map { async { repo.refreshIfNeeded() } }.awaitAll()
         assertEquals(client.calls.size, client.calls.map { it.first }.toSet().size)
     }
 
     @Test
     fun unsupportedPairIsNotAskedAgainWithin24Hours() = runBlocking {
-        account("UAH"); account("USD")
+        account("UAH")
+        account("USD")
         client.unsupported = setOf("USD")
         repo.refreshIfNeeded()
         val first = client.calls.size
@@ -143,13 +155,16 @@ class RateRepositoryTest {
 
     @Test
     fun badRowsAreDroppedNeverZero() = runBlocking {
-        account("USD"); account("PLN")
+        account("USD")
+        account("PLN")
         db.openHelper.writableDatabase.execSQL(
-            "INSERT INTO exchange_rate VALUES ('USD', 'PLN', 'abc', 'frankfurter', '2026-11-06', 1)",
+            "INSERT INTO exchange_rate VALUES ('USD', 'PLN', 'abc', 'frankfurter', '2026-11-06', 1)"
         )
-        assertFalse(repo.observeTable().first().quotes.containsKey(
-            CurrencyPair(CurrencyRegistry.get("USD"), CurrencyRegistry.get("PLN")),
-        ))
+        assertFalse(
+            repo.observeTable().first().quotes.containsKey(
+                CurrencyPair(CurrencyRegistry.get("USD"), CurrencyRegistry.get("PLN"))
+            )
+        )
     }
 
     @Test

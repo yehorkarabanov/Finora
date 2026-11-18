@@ -1,54 +1,56 @@
 package com.yehor.finora.ui.navigation
 
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import androidx.compose.ui.res.pluralStringResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.yehor.finora.R
 import com.yehor.finora.designsystem.component.navigation.AddFab
 import com.yehor.finora.designsystem.component.navigation.FabMode
 import com.yehor.finora.designsystem.component.navigation.FabScroll
 import com.yehor.finora.designsystem.component.navigation.FinoraNavBar
 import com.yehor.finora.designsystem.component.navigation.NavBarItem
 import com.yehor.finora.designsystem.theme.grainyBackground
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-import com.yehor.finora.R
+import com.yehor.finora.domain.model.OperationType
+import com.yehor.finora.domain.operation.TransactionFilter
+import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.ui.accounts.AccountDetailScreen
 import com.yehor.finora.ui.accounts.AccountEditScreen
 import com.yehor.finora.ui.accounts.AccountsScreen
-import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.ui.analytics.AccountAnalyticsScreen
 import com.yehor.finora.ui.analytics.DashboardActions
 import com.yehor.finora.ui.analytics.DashboardScreen
@@ -56,17 +58,15 @@ import com.yehor.finora.ui.analytics.StatisticsActions
 import com.yehor.finora.ui.analytics.StatisticsScreen
 import com.yehor.finora.ui.categories.CategoriesScreen
 import com.yehor.finora.ui.categories.CategoryEditScreen
-import com.yehor.finora.domain.model.OperationType
-import com.yehor.finora.domain.operation.TransactionItem
+import com.yehor.finora.ui.data.CsvExportScreen
+import com.yehor.finora.ui.data.DataScreen
 import com.yehor.finora.ui.operations.TransactionEditScreen
 import com.yehor.finora.ui.operations.TransactionsScreen
 import com.yehor.finora.ui.recurring.RecurringDetailScreen
 import com.yehor.finora.ui.recurring.RecurringEditScreen
 import com.yehor.finora.ui.recurring.RecurringScreen
-import com.yehor.finora.ui.tags.TagsScreen
 import com.yehor.finora.ui.settings.SettingsScreen
-import com.yehor.finora.ui.data.CsvExportScreen
-import com.yehor.finora.ui.data.DataScreen
+import com.yehor.finora.ui.tags.TagsScreen
 
 // Full-screen forms with their own bottom CTA.
 private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
@@ -77,7 +77,7 @@ private val ROUTES_WITHOUT_BOTTOM_BAR = setOf(
     Routes.CATEGORY_NEW,
     Routes.CATEGORY_EDIT,
     Routes.RECURRING_NEW,
-    Routes.RECURRING_EDIT,
+    Routes.RECURRING_EDIT
 )
 
 @Composable
@@ -98,7 +98,7 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
         outcome.success -> stringResource(
             R.string.data_restore_outcome_success,
             pluralStringResource(R.plurals.data_restore_outcome_accounts, accounts, accounts),
-            pluralStringResource(R.plurals.data_restore_outcome_transactions, transactions, transactions),
+            pluralStringResource(R.plurals.data_restore_outcome_transactions, transactions, transactions)
         )
         else -> stringResource(R.string.data_restore_outcome_failed)
     }
@@ -108,12 +108,20 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
 
     CompositionLocalProvider(
         LocalShellFab provides fabController,
-        LocalOpenMore provides { showMore = true },
+        LocalOpenMore provides { showMore = true }
     ) {
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
             // Content clears the floating bar (and the system nav inset) while it is visible.
             val contentModifier = if (showBottomBar) {
-                Modifier.windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = ShellContentBottomPaddingDp.dp)
+                Modifier
+                    .windowInsetsPadding(
+                        WindowInsets.navigationBars
+                    )
+                    .padding(bottom = ShellContentBottomPaddingDp.dp)
             } else {
                 Modifier
             }
@@ -135,7 +143,7 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
                             launchSingleTop = true
                         }
                     },
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 )
                 ShellFabHost(fabController)
             }
@@ -147,8 +155,14 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
                     .align(Alignment.BottomCenter)
                     .navigationBarsPadding()
                     .padding(
-                        bottom = if (showBottomBar) shellSnackbarBottom(fabBound = fabController.registration != null) else 0.dp,
-                    ),
+                        bottom = if (showBottomBar) {
+                            shellSnackbarBottom(
+                                fabBound = fabController.registration != null
+                            )
+                        } else {
+                            0.dp
+                        }
+                    )
             )
         }
 
@@ -158,7 +172,7 @@ fun FinoraShell(shellViewModel: ShellViewModel = hiltViewModel()) {
                 onNavigate = { target ->
                     showMore = false
                     navController.navigate(target) { launchSingleTop = true }
-                },
+                }
             )
         }
     }
@@ -173,7 +187,7 @@ private fun BottomFade(modifier: Modifier = Modifier) {
         modifier
             .fillMaxWidth()
             .height(110.dp + inset)
-            .grainyBackground(Brush.verticalGradient(listOf(Color.Transparent, background))),
+            .grainyBackground(Brush.verticalGradient(listOf(Color.Transparent, background)))
     )
 }
 
@@ -214,7 +228,7 @@ private fun ShellFabHost(controller: ShellFabController) {
         expanded = expanded,
         onToggle = { if (dial == null) registration.onClick() else expanded = !expanded },
         label = registration.label,
-        speedDial = dial,
+        speedDial = dial
     )
 }
 
@@ -223,7 +237,7 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
     NavHost(
         navController = navController,
         startDestination = Routes.DASHBOARD,
-        modifier = modifier,
+        modifier = modifier
     ) {
         composable(Routes.DASHBOARD) {
             DashboardScreen(
@@ -235,33 +249,48 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                     onOpenTransactions = { navController.openTransactions(it) },
                     onOpenTransaction = { navController.navigate(openRoute(it)) },
                     onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
-                    onOpenRecurring = { navController.navigate(Routes.RECURRING) },
-                ),
+                    onOpenRecurring = { navController.navigate(Routes.RECURRING) }
+                )
             )
         }
         composable(
             Routes.TRANSACTIONS_PRESET,
             arguments = listOf(
-                navArgument("accountId") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("categoryId") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("types") { type = NavType.StringType; defaultValue = "" },
-                navArgument("filter") { type = NavType.StringType; defaultValue = "" },
-            ),
+                navArgument("accountId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("tagId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("categoryId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("types") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+                navArgument("filter") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
         ) {
             TransactionsScreen(
                 onAddExpense = { navController.navigate(Routes.transactionNew()) },
                 onAddIncome = { navController.navigate(Routes.transactionNew(kind = "INCOME")) },
                 onAddTransfer = { navController.navigate(Routes.transferNew()) },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
-                onExportCsv = { navController.navigate(Routes.dataCsv(it)) },
+                onExportCsv = { navController.navigate(Routes.dataCsv(it)) }
             )
         }
         composable(Routes.ACCOUNTS) {
             AccountsScreen(
                 onOpen = { navController.navigate(Routes.accountDetail(it)) },
                 onAdd = { navController.navigate(Routes.ACCOUNT_NEW) },
-                onAddTransfer = { navController.navigate(Routes.transferNew()) },
+                onAddTransfer = { navController.navigate(Routes.transferNew()) }
             )
         }
         composable(Routes.ACCOUNT_NEW) {
@@ -269,7 +298,7 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
         }
         composable(
             Routes.ACCOUNT_DETAIL,
-            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType })
         ) {
             AccountDetailScreen(
                 onBack = { navController.popBackStack() },
@@ -284,34 +313,46 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                         launchSingleTop = true
                         restoreState = false
                     }
-                },
+                }
             )
         }
         composable(
             Routes.ACCOUNT_EDIT,
-            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType })
         ) {
             AccountEditScreen(onBack = { navController.popBackStack() })
         }
         composable(
             Routes.TRANSACTION_NEW,
             arguments = listOf(
-                navArgument("kind") { type = NavType.StringType; defaultValue = "EXPENSE" },
-                navArgument("duplicateOf") { type = NavType.LongType; defaultValue = -1L },
-                navArgument("sourceAccountId") { type = NavType.LongType; defaultValue = -1L },
-            ),
+                navArgument("kind") {
+                    type = NavType.StringType
+                    defaultValue = "EXPENSE"
+                },
+                navArgument("duplicateOf") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                },
+                navArgument("sourceAccountId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) }
             )
         }
         composable(
             Routes.TRANSACTION_EDIT,
             arguments = listOf(
                 navArgument("operationId") { type = NavType.LongType },
-                navArgument("kind") { type = NavType.StringType; defaultValue = "" },
-            ),
+                navArgument("kind") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
         ) {
             TransactionEditScreen(
                 onBack = { navController.popBackStack() },
@@ -321,32 +362,38 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                     }
                 },
                 onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
-                onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) },
+                onOpenSchedule = { navController.navigate(Routes.recurringDetail(it)) }
             )
         }
         composable(
             Routes.STATISTICS_PRESET,
             arguments = listOf(
-                navArgument("tab") { type = NavType.StringType; defaultValue = "EXPENSES" },
-                navArgument("tagId") { type = NavType.LongType; defaultValue = -1L },
-            ),
+                navArgument("tab") {
+                    type = NavType.StringType
+                    defaultValue = "EXPENSES"
+                },
+                navArgument("tagId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
         ) {
             StatisticsScreen(
                 StatisticsActions(
                     onOpenTransactions = { navController.openTransactions(it) },
                     onOpenAccountAnalytics = { navController.navigate(Routes.accountAnalytics(it)) },
-                    onOpenTransaction = { navController.navigate(openRoute(it)) },
-                ),
+                    onOpenTransaction = { navController.navigate(openRoute(it)) }
+                )
             )
         }
         composable(
             Routes.ACCOUNT_ANALYTICS,
-            arguments = listOf(navArgument("accountId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("accountId") { type = NavType.LongType })
         ) {
             AccountAnalyticsScreen(
                 onBack = { navController.popBackStack() },
                 onOpenTransaction = { navController.navigate(openRoute(it)) },
-                onShowAll = { navController.openTransactions(it) },
+                onShowAll = { navController.openTransactions(it) }
             )
         }
         composable(Routes.CATEGORIES) {
@@ -359,27 +406,33 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                         launchSingleTop = true
                         restoreState = false
                     }
-                },
+                }
             )
         }
         composable(
             Routes.CATEGORY_NEW,
             arguments = listOf(
-                navArgument("type") { type = NavType.StringType; defaultValue = "EXPENSE" },
-                navArgument("parentId") { type = NavType.LongType; defaultValue = -1L },
-            ),
+                navArgument("type") {
+                    type = NavType.StringType
+                    defaultValue = "EXPENSE"
+                },
+                navArgument("parentId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                }
+            )
         ) {
             CategoryEditScreen(
                 onBack = { navController.popBackStack() },
                 onCreated = { id ->
                     navController.previousBackStackEntry?.savedStateHandle?.set(CREATED_CATEGORY_ID_KEY, id)
                     navController.popBackStack()
-                },
+                }
             )
         }
         composable(
             Routes.CATEGORY_EDIT,
-            arguments = listOf(navArgument("categoryId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("categoryId") { type = NavType.LongType })
         ) {
             CategoryEditScreen(onBack = { navController.popBackStack() })
         }
@@ -397,57 +450,62 @@ private fun FinoraNavHost(navController: NavHostController, modifier: Modifier) 
                         launchSingleTop = true
                         restoreState = false
                     }
-                },
+                }
             )
         }
         composable(Routes.RECURRING) {
             RecurringScreen(
                 onBack = { navController.popBackStack() },
                 onAdd = { navController.navigate(Routes.RECURRING_NEW) },
-                onOpen = { navController.navigate(Routes.recurringDetail(it)) },
+                onOpen = { navController.navigate(Routes.recurringDetail(it)) }
             )
         }
         // `new` is a literal segment and wins over {scheduleId}.
         composable(Routes.RECURRING_NEW) {
             RecurringEditScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) }
             )
         }
         composable(
             Routes.RECURRING_DETAIL,
-            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType })
         ) {
             RecurringDetailScreen(
                 onBack = { navController.popBackStack() },
                 onEdit = { navController.navigate(Routes.recurringEdit(it)) },
-                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) },
+                onOpenTransaction = { navController.navigate(Routes.transactionEdit(it)) }
             )
         }
         composable(
             Routes.RECURRING_EDIT,
-            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType }),
+            arguments = listOf(navArgument("scheduleId") { type = NavType.LongType })
         ) {
             RecurringEditScreen(
                 onBack = { navController.popBackStack() },
-                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) },
+                onNavigateCreateCategory = { type -> navController.navigate(Routes.categoryNew(type)) }
             )
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                onOpenData = { navController.navigate(Routes.DATA) },
+                onOpenData = { navController.navigate(Routes.DATA) }
             )
         }
         composable(Routes.DATA) {
             DataScreen(
                 onBack = { navController.popBackStack() },
-                onOpenCsvExport = { navController.navigate(Routes.dataCsv()) },
+                onOpenCsvExport = { navController.navigate(Routes.dataCsv()) }
             )
         }
         composable(
             Routes.DATA_CSV,
-            arguments = listOf(navArgument("filter") { type = NavType.StringType; defaultValue = "" }),
+            arguments = listOf(
+                navArgument("filter") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
         ) {
             CsvExportScreen(onBack = { navController.popBackStack() })
         }
@@ -461,5 +519,10 @@ private fun NavHostController.openTransactions(filter: TransactionFilter) {
     }
 }
 
-private fun openRoute(item: TransactionItem): String =
-    if (item.type == OperationType.TRANSFER) Routes.transactionEdit(item.id, kind = "TRANSFER") else Routes.transactionEdit(item.id)
+private fun openRoute(item: TransactionItem): String = if (item.type ==
+    OperationType.TRANSFER
+) {
+    Routes.transactionEdit(item.id, kind = "TRANSFER")
+} else {
+    Routes.transactionEdit(item.id)
+}

@@ -27,7 +27,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -49,8 +48,8 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -78,8 +77,8 @@ import com.yehor.finora.domain.operation.TransactionDraftValidator
 import com.yehor.finora.domain.tag.Tag
 import com.yehor.finora.ui.common.ColorPalette
 import com.yehor.finora.ui.common.IconBadge
-import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.PendingTagChip
+import com.yehor.finora.ui.common.TagChip
 import com.yehor.finora.ui.common.TagPicker
 import com.yehor.finora.ui.common.rememberTimeFormatter
 import java.text.DecimalFormatSymbols
@@ -117,7 +116,7 @@ internal fun EditorTopBar(
     onClose: () -> Unit,
     onModeChange: (EditorMode) -> Unit,
     onDuplicate: (() -> Unit)?,
-    onDelete: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -126,12 +125,14 @@ internal fun EditorTopBar(
             options = listOf(
                 stringResource(R.string.transaction_kind_expense),
                 stringResource(R.string.transaction_kind_income),
-                stringResource(R.string.transaction_kind_transfer),
+                stringResource(R.string.transaction_kind_transfer)
             ),
             selected = mode.ordinal,
             onSelect = { if (!isEdit) onModeChange(EditorMode.entries[it]) },
             enabled = !isEdit,
-            modifier = Modifier.weight(1f).padding(horizontal = 6.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 6.dp)
         )
         if (isEdit) {
             Box {
@@ -143,7 +144,7 @@ internal fun EditorTopBar(
                             onClick = {
                                 menuOpen = false
                                 onDuplicate()
-                            },
+                            }
                         )
                     }
                     DropdownMenuItem(
@@ -151,7 +152,7 @@ internal fun EditorTopBar(
                         onClick = {
                             menuOpen = false
                             onDelete()
-                        },
+                        }
                     )
                 }
             }
@@ -188,7 +189,7 @@ internal fun EditorAmount(
     symbols: DecimalFormatSymbols,
     isError: Boolean,
     label: String? = null,
-    maxFontSize: TextUnit = 56.sp,
+    maxFontSize: TextUnit = 56.sp
 ) {
     val formatted = currencySymbol + AmountKeypad.format(amountText, symbols.groupingSeparator, symbols.decimalSeparator)
     val size = amountFontSize(sign.length + formatted.length, maxFontSize)
@@ -204,7 +205,7 @@ internal fun EditorAmount(
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite },
+            modifier = Modifier.semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
         ) {
             if (sign.isNotEmpty()) Text(sign, style = style, color = MaterialTheme.colorScheme.onSurfaceVariant)
             AmountText(formatted, style = style, color = color, animate = false)
@@ -226,7 +227,7 @@ internal fun AccountPill(account: Account?, balance: Money?, symbols: DecimalFor
             .background(MaterialTheme.colorScheme.surfaceContainerLow, PillShape)
             .border(hairline(MaterialTheme.finance.isDark), PillShape)
             .clickable(role = Role.Button, onClickLabel = changeAccount, onClick = onClick)
-            .padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp),
+            .padding(start = 6.dp, end = 14.dp, top = 6.dp, bottom = 6.dp)
     ) {
         IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 32)
         Text(
@@ -235,7 +236,7 @@ internal fun AccountPill(account: Account?, balance: Money?, symbols: DecimalFor
             color = if (account == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 180.dp),
+            modifier = Modifier.widthIn(max = 180.dp)
         )
         if (balance != null) {
             Text(formatMoney(balance, symbols), style = AmountStyle.copy(fontWeight = FontWeight.Medium), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
@@ -266,11 +267,14 @@ internal fun SmallPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     text: String? = null,
-    icon: (@Composable () -> Unit)? = null,
+    icon: (@Composable () -> Unit)? = null
 ) {
     Box(
-        modifier = modifier.heightIn(min = 48.dp).clip(PillShape).clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .clip(PillShape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
     ) {
         Row(
             Modifier
@@ -278,7 +282,7 @@ internal fun SmallPill(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow, PillShape)
                 .border(hairline(MaterialTheme.finance.isDark), PillShape)
                 .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (text != null) {
                 Text(text, style = AmountStyle.copy(fontSize = 14.sp), color = MaterialTheme.colorScheme.onSurface)
@@ -304,19 +308,21 @@ internal fun ShelfRow(
     supporting: String? = null,
     supportingIsError: Boolean = false,
     trailing: @Composable RowScope.() -> Unit = {},
-    below: (@Composable () -> Unit)? = null,
+    below: (@Composable () -> Unit)? = null
 ) {
     val clickModifier = if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier
     Column(
         Modifier
             .fillMaxWidth()
             .then(clickModifier)
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
         Row(
-            Modifier.fillMaxWidth().heightIn(min = 36.dp),
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 36.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             icon()
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
@@ -324,7 +330,7 @@ internal fun ShelfRow(
                 Modifier.weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
                 verticalAlignment = Alignment.CenterVertically,
-                content = trailing,
+                content = trailing
             )
         }
         if (supporting != null) {
@@ -332,7 +338,7 @@ internal fun ShelfRow(
                 supporting,
                 style = MaterialTheme.typography.bodySmall,
                 color = if (supportingIsError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 48.dp, top = 2.dp),
+                modifier = Modifier.padding(start = 48.dp, top = 2.dp)
             )
         }
         below?.invoke()
@@ -350,7 +356,7 @@ internal fun RowScope.ShelfValue(text: String, muted: Boolean = false, color: Co
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         textAlign = TextAlign.End,
-        modifier = Modifier.weight(1f, fill = false),
+        modifier = Modifier.weight(1f, fill = false)
     )
 }
 
@@ -364,8 +370,11 @@ internal fun ShelfDivider() {
 @Composable
 internal fun ShelfIcon(icon: ImageVector) {
     Box(
-        Modifier.size(34.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceContainerHigh),
-        contentAlignment = Alignment.Center,
+        Modifier
+            .size(34.dp)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        contentAlignment = Alignment.Center
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(IconSize.Small))
     }
@@ -382,7 +391,7 @@ internal fun AccountShelfRow(
     supportingIsError: Boolean,
     onClick: () -> Unit,
     extraTrailing: (@Composable () -> Unit)? = null,
-    below: (@Composable () -> Unit)? = null,
+    below: (@Composable () -> Unit)? = null
 ) {
     ShelfRow(
         icon = { IconBadge(account?.icon, account?.color, ColorPalette.ACCOUNT_DEFAULT, size = 34) },
@@ -400,13 +409,13 @@ internal fun AccountShelfRow(
                         "· " + formatMoney(balance, symbols),
                         style = AmountStyle.copy(fontSize = 14.sp, fontWeight = FontWeight.Medium),
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
+                        maxLines = 1
                     )
                 }
             }
             extraTrailing?.invoke()
         },
-        below = below,
+        below = below
     )
 }
 
@@ -417,7 +426,7 @@ internal fun accountSupporting(archived: Boolean, balance: Money?, balanceAfter:
     balance != null && balanceAfter != null -> stringResource(
         R.string.transaction_form_balance_after,
         formatMoney(balance, symbols),
-        formatMoney(balanceAfter, symbols),
+        formatMoney(balanceAfter, symbols)
     ) to (balanceAfter.amountMinor < 0)
     else -> null to false
 }
@@ -430,7 +439,7 @@ internal fun CategoryShelfRow(
     /** Editing an operation that had no category: show "Uncategorized" instead of the empty prompt. */
     showUncategorized: Boolean,
     showError: Boolean,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val category = selectedCategoryId?.let { tree.category(it) }
     // Resolve composable values unconditionally so the composition shape does not depend on the selection.
@@ -457,7 +466,7 @@ internal fun CategoryShelfRow(
             } else {
                 Icon(AppIcons.Next, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-        },
+        }
     )
 }
 
@@ -472,25 +481,31 @@ internal fun RecentCategoriesRow(
     selectedCategoryId: Long?,
     recentCategoryIds: List<Long>,
     onSelectRecent: (Long) -> Unit,
-    onCreateCategory: (() -> Unit)?,
+    onCreateCategory: (() -> Unit)?
 ) {
     val hasCategoriesOfKind = remember(tree, categoryType) { tree.rootsOf(categoryType).isNotEmpty() }
     val recents = recentCategoryIds.mapNotNull { tree.category(it) }.take(6)
     val offerCreate = !hasCategoriesOfKind && onCreateCategory != null
     if (recents.isEmpty() && !offerCreate) return
-    Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+    ) {
         if (recents.isNotEmpty()) {
             Text(
                 stringResource(R.string.transaction_form_recent),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
+                modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
             )
         }
         Row(
-            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             recents.forEach { recent ->
                 val selected = recent.id == selectedCategoryId
@@ -501,7 +516,7 @@ internal fun RecentCategoriesRow(
                         .clip(MaterialTheme.shapes.small)
                         .clickable(role = Role.Button) { onSelectRecent(recent.id) }
                         .padding(vertical = 6.dp)
-                        .semantics(mergeDescendants = true) { this.selected = selected },
+                        .semantics(mergeDescendants = true) { this.selected = selected }
                 ) {
                     val ring = if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, CircleShape) else Modifier
                     Box(ring.padding(3.dp)) {
@@ -513,7 +528,7 @@ internal fun RecentCategoriesRow(
                         color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
@@ -521,7 +536,7 @@ internal fun RecentCategoriesRow(
                 FilterPill(
                     label = stringResource(R.string.transaction_form_create_category),
                     active = false,
-                    onClick = onCreateCategory,
+                    onClick = onCreateCategory
                 )
             }
         }
@@ -535,7 +550,7 @@ internal fun DateShelfRow(
     isFuture: Boolean,
     onOpenPicker: () -> Unit,
     onDateChange: (LocalDate) -> Unit,
-    onTimeChange: (LocalTime) -> Unit,
+    onTimeChange: (LocalTime) -> Unit
 ) {
     val today = LocalDate.now()
     val value = shortDateLabel(date, today) + ", " + time.format(rememberTimeFormatter())
@@ -550,7 +565,7 @@ internal fun DateShelfRow(
             Row(Modifier.padding(start = 48.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf(
                     today to R.string.transactions_day_today,
-                    today.minusDays(1) to R.string.transactions_day_yesterday,
+                    today.minusDays(1) to R.string.transactions_day_yesterday
                 ).forEach { (day, label) ->
                     FilterPill(
                         label = stringResource(label),
@@ -561,11 +576,11 @@ internal fun DateShelfRow(
                             if (day == today && time.isAfter(LocalTime.now())) {
                                 onTimeChange(LocalTime.now().withSecond(0).withNano(0))
                             }
-                        },
+                        }
                     )
                 }
             }
-        },
+        }
     )
 }
 
@@ -576,12 +591,14 @@ internal fun NoteShelfRow(
     hint: String,
     description: String,
     isTooLong: Boolean,
-    onChange: (String) -> Unit,
+    onChange: (String) -> Unit
 ) {
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.Top
     ) {
         Box(Modifier.padding(top = 1.dp)) { ShelfIcon(AppIcons.Edit) }
         Column(Modifier.weight(1f)) {
@@ -591,15 +608,17 @@ internal fun NoteShelfRow(
                 onValueChange = onChange,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.SemiBold
                 ),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Done,
+                    imeAction = ImeAction.Done
                 ),
                 maxLines = 3,
-                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp),
                 decorationBox = { inner ->
                     Box {
                         if (description.isEmpty()) {
@@ -607,20 +626,20 @@ internal fun NoteShelfRow(
                         }
                         inner()
                     }
-                },
+                }
             )
             // The counter only appears when the limit is getting close.
             if (isTooLong) {
                 Text(
                     stringResource(R.string.transaction_form_error_description_long),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.error
                 )
             } else if (description.length > TransactionDraftValidator.DESCRIPTION_MAX - 100) {
                 Text(
                     "${description.length}/${TransactionDraftValidator.DESCRIPTION_MAX}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -635,7 +654,7 @@ internal fun TagsShelfRow(
     pendingTagNames: List<String>,
     onToggleTag: (Long) -> Unit,
     onAddPendingTag: (String) -> Unit,
-    onRemovePendingTag: (String) -> Unit,
+    onRemovePendingTag: (String) -> Unit
 ) {
     var editing by rememberSaveable { mutableStateOf(false) }
     val selected = allTags.filter { it.id in selectedTagIds }
@@ -661,12 +680,14 @@ internal fun TagsShelfRow(
                     onToggleTag = onToggleTag,
                     onAddPendingTag = onAddPendingTag,
                     onRemovePendingTag = onRemovePendingTag,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
                 )
             } else if (selected.isNotEmpty() || pendingTagNames.isNotEmpty()) {
                 FlowRow(
                     Modifier.padding(start = 48.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     selected.forEach { tag -> TagChip(tag = tag, onRemove = { onToggleTag(tag.id) }) }
                     pendingTagNames.forEach { name ->
@@ -674,7 +695,7 @@ internal fun TagsShelfRow(
                     }
                 }
             }
-        },
+        }
     )
 }
 
@@ -689,7 +710,7 @@ internal fun AddAnotherRow(checked: Boolean, onCheckedChange: (Boolean) -> Unit)
             .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // The row handles the toggle so the whole line is the touch target.
         Switch(checked = checked, onCheckedChange = null)

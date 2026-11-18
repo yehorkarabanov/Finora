@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -82,7 +81,7 @@ internal fun TransactionFilter.activeCount(): Int = listOf(
     tagIds.isNotEmpty(),
     from != null || toExclusive != null,
     amount != null,
-    text.isNotEmpty(),
+    text.isNotEmpty()
 ).count { it }
 
 @Composable
@@ -90,7 +89,7 @@ internal fun SortSheet(
     sort: TransactionSort,
     amountAvailable: Boolean,
     onSelect: (TransactionSort) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     FinoraSheet(onDismiss) {
         SheetTitle(stringResource(R.string.sort_title))
@@ -112,8 +111,11 @@ internal fun SortSheet(
                         null
                     },
                     modifier = Modifier
-                        .semantics { role = Role.RadioButton; selected = option == sort }
-                        .alpha(if (enabled) 1f else 0.38f),
+                        .semantics {
+                            role = Role.RadioButton
+                            selected = option == sort
+                        }
+                        .alpha(if (enabled) 1f else 0.38f)
                 )
             }
         }
@@ -122,7 +124,7 @@ internal fun SortSheet(
                 stringResource(R.string.filter_amount_disabled_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp),
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
             )
         }
         Box(Modifier.height(16.dp))
@@ -135,13 +137,23 @@ internal fun SheetTitle(text: String) {
         text,
         style = MaterialTheme.typography.titleLarge,
         color = MaterialTheme.colorScheme.onSurface,
-        modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 12.dp).semantics { heading() },
+        modifier = Modifier
+            .padding(start = 4.dp, top = 4.dp, bottom = 12.dp)
+            .semantics { heading() }
     )
 }
 
 @Composable
 internal fun RowDivider() {
-    Box(Modifier.fillMaxWidth().padding(start = 14.dp).height(1.dp).background(hairline(MaterialTheme.finance.isDark).brush))
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(
+                start = 14.dp
+            )
+            .height(1.dp)
+            .background(hairline(MaterialTheme.finance.isDark).brush)
+    )
 }
 
 // ---- Search ----
@@ -152,7 +164,9 @@ internal fun SearchField(value: String, onValueChange: (String) -> Unit, modifie
     TextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth().border(hairline(MaterialTheme.finance.isDark), CircleShape),
+        modifier = modifier
+            .fillMaxWidth()
+            .border(hairline(MaterialTheme.finance.isDark), CircleShape),
         placeholder = { Text(stringResource(R.string.transactions_search_hint)) },
         leadingIcon = { Icon(AppIcons.Search, contentDescription = null) },
         trailingIcon = if (value.isNotEmpty()) {
@@ -176,8 +190,8 @@ internal fun SearchField(value: String, onValueChange: (String) -> Unit, modifie
             focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
             unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
             focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     )
 }
 
@@ -197,14 +211,14 @@ internal fun FilterBar(
     onOpenTags: () -> Unit,
     onOpenSection: (FilterSection) -> Unit,
     onClearAll: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val filter = state.filter
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         item(key = "type") {
             val names = filter.types.map { stringResource(it.labelRes()) }
@@ -212,7 +226,7 @@ internal fun FilterBar(
                 label = summarize(names) ?: stringResource(R.string.filter_type),
                 active = names.isNotEmpty(),
                 onClick = { onOpenSection(FilterSection.TYPE) },
-                onClear = { onFilterChange(filter.copy(types = emptySet())) },
+                onClear = { onFilterChange(filter.copy(types = emptySet())) }
             )
         }
         item(key = "date") {
@@ -220,7 +234,7 @@ internal fun FilterBar(
                 label = dateLabel(filter) ?: stringResource(R.string.filter_date_any),
                 active = filter.from != null || filter.toExclusive != null,
                 onClick = onOpenDate,
-                onClear = { onFilterChange(filter.copy(from = null, toExclusive = null)) },
+                onClear = { onFilterChange(filter.copy(from = null, toExclusive = null)) }
             )
         }
         if (state.accounts.size > 1) {
@@ -232,7 +246,7 @@ internal fun FilterBar(
                         val ids = filter.accountIds
                         onFilterChange(filter.copy(accountIds = if (id in ids) ids - id else ids + id))
                     },
-                    onClearSelection = { onFilterChange(filter.copy(accountIds = emptySet())) },
+                    onClearSelection = { onFilterChange(filter.copy(accountIds = emptySet())) }
                 )
             }
         }
@@ -251,10 +265,10 @@ internal fun FilterBar(
                             categoryIds = emptySet(),
                             exactCategoryIds = emptySet(),
                             categoryExact = false,
-                            includeUncategorized = false,
-                        ),
+                            includeUncategorized = false
+                        )
                     )
-                },
+                }
             )
         }
         if (state.tags.isNotEmpty() || filter.tagIds.isNotEmpty()) {
@@ -265,12 +279,15 @@ internal fun FilterBar(
                     label = when {
                         summary == null -> stringResource(R.string.filter_tags)
                         // Make "must have every tag" visible without opening the sheet.
-                        names.size > 1 && filter.tagMode == TagMatchMode.ALL -> stringResource(R.string.filter_tags_pill_all, summary)
+                        names.size > 1 && filter.tagMode == TagMatchMode.ALL -> stringResource(
+                            R.string.filter_tags_pill_all,
+                            summary
+                        )
                         else -> summary
                     },
                     active = names.isNotEmpty(),
                     onClick = onOpenTags,
-                    onClear = { onFilterChange(filter.copy(tagIds = emptySet(), tagMode = TagMatchMode.ANY)) },
+                    onClear = { onFilterChange(filter.copy(tagIds = emptySet(), tagMode = TagMatchMode.ANY)) }
                 )
             }
         }
@@ -279,7 +296,7 @@ internal fun FilterBar(
                 label = amountLabel(filter) ?: stringResource(R.string.filter_amount_short),
                 active = filter.amount != null,
                 onClick = { onOpenSection(FilterSection.AMOUNT) },
-                onClear = { onFilterChange(filter.copy(amount = null)) },
+                onClear = { onFilterChange(filter.copy(amount = null)) }
             )
         }
         if (filter.activeCount() >= 2) {
@@ -344,14 +361,16 @@ private enum class DatePreset(val labelRes: Int) {
     THIS_MONTH(R.string.period_this_month),
     LAST_MONTH(R.string.filter_date_last_month),
     LAST_30_DAYS(R.string.filter_date_last_30_days),
-    THIS_YEAR(R.string.period_this_year),
+    THIS_YEAR(R.string.period_this_year)
     ;
 
     fun range(today: LocalDate): Pair<Long, Long> {
         val (from, to) = when (this) {
             TODAY -> today to today
             THIS_WEEK -> {
-                val start = today.with(TemporalAdjusters.previousOrSame(WeekFields.of(Locale.getDefault()).firstDayOfWeek))
+                val start = today.with(
+                    TemporalAdjusters.previousOrSame(WeekFields.of(Locale.getDefault()).firstDayOfWeek)
+                )
                 start to start.plusDays(6)
             }
             THIS_MONTH -> today.withDayOfMonth(1) to today.with(TemporalAdjusters.lastDayOfMonth())
@@ -371,7 +390,7 @@ private enum class DatePreset(val labelRes: Int) {
 internal fun DateFilterSheet(
     filter: TransactionFilter,
     onApply: (from: Long?, toExclusive: Long?) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val today = remember { LocalDate.now() }
     val current = filter.from to filter.toExclusive
@@ -400,7 +419,7 @@ internal fun DateFilterSheet(
                 DateOption(
                     stringResource(R.string.period_custom_range),
                     selected = customSelected,
-                    supporting = if (customSelected) dateLabel(filter) else null,
+                    supporting = if (customSelected) dateLabel(filter) else null
                 ) { showPicker = true }
             }
             Box(Modifier.height(16.dp))
@@ -416,7 +435,7 @@ internal fun DateFilterSheet(
             onConfirm = { start, end ->
                 onApply(startOfDayMillis(start), endExclusiveMillis(end))
                 onDismiss()
-            },
+            }
         )
     }
 }
@@ -429,6 +448,9 @@ private fun DateOption(label: String, selected: Boolean, supporting: String? = n
         subtitle = supporting,
         trailing = {},
         onClick = onClick,
-        modifier = Modifier.semantics { role = Role.RadioButton; this.selected = selected },
+        modifier = Modifier.semantics {
+            role = Role.RadioButton
+            this.selected = selected
+        }
     )
 }

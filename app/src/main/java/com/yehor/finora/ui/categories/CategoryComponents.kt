@@ -2,7 +2,6 @@ package com.yehor.finora.ui.categories
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,13 +16,17 @@ import androidx.compose.ui.unit.dp
 private val GroupRadius = 20.dp
 private val GroupInnerRadius = 4.dp
 internal val CategoryGroupTopShape = RoundedCornerShape(
-    topStart = GroupRadius, topEnd = GroupRadius,
-    bottomStart = GroupInnerRadius, bottomEnd = GroupInnerRadius,
+    topStart = GroupRadius,
+    topEnd = GroupRadius,
+    bottomStart = GroupInnerRadius,
+    bottomEnd = GroupInnerRadius
 )
 internal val CategoryGroupMiddleShape = RoundedCornerShape(GroupInnerRadius)
 internal val CategoryGroupBottomShape = RoundedCornerShape(
-    topStart = GroupInnerRadius, topEnd = GroupInnerRadius,
-    bottomStart = GroupRadius, bottomEnd = GroupRadius,
+    topStart = GroupInnerRadius,
+    topEnd = GroupInnerRadius,
+    bottomStart = GroupRadius,
+    bottomEnd = GroupRadius
 )
 internal val CategoryGroupSingleShape = RoundedCornerShape(GroupRadius)
 
@@ -45,6 +48,6 @@ internal fun CategoryPill(text: String, color: Color, modifier: Modifier = Modif
         modifier = modifier
             .clip(RoundedCornerShape(50))
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = 10.dp, vertical = 4.dp)
     )
 }

@@ -28,14 +28,14 @@ data class CsvExportResult(val fileName: String, val count: Int)
 class CsvExporter(
     private val context: Context,
     private val db: FinoraDatabase,
-    private val categoryRepository: CategoryRepository,
+    private val categoryRepository: CategoryRepository
 ) {
 
     suspend fun export(
         filter: TransactionFilter,
         destination: Uri,
         fileName: String,
-        zone: ZoneId = ZoneId.systemDefault(),
+        zone: ZoneId = ZoneId.systemDefault()
     ): CsvExportResult = withContext(Dispatchers.IO) {
         val categories = categoryRepository.observeAll().first()
         val categoryTree = CategoryTree(categories)
@@ -89,7 +89,7 @@ class CsvExporter(
                             categoryClosure = categoryClosure,
                             lastOccurredAt = lastOccurredAt,
                             lastId = lastId,
-                            limit = batchSize,
+                            limit = batchSize
                         )
 
                         if (batchOps.isEmpty()) {
@@ -111,7 +111,7 @@ class CsvExporter(
                                 tags = tags,
                                 accountNames = accountNames,
                                 categoryTree = categoryTree,
-                                zone = zone,
+                                zone = zone
                             )
                             CsvFormat.writeRow(writer, row)
                             exportedCount++
@@ -155,7 +155,7 @@ class CsvExporter(
         val categoryId: Long?,
         val description: String?,
         val createdAt: Long,
-        val updatedAt: Long,
+        val updatedAt: Long
     )
 
     private data class EntryRow(
@@ -163,7 +163,7 @@ class CsvExporter(
         val operationId: Long,
         val accountId: Long,
         val currencyCode: String,
-        val amountMinor: Long,
+        val amountMinor: Long
     )
 
     private fun loadOperationBatch(
@@ -171,7 +171,7 @@ class CsvExporter(
         categoryClosure: Set<Long>,
         lastOccurredAt: Long?,
         lastId: Long?,
-        limit: Int,
+        limit: Int
     ): List<OperationRow> {
         val args = mutableListOf<Any>()
         val baseClauses = TransactionQuery.buildWhereClauses(filter, categoryClosure, null, args)
@@ -199,8 +199,8 @@ class CsvExporter(
                         categoryId = if (c.isNull(3)) null else c.getLong(3),
                         description = if (c.isNull(4)) null else c.getString(4),
                         createdAt = c.getLong(5),
-                        updatedAt = c.getLong(6),
-                    ),
+                        updatedAt = c.getLong(6)
+                    )
                 )
             }
         }
@@ -219,7 +219,7 @@ class CsvExporter(
                     operationId = c.getLong(1),
                     accountId = c.getLong(2),
                     currencyCode = c.getString(3),
-                    amountMinor = c.getLong(4),
+                    amountMinor = c.getLong(4)
                 )
                 map.getOrPut(entry.operationId) { mutableListOf() }.add(entry)
             }
@@ -248,7 +248,7 @@ class CsvExporter(
         tags: List<String>,
         accountNames: Map<Long, String>,
         categoryTree: CategoryTree,
-        zone: ZoneId,
+        zone: ZoneId
     ): List<String> {
         val dateParts = CsvFormat.dateParts(op.occurredAt, zone)
 
@@ -330,7 +330,7 @@ class CsvExporter(
             CsvFormat.textField(tagsStr),
             CsvFormat.textField(op.description),
             createdAtUtc,
-            updatedAtUtc,
+            updatedAtUtc
         )
     }
 }

@@ -7,7 +7,7 @@ data class DefaultCategory(
     val name: String,
     val icon: String,
     val color: Long,
-    val children: List<DefaultCategory> = emptyList(),
+    val children: List<DefaultCategory> = emptyList()
 )
 
 /**
@@ -32,11 +32,13 @@ object DefaultCategories {
 
     val expense: List<DefaultCategory> = listOf(
         DefaultCategory(
-            "Food", "restaurant", ORANGE,
+            "Food",
+            "restaurant",
+            ORANGE,
             listOf(
                 DefaultCategory("Groceries", "groceries", ORANGE),
-                DefaultCategory("Restaurants & Cafes", "coffee", ORANGE),
-            ),
+                DefaultCategory("Restaurants & Cafes", "coffee", ORANGE)
+            )
         ),
         DefaultCategory("Housing", "home", BROWN),
         DefaultCategory("Transport", "car", BLUE),
@@ -45,7 +47,7 @@ object DefaultCategories {
         DefaultCategory("Health", "health", RED),
         DefaultCategory("Subscriptions", "subscriptions", INDIGO),
         DefaultCategory("Fees & Charges", "fees", GREY),
-        DefaultCategory("Other", "other", GREY),
+        DefaultCategory("Other", "other", GREY)
     )
 
     val income: List<DefaultCategory> = listOf(
@@ -54,7 +56,7 @@ object DefaultCategories {
         DefaultCategory("Investment Income", "dividends", GREEN),
         DefaultCategory("Gifts", "gift", PINK),
         DefaultCategory("Refunds", "refund", AMBER),
-        DefaultCategory("Other", "other", GREY),
+        DefaultCategory("Other", "other", GREY)
     )
 
     val transfer: List<DefaultCategory> = listOf(
@@ -62,7 +64,7 @@ object DefaultCategories {
         DefaultCategory("Currency Exchange", "exchange", TEAL),
         DefaultCategory("Savings Transfer", "savings", GREEN),
         DefaultCategory("Investment Deposit", "investments", INDIGO),
-        DefaultCategory("Other", "other", GREY),
+        DefaultCategory("Other", "other", GREY)
     )
 
     /** Seed order: every parent appears before its children, grouped by type. */

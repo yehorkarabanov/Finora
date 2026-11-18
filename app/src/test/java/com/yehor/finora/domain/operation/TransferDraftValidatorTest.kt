@@ -22,7 +22,7 @@ class TransferDraftValidatorTest {
         occurredAt: Long = now,
         description: String? = null,
         isEdit: Boolean = false,
-        hadCategoryBefore: Boolean = true,
+        hadCategoryBefore: Boolean = true
     ) = TransferDraftValidator.validate(
         sentText = sent,
         receivedText = received,
@@ -35,7 +35,7 @@ class TransferDraftValidatorTest {
         description = description,
         now = now,
         isEdit = isEdit,
-        hadCategoryBefore = hadCategoryBefore,
+        hadCategoryBefore = hadCategoryBefore
     )
 
     @Test
@@ -75,7 +75,10 @@ class TransferDraftValidatorTest {
         assertEquals(setOf(TransferDraftError.RECEIVED_AMOUNT_INVALID), validate(received = "abc"))
         assertEquals(setOf(TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE), validate(received = "1.005"))
         assertEquals(setOf(TransferDraftError.RECEIVED_AMOUNT_NOT_POSITIVE), validate(received = "0"))
-        assertEquals(setOf(TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE), validate(received = "999999999999999999999"))
+        assertEquals(
+            setOf(TransferDraftError.RECEIVED_AMOUNT_OUT_OF_RANGE),
+            validate(received = "999999999999999999999")
+        )
     }
 
     @Test
@@ -83,11 +86,11 @@ class TransferDraftValidatorTest {
         // 12.5 is fine for PLN (scale 2) but too precise for JPY (scale 0).
         assertEquals(
             setOf(TransferDraftError.RECEIVED_AMOUNT_TOO_PRECISE),
-            validate(sent = "12.5", received = "12.5", destCurrency = jpy),
+            validate(sent = "12.5", received = "12.5", destCurrency = jpy)
         )
         assertEquals(
             setOf(TransferDraftError.SENT_AMOUNT_TOO_PRECISE),
-            validate(sent = "12.5", received = "12", sourceCurrency = jpy),
+            validate(sent = "12.5", received = "12", sourceCurrency = jpy)
         )
     }
 
@@ -101,7 +104,7 @@ class TransferDraftValidatorTest {
         assertTrue(validate(category = null, isEdit = true, hadCategoryBefore = false).isEmpty())
         assertEquals(
             setOf(TransferDraftError.CATEGORY_MISSING),
-            validate(category = null, isEdit = true, hadCategoryBefore = true),
+            validate(category = null, isEdit = true, hadCategoryBefore = true)
         )
     }
 

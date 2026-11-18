@@ -18,7 +18,7 @@ class FilterCodecTest {
         tagIds = setOf(4, 5),
         tagMode = TagMatchMode.ALL,
         from = 1_730_419_200_000,
-        toExclusive = 1_733_011_200_000,
+        toExclusive = 1_733_011_200_000
     )
 
     @Test
@@ -42,7 +42,7 @@ class FilterCodecTest {
             tagIds = setOf(4, 5),
             tagMode = TagMatchMode.ALL,
             from = 1_730_419_200_000,
-            toExclusive = 1_733_011_200_000,
+            toExclusive = 1_733_011_200_000
         )
         assertEquals("t=EXPENSE;a=1,2;c=7;x=1;g=4,5;m=ALL;f=1730419200000;e=1733011200000", FilterCodec.encode(filter))
     }
@@ -51,7 +51,7 @@ class FilterCodecTest {
     fun exactCategoryIdsFormat() {
         val filter = TransactionFilter(
             categoryIds = setOf(1, 2),
-            exactCategoryIds = setOf(1),
+            exactCategoryIds = setOf(1)
         )
         val encoded = FilterCodec.encode(filter)
         assertEquals("c=1,2;xe=1", encoded)

@@ -27,7 +27,7 @@ fun PrimaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     destructive: Boolean = false,
-    fillWidth: Boolean = true,
+    fillWidth: Boolean = true
 ) {
     val scheme = MaterialTheme.colorScheme
     val interaction = remember { MutableInteractionSource() }
@@ -38,7 +38,7 @@ fun PrimaryButton(
         shape = PillShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = if (destructive) scheme.error else scheme.primaryContainer,
-            contentColor = if (destructive) scheme.onError else MaterialTheme.finance.onMint,
+            contentColor = if (destructive) scheme.onError else MaterialTheme.finance.onMint
         ),
         modifier = modifier
             .pressScale(interaction)
@@ -47,8 +47,8 @@ fun PrimaryButton(
             .shadow(
                 if (enabled) 8.dp else 0.dp,
                 PillShape,
-                spotColor = if (destructive) scheme.error else MaterialTheme.finance.accentGlow,
-            ),
+                spotColor = if (destructive) scheme.error else MaterialTheme.finance.accentGlow
+            )
     ) {
         Text(text, style = MaterialTheme.typography.labelLarge)
     }

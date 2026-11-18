@@ -44,17 +44,27 @@ class OperationRepositoryOpeningBalanceTest {
     private suspend fun account(code: String, status: AccountStatus = AccountStatus.ACTIVE): Long =
         db.accountDao().insert(
             AccountEntity(
-                name = "Account $code", currencyCode = code, type = "CASH", icon = null, color = null,
-                description = null, status = status, createdAt = 0,
-            ),
+                name = "Account $code",
+                currencyCode = code,
+                type = "CASH",
+                icon = null,
+                color = null,
+                description = null,
+                status = status,
+                createdAt = 0
+            )
         )
 
-    private suspend fun category(type: CategoryType): Long =
-        db.categoryDao().insert(
-            CategoryEntity(
-                name = "c", icon = null, color = null, type = type, parentId = null, createdAt = 0,
-            ),
+    private suspend fun category(type: CategoryType): Long = db.categoryDao().insert(
+        CategoryEntity(
+            name = "c",
+            icon = null,
+            color = null,
+            type = type,
+            parentId = null,
+            createdAt = 0
         )
+    )
 
     private fun violations() = InvariantChecker.check(db.openHelper.writableDatabase)
 
@@ -233,7 +243,9 @@ class OperationRepositoryOpeningBalanceTest {
     fun archivedEditSucceeds() = runBlocking {
         val tagId = db.tagDao().insert(
             com.yehor.finora.data.db.TagEntity(
-                name = "tag", color = null, createdAt = 0
+                name = "tag",
+                color = null,
+                createdAt = 0
             )
         )
 
