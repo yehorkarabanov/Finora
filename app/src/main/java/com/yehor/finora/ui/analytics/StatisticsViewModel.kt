@@ -7,8 +7,9 @@ import com.yehor.finora.data.repo.AnalyticsRepository
 import com.yehor.finora.data.repo.TransactionRepository
 import com.yehor.finora.domain.account.Account
 import com.yehor.finora.domain.analytics.AccountPeriodRow
-import com.yehor.finora.domain.analytics.Bucket
 import com.yehor.finora.domain.analytics.BucketPlan
+import com.yehor.finora.domain.analytics.BucketUnit
+import com.yehor.finora.domain.analytics.Period
 import com.yehor.finora.domain.analytics.Cell
 import com.yehor.finora.domain.analytics.CurrencyScope
 import com.yehor.finora.domain.analytics.Measure
@@ -23,6 +24,10 @@ import com.yehor.finora.domain.operation.TransactionItem
 import com.yehor.finora.domain.tag.TagMatchMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -34,6 +39,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
+import java.time.YearMonth
 import javax.inject.Inject
 
 enum class StatsTab { EXPENSES, INCOME, TAGS, ACCOUNTS }
@@ -45,7 +51,6 @@ data class StatsControls(
     val compare: Boolean = false,
     /** Entered categories from the root down. */
     val path: List<Long> = emptyList(),
-    val trendYearly: Boolean = false,
     /** Types, accounts, categories, tags and match mode of the Tags tab. Dates come from the period. */
     val tagFilter: TransactionFilter = TransactionFilter(),
     val tagMeasure: Measure = Measure.EXPENSE,
@@ -55,16 +60,12 @@ data class FlowTab(
     val report: FlowReport,
     /** The period filter the rows were counted with. */
     val base: TransactionFilter,
-    /** The filter behind the trend, without dates. */
-    val trendBase: TransactionFilter,
-    val trendBuckets: List<Bucket>,
 )
 
 data class TagsTab(
     /** The full filter, with period and scope, for hand-offs to Transactions (R15). */
     val filter: TransactionFilter,
-    /** Null while no tag is selected: nothing is computed. */
-    val report: TagsReport?,
+    val report: TagsReport,
     val recent: List<TransactionItem>,
 )
 
@@ -73,6 +74,10 @@ data class AccountPeriodView(val account: Account, val row: AccountPeriodRow)
 sealed interface StatsContent {
     data class Flows(val tab: FlowTab) : StatsContent
     data class Tags(val tab: TagsTab) : StatsContent
+
+    /** The Tags tab while no tag is picked: every tag of the period, largest first. */
+    data class TagRanking(val rows: List<TagRankRow>, val measure: Measure) : StatsContent
+
     data class Accounts(val rows: List<AccountPeriodView>) : StatsContent
 }
 
@@ -114,7 +119,6 @@ class StatisticsViewModel @Inject constructor(
             selectedAccountIds = accounts,
             compare = savedState.get<Boolean>(KEY_COMPARE) ?: false,
             path = savedState.get<String>(KEY_PATH).orEmpty().split(',').mapNotNull { it.toLongOrNull() },
-            trendYearly = savedState.get<Boolean>(KEY_YEARLY) ?: false,
             tagFilter = tagFilter,
             tagMeasure = savedState.get<String>(KEY_TAG_MEASURE)
                 ?.let { name -> Measure.entries.firstOrNull { it.name == name } } ?: Measure.EXPENSE,
@@ -128,14 +132,40 @@ class StatisticsViewModel @Inject constructor(
         savedState[KEY_ACCOUNTS] = c.selectedAccountIds.joinToString(",")
         savedState[KEY_COMPARE] = c.compare
         savedState[KEY_PATH] = c.path.joinToString(",")
-        savedState[KEY_YEARLY] = c.trendYearly
         savedState[KEY_TAG_FILTER] = FilterCodec.encode(c.tagFilter)
         savedState[KEY_TAG_MEASURE] = c.tagMeasure.name
     }
 
-    val state: StateFlow<StatisticsUiState> = combine(environment.observe(), _controls) { env, controls -> env to controls }
+    /** The newest environment, for turning a chart window into a period. */
+    @Volatile private var latestEnv: AnalyticsEnv? = null
+
+    private val env: Flow<AnalyticsEnv> = environment.observe()
+        .onEach { latestEnv = it }
+        .shareIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), replay = 1)
+
+    val state: StateFlow<StatisticsUiState> = combine(env, _controls) { env, controls -> env to controls }
         .flatMapLatest { (env, controls) -> content(env, controls) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), StatisticsUiState())
+
+    private val preview = MutableStateFlow<TrendPreview?>(null)
+
+    /** The bucket unit last drawn, so a window in the 93 to 99 day band keeps it while pinching. */
+    @Volatile private var lastUnit: BucketUnit? = null
+
+    /**
+     * The trend wave of Expenses or Income (null on the other tabs): the selected period or, while the
+     * chart is being panned or pinched, the window under the fingers. Previews are throttled (the first
+     * at once, then the latest at most every [PREVIEW_THROTTLE_MS]) so a fast gesture neither queries on
+     * every frame nor waits for the fingers to stop.
+     */
+    val trend: StateFlow<StatsTrend?> = combine(
+        env,
+        _controls,
+        // A StateFlow is conflated: while the delay runs, only the newest window waits.
+        preview.transform { emit(it); delay(PREVIEW_THROTTLE_MS) },
+    ) { env, controls, preview -> Triple(env, controls, preview) }
+        .flatMapLatest { (env, controls, preview) -> trend(env, controls, preview) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
     // ---- Controls ----
 
@@ -155,7 +185,19 @@ class StatisticsViewModel @Inject constructor(
 
     fun setCompare(on: Boolean) = change { it.copy(compare = on) }
 
-    fun setTrendYearly(yearly: Boolean) = change { it.copy(trendYearly = yearly) }
+    /** Redraws the trend over [window] without changing the selected period. */
+    fun previewWindow(window: ChartWindow) {
+        preview.value = TrendPreview(window, latestEnv?.periodState)
+    }
+
+    /** Makes [window] the selected period: a calendar week, month or year when it is one, else a custom range. */
+    fun commitWindow(window: ChartWindow) {
+        val env = latestEnv ?: return
+        val state = commitTarget(window, env.period, env.today, env.firstDayOfWeek) ?: return
+        preview.value = TrendPreview(window, state)
+        environment.setPeriod(state)
+        change { it.copy(path = emptyList()) }
+    }
 
     fun enter(categoryId: Long) = change { it.copy(path = it.path + categoryId) }
 
@@ -164,16 +206,37 @@ class StatisticsViewModel @Inject constructor(
         change { it.copy(path = it.path.take(depth.coerceAtLeast(0))) }
 
     fun selectPeriod(kind: PeriodKind) {
+        preview.value = null
         environment.selectPeriod(kind)
         change { it.copy(path = emptyList()) }
     }
 
     fun setCustomPeriod(start: LocalDate, end: LocalDate) {
+        preview.value = null
         environment.setCustomPeriod(start, end)
         change { it.copy(path = emptyList()) }
     }
 
+    /**
+     * The month range picked on the range wheels. One month is that month, January to the current month
+     * is the whole current year (the wheels cannot reach future months), anything else a custom range
+     * that ends today at the latest.
+     */
+    fun selectMonths(from: YearMonth, to: YearMonth) {
+        val env = latestEnv ?: return
+        val wholeYear = from.monthValue == 1 && from.year == to.year && to == YearMonth.from(env.today)
+        val end = when {
+            wholeYear -> LocalDate.of(from.year, 12, 31)
+            from == to -> to.atEndOfMonth()
+            else -> minOf(to.atEndOfMonth(), env.today)
+        }
+        preview.value = null
+        environment.setPeriod(ChartWindow(from.atDay(1), end).toPeriodState(env.firstDayOfWeek, env.today))
+        change { it.copy(path = emptyList()) }
+    }
+
     fun shiftPeriod(steps: Int) {
+        preview.value = null
         environment.shiftPeriod(steps)
         change { it.copy(path = emptyList()) }
     }
@@ -183,6 +246,9 @@ class StatisticsViewModel @Inject constructor(
     }
 
     fun setTagMode(mode: TagMatchMode) = changeTags { it.copy(tagMode = mode) }
+
+    /** Opens the stats of several tags picked on the ranking, matching any of them. */
+    fun combineTags(tagIds: Set<Long>) = changeTags { it.copy(tagIds = tagIds, tagMode = TagMatchMode.ANY) }
 
     fun setTagMeasure(measure: Measure) = change { it.copy(tagMeasure = measure, path = emptyList()) }
 
@@ -258,17 +324,6 @@ class StatisticsViewModel @Inject constructor(
             TransactionFilter(from = it.from, toExclusive = it.toExclusive, accountIds = controls.selectedAccountIds)
         }
         val path = controls.path
-        val trendEnd = minOf(env.period.toDateInclusive, env.today)
-        val buckets = if (controls.trendYearly) {
-            BucketPlan.years(trendEnd, 5, env.zone)
-        } else {
-            BucketPlan.months(trendEnd, 12, env.zone)
-        }
-        val trendBase = base.copy(
-            from = null,
-            toExclusive = null,
-            categoryIds = path.lastOrNull()?.let { setOf(it) } ?: emptySet(),
-        )
         val current = analytics.observeByCategory(base, measure).asRows()
         val before = previousBase?.let { analytics.observeByCategory(it, measure).asRows() } ?: flowOf(null)
         return combine(
@@ -276,13 +331,62 @@ class StatisticsViewModel @Inject constructor(
             before,
             analytics.observeByAccount(base, measure).asRows(),
             analytics.observeByTag(base, measure).asRows(),
-            analytics.observeByBucket(trendBase, measure, buckets).asRows(),
-        ) { cur, prev, byAccount, byTag, trend ->
-            val report = ReportBuilder.flow(
-                env, scope, measure, cur, prev, byAccount, byTag, trend, buckets, controls.trendYearly, path,
+        ) { cur, prev, byAccount, byTag ->
+            val report = ReportBuilder.flow(env, scope, measure, cur, prev, byAccount, byTag, path)
+            StatsContent.Flows(FlowTab(report, base)) to cellsOf(report)
+        }
+    }
+
+    private fun trend(env: AnalyticsEnv, controls: StatsControls, preview: TrendPreview?): Flow<StatsTrend?> {
+        val measure = when (controls.tab) {
+            StatsTab.EXPENSES -> Measure.EXPENSE
+            StatsTab.INCOME -> Measure.INCOME
+            else -> return flowOf(null)
+        }
+        val committed = displayWindow(env.period, env.today)
+        val window = shownWindow(committed, env.periodState, preview)
+        // The period the window stands for (its previous one is the dashed curve) ...
+        val period = if (window == committed) {
+            env.period
+        } else {
+            window.toPeriodState(env.firstDayOfWeek, env.today).resolve(env.today, env.zone, env.firstDayOfWeek)
+        }
+        // ... while the buckets cover only the window: a running period stops at today.
+        val visible = PeriodCalculator.resolve(Period(PeriodKind.CUSTOM, window.start, window.end), env.zone, env.firstDayOfWeek)
+        val (unit, buckets) = trendBuckets(visible, env.zone, lastUnit)
+        lastUnit = unit
+        val previousBuckets = if (controls.compare) {
+            val previous = PeriodCalculator.resolve(PeriodCalculator.previous(period.period), env.zone, env.firstDayOfWeek)
+            BucketPlan.split(previous.fromDate, previous.toDateInclusive, unit, env.zone)
+        } else {
+            null
+        }
+        val scope = resolveScope(controls.selectedAccountIds, env.allAccounts, env.display)
+        val base = TransactionFilter(
+            accountIds = controls.selectedAccountIds,
+            categoryIds = controls.path.lastOrNull()?.let { setOf(it) } ?: emptySet(),
+        )
+        val converter = ScopeConverter(scope, env.table, env.now)
+        val before = previousBuckets?.let { analytics.observeByBucket(base, measure, it).asRows() } ?: flowOf(null)
+        return combine(analytics.observeByBucket(base, measure, buckets).asRows(), before) { rows, previousRows ->
+            val points = Reports.trend(buckets, rows.list(), converter)
+            val compare = if (previousBuckets != null && previousRows != null) {
+                val previousValues = trendValues(Reports.trend(previousBuckets, previousRows.list(), converter), env.today)
+                alignPrevious(buckets, previousBuckets).map { index -> index?.let { previousValues[it] } }
+            } else {
+                null
+            }
+            StatsTrend(
+                window = window,
+                measure = measure,
+                unit = unit,
+                buckets = buckets,
+                values = trendValues(points, env.today),
+                compare = compare,
+                average = trendAverage(points, env.today, scope.currency()),
+                currency = scope.currency(),
+                base = base,
             )
-            val tab = FlowTab(report, base, trendBase, buckets)
-            StatsContent.Flows(tab) to cellsOf(report)
         }
     }
 
@@ -292,19 +396,19 @@ class StatisticsViewModel @Inject constructor(
         scope: CurrencyScope,
         previous: ResolvedPeriod?,
     ): Flow<Pair<StatsContent, Collection<Cell>>> {
-        val chosen = controls.tagFilter
+        // A picked tag that was deleted since does not count (it has no chip to remove it by).
+        val knownTags = env.tags.map { it.id }.toSet()
+        val chosen = controls.tagFilter.let { it.copy(tagIds = it.tagIds.filter(knownTags::contains).toSet()) }
         val effectiveAccountIds = if (chosen.accountIds.isNotEmpty()) chosen.accountIds else controls.selectedAccountIds
         val filter = chosen.copy(
             from = env.period.from,
             toExclusive = env.period.toExclusive,
             accountIds = effectiveAccountIds,
         )
-        if (filter.tagIds.isEmpty()) {
-            return flowOf(StatsContent.Tags(TagsTab(filter, null, emptyList())) to emptyList())
-        }
         val measure = chosen.types.singleOrNull()?.let { type ->
             Measure.entries.firstOrNull { it.operationType() == type }
         } ?: controls.tagMeasure
+        if (filter.tagIds.isEmpty()) return tagRanking(env, scope, filter, measure)
         val previousFilter = previous?.let { filter.copy(from = it.from, toExclusive = it.toExclusive) }
         val (unit, buckets) = BucketPlan.auto(env.period, env.zone)
 
@@ -348,6 +452,19 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
+    private fun tagRanking(
+        env: AnalyticsEnv,
+        scope: CurrencyScope,
+        filter: TransactionFilter,
+        measure: Measure,
+    ): Flow<Pair<StatsContent, Collection<Cell>>> =
+        analytics.observeByTag(filter, measure).asRows().map { rows ->
+            val cells = Reports.cells(rows.list(), ScopeConverter(scope, env.table, env.now))
+            val ranked = rankTags(env.tags, cells)
+            val shown = ranked.map { it.cell } + listOfNotNull(ReportBuilder.OVERFLOW.takeIf { rows.overflowed })
+            StatsContent.TagRanking(ranked, measure) to shown
+        }
+
     private class TagParts(
         val totals: Triple<Rows, Rows, Rows>,
         val previousTotals: Triple<Rows, Rows, Rows>?,
@@ -374,17 +491,16 @@ class StatisticsViewModel @Inject constructor(
         listOf(report.category.total) +
             report.category.lines.map { it.row.cell } +
             report.byAccount.map { it.cell } +
-            report.byTag.map { it.cell } +
-            report.trend.map { it.cell }
+            report.byTag.map { it.cell }
 
     companion object {
         private const val KEY_TAB = "tab"
         private const val KEY_ACCOUNTS = "stats_accounts"
         private const val KEY_COMPARE = "stats_compare"
         private const val KEY_PATH = "stats_path"
-        private const val KEY_YEARLY = "stats_yearly"
         private const val KEY_TAG_FILTER = "stats_tag_filter"
         private const val KEY_TAG_MEASURE = "stats_tag_measure"
         private const val TAG_RECENT = 5
+        private const val PREVIEW_THROTTLE_MS = 50L
     }
 }

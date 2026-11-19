@@ -36,6 +36,11 @@ object BucketPlan {
             months <= MAX_MONTH_BUCKET_MONTHS -> BucketUnit.MONTH
             else -> BucketUnit.YEAR
         }
+        return unit to split(from, to, unit, zone)
+    }
+
+    /** Buckets of [unit] from [from] to [to] (inclusive); the first and last are clipped to the range. */
+    fun split(from: LocalDate, to: LocalDate, unit: BucketUnit, zone: ZoneId): List<Bucket> {
         val ranges = ArrayList<Pair<LocalDate, LocalDate>>()
         var cursor = from
         while (!cursor.isAfter(to) && ranges.size < MAX_BUCKETS) {
@@ -48,7 +53,7 @@ object BucketPlan {
             ranges += cursor to end
             cursor = end.plusDays(1)
         }
-        return unit to ranges.mapIndexed { i, (a, b) -> bucket(i, a, b, zone) }
+        return ranges.mapIndexed { i, (a, b) -> bucket(i, a, b, zone) }
     }
 
     /** [count] calendar months ending with the month that contains [endDate]. */

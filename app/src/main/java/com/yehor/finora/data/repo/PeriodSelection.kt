@@ -25,5 +25,8 @@ class PeriodSelection @Inject constructor() {
 
     fun setCustom(start: LocalDate, end: LocalDate) = _state.update { PeriodState.custom(start, end) }
 
+    /** Sets an exact state, e.g. the window the Statistics trend was panned or pinched to. */
+    fun set(state: PeriodState) = _state.update { state }
+
     fun shift(steps: Int, today: LocalDate) = _state.update { it.shifted(steps, today) }
 }

@@ -1,0 +1,98 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:330px;height:720px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;padding:16px 18px 0;box-shadow:0 0 0 1px rgba(255,255,255,.08);position:relative;overflow:hidden}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}
+.ico{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.round{width:38px;height:38px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center;color:#c6c6cb}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:13px;font-weight:600;width:fit-content}
+.seg span{padding:7px 14px;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+/* stacked wallet */
+.stack{position:relative;margin-top:16px}
+.acard{border-radius:24px;padding:16px 18px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.acard::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0%,rgba(255,255,255,.10),transparent 60%);pointer-events:none}
+.acard + .acard{margin-top:-44px}
+.acard .t{font-size:11px;letter-spacing:1.4px;font-weight:700;opacity:.75}
+.acard .n{font-size:16px;font-weight:700}
+.acard .b{font-size:24px;font-weight:700;margin-top:18px}
+.c1{background:linear-gradient(135deg,#1d3b31,#16211d)}
+.c2{background:linear-gradient(135deg,#2f2a45,#1c1a26)}
+.c3{background:linear-gradient(135deg,#3b2f22,#211b16)}
+.c4{background:linear-gradient(135deg,#243344,#171d25);height:120px}
+.list{background:#1b1c1d;border-radius:22px;padding:2px 14px;margin-top:10px}
+.it{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.it:last-child{border:none}
+.dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.sec{font-size:12px;font-weight:700;color:#8b919c;letter-spacing:.5px;margin:18px 4px 0}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.acts div{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:12px;font-weight:600}
+.acts b{width:52px;height:52px;border-radius:50%;background:#1f2021;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.06)}
+.tx{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.tx:last-child{border:none}
+.ic{width:36px;height:36px;border-radius:50%;background:#292a2b;display:flex;align-items:center;justify-content:center}
+.navA{position:absolute;left:18px;right:18px;bottom:14px;height:56px;box-sizing:border-box;background:rgba(30,32,36,.95);border:1px solid rgba(255,255,255,.08);border-radius:999px;display:flex;align-items:center;justify-content:space-around;padding:0 7px}
+.navA span{display:flex;align-items:center;gap:6px;height:42px;padding:0 11px;border-radius:999px;color:#8b919c;font-size:12px;font-weight:700}
+.navA span.on{background:#00e599;color:#003822}
+.fab{position:absolute;right:22px;bottom:84px;height:52px;padding:0 18px 0 14px;border-radius:999px;background:#00e599;color:#003822;display:flex;align-items:center;gap:6px;font-weight:700;box-shadow:0 6px 20px rgba(0,229,153,.3)}
+.fade{position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(transparent,#121314 55%)}
+.wrap{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.lab{text-align:center;font-weight:700;margin-bottom:8px}
+.spark{margin-top:12px}
+</style>
+
+<h2>Accounts, inspired by dd_card_editor</h2>
+<p class="subtitle">Accounts become cards in each account's own color. The list stacks them like a wallet, and the detail screen opens one card large with round action buttons.</p>
+
+<div class="wrap">
+
+<div>
+<div class="lab">Accounts list</div>
+<div class="ph">
+  <div class="row"><b class="g" style="font-size:24px">Accounts</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg></span></div>
+  <div class="row" style="margin-top:14px"><div class="seg"><span class="on">Active (4)</span><span>Archived (1)</span></div></div>
+
+  <div class="stack">
+    <div class="acard c1"><div class="row"><span class="n">Monobank</span><span class="t">BANK · UAH</span></div><div class="g b">₴46,200<span style="opacity:.5">.00</span></div></div>
+    <div class="acard c2"><div class="row"><span class="n">Revolut</span><span class="t">BANK · EUR</span></div><div class="g b">€4,210<span style="opacity:.5">.55</span></div></div>
+    <div class="acard c3"><div class="row"><span class="n">Cash</span><span class="t">CASH · USD</span></div><div class="g b">$478<span style="opacity:.5">.00</span></div></div>
+    <div class="acard c4"><div class="row"><span class="n">Savings</span><span class="t">SAVINGS · USD</span></div><div class="g b">$19,012<span style="opacity:.5">.00</span></div></div>
+  </div>
+  <p class="muted" style="font-size:12px;text-align:center;margin-top:10px">Tap a card to open it · long-press to drag and reorder</p>
+
+  <div class="fade"></div>
+  <div class="fab"><svg class="ico" viewBox="0 0 24 24" style="stroke-width:2.2"><path d="M12 5v14M5 12h14"/></svg>Account</div>
+  <div class="navA">
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg></span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+    <span class="on"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M16 12.5h2M3 10h18"/></svg>Accounts</span>
+    <span><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></span>
+  </div>
+</div></div>
+
+<div>
+<div class="lab">Account detail</div>
+<div class="ph">
+  <div class="row"><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></span><b class="g" style="font-size:17px">Monobank</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></span></div>
+  <div class="acard c1" style="margin-top:16px;padding:20px">
+    <div class="row"><span style="width:36px;height:36px;border-radius:12px;background:rgba(109,255,186,.18);display:flex;align-items:center;justify-content:center;color:#6dffba"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10 12 4l9 6M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18"/></svg></span><span class="t">BANK · UAH</span></div>
+    <div class="muted" style="font-size:12px;margin-top:22px">Balance</div>
+    <div class="g" style="font-size:34px;font-weight:700">₴46,200<span style="opacity:.5">.00</span></div>
+    <svg class="spark" viewBox="0 0 260 40" width="100%" height="40"><defs><linearGradient id="sp" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00e599" stop-opacity=".35"/><stop offset="1" stop-color="#00e599" stop-opacity="0"/></linearGradient></defs>
+      <path d="M0 30 C30 28 50 34 80 26 S130 10 160 18 S220 8 260 6 L260 40 L0 40Z" fill="url(#sp)"/><path d="M0 30 C30 28 50 34 80 26 S130 10 160 18 S220 8 260 6" fill="none" stroke="#00e599" stroke-width="2"/></svg>
+    <div class="row" style="font-size:11px"><span class="muted">Opening ₴12,000 · Jan 2025</span><span class="mint">+₴3,240 this month</span></div>
+  </div>
+  <div class="acts">
+    <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></b>Expense</div>
+    <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></b>Income</div>
+    <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M7 7h12l-3-3M17 17H5l3 3"/></svg></b>Transfer</div>
+    <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M8 15l4-5 3 3 5-6"/></svg></b>Stats</div>
+  </div>
+  <div class="row" style="margin-top:20px"><b class="g" style="font-size:17px">Recent</b><span class="mint" style="font-size:12px;font-weight:600">See all</span></div>
+  <div class="list" style="margin-top:8px">
+    <div class="tx"><span class="ic"><svg class="ico" viewBox="0 0 24 24"><path d="M5 8h14l-1.5 11h-11z"/></svg></span><div style="flex:1"><b style="font-size:14px">Silpo</b><div class="muted" style="font-size:12px">Groceries · Today</div></div><b class="g">−₴2,640</b></div>
+    <div class="tx"><span class="ic" style="color:#6dffba;background:rgba(0,229,153,.12)"><svg class="ico" viewBox="0 0 24 24"><path d="M17 7 7 17M7 9v8h8"/></svg></span><div style="flex:1"><b style="font-size:14px">Salary</b><div class="muted" style="font-size:12px">Income · Yesterday</div></div><b class="g mint">+₴107k</b></div>
+  </div>
+</div></div>
+
+</div>

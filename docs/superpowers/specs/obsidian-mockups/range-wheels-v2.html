@@ -1,0 +1,88 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.stage{display:flex;justify-content:center}
+.sheet{width:340px;background:#1b1c1d;border-radius:30px 30px 0 0;color:#e3e2e3;font-family:Manrope,sans-serif;padding:0 20px 22px;user-select:none;box-shadow:0 -20px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.06)}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.muted{color:#8b919c}
+.grab{width:36px;height:4px;border-radius:9px;background:#47494d;margin:10px auto 18px}
+.title{display:flex;align-items:baseline;justify-content:space-between}
+.count{font-size:12px;font-weight:700;color:#6dffba;background:rgba(0,229,153,.12);border-radius:999px;padding:5px 10px;transition:.2s}
+.heads{display:grid;grid-template-columns:1fr 24px 1fr;margin-top:18px;font-size:10px;letter-spacing:1.4px;font-weight:700;color:#8b919c;text-align:center}
+.picker{position:relative;display:grid;grid-template-columns:1fr 24px 1fr;margin-top:8px;height:220px}
+.band{position:absolute;left:0;right:0;top:88px;height:44px;border-radius:16px;background:#292a2b;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06)}
+.side{position:relative;display:flex;justify-content:center;gap:2px}
+.wheel{height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;position:relative;z-index:1;
+  -webkit-mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);mask-image:linear-gradient(transparent,#000 35%,#000 65%,transparent);cursor:grab}
+.wheel::-webkit-scrollbar{display:none}
+.wheel .pad{height:88px}
+.wheel .it{height:44px;display:flex;align-items:center;justify-content:center;scroll-snap-align:center;font-size:17px;color:#6c727f;transition:color .15s,transform .15s,font-size .15s}
+.wheel .it.sel{color:#fff;font-size:20px;font-weight:600}
+.wheel .it.off{opacity:.25}
+.w-m{width:62px}.w-y{width:62px}
+.side.to .it.sel{color:#6dffba}
+.arrowmid{z-index:1;display:flex;align-items:center;justify-content:center;color:#6dffba;font-size:16px}
+.cta{margin-top:22px;background:#00e599;color:#003822;text-align:center;border-radius:999px;padding:15px;font-weight:700;font-size:15px;box-shadow:0 8px 28px rgba(0,229,153,.25)}
+.cta small{display:block;font-weight:600;opacity:.7;font-size:11px;margin-top:2px}
+.err{color:#ff7a6b}
+.notes{max-width:300px;font-size:14px;line-height:1.5}
+.wrap{display:flex;gap:36px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+</style>
+
+<h2>Range wheels, polished</h2>
+<p class="subtitle">These wheels really spin: scroll or drag each one. Months you can't pick yet fade out, and the button keeps up with your choice.</p>
+
+<div class="wrap">
+<div class="stage"><div class="sheet">
+  <div class="grab"></div>
+  <div class="title"><b class="g" style="font-size:20px">Choose range</b><span class="count" id="count">4 months</span></div>
+  <div class="heads"><span>FROM</span><span></span><span>TO</span></div>
+  <div class="picker">
+    <div class="band"></div>
+    <div class="side from"><div class="wheel w-m" data-k="fm"></div><div class="wheel w-y" data-k="fy"></div></div>
+    <div class="arrowmid">→</div>
+    <div class="side to"><div class="wheel w-m" data-k="tm"></div><div class="wheel w-y" data-k="ty"></div></div>
+  </div>
+  <div class="cta" id="cta">Show Nov 2025 – Feb 2026</div>
+</div></div>
+
+<div class="notes">
+  <h3>What's nicer now</h3>
+  <ul>
+    <li><b>One shared selection band</b> runs behind both wheels, so you read the range in one line: <i>Nov 2025 → Feb 2026</i>.</li>
+    <li>The "From" pick shows in white and the "To" pick in mint. The edges fade out, the selected row grows a little, and each wheel clicks into place.</li>
+    <li>A <b>month counter</b> chip sits at the top right. The button repeats the range in words.</li>
+    <li>Future months fade out. If "To" lands before "From", the counter turns red and the button is disabled.</li>
+    <li>On the phone, each step gives a tiny haptic tick.</li>
+  </ul>
+</div>
+</div>
+
+<script>
+const N=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const YEARS=[2022,2023,2024,2025,2026];const NOW=2026*12+10;
+const st={fm:10,fy:3,tm:1,ty:4};
+const H=44;
+document.querySelectorAll('.wheel').forEach(w=>{
+  const k=w.dataset.k, items=k.endsWith('m')?N:YEARS;
+  w.innerHTML='<div class="pad"></div>'+items.map(t=>'<div class="it">'+t+'</div>').join('')+'<div class="pad"></div>';
+  w.scrollTop=st[k]*H;
+  w.addEventListener('scroll',()=>{const i=Math.round(w.scrollTop/H);if(i!==st[k]){st[k]=Math.max(0,Math.min(items.length-1,i));upd()}});
+  w.addEventListener('click',e=>{e.stopPropagation()});
+});
+function upd(){
+  const s=YEARS[st.fy]*12+st.fm, e=YEARS[st.ty]*12+st.tm;
+  document.querySelectorAll('.wheel').forEach(w=>{
+    const k=w.dataset.k;
+    w.querySelectorAll('.it').forEach((el,i)=>{
+      el.classList.toggle('sel',i===st[k]);
+      let v; if(k.endsWith('m')) v=YEARS[k[0]==='f'?st.fy:st.ty]*12+i; else v=YEARS[i]*12+(k[0]==='f'?st.fm:st.tm);
+      el.classList.toggle('off',v>NOW);
+    });
+  });
+  const n=e-s+1, c=document.getElementById('count'), b=document.getElementById('cta');
+  const f=v=>N[v%12]+' '+Math.floor(v/12);
+  if(n<1||e>NOW){c.textContent=e>NOW?'in the future':'end before start';c.style.color='#ff7a6b';c.style.background='rgba(255,122,107,.12)';b.style.opacity=.35;b.textContent='Pick a valid range';}
+  else{c.textContent=n+' month'+(n>1?'s':'');c.style.color='';c.style.background='';b.style.opacity=1;b.textContent='Show '+(n===1?f(s):f(s)+' – '+f(e));}
+}
+upd();
+</script>

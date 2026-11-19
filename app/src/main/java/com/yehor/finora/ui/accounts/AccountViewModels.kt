@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.yehor.finora.data.repo.AccountRepository
+import com.yehor.finora.data.repo.AnalyticsRepository
 import com.yehor.finora.data.repo.OpeningBalanceOrderException
 import com.yehor.finora.data.repo.RateRepository
 import com.yehor.finora.data.repo.SettingsRepository
@@ -13,22 +14,30 @@ import com.yehor.finora.domain.account.AccountType
 import com.yehor.finora.domain.account.AccountWithBalance
 import com.yehor.finora.domain.account.OpeningDatePolicy
 import com.yehor.finora.domain.model.AccountStatus
+import com.yehor.finora.domain.analytics.BalancePoint
 import com.yehor.finora.domain.money.Currency
+import com.yehor.finora.domain.money.MoneyOverflowException
 import com.yehor.finora.domain.operation.TransactionFilter
 import com.yehor.finora.domain.operation.TransactionItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.time.ZoneId
 import javax.inject.Inject
 
@@ -39,28 +48,68 @@ data class AccountsUiState(
     val active: List<AccountWithBalance> = emptyList(),
     val archived: List<AccountWithBalance> = emptyList(),
     val valuation: ValuationCardState? = null,
+    val displayCurrency: Currency? = null,
+    /** Share of each active account in the total, for the split bar. */
+    val shares: List<Pair<Long, Float>> = emptyList(),
+    /** Sparkline and this-month change per active account; missing until the series arrive. */
+    val trends: Map<Long, AccountTrend> = emptyMap(),
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
-    repository: AccountRepository,
+    private val repository: AccountRepository,
     rates: RateRepository,
     settings: SettingsRepository,
+    analytics: AnalyticsRepository,
 ) : ViewModel() {
+
+    // One flow for all accounts' series, so rows never run queries of their own.
+    private val trends: Flow<Map<Long, AccountTrend>> = repository.observeAll()
+        .map { list -> list.filter { it.account.status == AccountStatus.ACTIVE }.map { it.account.id } }
+        .distinctUntilChanged()
+        .flatMapLatest { ids ->
+            if (ids.isEmpty()) {
+                flowOf(emptyMap())
+            } else {
+                val zone = ZoneId.systemDefault()
+                val today = LocalDate.now(zone)
+                val buckets = trendBuckets(today, zone)
+                val monthStart = today.withDayOfMonth(1)
+                combine(
+                    ids.map { id ->
+                        analytics.observeBalanceSeries(id, buckets)
+                            .catch { e -> if (e is MoneyOverflowException) emit(emptyList<BalancePoint>()) else throw e }
+                            .map { id to accountTrend(it, monthStart) }
+                    },
+                ) { it.toMap() }
+            }
+        }
+        .onStart { emit(emptyMap()) }
+
     val state: StateFlow<AccountsUiState> = combine(
         repository.observeAll(),
         rates.observeTable(),
         settings.displayCurrency,
-    ) { list, table, display ->
+        trends,
+    ) { list, table, display, trendMap ->
         val (active, archived) = list.partition { it.account.status == AccountStatus.ACTIVE }
+        val now = System.currentTimeMillis()
         AccountsUiState(
             loading = false,
             active = active,
             archived = archived,
-            valuation = ValuationCardLogic.build(active, display.currency, table, System.currentTimeMillis()),
+            valuation = ValuationCardLogic.build(active, display.currency, table, now),
+            displayCurrency = display.currency,
+            shares = accountShares(convertedBalances(active, display.currency, table, now)),
+            trends = trendMap,
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountsUiState())
+
+    fun restore(accountId: Long) {
+        viewModelScope.launch { repository.setArchived(accountId, false) }
+    }
 }
 
 // ---- Account detail ----
@@ -73,6 +122,7 @@ sealed interface AccountDetailUiState {
         val transactionCount: Int,
         val scheduleCount: Int = 0,
         val recentTransactions: List<TransactionItem> = emptyList(),
+        val trend: AccountTrend = AccountTrend(emptyList(), null),
     ) : AccountDetailUiState
 }
 
@@ -82,13 +132,24 @@ class AccountDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: AccountRepository,
     transactionRepository: TransactionRepository,
+    analytics: AnalyticsRepository,
 ) : ViewModel() {
     private val accountId: Long = checkNotNull(savedStateHandle["accountId"])
+
+    private val trend: Flow<AccountTrend> = run {
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now(zone)
+        analytics.observeBalanceSeries(accountId, trendBuckets(today, zone))
+            .catch { e -> if (e is MoneyOverflowException) emit(emptyList<BalancePoint>()) else throw e }
+            .map { accountTrend(it, today.withDayOfMonth(1)) }
+            .onStart { emit(AccountTrend(emptyList(), null)) }
+    }
 
     val state: StateFlow<AccountDetailUiState> = combine(
         repository.observe(accountId),
         transactionRepository.observeRecent(TransactionFilter(accountIds = setOf(accountId)), RECENT_LIMIT),
-    ) { detail, recent ->
+        trend,
+    ) { detail, recent, trend ->
         if (detail == null) {
             AccountDetailUiState.Missing
         } else {
@@ -97,6 +158,7 @@ class AccountDetailViewModel @Inject constructor(
                 repository.nonOpeningEntryCount(accountId),
                 repository.scheduleCount(accountId),
                 recent,
+                trend,
             )
         }
     }

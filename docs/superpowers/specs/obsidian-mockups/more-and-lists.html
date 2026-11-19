@@ -1,0 +1,90 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+.ph{width:300px;height:620px;background:#121314;color:#e3e2e3;font-family:Manrope,sans-serif;border-radius:28px;box-shadow:0 0 0 1px rgba(255,255,255,.08);padding:16px;position:relative;overflow:hidden}
+.g{font-family:'Space Grotesk',sans-serif;font-variant-numeric:tabular-nums}
+.row{display:flex;align-items:center;justify-content:space-between}
+.muted{color:#8b919c}.mint{color:#6dffba}
+.ico{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.round{width:36px;height:36px;border-radius:50%;background:#1e2024;display:flex;align-items:center;justify-content:center;color:#c6c6cb}
+.grp{background:#1b1c1d;border-radius:22px;padding:0 14px;margin-top:10px;border:1px solid rgba(255,255,255,.05)}
+.c{display:flex;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.c:last-child{border:none}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#292a2b;color:#c6c6cb}
+.sub{font-size:12px;color:#8b919c}
+.sec{font-size:11px;font-weight:700;color:#8b919c;letter-spacing:1.2px;margin:16px 6px 0}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.55)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#1b1c1d;border-radius:28px 28px 0 0;padding:10px 16px 22px}
+.sheet .grp{background:#121314}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.tiles div{background:#121314;border-radius:20px;padding:14px 6px;text-align:center;font-size:12px;font-weight:600}
+.tiles b{width:40px;height:40px;border-radius:50%;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:rgba(0,229,153,.12);color:#6dffba}
+.seg{display:flex;background:#1b1c1d;border-radius:999px;padding:4px;font-size:12px;font-weight:600;margin-top:12px}
+.seg span{flex:1;text-align:center;padding:7px 0;border-radius:999px;color:#8b919c}.seg span.on{background:#343536;color:#fff}
+.tog{width:38px;height:22px;border-radius:99px;background:#00e599;position:relative;flex-shrink:0}.tog::after{content:"";position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#003822}
+.tog.off{background:#343536}.tog.off::after{left:3px;right:auto;background:#8b919c}
+.kid{padding-left:22px;position:relative}.kid::before{content:"";position:absolute;left:17px;top:0;bottom:50%;width:12px;border-left:1.5px solid #343536;border-bottom:1.5px solid #343536;border-bottom-left-radius:8px}
+.kid .av{width:30px;height:30px}
+.wrap{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;align-items:flex-start}
+.lab{text-align:center;font-weight:700;margin-bottom:8px}
+</style>
+
+<h2>More, and the smaller screens</h2>
+<p class="subtitle">The style we've settled on (shared cards, round icons, pills, slide-up panels) applied to the rest of the app. One example of each kind of screen.</p>
+
+<div class="wrap">
+
+<div>
+<div class="lab">⋯ More, as a slide-up panel</div>
+<div class="ph">
+  <div style="opacity:.35"><b class="g" style="font-size:20px">FINORA</b></div>
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div style="width:36px;height:4px;border-radius:9px;background:#47494d;margin:0 auto 14px"></div>
+    <div class="sec" style="margin-top:0">ORGANIZE</div>
+    <div class="tiles">
+      <div><b><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg></b>Categories</div>
+      <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M9 4 7 20M17 4l-2 16M4 9h16M3 15h16"/></svg></b>Tags</div>
+      <div><b><svg class="ico" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5"/></svg></b>Recurring</div>
+    </div>
+    <div class="sec">APP</div>
+    <div class="grp">
+      <div class="c"><span class="av"><svg class="ico" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3"/></svg></span><div style="flex:1"><b style="font-size:14px">Data</b><div class="sub">Backup, restore, CSV export</div></div><span class="muted">›</span></div>
+      <div class="c"><span class="av"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg></span><div style="flex:1"><b style="font-size:14px">Settings</b><div class="sub">Theme, language, currency</div></div><span class="muted">›</span></div>
+    </div>
+  </div>
+</div></div>
+
+<div>
+<div class="lab">Categories (tree)</div>
+<div class="ph">
+  <div class="row"><span class="round">‹</span><b class="g" style="font-size:17px">Categories</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div>
+  <div class="seg"><span class="on">Expense</span><span>Income</span><span>Transfer</span></div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:rgba(255,159,110,.15);color:#ff9f6e"><svg class="ico" viewBox="0 0 24 24"><path d="M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"/></svg></span><div style="flex:1"><b style="font-size:14px">Food &amp; Dining</b><div class="sub">3 subcategories</div></div><span class="muted">▾</span></div>
+    <div class="c kid"><span class="av" style="background:rgba(255,159,110,.1);color:#ff9f6e">R</span><div style="flex:1"><b style="font-size:14px">Restaurants</b><div class="sub">2 subcategories</div></div><span class="muted">▸</span></div>
+    <div class="c kid"><span class="av" style="background:rgba(255,159,110,.1);color:#ff9f6e">G</span><div style="flex:1"><b style="font-size:14px">Groceries</b></div></div>
+    <div class="c"><span class="av" style="background:rgba(120,180,255,.14);color:#78b4ff"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="10" rx="3"/><circle cx="8" cy="18" r="1.5"/><circle cx="16" cy="18" r="1.5"/></svg></span><div style="flex:1"><b style="font-size:14px">Transport</b><div class="sub">2 subcategories</div></div><span class="muted">▸</span></div>
+    <div class="c"><span class="av" style="background:rgba(177,140,255,.14);color:#b18cff"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="12" rx="2"/><path d="m10 9 4 2-4 2z"/></svg></span><div style="flex:1"><b style="font-size:14px">Subscriptions</b></div></div>
+  </div>
+  <p class="muted" style="font-size:12px;text-align:center;margin-top:10px">Tap to edit · ▸ to open · long-press to move</p>
+</div></div>
+
+<div>
+<div class="lab">Recurring</div>
+<div class="ph">
+  <div class="row"><span class="round">‹</span><b class="g" style="font-size:17px">Recurring</b><span class="round"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span></div>
+  <div style="background:#1b1c1d;border-radius:22px;padding:14px;margin-top:14px">
+    <div class="sub" style="font-weight:700;letter-spacing:1px;font-size:11px">NEXT 30 DAYS</div>
+    <div class="row" style="margin-top:4px"><b class="g" style="font-size:22px">−$486</b><span class="mint g" style="font-weight:600">+$2,600</span></div>
+  </div>
+  <div class="sec">UPCOMING</div>
+  <div class="grp">
+    <div class="c"><span class="av" style="background:rgba(255,160,90,.14);color:#ffa05a"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg></span><div style="flex:1"><b style="font-size:14px">Spotify</b><div class="sub">Monthly · in 3 days</div></div><div style="text-align:right"><b class="g">−$10.99</b><div class="sub">Nov 14</div></div></div>
+    <div class="c"><span class="av" style="background:rgba(0,229,153,.12);color:#6dffba"><svg class="ico" viewBox="0 0 24 24"><path d="M17 7 7 17M7 9v8h8"/></svg></span><div style="flex:1"><b style="font-size:14px">Salary</b><div class="sub">Monthly · in 18 days</div></div><div style="text-align:right"><b class="g mint">+$2,600</b><div class="sub">Nov 29</div></div></div>
+    <div class="c"><span class="av"><svg class="ico" viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v9H4z"/></svg></span><div style="flex:1"><b style="font-size:14px">Rent</b><div class="sub">Monthly · in 21 days</div></div><div style="text-align:right"><b class="g">−$450</b><div class="sub">Dec 1</div></div></div>
+  </div>
+  <div class="sec">PAUSED</div>
+  <div class="grp"><div class="c" style="opacity:.55"><span class="av">G</span><div style="flex:1"><b style="font-size:14px">Gym</b><div class="sub">Monthly · paused</div></div><span class="tog off"></span></div></div>
+</div></div>
+
+</div>

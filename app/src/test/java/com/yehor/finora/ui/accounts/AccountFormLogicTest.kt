@@ -120,6 +120,47 @@ class AccountFormLogicTest {
     }
 
     @Test
+    fun blockerReportsTheFirstProblem() {
+        fun b(s: AccountFormState) = AccountFormLogic.blocker(s, policy, now)
+        assertNull(b(state()))
+        assertEquals(AccountFormBlocker.LOADING, b(state().copy(loaded = false)))
+        assertEquals(AccountFormBlocker.SAVING, b(state().copy(saving = true)))
+        assertEquals(AccountFormBlocker.NAME_EMPTY, b(state(name = " ")))
+        assertEquals(AccountFormBlocker.NAME_TOO_LONG, b(state(name = "x".repeat(51))))
+        assertEquals(AccountFormBlocker.CURRENCY_MISSING, b(state().copy(currency = null)))
+        assertEquals(AccountFormBlocker.AMOUNT_INVALID, b(state(amount = "abc")))
+        assertEquals(AccountFormBlocker.AMOUNT_INVALID, b(state(amount = "1.234")))
+        assertEquals(AccountFormBlocker.DESCRIPTION_TOO_LONG, b(state().copy(description = "d".repeat(501))))
+        val entryDay = 90 * day + 3_600_000
+        assertEquals(AccountFormBlocker.DATE_TOO_LATE, b(state(amount = "10", earliest = entryDay, date = today)))
+        // Name problems win over later ones.
+        assertEquals(AccountFormBlocker.NAME_EMPTY, b(state(name = "", amount = "abc").copy(currency = null)))
+    }
+
+    @Test
+    fun canSaveIsExactlyNoBlocker() {
+        val entryDay = 90 * day + 3_600_000
+        listOf(
+            state(), state(name = ""), state(amount = "x"), state().copy(saving = true),
+            state(amount = "10", earliest = entryDay, date = today), state().copy(currency = null),
+        ).forEach {
+            assertEquals(AccountFormLogic.blocker(it, policy, now) == null, AccountFormLogic.canSave(it, policy, now))
+        }
+    }
+
+    @Test
+    fun toggleSignFlipsTheLeadingMinus() {
+        assertEquals("-", AccountFormLogic.toggleSign(""))
+        assertEquals("-", AccountFormLogic.toggleSign("  "))
+        assertEquals("-12", AccountFormLogic.toggleSign("12"))
+        assertEquals("12", AccountFormLogic.toggleSign("-12"))
+        assertEquals("0.5", AccountFormLogic.toggleSign("-0.5"))
+        assertEquals("-12", AccountFormLogic.toggleSign(" 12 "))
+        assertEquals("12", AccountFormLogic.toggleSign(" - 12 "))
+        assertEquals("", AccountFormLogic.toggleSign("-"))
+    }
+
+    @Test
     fun archiveConfirmationOnlyForNonZeroBalance() {
         assertFalse(archiveNeedsConfirmation(Balance.Value(Money(0, usd))))
         assertTrue(archiveNeedsConfirmation(Balance.Value(Money(-1, usd))))

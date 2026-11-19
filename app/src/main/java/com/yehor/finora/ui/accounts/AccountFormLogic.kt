@@ -35,6 +35,11 @@ data class AccountFormState(
     val saveFailed: Boolean = false,
 )
 
+/** Why the form's primary button is disabled. */
+enum class AccountFormBlocker {
+    LOADING, SAVING, NAME_EMPTY, NAME_TOO_LONG, CURRENCY_MISSING, AMOUNT_INVALID, DESCRIPTION_TOO_LONG, DATE_TOO_LATE,
+}
+
 object AccountFormLogic {
 
     /** Scale used to parse the opening balance text while no currency is chosen yet. */
@@ -64,8 +69,36 @@ object AccountFormLogic {
     fun dateTooLate(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean =
         openingMinor(s) != null && s.dateMillis > policy.latestAllowed(now, s.earliestOtherEntryAt)
 
+    private val AMOUNT_ERRORS: Set<AccountDraftError> = setOf(
+        AccountDraftError.AMOUNT_INVALID,
+        AccountDraftError.AMOUNT_TOO_PRECISE,
+        AccountDraftError.AMOUNT_OUT_OF_RANGE,
+    )
+
+    /** The first reason the form cannot be saved yet, null when it can. */
+    fun blocker(s: AccountFormState, policy: OpeningDatePolicy, now: Long): AccountFormBlocker? {
+        if (!s.loaded) return AccountFormBlocker.LOADING
+        if (s.saving) return AccountFormBlocker.SAVING
+        val errors = errors(s)
+        return when {
+            AccountDraftError.NAME_EMPTY in errors -> AccountFormBlocker.NAME_EMPTY
+            AccountDraftError.NAME_TOO_LONG in errors -> AccountFormBlocker.NAME_TOO_LONG
+            s.currency == null -> AccountFormBlocker.CURRENCY_MISSING
+            errors.any { it in AMOUNT_ERRORS } -> AccountFormBlocker.AMOUNT_INVALID
+            AccountDraftError.DESCRIPTION_TOO_LONG in errors -> AccountFormBlocker.DESCRIPTION_TOO_LONG
+            dateTooLate(s, policy, now) -> AccountFormBlocker.DATE_TOO_LATE
+            else -> null
+        }
+    }
+
     fun canSave(s: AccountFormState, policy: OpeningDatePolicy, now: Long): Boolean =
-        s.loaded && !s.saving && s.currency != null && errors(s).isEmpty() && !dateTooLate(s, policy, now)
+        blocker(s, policy, now) == null
+
+    /** Flips the sign of the amount text: "" -> "-", "12" <-> "-12". Surrounding whitespace is dropped. */
+    fun toggleSign(text: String): String {
+        val t = text.trim()
+        return if (t.startsWith("-")) t.removePrefix("-").trimStart() else "-$t"
+    }
 
     /**
      * Non-blocking warning on edit: the amount of change to the current balance. Null when the account has

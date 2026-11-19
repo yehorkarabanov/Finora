@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_stack" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-error-container": "#ffdad6", "surface-container-highest": "#313632", "surface-tint": "#c8bfff", "error": "#ffb4ab", "secondary-fixed-dim": "#c8bfff", "outline-variant": "#484553", "primary-fixed": "#e5deff", "on-surface": "#dfe4de", "background": "#0f1412", "surface-dim": "#0f1412", "on-primary-fixed-variant": "#4532a4", "surface-bright": "#353a37", "error-container": "#93000a", "surface": "#0f1412", "tertiary-fixed": "#7bf9c6", "on-secondary-container": "#b7abff", "on-tertiary": "#003826", "primary-fixed-dim": "#c8bfff", "inverse-surface": "#dfe4de", "surface-container-high": "#262b28", "secondary-container": "#463795", "on-secondary": "#2f1d7d", "on-background": "#dfe4de", "surface-container-lowest": "#0a0f0c", "on-surface-variant": "#c9c4d5", "tertiary-container": "#008661", "primary-container": "#7565d7", "on-primary": "#2e138e", "on-error": "#690005", "secondary": "#c8bfff", "on-secondary-fixed-variant": "#463795", "on-tertiary-fixed": "#002115", "inverse-primary": "#5d4cbd", "tertiary": "#5cddab", "on-primary-container": "#fffeff", "surface-container": "#1c211e", "primary": "#c8bfff", "inverse-on-surface": "#2c322e", "tertiary-fixed-dim": "#5cddab", "surface-variant": "#313632", "on-primary-fixed": "#190064", "outline": "#928f9e", "on-tertiary-container": "#fcfffa", "surface-container-low": "#181d1a", "secondary-fixed": "#e5deff", "on-secondary-fixed": "#1a0063", "on-tertiary-fixed-variant": "#005139" }, borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" }, spacing: { "space-xs": "0.25rem", "margin-lg": "1.5rem", "space-md": "0.75rem", "margin-sm": "1rem", "space-lg": "1rem", "space-sm": "0.5rem", "margin": "1.25rem", "space-xl": "1.5rem", "gutter-sm": "0.75rem", "gutter": "1rem" }, fontFamily: { "headline-sm": ["Inter"], "body-sm": ["Inter"], "label-md": ["Inter"], "mono-metric": ["Inter"], "body-md": ["Inter"], "display-sm": ["Inter"], "balance-hero": ["Inter"], "headline-md": ["Inter"], "headline-lg": ["Inter"], "label-sm": ["Inter"], "body-lg": ["Inter"], "balance-card": ["Inter"], "display-lg": ["Inter"] }, fontSize: { "headline-sm": ["17px", { lineHeight: "22px", letterSpacing: "-0.01em", fontWeight: "500" }], "body-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "400" }], "label-md": ["13px", { lineHeight: "16px", letterSpacing: "0.01em", fontWeight: "500" }], "mono-metric": ["13px", { lineHeight: "18px", letterSpacing: "0em", fontWeight: "500" }], "body-md": ["14px", { lineHeight: "20px", letterSpacing: "0em", fontWeight: "400" }], "display-sm": ["32px", { lineHeight: "38px", letterSpacing: "-0.025em", fontWeight: "600" }], "balance-hero": ["34px", { lineHeight: "40px", letterSpacing: "-0.03em", fontWeight: "600" }], "headline-md": ["20px", { lineHeight: "26px", letterSpacing: "-0.015em", fontWeight: "500" }], "headline-lg": ["26px", { lineHeight: "32px", letterSpacing: "-0.02em", fontWeight: "600" }], "label-sm": ["11px", { lineHeight: "14px", letterSpacing: "0.04em", fontWeight: "600" }], "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "-0.01em", fontWeight: "400" }], "balance-card": ["22px", { lineHeight: "28px", letterSpacing: "-0.02em", fontWeight: "600" }], "display-lg": ["40px", { lineHeight: "48px", letterSpacing: "-0.03em", fontWeight: "600" }] } } } };</script><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#0f1412;color:#dfe4de;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent;}body{overscroll-behavior-y:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-on-surface antialiased flex flex-col min-h-screen selection:bg-primary-container selection:text-on-primary-container"><header class="fixed top-0 inset-x-0 z-50 bg-surface/85 backdrop-blur-xl pt-safe shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-6 px-margin flex items-center justify-between text-on-surface-variant text-[11px] font-medium tracking-tight select-none"><span>09:41</span><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[13px]">wifi</span><span class="material-symbols-outlined text-[13px]">signal_cellular_4_bar</span><span class="material-symbols-outlined text-[13px]">battery_full</span></div></div><div class="h-14 px-margin flex items-center justify-between"><div class="flex items-center gap-space-sm"><button aria-label="Navigate back" class="w-11 h-11 -ml-space-sm rounded-full flex items-center justify-center text-on-surface hover:text-primary transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[22px]">arrow_back</span></button><h1 class="font-headline-md text-headline-md text-on-surface tracking-tight font-medium">Transaction Detail</h1></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="flex flex-col relative w-full px-margin pt-20 pb-safe bg-surface min-h-screen"><div class="flex flex-col w-full pb-8">
+<!-- Segmented Type Selector -->
+<section class="w-full mb-space-lg">
+<div class="bg-surface-container p-1 rounded-full flex items-center justify-between shadow-sm">
+<button class="flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 bg-surface-container-high text-error shadow-sm font-label-md text-label-md" id="type-expense-btn" onclick="setTxType('expense')">
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+<span>Expense</span>
+</button>
+<button class="flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 text-on-surface-variant hover:text-on-surface font-label-md text-label-md" id="type-income-btn" onclick="setTxType('income')">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+<span>Income</span>
+</button>
+<button class="flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 text-on-surface-variant hover:text-on-surface font-label-md text-label-md" id="type-transfer-btn" onclick="setTxType('transfer')">
+<span class="material-symbols-outlined text-[16px]">sync_alt</span>
+<span>Transfer</span>
+</button>
+</div>
+</section>
+<!-- Hero Amount Display & Keypad Section -->
+<section class="bg-surface-container-low rounded-lg p-space-lg mb-space-lg flex flex-col items-center shadow-md">
+<!-- Currency / Account Pill Trigger -->
+<div class="inline-flex items-center gap-1.5 bg-surface-container px-3 py-1 rounded-full text-on-surface-variant mb-space-md">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">USD ($)</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Chase Sapphire ••8412</span>
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">expand_more</span>
+</div>
+<!-- Live Amount Screen with Cursor -->
+<div class="flex items-baseline justify-center gap-1 my-space-xs min-h-[52px]">
+<span class="font-display-lg text-display-lg text-error select-none" id="amount-prefix">-</span>
+<span class="font-display-lg text-display-lg text-on-surface-variant select-none">$</span>
+<span class="font-display-lg text-display-lg text-on-surface tracking-tight" id="amount-display">84.50</span>
+<span class="w-0.5 h-8 bg-primary rounded-full animate-pulse ml-0.5 self-center"></span>
+</div>
+<!-- Quick Presets -->
+<div class="flex items-center gap-2 mt-space-sm mb-space-md">
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface px-3 py-1 rounded-full font-label-sm text-label-sm transition-colors active:scale-95" onclick="addPreset(10)">+$10</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface px-3 py-1 rounded-full font-label-sm text-label-sm transition-colors active:scale-95" onclick="addPreset(25)">+$25</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface px-3 py-1 rounded-full font-label-sm text-label-sm transition-colors active:scale-95" onclick="addPreset(50)">+$50</button>
+<button class="bg-surface-container hover:bg-surface-container-high text-outline px-2.5 py-1 rounded-full font-label-sm text-label-sm transition-colors active:scale-95 flex items-center" onclick="clearAmount()">
+<span class="material-symbols-outlined text-[14px]">clear</span>
+</button>
+</div>
+<!-- Integrated Tactile Android Numeric Keypad -->
+<div class="w-full max-w-[280px] grid grid-cols-3 gap-2 pt-space-xs">
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('1')">1</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('2')">2</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('3')">3</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('4')">4</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('5')">5</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('6')">6</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('7')">7</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('8')">8</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('9')">9</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('.')">.</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressKey('0')">0</button>
+<button class="h-11 rounded-full bg-surface-container hover:bg-surface-container-high active:bg-secondary-container active:text-on-secondary-container text-on-surface font-headline-md text-headline-md flex items-center justify-center transition-all select-none" onclick="pressBackspace()">
+<span class="material-symbols-outlined text-[20px]">backspace</span>
+</button>
+</div>
+</section>
+<!-- Core Transaction Attributes -->
+<section class="space-y-space-md mb-space-lg">
+<!-- Account Selector Tile (Sec 4, 10) -->
+<div class="bg-surface-container p-space-md rounded-DEFAULT flex items-center justify-between cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]">account_balance</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Chase Sapphire</span>
+<span class="bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm px-1.5 py-0.5 rounded uppercase">USD</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline truncate">••••8412 • $4,180.25 available</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">chevron_right</span>
+</div>
+<!-- Hierarchical Category Tile (Sec 6.2 - 6.4) -->
+<div class="bg-surface-container p-space-md rounded-DEFAULT flex flex-col gap-2">
+<div class="flex items-center justify-between cursor-pointer">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary text-[20px]">shopping_cart</span>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Groceries</span>
+<span class="font-body-sm text-body-sm text-outline">in Food &amp; Dining</span>
+</div>
+<p class="font-body-sm text-body-sm text-tertiary truncate">Parent: Food &amp; Dining</p>
+</div>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full">Sub</span>
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+<!-- Quick Category Suggestion Pills -->
+<div class="flex items-center gap-1.5 overflow-x-auto pt-1 no-scrollbar">
+<span class="font-label-sm text-label-sm text-outline shrink-0 pr-1">Recent:</span>
+<button class="bg-surface-container-high hover:bg-surface-bright text-tertiary font-label-sm text-label-sm px-2.5 py-1 rounded-full whitespace-nowrap active:scale-95 transition-transform">Groceries</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-label-sm text-label-sm px-2.5 py-1 rounded-full whitespace-nowrap active:scale-95 transition-transform">Coffee &amp; Cafes</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-label-sm text-label-sm px-2.5 py-1 rounded-full whitespace-nowrap active:scale-95 transition-transform">Transit</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-label-sm text-label-sm px-2.5 py-1 rounded-full whitespace-nowrap active:scale-95 transition-transform">Dining Out</button>
+</div>
+</div>
+<!-- Date & Time Row (Sec 5.3) -->
+<div class="bg-surface-container p-space-md rounded-DEFAULT flex items-center justify-between cursor-pointer hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-[20px]">calendar_today</span>
+</div>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Today, Nov 14, 2024</span>
+<p class="font-body-sm text-body-sm text-outline">14:30 EST • Tap to adjust</p>
+</div>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">schedule</span>
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+<!-- Merchant / Note Input Row (Sec 5.3) -->
+<div class="bg-surface-container p-space-md rounded-DEFAULT flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">storefront</span>
+</div>
+<div class="flex-1 min-w-0">
+<label class="font-label-sm text-label-sm text-outline block" for="merchant-input">Merchant &amp; Description</label>
+<input class="w-full bg-transparent font-headline-sm text-headline-sm text-on-surface focus:outline-none placeholder:text-outline-variant" id="merchant-input" placeholder="e.g. Whole Foods, Uber, Rent" type="text" value="Trader Joe's"/>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors" title="Attach Receipt">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</button>
+</div>
+<!-- Tag Management Row (Sec 7.1 - 7.3) -->
+<div class="bg-surface-container p-space-md rounded-DEFAULT flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">label</span>
+<span class="font-label-md text-label-md text-on-surface">Labels &amp; Tags</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Independent of accounts</span>
+</div>
+<!-- Tags Wrap Container -->
+<div class="flex flex-wrap items-center gap-1.5 pt-1" id="tag-cloud">
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-secondary px-2.5 py-1 rounded-full font-label-sm text-label-sm">
+          #groceries
+          <button class="material-symbols-outlined text-[14px] hover:text-error" onclick="removeTag(this)">close</button>
+</span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-tertiary px-2.5 py-1 rounded-full font-label-sm text-label-sm">
+          #shared-split
+          <button class="material-symbols-outlined text-[14px] hover:text-error" onclick="removeTag(this)">close</button>
+</span>
+<span class="inline-flex items-center gap-1 bg-surface-container-high text-on-surface-variant px-2.5 py-1 rounded-full font-label-sm text-label-sm">
+          #personal
+          <button class="material-symbols-outlined text-[14px] hover:text-error" onclick="removeTag(this)">close</button>
+</span>
+<button class="inline-flex items-center gap-1 bg-surface-container-highest hover:bg-surface-bright text-on-surface-variant hover:text-on-surface px-2.5 py-1 rounded-full font-label-sm text-label-sm active:scale-95 transition-all" onclick="promptAddTag()">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Add Tag</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Advanced Rules & Controls (Sec 5, Sec 9) -->
+<section class="bg-surface-container rounded-DEFAULT p-space-md mb-space-xl space-y-space-md">
+<!-- Recurring Toggle -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-[18px]">autorenew</span>
+</div>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Mark as Recurring</span>
+<p class="font-body-sm text-body-sm text-outline">Repeat monthly on the 14th</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="recurring-toggle" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<!-- Split Transaction Toggle -->
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-[18px]">call_split</span>
+</div>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Split Transaction</span>
+<p class="font-body-sm text-body-sm text-outline">Distribute across categories</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" id="split-toggle" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-surface after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</section>
+<!-- Bottom Execution Zone -->
+<section class="flex flex-col gap-2 mt-auto">
+<!-- Primary CTA Button -->
+<button class="w-full h-[52px] bg-primary-container hover:bg-primary active:scale-[0.98] transition-all rounded-full flex items-center justify-center gap-2 shadow-[0_8px_24px_-2px_rgba(117,101,215,0.3)]" id="save-tx-btn">
+<span class="material-symbols-outlined text-on-primary-container text-[20px]">check</span>
+<span class="font-label-md text-label-md text-on-primary-container font-semibold" id="save-btn-label">Add Expense — $84.50</span>
+</button>
+<!-- Secondary Quick Follow-up Action -->
+<button class="w-full py-2.5 rounded-full flex items-center justify-center gap-1.5 text-secondary hover:text-on-surface transition-colors font-label-md text-label-md" onclick="handleSaveAndNew()">
+<span class="material-symbols-outlined text-[16px]">add_circle_outline</span>
+<span>Save and create another</span>
+</button>
+</section>
+</div>
+<script>
+  let currentAmount = "84.50";
+  let txType = "expense"; // expense, income, transfer
+
+  function updateDisplay() {
+    const displayEl = document.getElementById("amount-display");
+    const saveBtnLabel = document.getElementById("save-btn-label");
+    const prefixEl = document.getElementById("amount-prefix");
+
+    displayEl.textContent = currentAmount === "" ? "0.00" : currentAmount;
+    
+    let actionLabel = "Add Expense";
+    if (txType === "income") actionLabel = "Add Income";
+    if (txType === "transfer") actionLabel = "Confirm Transfer";
+
+    saveBtnLabel.textContent = `${actionLabel} — $${currentAmount === "" ? "0.00" : currentAmount}`;
+    
+    if (txType === "income") {
+      prefixEl.textContent = "+";
+      prefixEl.className = "font-display-lg text-display-lg text-tertiary select-none";
+    } else if (txType === "transfer") {
+      prefixEl.textContent = "⇄";
+      prefixEl.className = "font-display-lg text-display-lg text-primary select-none";
+    } else {
+      prefixEl.textContent = "-";
+      prefixEl.className = "font-display-lg text-display-lg text-error select-none";
+    }
+  }
+
+  function pressKey(char) {
+    if (currentAmount === "0.00" || currentAmount === "0") {
+      currentAmount = char === "." ? "0." : char;
+    } else {
+      if (char === "." && currentAmount.includes(".")) return;
+      if (currentAmount.includes(".") && currentAmount.split(".")[1].length >= 2) return;
+      if (currentAmount.length < 9) {
+        currentAmount += char;
+      }
+    }
+    updateDisplay();
+  }
+
+  function pressBackspace() {
+    if (currentAmount.length <= 1) {
+      currentAmount = "0";
+    } else {
+      currentAmount = currentAmount.slice(0, -1);
+    }
+    updateDisplay();
+  }
+
+  function clearAmount() {
+    currentAmount = "0";
+    updateDisplay();
+  }
+
+  function addPreset(val) {
+    let numeric = parseFloat(currentAmount) || 0;
+    numeric = Math.round((numeric + val) * 100) / 100;
+    currentAmount = numeric.toFixed(2);
+    updateDisplay();
+  }
+
+  function setTxType(type) {
+    txType = type;
+    const expenseBtn = document.getElementById("type-expense-btn");
+    const incomeBtn = document.getElementById("type-income-btn");
+    const transferBtn = document.getElementById("type-transfer-btn");
+
+    [expenseBtn, incomeBtn, transferBtn].forEach(btn => {
+      btn.className = "flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 text-on-surface-variant hover:text-on-surface font-label-md text-label-md";
+    });
+
+    if (type === "expense") {
+      expenseBtn.className = "flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 bg-surface-container-high text-error shadow-sm font-label-md text-label-md";
+    } else if (type === "income") {
+      incomeBtn.className = "flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 bg-surface-container-high text-tertiary shadow-sm font-label-md text-label-md";
+    } else if (type === "transfer") {
+      transferBtn.className = "flex-1 py-2 px-3 rounded-full flex items-center justify-center gap-1.5 transition-all duration-200 bg-surface-container-high text-primary shadow-sm font-label-md text-label-md";
+    }
+    updateDisplay();
+  }
+
+  function removeTag(btn) {
+    btn.closest("span").remove();
+  }
+
+  function promptAddTag() {
+    const tagName = prompt("Enter tag name (e.g. tax-deductible):");
+    if (!tagName) return;
+    const cleanTag = tagName.trim().replace(/^#/, "");
+    if (!cleanTag) return;
+
+    const cloud = document.getElementById("tag-cloud");
+    const addBtn = cloud.lastElementChild;
+
+    const tagSpan = document.createElement("span");
+    tagSpan.className = "inline-flex items-center gap-1 bg-surface-container-high text-primary px-2.5 py-1 rounded-full font-label-sm text-label-sm";
+    tagSpan.innerHTML = `#${cleanTag} <button onclick="removeTag(this)" class="material-symbols-outlined text-[14px] hover:text-error">close</button>`;
+
+    cloud.insertBefore(tagSpan, addBtn);
+  }
+
+  function handleSaveAndNew() {
+    currentAmount = "0";
+    document.getElementById("merchant-input").value = "";
+    updateDisplay();
+    alert("Transaction logged successfully! Ready for the next entry.");
+  }
+
+  // Initialize
+  updateDisplay();
+</script></main></body></html>

@@ -1,23 +1,18 @@
 package com.yehor.finora.ui.common
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,6 +22,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -35,9 +32,16 @@ import androidx.lifecycle.viewModelScope
 import com.yehor.finora.R
 import com.yehor.finora.data.repo.AccountRepository
 import com.yehor.finora.data.repo.CategoryRepository
+import com.yehor.finora.designsystem.component.list.GroupedCard
+import com.yehor.finora.designsystem.component.list.ListRow
+import com.yehor.finora.designsystem.component.list.RoundIcon
+import com.yehor.finora.designsystem.icon.AppIcons
+import com.yehor.finora.designsystem.theme.PillShape
 import com.yehor.finora.domain.account.PickableAccount
 import com.yehor.finora.domain.category.CategoryTree
 import com.yehor.finora.domain.model.CategoryType
+import com.yehor.finora.ui.operations.FilterSearchField
+import com.yehor.finora.ui.operations.ShelfDivider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,25 +94,45 @@ fun AccountPickerContent(
     onSelect: (Long) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier) {
-        accounts.forEach { pickable ->
+    GroupedCard(modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+        accounts.forEachIndexed { index, pickable ->
             val a = pickable.account
-            ListItem(
-                leadingContent = { IconBadge(a.icon, a.color, ColorPalette.ACCOUNT_DEFAULT) },
-                headlineContent = { Text(a.name) },
-                supportingContent = { Text(a.currency.code) },
-                trailingContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        if (pickable.isArchivedOriginal) {
-                            SuggestionChip(onClick = {}, label = { Text(stringResource(R.string.picker_archived_badge)) })
-                        }
-                        RadioButton(selected = a.id == selectedAccountId, onClick = null)
+            val isSelected = a.id == selectedAccountId
+            if (index > 0) ShelfDivider()
+            ListRow(
+                icon = { IconBadge(a.icon, a.color, ColorPalette.ACCOUNT_DEFAULT, size = 38) },
+                title = a.name,
+                subtitle = a.currency.code,
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (pickable.isArchivedOriginal) PickerBadge(stringResource(R.string.picker_archived_badge))
+                        if (isSelected) SelectedMark()
                     }
                 },
-                modifier = Modifier.clickable { onSelect(a.id) },
+                onClick = { onSelect(a.id) },
+                modifier = Modifier.semantics { selected = isSelected },
             )
         }
     }
+}
+
+/** Small muted pill label (e.g. "Archived"). */
+@Composable
+private fun PickerBadge(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHighest, PillShape)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+    )
+}
+
+/** Mint check shown on the chosen row. */
+@Composable
+private fun SelectedMark() {
+    Icon(AppIcons.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
 }
 
 // ---- Category tree picker ----
@@ -144,69 +168,141 @@ fun CategoryTreePickerContent(
     onSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier,
     selectedId: Long? = null,
+    onCreate: (() -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     var expanded by rememberSaveable { mutableStateOf(emptyList<Long>()) }
     val rows = CategoryPickerModel.rows(tree, type, mode, expanded.toSet(), query)
+    val showNoParent = mode is PickerMode.Parent && query.isBlank()
 
     Column(modifier) {
-        OutlinedTextField(
+        FilterSearchField(
             value = query,
             onValueChange = { query = it },
-            label = { Text(stringResource(R.string.action_search)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            placeholder = stringResource(R.string.action_search),
+            modifier = Modifier.padding(bottom = 8.dp),
         )
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-            if (mode is PickerMode.Parent && query.isBlank()) {
-                item(key = "no-parent") {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.picker_no_parent)) },
-                        trailingContent = { RadioButton(selected = selectedId == null, onClick = null) },
-                        modifier = Modifier.clickable { onSelect(null) },
-                    )
+        GroupedCard(Modifier.fillMaxWidth().weight(1f, fill = false)) {
+            LazyColumn {
+                if (showNoParent) {
+                    item(key = "no-parent") {
+                        ListRow(
+                            icon = { RoundIcon(AppIcons.Category, MaterialTheme.colorScheme.onSurfaceVariant, size = 36.dp) },
+                            title = stringResource(R.string.picker_no_parent),
+                            subtitle = null,
+                            trailing = { if (selectedId == null) SelectedMark() },
+                            onClick = { onSelect(null) },
+                            modifier = Modifier.semantics { selected = selectedId == null },
+                        )
+                    }
                 }
-            }
-            if (rows.isEmpty()) {
-                item(key = "empty") {
-                    Text(
-                        stringResource(R.string.picker_no_results),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(16.dp),
-                    )
+                if (rows.isEmpty()) {
+                    item(key = "empty") {
+                        Text(
+                            stringResource(R.string.picker_no_results),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(16.dp),
+                        )
+                    }
                 }
-            }
-            items(rows, key = { it.category.id }) { row ->
-                val c = row.category
-                ListItem(
-                    leadingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconBadge(c.icon, c.color, ColorPalette.defaultFor(c.type), size = 32)
-                        }
-                    },
-                    headlineContent = { Text(if (query.isBlank()) c.name else row.path) },
-                    trailingContent = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (row.hasChildren && query.isBlank()) {
-                                IconButton(onClick = {
-                                    expanded = if (row.expanded) expanded - c.id else expanded + c.id
-                                }) {
-                                    Icon(
-                                        if (row.expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                        contentDescription = stringResource(
-                                            if (row.expanded) R.string.action_collapse else R.string.action_expand,
-                                        ),
-                                    )
+                itemsIndexed(rows, key = { _, row -> row.category.id }) { index, row ->
+                    val c = row.category
+                    if (index > 0 || showNoParent) ShelfDivider()
+                    ListRow(
+                        icon = { IconBadge(c.icon, c.color, ColorPalette.defaultFor(c.type), size = PICKER_ICON_SIZE) },
+                        title = if (query.isBlank()) c.name else row.path,
+                        subtitle = null,
+                        trailing = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (row.hasChildren && query.isBlank()) {
+                                    IconButton(onClick = {
+                                        expanded = if (row.expanded) expanded - c.id else expanded + c.id
+                                    }) {
+                                        Icon(
+                                            if (row.expanded) AppIcons.Collapse else AppIcons.Expand,
+                                            contentDescription = stringResource(
+                                                if (row.expanded) R.string.action_collapse else R.string.action_expand,
+                                            ),
+                                        )
+                                    }
                                 }
+                                if (row.selectable && c.id == selectedId) SelectedMark()
                             }
-                            if (row.selectable) RadioButton(selected = c.id == selectedId, onClick = null)
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(start = (row.level * 16).dp)
-                        .clickable(enabled = row.selectable) { onSelect(c.id) },
+                        },
+                        modifier = Modifier
+                            .padding(start = (row.level * 16).dp)
+                            .semantics { selected = c.id == selectedId },
+                        onClick = if (row.selectable) ({ onSelect(c.id) }) else null,
+                    )
+                }
+                if (onCreate != null) {
+                    item(key = "create-category") {
+                        if (rows.isNotEmpty() || showNoParent) ShelfDivider()
+                        ListRow(
+                            icon = { RoundIcon(AppIcons.Add, MaterialTheme.colorScheme.primary, size = PICKER_ICON_SIZE.dp) },
+                            title = stringResource(R.string.transaction_form_create_category),
+                            subtitle = null,
+                            trailing = {},
+                            onClick = onCreate,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private const val PICKER_ICON_SIZE = 36
+
+// ---- Previews ----
+
+private fun previewAccounts(): List<PickableAccount> {
+    val usd = com.yehor.finora.domain.money.CurrencyRegistry.get("USD")
+    fun account(id: Long, name: String, icon: String, status: com.yehor.finora.domain.model.AccountStatus) =
+        com.yehor.finora.domain.account.Account(
+            id, name, usd, com.yehor.finora.domain.account.AccountType.BANK, icon, null, null, status, 0L,
+        )
+    return listOf(
+        PickableAccount(account(1, "Main card", "account_balance", com.yehor.finora.domain.model.AccountStatus.ACTIVE), false),
+        PickableAccount(account(2, "Cash", "wallet", com.yehor.finora.domain.model.AccountStatus.ACTIVE), false),
+        PickableAccount(account(3, "Old savings", "savings", com.yehor.finora.domain.model.AccountStatus.ARCHIVED), true),
+    )
+}
+
+private fun previewTree() = CategoryTree(
+    listOf(
+        com.yehor.finora.domain.category.Category(1, "Food", "restaurant", null, CategoryType.EXPENSE, null, 0),
+        com.yehor.finora.domain.category.Category(2, "Groceries", "shopping_cart", null, CategoryType.EXPENSE, 1, 0),
+        com.yehor.finora.domain.category.Category(3, "Transport", "directions_bus", null, CategoryType.EXPENSE, null, 0),
+    ),
+)
+
+@Composable
+private fun PickerSheetPreview(dark: Boolean) {
+    com.yehor.finora.designsystem.theme.PreviewTheme(dark) {
+        androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                AccountPickerContent(previewAccounts(), selectedAccountId = 1L, onSelect = {})
+                CategoryTreePickerContent(
+                    tree = previewTree(),
+                    type = CategoryType.EXPENSE,
+                    mode = PickerMode.Parent(),
+                    onSelect = {},
+                    selectedId = 1L,
+                    onCreate = {},
                 )
             }
         }
     }
 }
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, heightDp = 900, name = "Account and category pickers light")
+@Composable
+private fun PickerSheetPreviewLight() = PickerSheetPreview(dark = false)
+
+@androidx.compose.ui.tooling.preview.Preview(
+    showBackground = true, backgroundColor = 0xFF0F1412, heightDp = 900, name = "Account and category pickers dark",
+)
+@Composable
+private fun PickerSheetPreviewDark() = PickerSheetPreview(dark = true)
