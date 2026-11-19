@@ -4,3 +4,5 @@ multi currency sorting for transactions page
 
 add optional password for data backup
 add backup to google drive
+
+performance issue, especially when switching screens (dashboard -> transactions)
